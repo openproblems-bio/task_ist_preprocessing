@@ -1,0 +1,21 @@
+ROOT: /lustre/groups/ml01/projects/2022_scSTsim_louis.kuemmerle
+#r_env : scIB-R-integration
+py_env : scSTsim-python
+timing: false
+
+
+PREPROCESSING:
+  watershed-raw:
+    segmentation: watershed
+    normalisation: null
+  watershed-area:
+    segmentation: watershed
+    normalisation: area    
+
+
+DATA_SCENARIOS:
+  dev_heart:
+    organism: human
+    file_sc: ...
+    file_ST: ...
+  
