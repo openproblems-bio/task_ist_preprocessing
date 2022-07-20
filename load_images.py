@@ -22,13 +22,13 @@ import argparse
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Segment DAPI images')
-    parser.add_argument('-i', '--input', required=True, help='Input image file')
-    parser.add_argument('-o', '--output', required=True, help='Output directory')
-    parser.add_argument('-b', '--binary', default=False, 
+    parser.add_argument('-i', '--input', required=True, type=str, help='Input image file')
+    parser.add_argument('-o', '--output', required=True, type=str, help='Output directory')
+    parser.add_argument('-b', '--binary', default=False, type=bool,
         help='If the input image is a segmented, binary image (e.g. watershed via ImageJ)')
-    parser.add_argument('-s', '--segment', default='watershed', 
+    parser.add_argument('-s', '--segment', default='watershed', type=str,
         help='Segmentation method to be used')
-    parser.add_argument('-e', '--expand', default=0, 
+    parser.add_argument('-e', '--expand', default=0, type=int,
         help='Amount to expand each segment by- can be used to approximate cell boundary') 
     
     args = parser.parse_args()
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     if(not binary):
         img = sq.im.ImageContainer(image_file)
         tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method)
-        img_arr = img[f"segmented_{segmentation_method}"].to_numpy()[:,:,0,0]
+        img_arr = img[f'segmented_{segmentation_method}'].to_numpy()[:,:,0,0]
 
     #If already segmented, label
     else:
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         img_arr = skimage.segmentation.expand_labels(img_arr, distance=expand_nuclear_area)
 
     #Save as .mat file
-    scipy.io.savemat(f"{output}/label_{segmentation_method}.mat", {'label':img_arr})
+    scipy.io.savemat(f'{output}/label_{segmentation_method}.mat', {'label':img_arr})
 
     #Calculate and save areas
     (unique, counts) = np.unique(img_arr, return_counts=True)

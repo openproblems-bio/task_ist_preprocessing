@@ -2,26 +2,47 @@
 
 import scanpy as sc
 import txsim as tx
+import argparse
 
 #INPUT: (Spatial) counts.h5ad, (scRNAseq) counts.h5ad
 #OUTPUT: metrics.txt
 #From config
-sc_data = "C:/Users/Habib/Projects/HMGU/tx_project/heart/raw_data/heart_sc.h5ad" 
-segmentation_method = 'imagej'
-assignment_method = 'pciSeq'
-normalize_by = 'area'
+#sc_data = "C:/Users/Habib/Projects/HMGU/tx_project/heart/raw_data/heart_sc.h5ad" 
+#segmentation_method = 'imagej'
+#assignment_method = 'pciSeq'
+#normalize_by = 'area'
 
-#Read count matrices
-scdata = sc.read(sc_data)
-stdata = sc.read(f'data/counts_{segmentation_method}_{assignment_method}_{normalize_by}.h5ad')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Generate count matrix for spatial data')
+    parser.add_argument('-d', '--data', required=True, type=str, 
+        help='Ouput data directory- should also contain segmented image')
+    parser.add_argument('-s', '--segment', required=True, type=str,
+        help='Segmentation method used for image')
+    parser.add_argument('-a', '--assignment', required=True, type=str, 
+        help='Assignment method used for molecules')
+    parser.add_argument('-n', '--normalize', default='total', type=str,
+        help='Method to normalize raw count matrices by')
+    parser.add_argument('-sc', '--singlecell', required=True, type=str,
+        help='Single cell h5ad count matrix with celltype in anndata.obs[\'celltype\']') 
+    
+    args = parser.parse_args()
+    
+    assignment_method = args.assignment
+    data = args.data
+    segmentation_method = args.segment
+    normalize_by = args.normalize
+    sc_data = args.singlecell
 
-#Generate metrics
-coex_all = tx.metrics.coexpression_similarity(stdata, scdata)
-coex_thresh = tx.metrics.coexpression_similarity(stdata, scdata, thresh=0.5)
+    #Read count matrices
+    scdata = sc.read(sc_data)
+    stdata = sc.read(f'{data}/counts_{segmentation_method}_{assignment_method}_{normalize_by}.h5ad')
 
-f = open(f'data/metrics_{segmentation_method}_{assignment_method}_{normalize_by}', 'w')
-f.truncate(0)
-f.writelines(f"Coexpresion Difference: {coex_all}\n")
-f.writelines(f"Coexpresion Difference, with threshold: {coex_thresh}")
-f.close()
+    #Generate metrics
+    coex_all = tx.metrics.coexpression_similarity(stdata, scdata)
+    coex_thresh = tx.metrics.coexpression_similarity(stdata, scdata, thresh=0.5)
 
+    f = open(f'{data}/metrics_{segmentation_method}_{assignment_method}_{normalize_by}.txt', 'w')
+    f.truncate(0)
+    f.writelines(f"Coexpresion Difference: {coex_all}\n")
+    f.writelines(f"Coexpresion Difference, with threshold: {coex_thresh}")
+    f.close()
