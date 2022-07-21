@@ -1,21 +1,37 @@
-ROOT: /lustre/groups/ml01/projects/2022_scSTsim_louis.kuemmerle
-#r_env : scIB-R-integration
-py_env : scSTsim-python
-timing: false
-
+ROOT: C:/Users/Habib/Projects/HMGU/tx_project
+RESULTS: results
+py_env : pipeline
 
 PREPROCESSING:
-  watershed-raw:
-    segmentation: watershed
-    normalisation: null
-  watershed-area:
-    segmentation: watershed
-    normalisation: area    
-
+  run1:
+    segmentation: [watershed]
+    seg_params:
+      expand: [0]
+      binary: false
+    assignment: [pciSeq]
+    assign_params:
+      opts: {'exclude_genes':['TCIM']}
+    normalize: [total, area]
+    dataset: [heart]
+  run2:
+    segmentation: [imagej]
+    seg_params:
+      expand: [10]
+      binary: true
+    assignment: [pciSeq]
+    assign_params:
+      opts: {'exclude_genes':['TCIM']}
+    normalize: [area]
+    dataset: [heart2]
 
 DATA_SCENARIOS:
-  dev_heart:
-    organism: human
-    file_sc: ...
-    file_ST: ...
+  heart:
+    image: heart/raw_data/nuclei_PCW4.5_1.tif
+    sc_data: heart/raw_data/heart_sc.h5ad
+    molecules: heart/raw_data/spots_PCW4.5_1.csv
+  heart2:
+    image: heart/raw_data/nuclei_PCW4.5_1_watershed.tif
+    sc_data: heart/raw_data/heart_sc.h5ad
+    molecules: heart/raw_data/spots_PCW4.5_1.csv
+  
   

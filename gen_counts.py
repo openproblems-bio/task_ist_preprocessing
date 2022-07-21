@@ -59,13 +59,15 @@ if __name__ == '__main__':
 
 
     #Load area data from same as assignment or segmentation method
-    if(area_method == None):
+    if(area_method is None):
         if(os.path.exists(f'{data}/areas_{assignment_method}.csv')):
             temp = pd.read_csv(f'{data}/areas_{assignment_method}.csv', header=None)
             adata.obs['area'] = temp[1][adata.obs_names]
+            print("Not good")
         elif(os.path.exists(f'{data}/areas_{segmentation_method}.csv')):
             temp = pd.read_csv(f'{data}/areas_{segmentation_method}.csv', header=None)
             adata.obs['area'] = temp[1][adata.obs_names]
+            print("Good")
         else:
             #If no area data detected, use alpha area from points
             area_method = 'alpha'
@@ -94,9 +96,10 @@ if __name__ == '__main__':
         #Use this mean area to fill in NaN values
         area_vec[np.isnan(area_vec)] = mean_area * np.sum(adata.X, axis=1)[np.isnan(area_vec)]
         adata.obs['area'] = area_vec
-    else:
+    elif (area_method is not None):
         temp = pd.read_csv(f'{data}/areas_{area_method}.csv', header=None)
         adata.obs['area'] = temp[1][adata.obs_names]
+        print("What")
     
     #Normalize by area or by total counts
     if(normalize_by == 'area'):

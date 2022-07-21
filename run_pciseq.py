@@ -2,12 +2,12 @@
 
 import argparse
 import pciSeq
-import scipy.io
+import skimage.io
 from scipy.sparse import coo_matrix
 import pandas as pd
 import scanpy as sc
 
-#INPUT: molecules.csv, singlecell.h5ad labels.mat
+#INPUT: molecules.csv, singlecell.h5ad labels.tif
 #OUTPUT: assignments.csv
 #From config:
 #segmentation_method = 'imagej'
@@ -26,7 +26,7 @@ if __name__ == '__main__':
         help='Segmentation method used for image')
     parser.add_argument('-sc', '--singlecell', required=True, type=str,
         help='Single cell h5ad count matrix with celltype in anndata.obs[\'celltype\']') 
-    parser.add_argument('-o', '--opts', default=None, type=dict,
+    parser.add_argument('-o', '--opts', default=None, type=str,
         help='Option dictionary for pciSeq') 
     
     args = parser.parse_args()
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     data = args.data
     segmentation_method = args.segment
     sc_data = args.singlecell
-    opts = args.opts
+    opts = eval(args.opts)
 
     #Read and format molecules, single cell data, and labels
     spots = pd.read_csv(molecules)
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     scdata.columns = adata.obs['celltype']
     scdata.index = adata.var_names
 
-    label = scipy.io.loadmat(f'{data}/label_{segmentation_method}')['label']
+    label = skimage.io.imread(f'{data}/label_{segmentation_method}.tif')
     coo = coo_matrix(label)
 
     #Run through pciSeq

@@ -1,9 +1,10 @@
 *.egg-info
 __pycache__/
 .ipynb_checkpoints
-data/
+results/
 calc_metrics.ipynb
 gen_counts.ipynb
 load_images.ipynb
 run_baysor.ipynb
 run_pciseq.ipynb
+.snakemake

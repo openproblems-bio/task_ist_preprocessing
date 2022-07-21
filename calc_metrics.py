@@ -20,8 +20,8 @@ if __name__ == '__main__':
         help='Segmentation method used for image')
     parser.add_argument('-a', '--assignment', required=True, type=str, 
         help='Assignment method used for molecules')
-    parser.add_argument('-n', '--normalize', default='total', type=str,
-        help='Method to normalize raw count matrices by')
+    parser.add_argument('-n', '--normalize', required=True, type=str,
+        help='Method used to normalize raw count matrices')
     parser.add_argument('-sc', '--singlecell', required=True, type=str,
         help='Single cell h5ad count matrix with celltype in anndata.obs[\'celltype\']') 
     

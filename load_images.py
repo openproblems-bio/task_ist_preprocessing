@@ -2,29 +2,25 @@
 
 import txsim as tx
 import squidpy as sq
-import scipy.io
+from PIL import Image
 from scipy import ndimage
 import skimage.io
 import skimage.measure
 import skimage.segmentation
 import numpy as np
 import argparse
+import os
 
 #INPUT: DAPI.tif, binary.tif
-#OUTPUT: label.mat, areas.csv
-#From config:
-#image_file = "C:/Users/Habib/Projects/HMGU/tx_project/heart/raw_data/nuclei_PCW4.5_1_watershed.tif"
-#binary = True
-#segmentation_method = 'imagej'
-#expand_nuclear_area = 10
-
+#OUTPUT: label.tif, areas.csv
 
 if __name__ == '__main__':
 
+    #Parse arguments
     parser = argparse.ArgumentParser(description='Segment DAPI images')
     parser.add_argument('-i', '--input', required=True, type=str, help='Input image file')
     parser.add_argument('-o', '--output', required=True, type=str, help='Output directory')
-    parser.add_argument('-b', '--binary', default=False, type=bool,
+    parser.add_argument('-b', '--binary', action='store_true',
         help='If the input image is a segmented, binary image (e.g. watershed via ImageJ)')
     parser.add_argument('-s', '--segment', default='watershed', type=str,
         help='Segmentation method to be used')
@@ -38,13 +34,17 @@ if __name__ == '__main__':
     binary = args.binary
     segmentation_method = args.segment
     expand_nuclear_area = args.expand
+    
+    #Create output folder if needed
+    if not os.path.exists(output):
+        os.mkdir(output)
 
     #If unsegmented, segment image
     if(not binary):
         img = sq.im.ImageContainer(image_file)
         tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method)
         img_arr = img[f'segmented_{segmentation_method}'].to_numpy()[:,:,0,0]
-
+    
     #If already segmented, label
     else:
         img_arr = skimage.io.imread(image_file)
@@ -54,8 +54,8 @@ if __name__ == '__main__':
     if(expand_nuclear_area != None):
         img_arr = skimage.segmentation.expand_labels(img_arr, distance=expand_nuclear_area)
 
-    #Save as .mat file
-    scipy.io.savemat(f'{output}/label_{segmentation_method}.mat', {'label':img_arr})
+    #Save as .tif file
+    skimage.io.imsave(f'{output}/label_{segmentation_method}.tif', img_arr)
 
     #Calculate and save areas
     (unique, counts) = np.unique(img_arr, return_counts=True)
