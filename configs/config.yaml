@@ -3,25 +3,32 @@ RESULTS: results
 py_env : pipeline
 
 PREPROCESSING:
-  run1:
-    segmentation: [watershed]
-    seg_params:
+  batch1:
+    segmentation: 
+      watershed:
+    segmentation_params:
       expand: [0]
-      binary: false
-    assignment: [pciSeq]
-    assign_params:
-      opts: {'exclude_genes':['TCIM']}
-    normalize: [total, area]
+      binary: [False]
+    assignment: 
+      pciSeq:
+        opts: [{'exclude_genes':['TCIM']}]
+    normalize: 
+      total:
+      area:
+        type: [None]
     dataset: [heart]
-  run2:
-    segmentation: [imagej]
-    seg_params:
-      expand: [10]
-      binary: true
-    assignment: [pciSeq]
-    assign_params:
-      opts: {'exclude_genes':['TCIM']}
-    normalize: [area]
+  batch2:
+    segmentation: 
+      imagej:
+      watershed:
+    segmentation_params:
+      expand: [0, 10]
+      binary: [True]
+    assignment: 
+      pciSeq:
+        opts: [{'exclude_genes':['TCIM']}]
+    normalize: 
+      total:
     dataset: [heart2]
 
 DATA_SCENARIOS:
@@ -33,5 +40,3 @@ DATA_SCENARIOS:
     image: heart/raw_data/nuclei_PCW4.5_1_watershed.tif
     sc_data: heart/raw_data/heart_sc.h5ad
     molecules: heart/raw_data/spots_PCW4.5_1.csv
-  
-  

@@ -1,82 +1,73 @@
 import yaml
+import itertools
+import json
+import csv
+import pandas as pd
+from TxsimConfig import *
 
-cfg = yaml.load(open('configs/config.yaml', 'r'), Loader=yaml.FullLoader)
-final_files = []
-for run in cfg['PREPROCESSING']:
-    final_files.extend(
-            expand(
-                cfg['ROOT']+'/{results}/{run}/{dataset}/metrics_{seg}_{assign}_{norm}.txt',
-                results=cfg['RESULTS'],
-                run=run,
-                dataset=cfg['PREPROCESSING'][run]['dataset'],
-                seg=cfg['PREPROCESSING'][run]['segmentation'],
-                assign=cfg['PREPROCESSING'][run]['assignment'],
-                norm=cfg['PREPROCESSING'][run]['normalize']
-            )
-        )
+parsed = ParsedConfig('configs/config.yaml')
+final_files = parsed.gen_file_names()
 
-#TODO Add file name option for different method params
-
+#Main rule (will always be run)
 rule all:
     input:
         final_files
 
 rule label:
     output:
-        '{results}/{run}/{dataset}/label_{seg}.tif'
+        '{results}/{dataset}/label_{seg}-{shp}.tif'
     params:
-        img = lambda w: cfg['ROOT'] + '/' + cfg['DATA_SCENARIOS'][w.dataset]['image'],
-        exp = lambda w: cfg['PREPROCESSING'][w.run]['seg_params']['expand'],
-        bry = lambda w: "-b " if cfg['PREPROCESSING'][w.run]['seg_params']['binary'] else ""
+        img = lambda w: parsed.get_data_file(w.dataset, 'image'),
+        exp = lambda w: parsed.get_method_params(w.seg, int(w.shp))['expand'],
+        bry = lambda w: "-b " if parsed.get_method_params(w.seg, int(w.shp))['binary'] else ""
     shell:
         "python load_images.py "
         "-i {params.img} "
-        "-o {wildcards.results}/{wildcards.run}/{wildcards.dataset} "
+        "-o {wildcards.results}/{wildcards.dataset} "
         "-e {params.exp} "
         "-s {wildcards.seg} "
         "{params.bry}"
 
 rule assign:
     input:
-        '{results}/{run}/{dataset}/label_{seg}.tif'
+        '{results}/{dataset}/label_{seg}-{shp}.tif'
     params:
-        mol = lambda w: cfg['ROOT'] + '/' + cfg['DATA_SCENARIOS'][w.dataset]['molecules'],
-        scd = lambda w: cfg['ROOT'] + '/' + cfg['DATA_SCENARIOS'][w.dataset]['sc_data'],
-        opt = lambda w: cfg['PREPROCESSING'][w.run]['assign_params']['opts'],
+        mol = lambda w: parsed.get_data_file(w.dataset, 'molecules'),
+        scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data'),
+        hyp = lambda w: parsed.get_method_params(w.assign, int(w.ahp))['p']
     output:
-        '{results}/{run}/{dataset}/assignments_{seg}_{assign}.csv'
+        '{results}/{dataset}/assignments_{seg}-{shp}_{assign}-{ahp}.csv'
     shell:
         "python run_{wildcards.assign}.py "
         "-m {params.mol} "
-        "-o \"{params.opt}\" "
+        "-p \"{params.hyp}\" "
         "-sc {params.scd} "
-        "-d {wildcards.results}/{wildcards.run}/{wildcards.dataset} "
+        "-d {wildcards.results}/{wildcards.dataset} "
         "-s {wildcards.seg} "
 
-#TODO add params for area method
 rule counts:
     input:
-        '{results}/{run}/{dataset}/assignments_{seg}_{assign}.csv'
+        '{results}/{dataset}/assignments_{seg}-{shp}_{assign}-{ahp}.csv'
     output:
-        '{results}/{run}/{dataset}/counts_{seg}_{assign}_{norm}.h5ad'
+        '{results}/{dataset}/counts_{seg}-{shp}_{assign}-{ahp}_{norm}-{nhp}.h5ad'
     shell:
         "python gen_counts.py "
         "-a {wildcards.assign} "
-        "-d {wildcards.results}/{wildcards.run}/{wildcards.dataset} "
+        "-d {wildcards.results}/{wildcards.dataset} "
         "-s {wildcards.seg} "
         "-n {wildcards.norm} "
 
 rule metric:
     input:
-        '{results}/{run}/{dataset}/counts_{seg}_{assign}_{norm}.h5ad'
+        '{results}/{dataset}/counts_{seg}_{assign}_{norm}-{nhp}.h5ad'
     params:
-        scd = lambda w: cfg['ROOT'] + '/' + cfg['DATA_SCENARIOS'][w.dataset]['sc_data']
+        scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data'),
     output:
-        '{results}/{run}/{dataset}/metrics_{seg}_{assign}_{norm}.txt'
+        '{results}/{dataset}/metrics_{seg}_{assign}_{norm}-{nhp}.txt'
     shell:
         "python calc_metrics.py "
         "-a {wildcards.assign} "
-        "-d {wildcards.results}/{wildcards.run}/{wildcards.dataset} "
+        "-d {wildcards.results}/{wildcards.dataset} "
         "-s {wildcards.seg} "
         "-n {wildcards.norm} "
         "-sc {params.scd} "

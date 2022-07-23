@@ -26,7 +26,7 @@ if __name__ == '__main__':
         help='Segmentation method used for image')
     parser.add_argument('-sc', '--singlecell', required=True, type=str,
         help='Single cell h5ad count matrix with celltype in anndata.obs[\'celltype\']') 
-    parser.add_argument('-o', '--opts', default=None, type=str,
+    parser.add_argument('-p', '--hyperparams', default=None, type=str,
         help='Option dictionary for pciSeq') 
     
     args = parser.parse_args()
@@ -35,8 +35,8 @@ if __name__ == '__main__':
     data = args.data
     segmentation_method = args.segment
     sc_data = args.singlecell
-    opts = eval(args.opts)
-
+    opts = eval(args.hyperparams)['opts']
+ 
     #Read and format molecules, single cell data, and labels
     spots = pd.read_csv(molecules)
     spots.columns = ['Gene', 'x', 'y']
