@@ -31,6 +31,8 @@ if __name__ == '__main__':
         help='Method to normalize raw count matrices by') 
     parser.add_argument('-am', '--areamethod', default=None, type=str,
         help='Method to calculate area for each cell, leave as None to use previous areas') 
+    parser.add_argument('-id', '--id_code', required=True, type = str,
+        help='ID of method to be used for saving')
          
     
     args = parser.parse_args()
@@ -40,6 +42,7 @@ if __name__ == '__main__':
     segmentation_method = args.segment
     normalize_by = args.normalize
     area_method = args.areamethod
+    id_code = args.id_code
 
     #Read assignments
     spots = pd.read_csv(f'{data}/assignments_{segmentation_method}_{assignment_method}.csv')
@@ -63,11 +66,9 @@ if __name__ == '__main__':
         if(os.path.exists(f'{data}/areas_{assignment_method}.csv')):
             temp = pd.read_csv(f'{data}/areas_{assignment_method}.csv', header=None)
             adata.obs['area'] = temp[1][adata.obs_names]
-            print("Not good")
         elif(os.path.exists(f'{data}/areas_{segmentation_method}.csv')):
             temp = pd.read_csv(f'{data}/areas_{segmentation_method}.csv', header=None)
             adata.obs['area'] = temp[1][adata.obs_names]
-            print("Good")
         else:
             #If no area data detected, use alpha area from points
             area_method = 'alpha'
@@ -99,7 +100,6 @@ if __name__ == '__main__':
     elif (area_method is not None):
         temp = pd.read_csv(f'{data}/areas_{area_method}.csv', header=None)
         adata.obs['area'] = temp[1][adata.obs_names]
-        print("What")
     
     #Normalize by area or by total counts
     if(normalize_by == 'area'):
@@ -108,4 +108,5 @@ if __name__ == '__main__':
         tx.preprocessing.normalize_total(adata)
 
     #Save AnnData object
-    adata.write_h5ad(f"{data}/counts_{segmentation_method}_{assignment_method}_{normalize_by}.h5ad")
+    adata.write_h5ad(f"{data}/counts_{segmentation_method}_{assignment_method}_{normalize_by}-{id_code}.h5ad")
+    print(f'Saved {data}/counts_{segmentation_method}_{assignment_method}_{normalize_by}-{id_code}.h5ad')

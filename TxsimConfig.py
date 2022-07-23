@@ -4,6 +4,7 @@ import json
 import csv
 import pandas as pd
 from snakemake.io import expand
+import os
 
 class ParsedConfig:
     PROCESSES =  ['segmentation', 'assignment', 'normalize']
@@ -92,10 +93,13 @@ class ParsedConfig:
             output["names"] += [method]  * len(self.method_dict[method])
             output["id"].extend(range(len(self.method_dict[method])))
             output["params"].extend(self.method_dict[method])
-        df = pd.DataFrame.from_dict(output)
-        df.to_csv(self.cfg['ROOT']+'/' + self.cfg['RESULTS'] + '/params_dict.csv')
         
-
+        df = pd.DataFrame.from_dict(output)
+        output_folder = self.cfg['ROOT']+'/' + self.cfg['RESULTS']
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
+        df.to_csv(output_folder + '/params_dict.csv')
+        
     def gen_file_names(self):
         return self.final_files
     

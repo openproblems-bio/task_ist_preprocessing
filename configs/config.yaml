@@ -6,8 +6,9 @@ PREPROCESSING:
   batch1:
     segmentation: 
       watershed:
+      cellpose:
     segmentation_params:
-      expand: [0]
+      expand: [0, 10, 20]
       binary: [False]
     assignment: 
       pciSeq:
@@ -15,21 +16,7 @@ PREPROCESSING:
     normalize: 
       total:
       area:
-        type: [None]
-    dataset: [heart]
-  batch2:
-    segmentation: 
-      imagej:
-      watershed:
-    segmentation_params:
-      expand: [0, 10]
-      binary: [True]
-    assignment: 
-      pciSeq:
-        opts: [{'exclude_genes':['TCIM']}]
-    normalize: 
-      total:
-    dataset: [heart2]
+    dataset: [test]
 
 DATA_SCENARIOS:
   heart:
@@ -40,3 +27,7 @@ DATA_SCENARIOS:
     image: heart/raw_data/nuclei_PCW4.5_1_watershed.tif
     sc_data: heart/raw_data/heart_sc.h5ad
     molecules: heart/raw_data/spots_PCW4.5_1.csv
+  test:
+    image: test/raw_image.tif
+    sc_data: test/sc_data.h5ad
+    molecules: test/spots.csv

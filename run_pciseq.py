@@ -28,6 +28,8 @@ if __name__ == '__main__':
         help='Single cell h5ad count matrix with celltype in anndata.obs[\'celltype\']') 
     parser.add_argument('-p', '--hyperparams', default=None, type=str,
         help='Option dictionary for pciSeq') 
+    parser.add_argument('-id', '--id_code', required=True, type = str,
+        help='ID of method to be used for saving')
     
     args = parser.parse_args()
 
@@ -36,6 +38,7 @@ if __name__ == '__main__':
     segmentation_method = args.segment
     sc_data = args.singlecell
     opts = eval(args.hyperparams)['opts']
+    id_code = args.id_code
  
     #Read and format molecules, single cell data, and labels
     spots = pd.read_csv(molecules)
@@ -60,4 +63,4 @@ if __name__ == '__main__':
     #Save in correct format
     assignments = geneData[ ["Gene", "x", "y", "neighbour"] ]
     assignments.columns = ["gene", "x", "y", "cell"]
-    assignments.to_csv(f'{data}/assignments_{segmentation_method}_pciseq.csv', index = False)
+    assignments.to_csv(f'{data}/assignments_{segmentation_method}_pciseq-{id_code}.csv', index = False)

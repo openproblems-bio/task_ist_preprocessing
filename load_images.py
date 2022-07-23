@@ -22,8 +22,10 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', required=True, type=str, help='Output directory')
     parser.add_argument('-b', '--binary', action='store_true',
         help='If the input image is a segmented, binary image (e.g. watershed via ImageJ)')
-    parser.add_argument('-s', '--segment', default='watershed', type=str,
+    parser.add_argument('-s', '--segment', required=True, type=str,
         help='Segmentation method to be used')
+    parser.add_argument('-id', '--id_code', required=True, type = str,
+        help='ID of method to be used for saving')
     parser.add_argument('-e', '--expand', default=0, type=int,
         help='Amount to expand each segment by- can be used to approximate cell boundary') 
     
@@ -34,6 +36,7 @@ if __name__ == '__main__':
     binary = args.binary
     segmentation_method = args.segment
     expand_nuclear_area = args.expand
+    id_code = args.id_code
     
     #Create output folder if needed
     if not os.path.exists(output):
@@ -55,9 +58,10 @@ if __name__ == '__main__':
         img_arr = skimage.segmentation.expand_labels(img_arr, distance=expand_nuclear_area)
 
     #Save as .tif file
-    skimage.io.imsave(f'{output}/label_{segmentation_method}.tif', img_arr)
+    skimage.io.imsave(f'{output}/label_{segmentation_method}-{id_code}.tif', img_arr)
 
     #Calculate and save areas
     (unique, counts) = np.unique(img_arr, return_counts=True)
     areas = np.asarray((unique, counts)).T
-    np.savetxt(f'{output}/areas_{segmentation_method}.csv', areas, delimiter=",")
+    np.savetxt(f'{output}/areas_{segmentation_method}-{id_code}.csv', areas, delimiter=",")
+    print(f'Saved {output}/areas_{segmentation_method}-{id_code}.csv')
