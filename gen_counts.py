@@ -17,6 +17,7 @@ import argparse
 #area_method = 'alpha' 
 #normalize_by = 'area'
 #TODO add method for taking max of several methods
+#TODO filter out 0 cells before normalizing
 
 if __name__ == '__main__':
 

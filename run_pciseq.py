@@ -50,7 +50,7 @@ if __name__ == '__main__':
     scdata.columns = adata.obs['celltype']
     scdata.index = adata.var_names
 
-    label = skimage.io.imread(f'{data}/label_{segmentation_method}.tif')
+    label = skimage.io.imread(f'{data}/segments_{segmentation_method}.tif')
     coo = coo_matrix(label)
 
     #Run through pciSeq

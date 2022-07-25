@@ -15,33 +15,49 @@ rule all:
 
 #TODO Make each label a new function
 #Chage names to be consistent for 'label' and 'load images'
-rule label:
+rule watershed:
     output:
-        '{results}/{dataset}/label_{seg}-{shp}.tif'
+        '{results}/{dataset}/segments_watershed-{shp}.tif'
     params:
         img = lambda w: parsed.get_data_file(w.dataset, 'image'),
-        exp = lambda w: parsed.get_method_params(w.seg, int(w.shp))['expand'],
-        bry = lambda w: "-b " if parsed.get_method_params(w.seg, int(w.shp))['binary'] else ""
+        exp = lambda w: parsed.get_method_params('watershed', int(w.shp))['expand'],
+        bry = lambda w: "-b " if parsed.get_method_params('watershed', int(w.shp))['binary'] else ""
     shell:
         "python load_images.py "
         "-i {params.img} "
         "-o {wildcards.results}/{wildcards.dataset} "
         "-e {params.exp} "
-        "-s {wildcards.seg} "
+        "-s watershed "
         "-id {wildcards.shp} "
         "{params.bry}"
 
-rule assign:
+rule cellpose:
+    output:
+        '{results}/{dataset}/segments_cellpose-{shp}.tif'
+    params:
+        img = lambda w: parsed.get_data_file(w.dataset, 'image'),
+        exp = lambda w: parsed.get_method_params('cellpose', int(w.shp))['expand'],
+        bry = lambda w: "-b " if parsed.get_method_params('cellpose', int(w.shp))['binary'] else ""
+    shell:
+        "python segment_image.py "
+        "-i {params.img} "
+        "-o {wildcards.results}/{wildcards.dataset} "
+        "-e {params.exp} "
+        "-s cellpose "
+        "-id {wildcards.shp} "
+        "{params.bry}"
+
+rule pciSeq:
     input:
-        '{results}/{dataset}/label_{seg}.tif'
+        '{results}/{dataset}/segments_{seg}.tif'
     params:
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules'),
         scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data'),
-        hyp = lambda w: parsed.get_method_params(w.assign, int(w.ahp))['p']
+        hyp = lambda w: parsed.get_method_params('pciSeq', int(w.ahp))['p']
     output:
-        '{results}/{dataset}/assignments_{seg}_{assign}-{ahp}.csv'
+        '{results}/{dataset}/assignments_{seg}_pciSeq-{ahp}.csv'
     shell:
-        "python run_{wildcards.assign}.py "
+        "python run_pciseq.py "
         "-m {params.mol} "
         "-p \"{params.hyp}\" "
         "-sc {params.scd} "

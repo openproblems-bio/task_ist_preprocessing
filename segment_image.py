@@ -13,6 +13,7 @@ import os
 
 #INPUT: DAPI.tif, binary.tif
 #OUTPUT: label.tif, areas.csv
+#TODO: change cellpose and watershed to 2 separate methods 
 
 if __name__ == '__main__':
 
