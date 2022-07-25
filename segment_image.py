@@ -59,10 +59,9 @@ if __name__ == '__main__':
         img_arr = skimage.segmentation.expand_labels(img_arr, distance=expand_nuclear_area)
 
     #Save as .tif file
-    skimage.io.imsave(f'{output}/label_{segmentation_method}-{id_code}.tif', img_arr)
+    skimage.io.imsave(f'{output}/segments_{segmentation_method}-{id_code}.tif', img_arr)
 
     #Calculate and save areas
     (unique, counts) = np.unique(img_arr, return_counts=True)
     areas = np.asarray((unique, counts)).T
     np.savetxt(f'{output}/areas_{segmentation_method}-{id_code}.csv', areas, delimiter=",")
-    print(f'Saved {output}/areas_{segmentation_method}-{id_code}.csv')

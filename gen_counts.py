@@ -50,7 +50,7 @@ if __name__ == '__main__':
     spots = spots[spots['cell'] != 0]
 
     #Generate blank, labelled count matrix
-    X = np.empty([ len(pd.unique(spots['cell'])), len(pd.unique(spots['gene'])) ])
+    X = np.zeros([ len(pd.unique(spots['cell'])), len(pd.unique(spots['gene'])) ])
     adata = ad.AnnData(X, dtype = X.dtype)
     adata.obs_names = pd.unique(spots['cell'])
     adata.var_names = pd.unique(spots['gene'])
@@ -60,7 +60,6 @@ if __name__ == '__main__':
         n = row['cell']
         g = row['gene']
         adata[adata.obs_names==n, g] = adata[adata.obs_names==n, g].to_df()[g][n] + 1
-
 
     #Load area data from same as assignment or segmentation method
     if(area_method is None):
@@ -80,7 +79,7 @@ if __name__ == '__main__':
     if(area_method == 'alpha'):
         import alphashape
         from descartes import PolygonPatch
-        area_vec = np.empty([adata.n_obs])
+        area_vec = np.zeros([adata.n_obs])
         for i in range(adata.n_obs):
             dots = pd.concat(
                 [spots[spots['cell'] == adata.obs_names[i]].x,

@@ -4,18 +4,17 @@ py_env : pipeline
 
 PREPROCESSING:
   batch1:
-    segmentation: 
-      watershed:
+    segmentation:
       cellpose:
     segmentation_params:
-      expand: [0, 10, 20]
+      expand: [10]
       binary: [False]
     assignment: 
       pciSeq:
         opts: [{'exclude_genes':['TCIM']}]
-    normalize: 
-      total:
+    normalize:
       area:
+      total:
     dataset: [test]
 
 DATA_SCENARIOS:

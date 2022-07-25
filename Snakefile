@@ -13,8 +13,6 @@ rule all:
     input:
         final_files
 
-#TODO Make each label a new function
-#Chage names to be consistent for 'label' and 'load images'
 rule watershed:
     output:
         '{results}/{dataset}/segments_watershed-{shp}.tif'
@@ -23,7 +21,7 @@ rule watershed:
         exp = lambda w: parsed.get_method_params('watershed', int(w.shp))['expand'],
         bry = lambda w: "-b " if parsed.get_method_params('watershed', int(w.shp))['binary'] else ""
     shell:
-        "python load_images.py "
+        "python segment_image.py "
         "-i {params.img} "
         "-o {wildcards.results}/{wildcards.dataset} "
         "-e {params.exp} "
@@ -65,6 +63,9 @@ rule pciSeq:
         "-s {wildcards.seg} "
         "-id {wildcards.ahp} "
 
+#TODO Change so counts are generated in the assignment method 
+#Or make it a rule that doesn't take any parameters
+#Separate into rules for total and for area (even if same script is used)
 rule counts:
     input:
         '{results}/{dataset}/assignments_{seg}_{assign}.csv'
@@ -78,18 +79,15 @@ rule counts:
         "-n {wildcards.norm} "
         "-id {wildcards.nhp} "
 
-#TODO change so prior information is not needed, just the input file 
 rule metric:
     input:
-        '{results}/{dataset}/counts_{seg}_{assign}_{norm}.h5ad'
+        '{results}/{dataset}/counts_{methods}.h5ad'
     params:
         scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data'),
     output:
-        '{results}/{dataset}/metrics_{seg}_{assign}_{norm}.txt'
+        '{results}/{dataset}/metrics_{methods}.txt'
     shell:
         "python calc_metrics.py "
-        "-a {wildcards.assign} "
+        "-m {wildcards.methods} "
         "-d {wildcards.results}/{wildcards.dataset} "
-        "-s {wildcards.seg} "
-        "-n {wildcards.norm} "
         "-sc {params.scd} "
