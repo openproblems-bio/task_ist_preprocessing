@@ -7,15 +7,18 @@ PREPROCESSING:
     segmentation:
       cellpose:
     segmentation_params:
-      expand: [10]
+      expand: [0, 10]
       binary: [False]
     assignment: 
       pciSeq:
-        opts: [{'exclude_genes':['TCIM']}]
+        opts: [{'exclude_genes':['TCIM']}, {}]
     normalize:
       area:
+        alpha: [0]
+        max: [True]
       total:
     dataset: [test]
+
 
 DATA_SCENARIOS:
   heart:

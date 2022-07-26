@@ -23,30 +23,31 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Generate count matrix for spatial data')
     parser.add_argument('-d', '--data', required=True, type=str, 
-        help='Ouput data directory- should also contain segmented image')
-    parser.add_argument('-s', '--segment', required=True, type=str,
-        help='Segmentation method used for image')
-    parser.add_argument('-a', '--assignment', required=True, type=str, 
-        help='Assignment method used for molecules')
+        help='Ouput data directory- should also contain assignments_.csv')
+    parser.add_argument('-ar', '--area', default=None, type=str,
+        help='Method list after areas_')
+    parser.add_argument('-as', '--assignment', required=True, type=str, 
+        help='Method list after assignments_')
     parser.add_argument('-n', '--normalize', default='total', type=str,
         help='Method to normalize raw count matrices by') 
-    parser.add_argument('-am', '--areamethod', default=None, type=str,
-        help='Method to calculate area for each cell, leave as None to use previous areas') 
     parser.add_argument('-id', '--id_code', required=True, type = str,
         help='ID of method to be used for saving')
+    parser.add_argument('-p', '--hyperparams', default=None, type=str,
+        help='Optional dictionary (as string) of parameters') 
          
     
     args = parser.parse_args()
 
     assignment_method = args.assignment
     data = args.data
-    segmentation_method = args.segment
+    area_method = args.area
     normalize_by = args.normalize
-    area_method = args.areamethod
     id_code = args.id_code
-
+    hyperparams = eval(args.hyperparams)
+    alpha = hyperparams is not None and hyperparams.get('alpha') is not None
+    max_area = hyperparams is not None and hyperparams.get('max') is not None and hyperparams['max']
     #Read assignments
-    spots = pd.read_csv(f'{data}/assignments_{segmentation_method}_{assignment_method}.csv')
+    spots = pd.read_csv(f'{data}/assignments_{assignment_method}.csv')
     spots = spots[spots['cell'] != 0]
 
     #Generate blank, labelled count matrix
@@ -62,21 +63,14 @@ if __name__ == '__main__':
         adata[adata.obs_names==n, g] = adata[adata.obs_names==n, g].to_df()[g][n] + 1
 
     #Load area data from same as assignment or segmentation method
-    if(area_method is None):
-        if(os.path.exists(f'{data}/areas_{assignment_method}.csv')):
-            temp = pd.read_csv(f'{data}/areas_{assignment_method}.csv', header=None)
-            adata.obs['area'] = temp[1][adata.obs_names]
-        elif(os.path.exists(f'{data}/areas_{segmentation_method}.csv')):
-            temp = pd.read_csv(f'{data}/areas_{segmentation_method}.csv', header=None)
-            adata.obs['area'] = temp[1][adata.obs_names]
-        else:
-            #If no area data detected, use alpha area from points
-            area_method = 'alpha'
+    if area_method is not None and normalize_by == 'area':
+        temp = pd.read_csv(f'{data}/areas_{area_method}.csv', header=None)
+        adata.obs['area'] = temp[1][adata.obs_names]
 
     # Calculate area based on alpha shape from molecules for each shape
     # If there are <3 molecules for a cell, use the mean area per molecule
     # times the number of molecules in the cell
-    if(area_method == 'alpha'):
+    if alpha and normalize_by == 'area':
         import alphashape
         from descartes import PolygonPatch
         area_vec = np.zeros([adata.n_obs])
@@ -88,7 +82,7 @@ if __name__ == '__main__':
             )
             pts = list(dots.itertuples(index=False, name=None))
             if(len(pts) > 2):
-                alpha_shape = alphashape.alphashape(pts,0.)
+                alpha_shape = alphashape.alphashape(pts,hyperparams['alpha'])
                 area_vec[i] = alpha_shape.area
             else:
                 area_vec[i] = np.nan
@@ -96,10 +90,9 @@ if __name__ == '__main__':
         mean_area = np.nanmean(area_vec / np.sum(adata.X, axis=1) )
         #Use this mean area to fill in NaN values
         area_vec[np.isnan(area_vec)] = mean_area * np.sum(adata.X, axis=1)[np.isnan(area_vec)]
-        adata.obs['area'] = area_vec
-    elif (area_method is not None):
-        temp = pd.read_csv(f'{data}/areas_{area_method}.csv', header=None)
-        adata.obs['area'] = temp[1][adata.obs_names]
+        adata.obs['alpha_area'] = area_vec
+        if area_method is not None and max_area:
+            adata.obs['area'] = np.maximum(adata.obs['alpha_area'], adata.obs['area'])
     
     #Normalize by area or by total counts
     if(normalize_by == 'area'):
@@ -108,5 +101,5 @@ if __name__ == '__main__':
         tx.preprocessing.normalize_total(adata)
 
     #Save AnnData object
-    adata.write_h5ad(f"{data}/counts_{segmentation_method}_{assignment_method}_{normalize_by}-{id_code}.h5ad")
-    print(f'Saved {data}/counts_{segmentation_method}_{assignment_method}_{normalize_by}-{id_code}.h5ad')
+    adata.write_h5ad(f"{data}/counts_{assignment_method}_{normalize_by}-{id_code}.h5ad")
+    #print(f'Saved {data}/counts_{assignment_method}_{normalize_by}-{id_code}.h5ad')
