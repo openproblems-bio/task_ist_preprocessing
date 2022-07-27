@@ -2,23 +2,31 @@ ROOT: C:/Users/Habib/Projects/HMGU/tx_project
 RESULTS: results
 py_env : pipeline
 
+#TODO: Add list of method types here
+#List the combos somewhere somehow
+#Make parsed config generic enough that it can generate the combos
+
 PREPROCESSING:
   batch1:
+    combinations:
+      -[segmentation, assignment, normalize]
+      -[cell_segmentation, normalize]
+      -[dot_clustering, normalize]
     segmentation:
       cellpose:
     segmentation_params:
       expand: [0, 10]
       binary: [False]
     assignment: 
-      pciSeq:
-        opts: [{'exclude_genes':['TCIM']}, {}]
+      basic:
+      # pciSeq:
+      #   opts: [{'exclude_genes':['TCIM']}]
     normalize:
       area:
         alpha: [0]
         max: [True]
       total:
     dataset: [test]
-
 
 DATA_SCENARIOS:
   heart:

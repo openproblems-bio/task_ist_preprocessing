@@ -108,4 +108,8 @@ class ParsedConfig:
         return self.cfg['ROOT'] + '/' + self.cfg['DATA_SCENARIOS'][dataset][file_name]
     
     def get_method_params(self, method, id):
+        if self.method_dict.get(method) is None:
+            return None
+        if id >= len(self.method_dict[method]):
+            return None
         return self.method_dict[method][id]

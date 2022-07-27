@@ -27,7 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('-sc', '--singlecell', required=True, type=str,
         help='Single cell h5ad count matrix with celltype in anndata.obs[\'celltype\']') 
     parser.add_argument('-p', '--hyperparams', default=None, type=str,
-        help='Option dictionary for pciSeq') 
+        help='Dictionary of hyperparameters') 
     parser.add_argument('-id', '--id_code', required=True, type = str,
         help='ID of method to be used for saving')
     
@@ -50,8 +50,8 @@ if __name__ == '__main__':
     scdata.columns = adata.obs['celltype']
     scdata.index = adata.var_names
 
-    label = skimage.io.imread(f'{data}/segments_{segmentation_method}.tif')
-    coo = coo_matrix(label)
+    seg = skimage.io.imread(f'{data}/segments_{segmentation_method}.tif')
+    coo = coo_matrix(seg)
 
     #Run through pciSeq
     pciSeq.attach_to_log()

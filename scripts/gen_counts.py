@@ -16,8 +16,6 @@ import argparse
 #assignment_method = 'pciSeq'
 #area_method = 'alpha' 
 #normalize_by = 'area'
-#TODO add method for taking max of several methods
-#TODO filter out 0 cells before normalizing
 
 if __name__ == '__main__':
 
@@ -57,14 +55,13 @@ if __name__ == '__main__':
     adata.var_names = pd.unique(spots['gene'])
 
     #Populate matrix using assignments
-    for index, row in spots.iterrows():
-        n = row['cell']
-        g = row['gene']
-        adata[adata.obs_names==n, g] = adata[adata.obs_names==n, g].to_df()[g][n] + 1
+    for gene in adata.var_names:
+        cts = spots[spots['gene'] == gene ]['cell'].value_counts()
+        adata[:, gene] = cts.reindex(adata.obs_names, fill_value = 0)
 
     #Load area data from same as assignment or segmentation method
     if area_method is not None and normalize_by == 'area':
-        temp = pd.read_csv(f'{data}/areas_{area_method}.csv', header=None)
+        temp = pd.read_csv(f'{data}/areas_{area_method}.csv', header=None, index_col = 0)
         adata.obs['area'] = temp[1][adata.obs_names]
 
     # Calculate area based on alpha shape from molecules for each shape

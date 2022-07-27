@@ -32,7 +32,7 @@ rule watershed:
         exp = lambda w: parsed.get_method_params('watershed', int(w.shp)).get('expand'),
         bry = lambda w: "-b " if parsed.get_method_params('watershed', int(w.shp))['binary'] else ""
     shell:
-        "python segment_image.py "
+        "python scripts/segment_image.py "
         "-i {params.img} "
         "-o {wildcards.results}/{wildcards.dataset} "
         "-e {params.exp} "
@@ -51,7 +51,7 @@ rule cellpose:
         exp = lambda w: parsed.get_method_params('cellpose', int(w.shp)).get('expand'),
         bry = lambda w: "-b " if parsed.get_method_params('cellpose', int(w.shp))['binary'] else ""
     shell:
-        "python segment_image.py "
+        "python scripts/segment_image.py "
         "-i {params.img} "
         "-o {wildcards.results}/{wildcards.dataset} "
         "-e {params.exp} "
@@ -71,7 +71,7 @@ rule pciSeq:
     wildcard_constraints:
         ahp="\d+"
     shell:
-        "python run_pciseq.py "
+        "python scripts/run_pciseq.py "
         "-m {params.mol} "
         "-p \"{params.hyp}\" "
         "-sc {params.scd} "
@@ -79,9 +79,55 @@ rule pciSeq:
         "-s {wildcards.seg} "
         "-id {wildcards.ahp} "
 
-#TODO Change so counts are generated in the assignment method 
-#Or make it a rule that doesn't take any parameters
-#Separate into rules for total and for area (even if same script is used)
+rule basic_assign:
+    input:
+        '{results}/{dataset}/segments_{seg}.tif'
+    params:
+        mol = lambda w: parsed.get_data_file(w.dataset, 'molecules'),
+        hyp = lambda w: get_hyperparams('pciSeq', int(w.ahp))
+    output:
+        '{results}/{dataset}/assignments_{seg}_basic-{ahp}.csv'
+    wildcard_constraints:
+        ahp="\d+"
+    shell:
+        "python scripts/basic_assignment.py "
+        "-m {params.mol} "
+        "-p \"{params.hyp}\" "
+        "-d {wildcards.results}/{wildcards.dataset} "
+        "-s {wildcards.seg} "
+        "-id {wildcards.ahp} "
+
+rule baysor_assign:
+    container:
+        "docker://vpetukhov/baysor"
+    input: 
+        '{results}/{dataset}/segments_{seg}.tif'
+    params:
+        mol = lambda w: parsed.get_data_file(w.dataset, 'molecules'),
+        #hyp = lambda w: get_hyperparams('baysor', int(w.ahp))
+    output:
+        '{results}/{dataset}/assignments_{seg}_baysor-{ahp}.csv',
+        '{results}/{dataset}/areas_{seg}_baysor-{ahp}.csv'
+    wildcard_constraints:
+        ahp="\d+"
+    shell:
+        "baysor"
+
+rule baysor_segment:
+    container:
+        "docker://vpetukhov/baysor"
+    output:
+        '{results}/{dataset}/segments_baysor-{ahp}.tif',
+        '{results}/{dataset}/assignments_baysor-{ahp}.csv',
+        '{results}/{dataset}/areas_baysor-{ahp}.csv'
+    params:
+        mol = lambda w: parsed.get_data_file(w.dataset, 'molecules'),
+        #hyp = lambda w: get_hyperparams('baysor', int(w.ahp))
+    wildcard_constraints:
+        ahp="\d+"
+    shell:
+        "baysor"
+
 rule total:
     input:
         '{results}/{dataset}/assignments_{assign}.csv'
@@ -92,14 +138,13 @@ rule total:
     wildcard_constraints:
         nhp="\d+"
     shell:
-        "python gen_counts.py "
+        "python scripts/gen_counts.py "
         "-as {wildcards.assign} "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-n total "
         "-id {wildcards.nhp} "
         "-p \"{params.hyp}\" "
 
-#TODO fix gen_counts.py
 rule area_generic:
     input:
         assign = '{results}/{dataset}/assignments_{method}.csv',
@@ -111,7 +156,7 @@ rule area_generic:
     wildcard_constraints:
         nhp="\d+"
     shell:
-        "python gen_counts.py "
+        "python scripts/gen_counts.py "
         "-as {wildcards.method} "
         "-ar {wildcards.method} "
         "-d {wildcards.results}/{wildcards.dataset} "
@@ -130,7 +175,7 @@ rule area_prior:
     wildcard_constraints:
         nhp="\d+"
     shell:
-        "python gen_counts.py "
+        "python scripts/gen_counts.py "
         "-as {wildcards.method}_{wildcards.assign} "
         "-ar {wildcards.method} "
         "-d {wildcards.results}/{wildcards.dataset} "
@@ -148,7 +193,7 @@ rule alpha_area:
     wildcard_constraints:
         nhp="\d+"
     shell:
-        "python gen_counts.py "
+        "python scripts/gen_counts.py "
         "-as {wildcards.method} "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-n area "
@@ -164,7 +209,7 @@ rule metric:
     output:
         '{results}/{dataset}/metrics_{methods}.txt'
     shell:
-        "python calc_metrics.py "
+        "python scripts/calc_metrics.py "
         "-m {wildcards.methods} "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-sc {params.scd} "
