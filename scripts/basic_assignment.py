@@ -7,14 +7,6 @@ import pandas as pd
 import numpy as np
 import scanpy as sc
 
-#INPUT: molecules.csv, singlecell.h5ad labels.tif
-#OUTPUT: assignments.csv
-#From config:
-#segmentation_method = 'imagej'
-#molecules = "C:/Users/Habib/Projects/HMGU/tx_project/heart/raw_data/spots_PCW4.5_1.csv"
-#sc_data = "C:/Users/Habib/Projects/HMGU/tx_project/heart/raw_data/heart_sc.h5ad" 
-#opts = {'exclude_genes': ['TCIM']}
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Assign molecules to cells')
@@ -37,12 +29,12 @@ if __name__ == '__main__':
     id_code = args.id_code
     hyperparams = args.hyperparams
  
-    #Read and format molecules, single cell data, and labels
+    #Read and format molecules
     spots = pd.read_csv(molecules)
     spots.columns = ['gene', 'x', 'y']
-
     seg = skimage.io.imread(f'{data}/segments_{segmentation_method}.tif')
 
+    #Assign molecules based value in segmentation array
     spots['cell'] = seg[spots.y.to_numpy(dtype=np.int64), spots.x.to_numpy(dtype=np.int64)]
 
     #Save in correct format

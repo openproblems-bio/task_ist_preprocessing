@@ -4,14 +4,6 @@ import scanpy as sc
 import txsim as tx
 import argparse
 
-#INPUT: (Spatial) counts.h5ad, (scRNAseq) counts.h5ad
-#OUTPUT: metrics.txt
-#From config
-#sc_data = "C:/Users/Habib/Projects/HMGU/tx_project/heart/raw_data/heart_sc.h5ad" 
-#segmentation_method = 'imagej'
-#assignment_method = 'pciSeq'
-#normalize_by = 'area'
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate count matrix for spatial data')
     parser.add_argument('-d', '--data', required=True, type=str, 

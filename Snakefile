@@ -14,13 +14,12 @@ def get_hyperparams(method, id_code):
         return parsed.get_method_params(method, id_code).get('p')
     return None
 
-ruleorder: area_generic > area_prior > alpha_area
-
 #Main rule (will always be run)
 rule all:
     input:
         final_files
 
+#Rules corresponding to each method
 rule watershed:
     output:
         '{results}/{dataset}/segments_watershed-{shp}.tif',
@@ -128,7 +127,7 @@ rule baysor_segment:
     shell:
         "baysor"
 
-rule total:
+rule total_norm:
     input:
         '{results}/{dataset}/assignments_{assign}.csv'
     params:
@@ -145,43 +144,43 @@ rule total:
         "-id {wildcards.nhp} "
         "-p \"{params.hyp}\" "
 
-rule area_generic:
-    input:
-        assign = '{results}/{dataset}/assignments_{method}.csv',
-        area = '{results}/{dataset}/areas_{method}.csv'
-    params:
-        hyp = lambda w: get_hyperparams('area', int(w.nhp))
-    output:
-        '{results}/{dataset}/counts_{method}_area-{nhp}.h5ad'
-    wildcard_constraints:
-        nhp="\d+"
-    shell:
-        "python scripts/gen_counts.py "
-        "-as {wildcards.method} "
-        "-ar {wildcards.method} "
-        "-d {wildcards.results}/{wildcards.dataset} "
-        "-n area "
-        "-id {wildcards.nhp} "
-        "-p \"{params.hyp}\" "
+# rule area_generic:
+#     input:
+#         assign = '{results}/{dataset}/assignments_{method}.csv',
+#         area = '{results}/{dataset}/areas_{method}.csv'
+#     params:
+#         hyp = lambda w: get_hyperparams('area', int(w.nhp))
+#     output:
+#         '{results}/{dataset}/counts_{method}_area-{nhp}.h5ad'
+#     wildcard_constraints:
+#         nhp="\d+"
+#     shell:
+#         "python scripts/gen_counts.py "
+#         "-as {wildcards.method} "
+#         "-ar {wildcards.method} "
+#         "-d {wildcards.results}/{wildcards.dataset} "
+#         "-n area "
+#         "-id {wildcards.nhp} "
+#         "-p \"{params.hyp}\" "
 
-rule area_prior:
-    input:
-        assign = '{results}/{dataset}/assignments_{method}_{assign}.csv',
-        area = '{results}/{dataset}/areas_{method}.csv'
-    params:
-        hyp = lambda w: get_hyperparams('area', int(w.nhp))
-    output:
-        '{results}/{dataset}/counts_{method}_{assign}_area-{nhp}.h5ad'
-    wildcard_constraints:
-        nhp="\d+"
-    shell:
-        "python scripts/gen_counts.py "
-        "-as {wildcards.method}_{wildcards.assign} "
-        "-ar {wildcards.method} "
-        "-d {wildcards.results}/{wildcards.dataset} "
-        "-n area "
-        "-id {wildcards.nhp} "
-        "-p \"{params.hyp}\" "
+# rule area_prior:
+#     input:
+#         assign = '{results}/{dataset}/assignments_{method}_{assign}.csv',
+#         area = '{results}/{dataset}/areas_{method}.csv'
+#     params:
+#         hyp = lambda w: get_hyperparams('area', int(w.nhp))
+#     output:
+#         '{results}/{dataset}/counts_{method}_{assign}_area-{nhp}.h5ad'
+#     wildcard_constraints:
+#         nhp="\d+"
+#     shell:
+#         "python scripts/gen_counts.py "
+#         "-as {wildcards.method}_{wildcards.assign} "
+#         "-ar {wildcards.method} "
+#         "-d {wildcards.results}/{wildcards.dataset} "
+#         "-n area "
+#         "-id {wildcards.nhp} "
+#         "-p \"{params.hyp}\" "
 
 rule alpha_area:
     input:
@@ -199,7 +198,6 @@ rule alpha_area:
         "-n area "
         "-id {wildcards.nhp} "
         "-p \"{params.hyp}\" "
-
 
 rule metric:
     input:

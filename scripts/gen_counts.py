@@ -9,14 +9,6 @@ import numpy as np
 import os.path
 import argparse
 
-#INPUT: assignments.csv, [optional] area.csv
-#OUTPUT: counts.h5ad
-#From config:
-#segmentation_method = 'imagej'
-#assignment_method = 'pciSeq'
-#area_method = 'alpha' 
-#normalize_by = 'area'
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Generate count matrix for spatial data')
@@ -59,11 +51,29 @@ if __name__ == '__main__':
         cts = spots[spots['gene'] == gene ]['cell'].value_counts()
         adata[:, gene] = cts.reindex(adata.obs_names, fill_value = 0)
 
-    #Load area data from same as assignment or segmentation method
+    #Find area for normalization
+    found_area = False
     if area_method is not None and normalize_by == 'area':
+        #Load area data from methods provided
         temp = pd.read_csv(f'{data}/areas_{area_method}.csv', header=None, index_col = 0)
         adata.obs['area'] = temp[1][adata.obs_names]
-
+    elif normalize_by == 'area':
+        #If no provided area, search through possible areas
+        methods = assignment_method
+        method_list = assignment_method.split('_')
+        #Work backwards through method list until areas file is found
+        for i in range(0, len(method_list)):
+            methods = '_'.join(method_list)
+            if(os.path.exists(f'{data}/areas_{methods}.csv')):
+                temp = pd.read_csv(f'{data}/areas_{methods}.csv', header=None, index_col = 0)
+                adata.obs['area'] = temp[1][adata.obs_names]
+                found_area = True
+                break
+            method_list.pop()
+        if not found_area:
+            #If none found, use alpha area
+            alpha = True        
+    
     # Calculate area based on alpha shape from molecules for each shape
     # If there are <3 molecules for a cell, use the mean area per molecule
     # times the number of molecules in the cell
@@ -90,6 +100,8 @@ if __name__ == '__main__':
         adata.obs['alpha_area'] = area_vec
         if area_method is not None and max_area:
             adata.obs['area'] = np.maximum(adata.obs['alpha_area'], adata.obs['area'])
+        elif area_method is None:
+            adata.obs['area'] = adata.obs['alpha_area']
     
     #Normalize by area or by total counts
     if(normalize_by == 'area'):
@@ -99,4 +111,3 @@ if __name__ == '__main__':
 
     #Save AnnData object
     adata.write_h5ad(f"{data}/counts_{assignment_method}_{normalize_by}-{id_code}.h5ad")
-    #print(f'Saved {data}/counts_{assignment_method}_{normalize_by}-{id_code}.h5ad')

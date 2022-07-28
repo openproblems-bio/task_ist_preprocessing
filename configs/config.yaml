@@ -14,17 +14,18 @@ PREPROCESSING:
       -[dot_clustering, normalize]
     segmentation:
       cellpose:
+      watershed:
     segmentation_params:
-      expand: [0, 10]
+      expand: [0,20]
       binary: [False]
-    assignment: 
-      basic:
-      # pciSeq:
-      #   opts: [{'exclude_genes':['TCIM']}]
+    assignment:
+      basic: 
+      pciSeq:
+        opts: [{'exclude_genes':['TCIM']}]
     normalize:
       area:
         alpha: [0]
-        max: [True]
+        max: [False, True]
       total:
     dataset: [test]
 

@@ -6,14 +6,7 @@ import skimage.io
 from scipy.sparse import coo_matrix
 import pandas as pd
 import scanpy as sc
-
-#INPUT: molecules.csv, singlecell.h5ad labels.tif
-#OUTPUT: assignments.csv
-#From config:
-#segmentation_method = 'imagej'
-#molecules = "C:/Users/Habib/Projects/HMGU/tx_project/heart/raw_data/spots_PCW4.5_1.csv"
-#sc_data = "C:/Users/Habib/Projects/HMGU/tx_project/heart/raw_data/heart_sc.h5ad" 
-#opts = {'exclude_genes': ['TCIM']}
+import numpy as np
 
 if __name__ == '__main__':
 
@@ -53,6 +46,7 @@ if __name__ == '__main__':
     seg = skimage.io.imread(f'{data}/segments_{segmentation_method}.tif')
     coo = coo_matrix(seg)
 
+    #Add safety feature for genes that aren't included
     #Run through pciSeq
     pciSeq.attach_to_log()
     if(opts != None):
@@ -63,4 +57,7 @@ if __name__ == '__main__':
     #Save in correct format
     assignments = geneData[ ["Gene", "x", "y", "neighbour"] ]
     assignments.columns = ["gene", "x", "y", "cell"]
+
+    #Change the cell names to match the segmentation
+    assignments['cell'] = np.unique(seg)[assignments['cell']]
     assignments.to_csv(f'{data}/assignments_{segmentation_method}_pciseq-{id_code}.csv', index = False)
