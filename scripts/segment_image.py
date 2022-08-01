@@ -10,7 +10,6 @@ import skimage.segmentation
 import numpy as np
 import argparse
 import os
-#TODO: change cellpose and watershed to 2 separate methods 
 
 if __name__ == '__main__':
 
@@ -26,6 +25,8 @@ if __name__ == '__main__':
         help='ID of method to be used for saving')
     parser.add_argument('-e', '--expand', default=0, type=int,
         help='Amount to expand each segment by- can be used to approximate cell boundary') 
+    parser.add_argument('-p', '--hyperparams', default=None, type=str,
+        help='Dictionary of hyperparameters') 
     
     args = parser.parse_args()
 
@@ -35,6 +36,7 @@ if __name__ == '__main__':
     segmentation_method = args.segment
     expand_nuclear_area = args.expand
     id_code = args.id_code
+    hyperparams = eval(args.hyperparams)
     
     #Create output folder if needed
     if not os.path.exists(output):
@@ -43,7 +45,10 @@ if __name__ == '__main__':
     #If unsegmented, segment image
     if(not binary):
         img = sq.im.ImageContainer(image_file)
-        tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method)
+        if(segmentation_method=='cellpose'):
+            tx.preprocessing.segment_cellpose(img, layer = 'image', **hyperparams)
+        else:
+            tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method, **hyperparams)
         img_arr = img[f'segmented_{segmentation_method}'].to_numpy()[:,:,0,0]
     
     #If already segmented, label

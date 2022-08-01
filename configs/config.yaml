@@ -12,6 +12,7 @@ PREPROCESSING:
     workflow: [segmentation, assignment, normalize]
     segmentation:
       cellpose:
+        min_size: [15]
     segmentation_params:
       expand: [0]
       binary: [False]

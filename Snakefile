@@ -3,8 +3,24 @@ from TxsimConfig import *
 parsed = ParsedConfig('configs/config.yaml')
 final_files = parsed.gen_file_names()
 
-#TODO Type hints
-def get_hyperparams(method, id_code):
+def get_hyperparams(
+    method: str, 
+    id_code: int
+) -> dict:
+    """Get hyperparams for a given method
+
+    Parameters
+    ----------
+    method : str
+        the name of the method
+    id_code : int
+        the specific ID code
+
+    Returns
+    -------
+    dict
+        Dictionary of parameters
+    """
     if parsed.get_method_params(method, id_code) is not None:
         return parsed.get_method_params(method, id_code).get('p')
     return None
@@ -23,11 +39,13 @@ rule watershed:
         shp="\d+"
     params:
         img = lambda w: parsed.get_data_file(w.dataset, 'image'),
+        hyp = lambda w: get_hyperparams('watershed', int(w.shp)),
         exp = lambda w: parsed.get_method_params('watershed', int(w.shp)).get('expand'),
         bry = lambda w: "-b " if parsed.get_method_params('watershed', int(w.shp))['binary'] else ""
     shell:
         "python scripts/segment_image.py "
         "-i {params.img} "
+        "-p \"{params.hyp}\" "
         "-o {wildcards.results}/{wildcards.dataset} "
         "-e {params.exp} "
         "-s watershed "
@@ -42,11 +60,13 @@ rule cellpose:
         shp="\d+"
     params:
         img = lambda w: parsed.get_data_file(w.dataset, 'image'),
+        hyp = lambda w: get_hyperparams('cellpose', int(w.shp)),
         exp = lambda w: parsed.get_method_params('cellpose', int(w.shp)).get('expand'),
         bry = lambda w: "-b " if parsed.get_method_params('cellpose', int(w.shp))['binary'] else ""
     shell:
         "python scripts/segment_image.py "
         "-i {params.img} "
+        "-p \"{params.hyp}\" "
         "-o {wildcards.results}/{wildcards.dataset} "
         "-e {params.exp} "
         "-s cellpose "

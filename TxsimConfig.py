@@ -20,7 +20,7 @@ class ParsedConfig:
         for batch in self.cfg['PREPROCESSING']:
             #Run through each batch
             batch_combos = {}
-            for group in ParsedConfig.PROCESSES:
+            for group in self.cfg['PREPROCESSING'][batch]['workflow']:
                 #Within each group of processes per batch, 
                 #Generate batch parameter combinations for each method
                 #Check if any of those combinations exist already
