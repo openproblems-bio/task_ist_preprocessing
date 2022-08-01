@@ -10,7 +10,6 @@ import skimage.segmentation
 import numpy as np
 import argparse
 import os
-
 #TODO: change cellpose and watershed to 2 separate methods 
 
 if __name__ == '__main__':

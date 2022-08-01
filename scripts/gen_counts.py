@@ -43,20 +43,27 @@ if __name__ == '__main__':
     #Generate blank, labelled count matrix
     X = np.zeros([ len(pd.unique(spots['cell'])), len(pd.unique(spots['gene'])) ])
     adata = ad.AnnData(X, dtype = X.dtype)
-    adata.obs_names = pd.unique(spots['cell'])
+    adata.obs['cell_id'] = pd.unique(spots['cell'])
+    adata.obs_names = [f"Cell_{i:d}" for i in range(adata.n_obs)]
     adata.var_names = pd.unique(spots['gene'])
 
     #Populate matrix using assignments
     for gene in adata.var_names:
         cts = spots[spots['gene'] == gene ]['cell'].value_counts()
-        adata[:, gene] = cts.reindex(adata.obs_names, fill_value = 0)
+        adata[:, gene] = cts.reindex(adata.obs['cell_id'], fill_value = 0)
+
+    #TODO have different index for denovo types
+    #Look for cell_types
+    if(os.path.exists(f'{data}/celltypes_{assignment_method}.csv')):
+        temp = pd.read_csv(f'{data}/celltypes_{assignment_method}.csv', header=None, index_col = 0)
+        adata.obs['cell_type'] = pd.Categorical(temp[1][adata.obs['cell_id']])
 
     #Find area for normalization
     found_area = False
     if area_method is not None and normalize_by == 'area':
         #Load area data from methods provided
         temp = pd.read_csv(f'{data}/areas_{area_method}.csv', header=None, index_col = 0)
-        adata.obs['area'] = temp[1][adata.obs_names]
+        adata.obs['area'] = temp[1][adata.obs['cell_id']]
     elif normalize_by == 'area':
         #If no provided area, search through possible areas
         methods = assignment_method
@@ -66,7 +73,7 @@ if __name__ == '__main__':
             methods = '_'.join(method_list)
             if(os.path.exists(f'{data}/areas_{methods}.csv')):
                 temp = pd.read_csv(f'{data}/areas_{methods}.csv', header=None, index_col = 0)
-                adata.obs['area'] = temp[1][adata.obs_names]
+                adata.obs['area'] = temp[1][adata.obs['cell_id']]
                 found_area = True
                 break
             method_list.pop()
@@ -83,8 +90,8 @@ if __name__ == '__main__':
         area_vec = np.zeros([adata.n_obs])
         for i in range(adata.n_obs):
             dots = pd.concat(
-                [spots[spots['cell'] == adata.obs_names[i]].x,
-                spots[spots['cell'] == adata.obs_names[i]].y],
+                [spots[spots['cell'] == adata.obs['cell_id'][i]].x,
+                spots[spots['cell'] == adata.obs['cell_id'][i]].y],
                 axis=1
             )
             pts = list(dots.itertuples(index=False, name=None))

@@ -30,7 +30,8 @@ if __name__ == '__main__':
     data = args.data
     segmentation_method = args.segment
     sc_data = args.singlecell
-    opts = eval(args.hyperparams)['opts']
+    hyperparams = eval(args.hyperparams)
+    opts = hyperparams['opts'] if hyperparams is not None else None
     id_code = args.id_code
  
     #Read and format molecules, single cell data, and labels
@@ -46,7 +47,8 @@ if __name__ == '__main__':
     seg = skimage.io.imread(f'{data}/segments_{segmentation_method}.tif')
     coo = coo_matrix(seg)
 
-    #Add safety feature for genes that aren't included
+    #TODO Add safety feature for genes that aren't included
+
     #Run through pciSeq
     pciSeq.attach_to_log()
     if(opts != None):
@@ -58,6 +60,17 @@ if __name__ == '__main__':
     assignments = geneData[ ["Gene", "x", "y", "neighbour"] ]
     assignments.columns = ["gene", "x", "y", "cell"]
 
+    #Save cell types
+    type_vec = []
+    for i in cellData['Cell_Num']:
+        type_vec.append(cellData['ClassName'][i][np.argmax(cellData['Prob'][i])])
+
     #Change the cell names to match the segmentation
-    assignments['cell'] = np.unique(seg)[assignments['cell']]
+    cell_id = np.unique(seg)
+    assignments['cell'] = cell_id[assignments['cell']]
+    cell_types = pd.DataFrame(data=type_vec, index = cell_id[cell_id != 0])
+    cell_types[cell_types == 'Zero'] = 'None'
+
+    #Save to csv
+    cell_types.to_csv(f'{data}/celltypes_{segmentation_method}_pciseq-{id_code}.csv', header = False)
     assignments.to_csv(f'{data}/assignments_{segmentation_method}_pciseq-{id_code}.csv', index = False)

@@ -1,8 +1,3 @@
-import yaml
-import itertools
-import json
-import csv
-import pandas as pd
 from TxsimConfig import *
 
 parsed = ParsedConfig('configs/config.yaml')
@@ -66,7 +61,8 @@ rule pciSeq:
         scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data'),
         hyp = lambda w: get_hyperparams('pciSeq', int(w.ahp))
     output:
-        '{results}/{dataset}/assignments_{seg}_pciSeq-{ahp}.csv'
+        '{results}/{dataset}/assignments_{seg}_pciSeq-{ahp}.csv',
+        '{results}/{dataset}/celltypes_{seg}_pciSeq-{ahp}.csv'
     wildcard_constraints:
         ahp="\d+"
     shell:
@@ -97,35 +93,44 @@ rule basic_assign:
         "-id {wildcards.ahp} "
 
 rule baysor_assign:
-    container:
-        "docker://vpetukhov/baysor"
     input: 
         '{results}/{dataset}/segments_{seg}.tif'
     params:
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules'),
-        #hyp = lambda w: get_hyperparams('baysor', int(w.ahp))
+        hyp = lambda w: get_hyperparams('baysor', int(w.ahp))
     output:
-        '{results}/{dataset}/assignments_{seg}_baysor-{ahp}.csv',
-        '{results}/{dataset}/areas_{seg}_baysor-{ahp}.csv'
+        touch('{results}/{dataset}/blank_{seg}_baysor-{ahp}.txt')
     wildcard_constraints:
         ahp="\d+"
+    container:
+        "docker://vpetukhov/baysor:master"
     shell:
         "baysor"
 
 rule baysor_segment:
     container:
-        "docker://vpetukhov/baysor"
-    output:
-        '{results}/{dataset}/segments_baysor-{ahp}.tif',
-        '{results}/{dataset}/assignments_baysor-{ahp}.csv',
-        '{results}/{dataset}/areas_baysor-{ahp}.csv'
+        "docker://vpetukhov/baysor:master"
     params:
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules'),
-        #hyp = lambda w: get_hyperparams('baysor', int(w.ahp))
+        hyp = lambda w: get_hyperparams('baysor', int(w.ahp))
+    output:
+        touch('{results}/{dataset}/blank_baysor-{ahp}.txt')
     wildcard_constraints:
         ahp="\d+"
     shell:
         "baysor"
+
+rule format_baysor:
+    input:
+        '{results}/{dataset}/blank_{prev}baysor-{ahp}.txt'
+    output:
+        '{results}/{dataset}/segments_{prev}baysor-{ahp}.tif',
+        '{results}/{dataset}/assignments_{prev}baysor-{ahp}.csv',
+        '{results}/{dataset}/areas_{prev}baysor-{ahp}.csv'
+    wildcard_constraints:
+        prev=".*",
+        ahp="\d"
+
 
 rule total_norm:
     input:
@@ -143,44 +148,6 @@ rule total_norm:
         "-n total "
         "-id {wildcards.nhp} "
         "-p \"{params.hyp}\" "
-
-# rule area_generic:
-#     input:
-#         assign = '{results}/{dataset}/assignments_{method}.csv',
-#         area = '{results}/{dataset}/areas_{method}.csv'
-#     params:
-#         hyp = lambda w: get_hyperparams('area', int(w.nhp))
-#     output:
-#         '{results}/{dataset}/counts_{method}_area-{nhp}.h5ad'
-#     wildcard_constraints:
-#         nhp="\d+"
-#     shell:
-#         "python scripts/gen_counts.py "
-#         "-as {wildcards.method} "
-#         "-ar {wildcards.method} "
-#         "-d {wildcards.results}/{wildcards.dataset} "
-#         "-n area "
-#         "-id {wildcards.nhp} "
-#         "-p \"{params.hyp}\" "
-
-# rule area_prior:
-#     input:
-#         assign = '{results}/{dataset}/assignments_{method}_{assign}.csv',
-#         area = '{results}/{dataset}/areas_{method}.csv'
-#     params:
-#         hyp = lambda w: get_hyperparams('area', int(w.nhp))
-#     output:
-#         '{results}/{dataset}/counts_{method}_{assign}_area-{nhp}.h5ad'
-#     wildcard_constraints:
-#         nhp="\d+"
-#     shell:
-#         "python scripts/gen_counts.py "
-#         "-as {wildcards.method}_{wildcards.assign} "
-#         "-ar {wildcards.method} "
-#         "-d {wildcards.results}/{wildcards.dataset} "
-#         "-n area "
-#         "-id {wildcards.nhp} "
-#         "-p \"{params.hyp}\" "
 
 rule alpha_area:
     input:

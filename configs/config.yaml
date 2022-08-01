@@ -1,4 +1,4 @@
-ROOT: C:/Users/Habib/Projects/HMGU/tx_project
+ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project
 RESULTS: results
 py_env : pipeline
 
@@ -8,26 +8,20 @@ py_env : pipeline
 
 PREPROCESSING:
   batch1:
-    combinations:
-      -[segmentation, assignment, normalize]
-      -[cell_segmentation, normalize]
-      -[dot_clustering, normalize]
+    dataset: [test]
+    workflow: [segmentation, assignment, normalize]
     segmentation:
       cellpose:
-      watershed:
     segmentation_params:
-      expand: [0,20]
+      expand: [0]
       binary: [False]
-    assignment:
-      basic: 
+    assignment: 
       pciSeq:
-        opts: [{'exclude_genes':['TCIM']}]
     normalize:
       area:
         alpha: [0]
-        max: [False, True]
-      total:
-    dataset: [test]
+        max: [True]
+
 
 DATA_SCENARIOS:
   heart:
