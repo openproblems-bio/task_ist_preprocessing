@@ -1,0 +1,10 @@
+name: watershed-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - squidpy
+  - pip
+  - pip:
+    - -e '../txsim'

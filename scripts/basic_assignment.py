@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
 import argparse
-import pciSeq
 import skimage.io
 import pandas as pd
 import numpy as np
-import scanpy as sc
 
 if __name__ == '__main__':
 

@@ -1,0 +1,11 @@
+name: cellpose-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - squidpy
+  - cellpose
+  - pip
+  - pip:
+    - -e '../txsim'

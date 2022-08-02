@@ -1,0 +1,11 @@
+name: area-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - scanpy
+  - alphashape
+  - descartes
+  - pip:
+    - -e '../txsim'

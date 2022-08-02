@@ -2,7 +2,6 @@
 
 import txsim as tx
 import squidpy as sq
-from PIL import Image
 from scipy import ndimage
 import skimage.io
 import skimage.measure

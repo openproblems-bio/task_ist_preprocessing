@@ -1,0 +1,9 @@
+name: base-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - scanpy
+  - pip:
+    - -e '../txsim'

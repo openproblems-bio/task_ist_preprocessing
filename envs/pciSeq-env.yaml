@@ -1,0 +1,11 @@
+name: pciSeq-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - scanpy
+  - pciSeq
+  - pip
+  - pip:
+    - -e '../txsim'

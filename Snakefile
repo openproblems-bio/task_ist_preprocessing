@@ -32,6 +32,8 @@ rule all:
 
 #Rules corresponding to each method
 rule watershed:
+    conda:
+        "envs/watershed-env.yaml"
     output:
         '{results}/{dataset}/segments_watershed-{shp}.tif',
         '{results}/{dataset}/areas_watershed-{shp}.csv'
@@ -53,6 +55,8 @@ rule watershed:
         "{params.bry}"
 
 rule cellpose:
+    conda: 
+        "envs/cellpose-env.yaml"
     output:
         '{results}/{dataset}/segments_cellpose-{shp}.tif',
         '{results}/{dataset}/areas_cellpose-{shp}.csv'
@@ -74,6 +78,8 @@ rule cellpose:
         "{params.bry}"
 
 rule pciSeq:
+    conda:
+        "envs/pciSeq-env.yaml"
     input:
         '{results}/{dataset}/segments_{seg}.tif'
     params:
@@ -95,6 +101,8 @@ rule pciSeq:
         "-id {wildcards.ahp} "
 
 rule basic_assign:
+    conda:
+        "envs/base-env.yaml"
     input:
         '{results}/{dataset}/segments_{seg}.tif'
     params:
@@ -153,6 +161,8 @@ rule format_baysor:
 
 
 rule total_norm:
+    conda:
+        "envs/base-env.yaml"
     input:
         '{results}/{dataset}/assignments_{assign}.csv'
     params:
@@ -170,6 +180,8 @@ rule total_norm:
         "-p \"{params.hyp}\" "
 
 rule alpha_area:
+    conda:
+        "envs/area-env.yaml"
     input:
         assign = '{results}/{dataset}/assignments_{method}.csv'
     params:
@@ -187,6 +199,8 @@ rule alpha_area:
         "-p \"{params.hyp}\" "
 
 rule metric:
+    conda:
+        "envs/base-env.yaml"
     input:
         '{results}/{dataset}/counts_{methods}.h5ad'
     params:
