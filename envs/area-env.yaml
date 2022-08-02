@@ -4,8 +4,9 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - scanpy
-  - alphashape
-  - descartes
+  - pip
   - pip:
-    - -e '../txsim'
+    - squidpy
+    - alphashape
+    - descartes
+    - -e /mnt/c/users/habib/projects/hmgu/tx_project/txsim

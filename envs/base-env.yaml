@@ -4,6 +4,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - scanpy
+  - pip
   - pip:
-    - -e '../txsim'
+    - squidpy
+    - -e /mnt/c/users/habib/projects/hmgu/tx_project/txsim

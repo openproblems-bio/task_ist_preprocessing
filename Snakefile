@@ -33,7 +33,7 @@ rule all:
 #Rules corresponding to each method
 rule watershed:
     conda:
-        "envs/watershed-env.yaml"
+        "envs/base-env.yaml"
     output:
         '{results}/{dataset}/segments_watershed-{shp}.tif',
         '{results}/{dataset}/areas_watershed-{shp}.csv'
