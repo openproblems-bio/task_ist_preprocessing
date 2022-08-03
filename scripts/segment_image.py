@@ -45,9 +45,16 @@ if __name__ == '__main__':
     if(not binary):
         img = sq.im.ImageContainer(image_file)
         if(segmentation_method=='cellpose'):
-            tx.preprocessing.segment_cellpose(img, layer = 'image', **hyperparams)
+            if hyperparams is not None:
+                tx.preprocessing.segment_cellpose(img, layer = 'image', **hyperparams)
+            else:
+                tx.preprocessing.segment_cellpose(img, layer = 'image')
         else:
-            tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method, **hyperparams)
+            if hyperparams is not None:
+                tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method, **hyperparams)
+            else:
+                tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method)
+    
         img_arr = img[f'segmented_{segmentation_method}'].to_numpy()[:,:,0,0]
     
     #If already segmented, label

@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-import skimage.io
-import pandas as pd
-import numpy as np
+import txsim as tx
 
 if __name__ == '__main__':
 
@@ -27,13 +25,7 @@ if __name__ == '__main__':
     id_code = args.id_code
     hyperparams = args.hyperparams
  
-    #Read and format molecules
-    spots = pd.read_csv(molecules)
-    spots.columns = ['gene', 'x', 'y']
-    seg = skimage.io.imread(f'{data}/segments_{segmentation_method}.tif')
-
-    #Assign molecules based value in segmentation array
-    spots['cell'] = seg[spots.y.to_numpy(dtype=np.int64), spots.x.to_numpy(dtype=np.int64)]
+    spots = tx.preprocessing.basic_assign(molecules, f'{data}/segments_{segmentation_method}.tif')
 
     #Save in correct format
     spots.to_csv(f'{data}/assignments_{segmentation_method}_basic-{id_code}.csv', index = False)

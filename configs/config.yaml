@@ -14,7 +14,7 @@ PREPROCESSING:
       cellpose:
         min_size: [15]
     segmentation_params:
-      expand: [0]
+      expand: [10]
       binary: [False]
     assignment: 
       pciSeq:
