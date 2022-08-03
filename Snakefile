@@ -1,5 +1,6 @@
 from TxsimConfig import *
 
+configfile: 'configs/config.yaml'
 parsed = ParsedConfig('configs/config.yaml')
 final_files = parsed.gen_file_names()
 
@@ -45,7 +46,7 @@ rule watershed:
         exp = lambda w: parsed.get_method_params('watershed', int(w.shp)).get('expand'),
         bry = lambda w: "-b " if parsed.get_method_params('watershed', int(w.shp))['binary'] else ""
     shell:
-        "python scripts/segment_image.py "
+        "python3 {config[ROOT]}/scripts/segment_image.py "
         "-i {params.img} "
         "-p \"{params.hyp}\" "
         "-o {wildcards.results}/{wildcards.dataset} "
@@ -68,7 +69,7 @@ rule cellpose:
         exp = lambda w: parsed.get_method_params('cellpose', int(w.shp)).get('expand'),
         bry = lambda w: "-b " if parsed.get_method_params('cellpose', int(w.shp))['binary'] else ""
     shell:
-        "python scripts/segment_image.py "
+        "python3 {config[ROOT]}/scripts/segment_image.py "
         "-i {params.img} "
         "-p \"{params.hyp}\" "
         "-o {wildcards.results}/{wildcards.dataset} "
@@ -92,7 +93,7 @@ rule pciSeq:
     wildcard_constraints:
         ahp="\d+"
     shell:
-        "python scripts/run_pciseq.py "
+        "python3 {config[ROOT]}/scripts/run_pciseq.py "
         "-m {params.mol} "
         "-p \"{params.hyp}\" "
         "-sc {params.scd} "
@@ -113,7 +114,7 @@ rule basic_assign:
     wildcard_constraints:
         ahp="\d+"
     shell:
-        "python scripts/basic_assignment.py "
+        "python3 {config[ROOT]}/scripts/basic_assignment.py "
         "-m {params.mol} "
         "-p \"{params.hyp}\" "
         "-d {wildcards.results}/{wildcards.dataset} "
@@ -172,7 +173,7 @@ rule total_norm:
     wildcard_constraints:
         nhp="\d+"
     shell:
-        "python scripts/gen_counts.py "
+        "python3 {config[ROOT]}/scripts/gen_counts.py "
         "-as {wildcards.assign} "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-n total "
@@ -191,7 +192,7 @@ rule alpha_area:
     wildcard_constraints:
         nhp="\d+"
     shell:
-        "python scripts/gen_counts.py "
+        "python3 {config[ROOT]}/scripts/gen_counts.py "
         "-as {wildcards.method} "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-n area "
@@ -208,7 +209,7 @@ rule metric:
     output:
         '{results}/{dataset}/metrics_{methods}.txt'
     shell:
-        "python scripts/calc_metrics.py "
+        "python3 {config[ROOT]}/scripts/calc_metrics.py "
         "-m {wildcards.methods} "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-sc {params.scd} "

@@ -1,6 +1,7 @@
-ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project
-RESULTS: results
-py_env : pipeline
+#Folder where pipeline is contained (should end with 'txsim-pipeline')
+ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project/txsim-pipeline
+#Folder where intermediate/final files will be stored
+RESULTS: /mnt/d/HMGU/DATA/results
 
 #TODO: Add list of method types here
 #List the combos somewhere somehow
@@ -34,6 +35,7 @@ DATA_SCENARIOS:
     sc_data: heart/raw_data/heart_sc.h5ad
     molecules: heart/raw_data/spots_PCW4.5_1.csv
   test:
-    image: test/raw_image.tif
-    sc_data: test/sc_data.h5ad
-    molecules: test/spots.csv
+    root_folder: /mnt/d/HMGU/DATA/test 
+    image: raw_image.tif
+    sc_data: sc_data.h5ad
+    molecules: spots.csv

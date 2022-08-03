@@ -76,7 +76,7 @@ class ParsedConfig:
             #Parameters such as 'seg' in format: '{method}-{id}'
             self.final_files.extend(
                 expand(
-                    cfg['ROOT']+'/{results}/{dataset}/metrics_{seg}_{assign}_{norm}.txt',
+                    '{results}/{dataset}/metrics_{seg}_{assign}_{norm}.txt',
                     results=cfg['RESULTS'],
                     batch=batch,
                     dataset=cfg['PREPROCESSING'][batch]['dataset'],
@@ -95,7 +95,7 @@ class ParsedConfig:
             output["params"].extend(self.method_dict[method])
         
         df = pd.DataFrame.from_dict(output)
-        output_folder = self.cfg['ROOT']+'/' + self.cfg['RESULTS']
+        output_folder = self.cfg['RESULTS']
         if not os.path.exists(output_folder):
             os.mkdir(output_folder)
         df.to_csv(output_folder + '/params_dict.csv')
@@ -105,7 +105,7 @@ class ParsedConfig:
     
     #TODO Type hints
     def get_data_file(self, dataset, file_name):
-        return self.cfg['ROOT'] + '/' + self.cfg['DATA_SCENARIOS'][dataset][file_name]
+        return os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'] , self.cfg['DATA_SCENARIOS'][dataset][file_name])
     
     def get_method_params(self, method, id):
         if self.method_dict.get(method) is None:
