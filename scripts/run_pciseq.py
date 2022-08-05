@@ -38,5 +38,5 @@ if __name__ == '__main__':
     )
 
     #Save to csv
-    cell_types.to_csv(f'{data}/celltypes_{segmentation_method}_pciseq-{id_code}.csv', header = False)
-    assignments.to_csv(f'{data}/assignments_{segmentation_method}_pciseq-{id_code}.csv', index = False)
+    cell_types.to_csv(f'{data}/celltypes_{segmentation_method}_pciSeq-{id_code}.csv', header = False)
+    assignments.to_csv(f'{data}/assignments_{segmentation_method}_pciSeq-{id_code}.csv', index = False)

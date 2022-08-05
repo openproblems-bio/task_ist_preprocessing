@@ -8,3 +8,6 @@ load_images.ipynb
 run_baysor.ipynb
 run_pciseq.ipynb
 .snakemake
+*.sbatch
+logs/
+temp/

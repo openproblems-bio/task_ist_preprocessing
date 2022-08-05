@@ -2,40 +2,59 @@
 ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project/txsim-pipeline
 #Folder where intermediate/final files will be stored
 RESULTS: /mnt/d/HMGU/DATA/results
-
-#TODO: Add list of method types here
-#List the combos somewhere somehow
-#Make parsed config generic enough that it can generate the combos
+#ROOT: /home/icb/hrehman80//txsim-pipeline
+#RESULTS: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/results
 
 PREPROCESSING:
-  batch1:
+  # batch1:
+  #   dataset: [test]
+  #   workflow: [segmentation, assignment, normalize]
+  #   segmentation:
+  #     cellpose:
+  #       min_size: [15]
+  #   segmentation_params:
+  #     expand: [10]
+  #     binary: [False]
+  #   assignment: 
+  #     basic:
+  #   normalize:
+  #     area:
+  #       alpha: [0]
+  #       max: [True]
+  batch2:
     dataset: [test]
-    workflow: [segmentation, assignment, normalize]
+    workflow: [cell_segmentation, normalize]
     segmentation:
-      cellpose:
-        min_size: [15]
-    segmentation_params:
+      baysor:
+    cell_segmentation:
+      baysor:
+    cell_segmentation_params:
       expand: [10]
       binary: [False]
     assignment: 
-      pciSeq:
+      basic:
     normalize:
       area:
         alpha: [0]
         max: [True]
 
 
+#TODO fix the binary flag so that it is in data scenarios
 DATA_SCENARIOS:
-  heart:
-    image: heart/raw_data/nuclei_PCW4.5_1.tif
-    sc_data: heart/raw_data/heart_sc.h5ad
-    molecules: heart/raw_data/spots_PCW4.5_1.csv
-  heart2:
-    image: heart/raw_data/nuclei_PCW4.5_1_watershed.tif
-    sc_data: heart/raw_data/heart_sc.h5ad
-    molecules: heart/raw_data/spots_PCW4.5_1.csv
   test:
     root_folder: /mnt/d/HMGU/DATA/test 
     image: raw_image.tif
     sc_data: sc_data.h5ad
     molecules: spots.csv
+
+# DATA_SCENARIOS:
+#   test:
+#     root_folder: /home/icb/hrehman80/test_data
+#     image: raw_image.tif
+#     sc_data: sc_data.h5ad
+#     molecules: spots.csv
+#   heart_PCW4.5:
+#     root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/heart_data
+#     image: nuclei_PCW4.5_1.tif
+#     sc_data: heart_sc.h5ad
+#     molecules: spots_PCW4.5_1.csv

@@ -1,4 +1,4 @@
-import yaml
+
 import itertools
 import json
 import csv
@@ -7,11 +7,12 @@ from snakemake.io import expand
 import os
 
 class ParsedConfig:
-    PROCESSES =  ['segmentation', 'assignment', 'normalize']
 
-    def __init__(self, config):
-        cfg = yaml.load(open(config, 'r'), Loader=yaml.FullLoader)
-        self.cfg = cfg
+    def __init__(
+        self, 
+        config: dict
+    ):
+        self.cfg = config
         self.final_files = []
         #Maps all methods to list of parameters
         self.method_dict ={}
@@ -20,6 +21,8 @@ class ParsedConfig:
         for batch in self.cfg['PREPROCESSING']:
             #Run through each batch
             batch_combos = {}
+            #TODO decide if workflow should be in the config or generated from the config
+            # would have to use regex if latter? 
             for group in self.cfg['PREPROCESSING'][batch]['workflow']:
                 #Within each group of processes per batch, 
                 #Generate batch parameter combinations for each method
@@ -74,17 +77,23 @@ class ParsedConfig:
 
             #Generate the final files for the batch
             #Parameters such as 'seg' in format: '{method}-{id}'
-            self.final_files.extend(
-                expand(
-                    '{results}/{dataset}/metrics_{seg}_{assign}_{norm}.txt',
-                    results=cfg['RESULTS'],
-                    batch=batch,
-                    dataset=cfg['PREPROCESSING'][batch]['dataset'],
-                    seg=list(batch_combos['segmentation']),
-                    assign=list(batch_combos['assignment']),
-                    norm=list(batch_combos['normalize'])
-                )
-            )
+            #TODO make the format more flexible 
+            #Possible solution: 
+            # create a string as the template file name based on contents of workflow
+            # pass in a dictionary of group -> list(batch_combos) to expand
+            # basically just **kwargs
+            # ie replace seg= with segmentation
+            
+
+            file_template = os.path.join(self.cfg['RESULTS'], "{dataset}/metrics")
+            wildcards = {'dataset': self.cfg['PREPROCESSING'][batch]['dataset']}
+
+            for group in self.cfg['PREPROCESSING'][batch]['workflow']:
+                file_template = file_template + "_{" + group + "}"
+                wildcards[group] = list(batch_combos[group])
+
+            self.final_files.extend( expand((file_template + ".txt"),**wildcards))
+            
         self.final_files = list(set(self.final_files))
 
         #Save the dictionary of method-id -> parameter combination

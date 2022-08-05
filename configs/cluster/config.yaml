@@ -1,0 +1,21 @@
+cluster: 
+  sbatch
+    --partition={resources.partition}
+    --cpus-per-task={threads}
+    --job-name=smk_{rule}
+    --output=logs/{rule}_output_%j.txt
+    --error=logs/{rule}_error_%j.txt
+    --mem={resources.mem_mb}
+    --nice=10000
+    --mail-user=hrehman80@helmholtz-muenchen.de
+    --time=6:00:00
+default-resources:
+  - partition=cpu_p
+  - mem_mb=8000
+use-conda: True
+use-singularity: True
+singularity-args:
+  --bind /:/
+jobs: 15
+keep-going: True
+restart-times: 3
