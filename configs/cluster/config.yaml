@@ -11,7 +11,7 @@ cluster:
     --time=6:00:00
 default-resources:
   - partition=cpu_p
-  - mem_mb=8000
+  - mem_mb=16000
 use-conda: True
 use-singularity: True
 singularity-args:

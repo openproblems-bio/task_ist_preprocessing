@@ -22,10 +22,10 @@ if __name__ == '__main__':
         help='Segmentation method to be used')
     parser.add_argument('-id', '--id_code', required=True, type = str,
         help='ID of method to be used for saving')
-    parser.add_argument('-e', '--expand', default=0, type=int,
-        help='Amount to expand each segment by- can be used to approximate cell boundary') 
     parser.add_argument('-p', '--hyperparams', default=None, type=str,
         help='Dictionary of hyperparameters') 
+    parser.add_argument('-e', '--expand', default=None, type=str,
+        help='Amount to expand each segment by- can be used to approximate cell boundary') 
     
     args = parser.parse_args()
 
@@ -33,9 +33,9 @@ if __name__ == '__main__':
     output = args.output
     binary = args.binary
     segmentation_method = args.segment
-    expand_nuclear_area = args.expand
     id_code = args.id_code
     hyperparams = eval(args.hyperparams)
+    expand_nuclear_area = eval(args.expand)
     
     #Create output folder if needed
     if not os.path.exists(output):
@@ -63,7 +63,7 @@ if __name__ == '__main__':
         img_arr = skimage.measure.label(img_arr, connectivity=1)
 
     #Expand nuclear area to reflect whole cell area
-    if(expand_nuclear_area != None):
+    if expand_nuclear_area is not None and expand_nuclear_area != 0:
         img_arr = skimage.segmentation.expand_labels(img_arr, distance=expand_nuclear_area)
 
     #Save as .tif file

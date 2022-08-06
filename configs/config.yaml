@@ -6,13 +6,27 @@ RESULTS: /mnt/d/HMGU/DATA/results
 #RESULTS: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/results
 
 PREPROCESSING:
-  # batch1:
+  batch1:
+    dataset: [test]
+    workflow: [segmentation, assignment, normalize]
+    segmentation:
+      custom:
+    segmentation_params:
+      expand: [20]
+    assignment: 
+      basic:
+    normalize:
+      area:
+        alpha: [0]
+        max: [True]
+  # batch2:
   #   dataset: [test]
-  #   workflow: [segmentation, assignment, normalize]
+  #   workflow: [cell_segmentation, normalize]
   #   segmentation:
-  #     cellpose:
-  #       min_size: [15]
-  #   segmentation_params:
+  #     baysor:
+  #   cell_segmentation:
+  #     baysor:
+  #   cell_segmentation_params:
   #     expand: [10]
   #     binary: [False]
   #   assignment: 
@@ -21,22 +35,6 @@ PREPROCESSING:
   #     area:
   #       alpha: [0]
   #       max: [True]
-  batch2:
-    dataset: [test]
-    workflow: [cell_segmentation, normalize]
-    segmentation:
-      baysor:
-    cell_segmentation:
-      baysor:
-    cell_segmentation_params:
-      expand: [10]
-      binary: [False]
-    assignment: 
-      basic:
-    normalize:
-      area:
-        alpha: [0]
-        max: [True]
 
 
 #TODO fix the binary flag so that it is in data scenarios
@@ -46,6 +44,7 @@ DATA_SCENARIOS:
     image: raw_image.tif
     sc_data: sc_data.h5ad
     molecules: spots.csv
+    segmented_image: segmented_image.tif
 
 # DATA_SCENARIOS:
 #   test:
