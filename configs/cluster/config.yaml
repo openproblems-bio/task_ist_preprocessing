@@ -15,7 +15,7 @@ default-resources:
 use-conda: True
 use-singularity: True
 singularity-args:
-  --bind /:/
+  --bind /home/:/home/,/lustre/:/lustre/
 jobs: 15
 keep-going: True
 restart-times: 3

@@ -106,7 +106,7 @@ class ParsedConfig:
         df = pd.DataFrame.from_dict(output)
         output_folder = self.cfg['RESULTS']
         if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
+            os.makedirs(output_folder)
         df.to_csv(output_folder + '/params_dict.csv')
         
     def gen_file_names(self):

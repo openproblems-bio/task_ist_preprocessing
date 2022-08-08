@@ -120,7 +120,7 @@ rule pciSeq:
         '{results}/{dataset}/assignments_{seg}_pciSeq-{id_code}.csv',
         '{results}/{dataset}/celltypes_{seg}_pciSeq-{id_code}.csv'
     shell:
-        "python3 scripts/run_pciseq.py "
+        "python3 scripts/run_pciSeq.py "
         "-m {input.mol} "
         "-p \"{params.hyp}\" "
         "-sc {input.scd} "
@@ -152,13 +152,22 @@ rule baysor_assign:
         '{results}/{dataset}/segments_{seg}.tif',
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
-        hyp = lambda w: get_params('baysor', int(w.id_code), 'p')
+        hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
+        tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
     output:
-        touch('{results}/{dataset}/blank_{seg}_baysor-{id_code}.txt')
+#        '{results}/{dataset}/segments_{seg}_baysor-{id_code}.tif',
+        '{results}/{dataset}/assignments_{seg}_baysor-{id_code}.csv',
+        '{results}/{dataset}/areas_{seg}_baysor-{id_code}.csv'
     container:
         "docker://vpetukhov/baysor:master"
     shell:
-        "baysor"
+        "python3 scripts/run_baysor.py "
+        "-m {input.mol} "
+        "-p \"{params.hyp}\" "
+        "-d {wildcards.results}/{wildcards.dataset} "
+        "-id {wildcards.id_code} "
+        "-s {wildcards.seg} "
+        "{params.tmp}"
 
 rule baysor_segment:
     container:
@@ -166,22 +175,19 @@ rule baysor_segment:
     input:
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
-        hyp = lambda w: get_params('baysor', int(w.id_code), 'p')
+        hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
+        tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
     output:
-        touch('{results}/{dataset}/blank_baysor-{id_code}.txt')
+#        '{results}/{dataset}/segments_baysor-{id_code}.tif',
+        '{results}/{dataset}/assignments_baysor-{id_code}.csv',
+        '{results}/{dataset}/areas_baysor-{id_code}.csv'
     shell:
-        "baysor"
-
-rule format_baysor:
-    input:
-        '{results}/{dataset}/blank_{prev}baysor-{id_code}.txt'
-    output:
-        '{results}/{dataset}/segments_{prev}baysor-{id_code}.tif',
-        '{results}/{dataset}/assignments_{prev}baysor-{id_code}.csv',
-        '{results}/{dataset}/areas_{prev}baysor-{id_code}.csv'
-    wildcard_constraints:
-        prev=".*"
-
+        "python3 scripts/run_baysor.py "
+        "-m {input.mol} "
+        "-p \"{params.hyp}\" "
+        "-d {wildcards.results}/{wildcards.dataset} "
+        "-id {wildcards.id_code} "
+        "{params.tmp}"
 
 rule total_norm:
     conda:

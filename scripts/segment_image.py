@@ -39,7 +39,7 @@ if __name__ == '__main__':
     
     #Create output folder if needed
     if not os.path.exists(output):
-        os.mkdir(output)
+        os.makedirs(output)
 
     #If unsegmented, segment image
     if(not binary):

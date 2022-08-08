@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+from collections import OrderedDict
 import txsim as tx
 
 if __name__ == '__main__':
@@ -26,10 +27,10 @@ if __name__ == '__main__':
     segmentation_method = args.segment
     sc_data = args.singlecell
     hyperparams = eval(args.hyperparams)
-    opts = hyperparams['opts'] if hyperparams is not None else None
+    opts = dict(hyperparams.get('opts')) if hyperparams is not None else None
     id_code = args.id_code
  
-    assignments, cell_types = tx.preprocessing.run_pciseq(
+    assignments, cell_types = tx.preprocessing.run_pciSeq(
         molecules,
         f'{data}/segments_{segmentation_method}.tif',
         sc_data,

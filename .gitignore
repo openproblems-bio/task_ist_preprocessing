@@ -2,11 +2,6 @@
 __pycache__/
 .ipynb_checkpoints
 results/
-calc_metrics.ipynb
-gen_counts.ipynb
-load_images.ipynb
-run_baysor.ipynb
-run_pciseq.ipynb
 .snakemake
 *.sh
 logs/
