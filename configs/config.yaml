@@ -1,15 +1,16 @@
 #Folder where pipeline is contained (should end with 'txsim-pipeline')
+#This might be obsolete given snakemake functionality
+#ROOT: /home/icb/hrehman80//txsim-pipeline
 ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project/txsim-pipeline
 
 #Folder where intermediate/final files will be stored
+#RESULTS: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/results
 RESULTS: /mnt/d/HMGU/DATA/results
 
 #Folder where temporary files will be stored (optional)
+#TEMP: /localscratch/hrehman80
 TEMP: /mnt/d/HMGU/DATA/baysor/temp
 
-#TEMP: /localscratch/hrehman80
-#ROOT: /home/icb/hrehman80//txsim-pipeline
-#RESULTS: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/results
 
 PREPROCESSING:
   # batch1:
@@ -17,31 +18,33 @@ PREPROCESSING:
   #   workflow: [segmentation, assignment, normalize]
   #   segmentation:
   #     custom:
+  #     watershed:
+  #     cellpose:
   #   segmentation_params:
   #     expand: [20]
   #   assignment: 
   #     pciSeq: 
   #       opts: [{}]
+  #     basic:
+  #     baysor:
   #   normalize:
   #     area:
   #       alpha: [0]
   #       max: [True]
+  #     total:
   batch2:
     dataset: [test]
     workflow: [cell_segmentation, normalize]
-    segmentation:
-      baysor:
     cell_segmentation:
       baysor:
     cell_segmentation_params:
       expand: [10]
       binary: [False]
-    assignment: 
-      basic:
     normalize:
-      area:
+       area:
         alpha: [0]
         max: [True]
+      # total:
 
 DATA_SCENARIOS:
   test:

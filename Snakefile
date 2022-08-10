@@ -40,7 +40,7 @@ rule all:
         final_files
 
 #Rules corresponding to each method
-rule custom_segmentation:
+rule pre_segmented:
     conda:
         "envs/base-env.yaml"
     input:
@@ -146,32 +146,37 @@ rule basic_assign:
         "-s {wildcards.seg} "
         "-id {wildcards.id_code} "
 
-#TODO change parameters since it is running inside a container
-rule baysor_assign:
-    input: 
-        '{results}/{dataset}/segments_{seg}.tif',
-        mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
-    params:
-        hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
-        tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
-    output:
-#        '{results}/{dataset}/segments_{seg}_baysor-{id_code}.tif',
-        '{results}/{dataset}/assignments_{seg}_baysor-{id_code}.csv',
-        '{results}/{dataset}/areas_{seg}_baysor-{id_code}.csv'
-    container:
-        "docker://vpetukhov/baysor:master"
-    shell:
-        "python3 scripts/run_baysor.py "
-        "-m {input.mol} "
-        "-p \"{params.hyp}\" "
-        "-d {wildcards.results}/{wildcards.dataset} "
-        "-id {wildcards.id_code} "
-        "-s {wildcards.seg} "
-        "{params.tmp}"
+#TODO fix baysor
+# rule baysor_prior:
+#     conda:
+#         "envs/base-env.yaml"
+#     container:
+#         "docker://vpetukhov/baysor:master"
+#     input: 
+#         '{results}/{dataset}/segments_{seg}.tif',
+#         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
+#     params:
+#         hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
+#         tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
+#     output:
+#         '{results}/{dataset}/segments_{seg}_baysor-{id_code}.tif',
+#         '{results}/{dataset}/assignments_{seg}_baysor-{id_code}.csv',
+#         '{results}/{dataset}/areas_{seg}_baysor-{id_code}.csv'
+#     shell:
+#         "python3 scripts/run_baysor.py "
+#         "-m {input.mol} "
+#         "-p \"{params.hyp}\" "
+#         "-d {wildcards.results}/{wildcards.dataset} "
+#         "-id {wildcards.id_code} "
+#         "-s {wildcards.seg} "
+#         "{params.tmp}"
 
-rule baysor_segment:
+rule baysor_no_prior:
     container:
-        "docker://vpetukhov/baysor:master"
+#        "docker://vpetukhov/baysor:master"
+        "docker://julia:latest"
+    conda:
+        "envs/base-env.yaml"
     input:
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
@@ -182,14 +187,14 @@ rule baysor_segment:
         '{results}/{dataset}/assignments_baysor-{id_code}.csv',
         '{results}/{dataset}/areas_baysor-{id_code}.csv'
     shell:
-        "python3 scripts/run_baysor.py "
+        "python3 {config[ROOT]}/scripts/run_baysor.py "
         "-m {input.mol} "
         "-p \"{params.hyp}\" "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-id {wildcards.id_code} "
         "{params.tmp}"
 
-rule total_norm:
+rule normalize_total:
     conda:
         "envs/base-env.yaml"
     input:
@@ -206,7 +211,7 @@ rule total_norm:
         "-id {wildcards.id_code} "
         "-p \"{params.hyp}\" "
 
-rule alpha_area:
+rule normalize_area:
     threads: 4
     conda:
         "envs/area-env.yaml"

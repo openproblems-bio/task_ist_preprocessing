@@ -15,7 +15,7 @@ default-resources:
 use-conda: True
 use-singularity: True
 singularity-args:
-  --bind /home/:/home/,/lustre/:/lustre/
+  --bind /home/:/home/,/lustre/:/lustre/,/localscratch/:/localscratch/
 jobs: 15
 keep-going: True
-restart-times: 3
+#restart-times: 3

@@ -31,19 +31,22 @@ if __name__ == '__main__':
     if not os.path.exists(temp):
         os.makedirs(temp)
 
-    if segment:
-        os.system("echo Running Baysor with prior segmentation")
-        os.system(
-            f"baysor run -s 20 {molecules} -o {temp} " +
-            "--save-polygons=geojson -p {data}/segments_{segmentation_method}.tif"
-            )
-    else:
-        os.system("echo Running Baysor without prior segmentation")
-        os.system(
-            f"baysor run -s 20 {molecules} -o {temp} " +
-            "--save-polygons=geojson -p"
-            )
+    os.system(f'''julia -e 'using Pkg; Pkg.add(Pkg.PackageSpec(;name="PackageCompiler", version="2.0.6"))'
+    julia -e 'using Pkg; Pkg.add([PackageSpec(name="UMAP", rev="master"), PackageSpec(url="https://github.com/kharchenkolab/Baysor.git")])'
+    julia -e 'import Baysor, Pkg; Pkg.activate(dirname(dirname(pathof(Baysor)))); Pkg.instantiate();'
+    julia -e 'using PackageCompiler; import Baysor, Pkg; Pkg.activate(dirname(dirname(pathof(Baysor))))'
+    ''')
 
+    if segment:
+        print("Running Baysor with prior segmentation")
+        baysor_cli = f"run -s 40 {molecules} -o {temp} " +
+            f"--save-polygons=geojson -p {data}/segments_{segmentation_method}.tif"
+            
+    else:
+        print("Running Baysor without prior segmentation")
+        baysor_cli = f"run -s 40 {molecules} -o {temp} " +
+            "--save-polygons=geojson -p "
+    os.system(f'''julia -E 'import Baysor; Baysor.run_cli("{baysor_cli}")' ''')
     print("Ran Baysor")
 
     baysor_seg = os.path.join(temp, "segmentation.csv")
@@ -58,10 +61,10 @@ if __name__ == '__main__':
 
     #Save to csv
     if segment:
-        areas.to_csv(f'{output}/areas_{segmentation_method}_baysor-{id_code}.csv', index = False, header = False)
+        areas.to_csv(f'{data}/areas_{segmentation_method}_baysor-{id_code}.csv', index = False, header = False)
         assignments.to_csv(f'{data}/assignments_{segmentation_method}_baysor-{id_code}.csv', index = False)
     else:
-        areas.to_csv(f'{output}/areas_baysor-{id_code}.csv', index = False, header = False)
+        areas.to_csv(f'{data}/areas_baysor-{id_code}.csv', index = False, header = False)
         assignments.to_csv(f'{data}/assignments_baysor-{id_code}.csv', index = False)
 
     #cell_types.to_csv(f'{data}/celltypes_{segmentation_method}_pciSeq-{id_code}.csv', header = False)

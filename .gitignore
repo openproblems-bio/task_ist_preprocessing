@@ -6,3 +6,4 @@ results/
 *.sh
 logs/
 temp/
+dependency.png

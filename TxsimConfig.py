@@ -21,8 +21,6 @@ class ParsedConfig:
         for batch in self.cfg['PREPROCESSING']:
             #Run through each batch
             batch_combos = {}
-            #TODO decide if workflow should be in the config or generated from the config
-            # would have to use regex if latter? 
             for group in self.cfg['PREPROCESSING'][batch]['workflow']:
                 #Within each group of processes per batch, 
                 #Generate batch parameter combinations for each method
@@ -77,13 +75,6 @@ class ParsedConfig:
 
             #Generate the final files for the batch
             #Parameters such as 'seg' in format: '{method}-{id}'
-            #TODO make the format more flexible 
-            #Possible solution: 
-            # create a string as the template file name based on contents of workflow
-            # pass in a dictionary of group -> list(batch_combos) to expand
-            # basically just **kwargs
-            # ie replace seg= with segmentation
-            
 
             file_template = os.path.join(self.cfg['RESULTS'], "{dataset}/metrics")
             wildcards = {'dataset': self.cfg['PREPROCESSING'][batch]['dataset']}
@@ -112,13 +103,14 @@ class ParsedConfig:
     def gen_file_names(self):
         return self.final_files
     
-    #TODO Type hints
+    #`dataset` should be name of dataset, `file_name`` should be desired file, both as str
     def get_data_file(self, dataset, file_name):
         return os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'] , self.cfg['DATA_SCENARIOS'][dataset][file_name])
     
-    def get_method_params(self, method, id):
+    #`method` should be name of method, `id_code` should be an int
+    def get_method_params(self, method, id_code):
         if self.method_dict.get(method) is None:
             return None
-        if id >= len(self.method_dict[method]):
+        if id_code >= len(self.method_dict[method]):
             return None
-        return self.method_dict[method][id]
+        return self.method_dict[method][id_code]
