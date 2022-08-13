@@ -104,6 +104,27 @@ rule cellpose:
         "-id {wildcards.id_code} "
         "-e {params.exp} "
 
+rule clustermap:
+    threads: 4
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
+    conda:
+        "envs/clustermap-env.yaml"
+    input:
+        img = lambda w: parsed.get_data_file(w.dataset, 'image'),
+        mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
+    params:
+        hyp = lambda w: get_params('clustermap', int(w.id_code), 'p')
+    output:
+        '{results}/{dataset}/assignments_clustermap-{id_code}.csv'
+    shell:
+        "python3 scripts/run_clustermap.py "
+        "-m {input.mol} "
+        "-p \"{params.hyp}\" "
+        "-i {input.img} "
+        "-d {wildcards.results}/{wildcards.dataset} "
+        "-id {wildcards.id_code} "
+
 rule pciSeq:
     threads: 4
     resources:
@@ -172,11 +193,11 @@ rule basic_assign:
 #         "{params.tmp}"
 
 rule baysor_no_prior:
-    container:
-#        "docker://vpetukhov/baysor:master"
-        "docker://julia:latest"
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
-        "envs/base-env.yaml"
+        "envs/baysor-env.yaml"
     input:
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
@@ -187,7 +208,7 @@ rule baysor_no_prior:
         '{results}/{dataset}/assignments_baysor-{id_code}.csv',
         '{results}/{dataset}/areas_baysor-{id_code}.csv'
     shell:
-        "python3 {config[ROOT]}/scripts/run_baysor.py "
+        "python3 scripts/run_baysor.py "
         "-m {input.mol} "
         "-p \"{params.hyp}\" "
         "-d {wildcards.results}/{wildcards.dataset} "

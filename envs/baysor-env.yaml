@@ -1,0 +1,11 @@
+name: baysor-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - julia
+  - pip
+  - pip:
+    - squidpy
+    - -e /mnt/c/users/habib/projects/hmgu/tx_project/txsim

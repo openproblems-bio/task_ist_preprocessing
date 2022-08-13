@@ -31,7 +31,7 @@ if __name__ == '__main__':
     if not os.path.exists(temp):
         os.makedirs(temp)
 
-    os.system(f'''julia -e 'using Pkg; Pkg.add(Pkg.PackageSpec(;name="PackageCompiler", version="2.0.6"))'
+    os.system('''julia -e 'using Pkg; Pkg.add(Pkg.PackageSpec(;name="PackageCompiler"))'
     julia -e 'using Pkg; Pkg.add([PackageSpec(name="UMAP", rev="master"), PackageSpec(url="https://github.com/kharchenkolab/Baysor.git")])'
     julia -e 'import Baysor, Pkg; Pkg.activate(dirname(dirname(pathof(Baysor)))); Pkg.instantiate();'
     julia -e 'using PackageCompiler; import Baysor, Pkg; Pkg.activate(dirname(dirname(pathof(Baysor))))'
