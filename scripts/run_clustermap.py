@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     molecules = args.molecules
     data = args.data
-    image = args.image
+    image = args.input
     hyperparams = eval(args.hyperparams)
     id_code = args.id_code
  
