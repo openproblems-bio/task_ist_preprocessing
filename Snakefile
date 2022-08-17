@@ -257,7 +257,7 @@ rule metric:
         '{results}/{dataset}/counts_{methods}.h5ad',
         scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
     output:
-        '{results}/{dataset}/metrics_{methods}.txt'
+        '{results}/{dataset}/metrics_{methods}.csv'
     shell:
         "python3 scripts/calc_metrics.py "
         "-m {wildcards.methods} "

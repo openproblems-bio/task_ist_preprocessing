@@ -83,7 +83,7 @@ class ParsedConfig:
                 file_template = file_template + "_{" + group + "}"
                 wildcards[group] = list(batch_combos[group])
 
-            self.final_files.extend( expand((file_template + ".txt"),**wildcards))
+            self.final_files.extend( expand((file_template + ".csv"),**wildcards))
             
         self.final_files = list(set(self.final_files))
 

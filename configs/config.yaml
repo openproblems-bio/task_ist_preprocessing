@@ -13,33 +13,33 @@ TEMP: /mnt/d/HMGU/DATA/baysor/temp
 
 
 PREPROCESSING:
-  batch1:
+  # batch1:
+  #   dataset: [test]
+  #   workflow: [cell-segmentation, normalize]
+  #   cell-segmentation:
+  #     clustermap:
+  #   segmentation:
+  #     watershed:
+  #   segmentation_params:
+  #     expand: [20]
+  #   assignment: 
+  #     pciSeq: 
+  #       opts: [{}]
+  #   normalize:
+  #     total:
+  batch2:
     dataset: [test]
-    workflow: [cell-segmentation, normalize]
+    workflow: [segmentation, assignment, normalize]
     cell-segmentation:
       clustermap:
     segmentation:
-      watershed:
+      cellpose:
     segmentation_params:
-      expand: [20]
+      expand: [10]
     assignment: 
-      pciSeq: 
-        opts: [{}]
+      pciSeq:
     normalize:
       total:
-  # batch2:
-  #   dataset: [test]
-  #   workflow: [cell_segmentation, normalize]
-  #   cell_segmentation:
-  #     baysor:
-  #   cell_segmentation_params:
-  #     expand: [10]
-  #     binary: [False]
-  #   normalize:
-  #     area:
-  #       alpha: [0]
-  #       max: [True]
-  #     total:
 
 DATA_SCENARIOS:
   test:

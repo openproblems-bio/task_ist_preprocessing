@@ -3,8 +3,8 @@ cluster:
     --partition={resources.partition}
     --cpus-per-task={threads}
     --job-name=smk_{rule}
-    --output=logs/{rule}/output_%j.txt
-    --error=logs/{rule}/output_%j.txt
+    --output=logs/{rule}_output_%j.txt
+    --error=logs/{rule}_output_%j.txt
     --mem={resources.mem_mb}
     --nice=10000
     --mail-user=hrehman80@helmholtz-muenchen.de
