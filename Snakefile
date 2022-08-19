@@ -221,7 +221,8 @@ rule normalize_total:
     input:
         '{results}/{dataset}/assignments_{assign}.csv'
     params:
-        hyp = lambda w: get_params('area', int(w.id_code), 'p')
+        hyp = lambda w: get_params('total', int(w.id_code), 'p'),
+        thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold')
     output:
         '{results}/{dataset}/counts_{assign}_total-{id_code}.h5ad'
     shell:
@@ -231,15 +232,17 @@ rule normalize_total:
         "-n total "
         "-id {wildcards.id_code} "
         "-p \"{params.hyp}\" "
+        "-t {params.thr}"
 
 rule normalize_area:
-    threads: 4
+    threads: 1
     conda:
         "envs/area-env.yaml"
     input:
         assign = '{results}/{dataset}/assignments_{method}.csv'
     params:
-        hyp = lambda w: get_params('area', int(w.id_code), 'p')
+        hyp = lambda w: get_params('area', int(w.id_code), 'p'),
+        thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold')
     output:
         '{results}/{dataset}/counts_{method}_area-{id_code}.h5ad'
     shell:
@@ -249,6 +252,7 @@ rule normalize_area:
         "-n area "
         "-id {wildcards.id_code} "
         "-p \"{params.hyp}\" "
+        "-t {params.thr}"
 
 rule metric:
     conda:

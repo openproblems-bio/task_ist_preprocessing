@@ -32,9 +32,13 @@ if __name__ == '__main__':
     
     #Generate metrics
     metrics = {}
-    metrics['coex_diff_all'] = tx.metrics.coexpression_similarity(stdata, scdata)
-    metrics['coex_diff_thresh'] = tx.metrics.coexpression_similarity(stdata, scdata, thresh=0.5)
-    metrics['pct_noise_spots'] = stdata.uns['pct_noise']
+    metrics['coex_all'] = tx.metrics.coexpression_similarity(stdata, scdata)
+    metrics['coex_thresh'] = tx.metrics.coexpression_similarity(stdata, scdata, thresh=0.5)
+    ct =  tx.metrics.coexpression_similarity_celltype(stdata, scdata, thresh=0)
+    metrics['coex_bytype_thresh'] = np.nanmean(ct['mean_diff'])
+    idx = ~np.isnan(ct['mean_diff'])
+    metrics['coex_bytype_weighted_thresh'] = np.average(ct['mean_diff'][idx], weights = ct['pct'][idx])
+    metrics['pct_spots_unassigned'] = stdata.uns['pct_noise']
     metrics['n_cells'] = stdata.n_obs
     metrics['mean_cts_per_cell'] = np.mean(stdata.obs['n_counts'])
     metrics['mean_genes_per_cell'] = np.mean(stdata.obs['n_unique_genes'])

@@ -30,16 +30,33 @@ PREPROCESSING:
   batch2:
     dataset: [test]
     workflow: [segmentation, assignment, normalize]
-    cell-segmentation:
-      clustermap:
     segmentation:
       cellpose:
+        min_size: [25]
     segmentation_params:
       expand: [10]
     assignment: 
       pciSeq:
+        opts: [{}]
     normalize:
-      total:
+      area:
+        max: [True]
+        alpha: [0]
+    normalize_params:
+      prior_threshold: [0.501]
+  # batch3:
+  #   dataset: [test]
+  #   workflow: [cell-segmentation, normalize]
+  #   cell-segmentation:
+  #     clustermap:
+  #       model: 
+  #         - {'xy_radius': 15, 
+  #           'gauss_blur': True}
+  #   normalize:
+  #     area:
+  #       max: [True]
+  #       alpha: [-1, 0]
+
 
 DATA_SCENARIOS:
   test:
@@ -48,6 +65,11 @@ DATA_SCENARIOS:
     sc_data: sc_data.h5ad
     molecules: spots.csv
     segmented_image: segmented_image.tif
+  hippocampus:
+    root_folder: /mnt/d/HMGU/DATA/hippocampus 
+    image: CA1DapiBoundaries_7-1_right.tif
+    sc_data: scdata.h5ad
+    molecules: spots_w_celltype_rightCA1_7-1.csv
 
 # DATA_SCENARIOS:
 #   test:

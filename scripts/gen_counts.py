@@ -11,8 +11,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate count matrix for spatial data')
     parser.add_argument('-d', '--data', required=True, type=str, 
         help='Ouput data directory- should also contain assignments_.csv')
-    parser.add_argument('-ar', '--area', default=None, type=str,
-        help='Method list after areas_')
     parser.add_argument('-as', '--assignment', required=True, type=str, 
         help='Method list after assignments_')
     parser.add_argument('-n', '--normalize', default='total', type=str,
@@ -21,36 +19,35 @@ if __name__ == '__main__':
         help='ID of method to be used for saving')
     parser.add_argument('-p', '--hyperparams', default=None, type=str,
         help='Optional dictionary (as string) of parameters') 
-         
+    parser.add_argument('-t', '--threshold', default=None,
+        help='Threshold for percent of spots with prior cell type to assign new cell type') 
     
     args = parser.parse_args()
 
     assignment_method = args.assignment
     data = args.data
-    area_method = args.area
     normalize_by = args.normalize
     id_code = args.id_code
     hyperparams = eval(args.hyperparams)
     alpha = hyperparams is not None and hyperparams.get('alpha') is not None
-    max_area = hyperparams is not None and hyperparams.get('max') is not None and hyperparams['max']
+    max_area = hyperparams is None or hyperparams.get('max') is None or hyperparams['max']
+    find_area = hyperparams is not None and hyperparams.get('find_area') is not None and hyperparams['find_area']
+    prior_pct = 0.7 if args.threshold is None else args.threshold 
 
     #TODO have different index for denovo types
     #Look for cell_types
     if os.path.exists(f'{data}/celltypes_{assignment_method}.csv'):
         adata = tx.preprocessing.generate_adata(
-            f'{data}/assignments_{assignment_method}.csv',
-            f'{data}/celltypes_{assignment_method}.csv')
+            molecules=f'{data}/assignments_{assignment_method}.csv',
+            cell_types=f'{data}/celltypes_{assignment_method}.csv',
+            prior_pct = prior_pct)
     else:
-        adata = tx.preprocessing.generate_adata(f'{data}/assignments_{assignment_method}.csv')
+        adata = tx.preprocessing.generate_adata(
+            molecules=f'{data}/assignments_{assignment_method}.csv', 
+            prior_pct=prior_pct)
 
     #Find area for normalization
-    found_area = False
-    if area_method is not None and normalize_by == 'area':
-        #Load area data from methods provided
-        temp = pd.read_csv(f'{data}/areas_{area_method}.csv', header=None, index_col = 0)
-        adata.obs['area'] = temp[1][adata.obs['cell_id']]
-    elif normalize_by == 'area':
-        #If no provided area, search through possible areas
+    if normalize_by == 'area' or find_area:
         methods = assignment_method
         method_list = assignment_method.split('_')
         #Work backwards through method list until areas file is found
@@ -58,26 +55,28 @@ if __name__ == '__main__':
             methods = '_'.join(method_list)
             if(os.path.exists(f'{data}/areas_{methods}.csv')):
                 temp = pd.read_csv(f'{data}/areas_{methods}.csv', header=None, index_col = 0)
-                adata.obs['area'] = temp[1][adata.obs['cell_id']]
-                found_area = True
+                adata.obs['area'] = temp[1][adata.obs['cell_id']].values
                 break
             method_list.pop()
-        if not found_area:
-            #If none found, use alpha area
-            alpha = True        
+
+    print(adata.obs['area'])
+
+    #If none found, use alpha area
+    if 'area' not in adata.obs:
+        alpha = True        
     
     # Calculate area based on alpha shape from molecules for each shape
-    if alpha and normalize_by == 'area':
+    if alpha and (normalize_by == 'area' or find_area):
         tx.preprocessing.calculate_alpha_area(
-            adata,
-            f'{data}/assignments_{assignment_method}.csv',
-            hyperparams['alpha']
+            adata=adata,
+            alpha=hyperparams['alpha']
         )
-        if area_method is not None and max_area:
+        if 'area' in adata.obs and max_area:
             adata.obs['area'] = np.maximum(adata.obs['alpha_area'], adata.obs['area'])
-        elif area_method is None:
-            adata.obs['area'] = adata.obs['alpha_area']
     
+    if 'area' not in adata.obs and 'alpha_area' in adata.obs:
+        adata.obs['area'] = adata.obs['alpha_area']
+
     #Normalize by area or by total counts
     if(normalize_by == 'area'):
         tx.preprocessing.normalize_by_area(adata)

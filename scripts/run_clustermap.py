@@ -30,6 +30,7 @@ if __name__ == '__main__':
     assignments = tx.preprocessing.run_clustermap(
         molecules,
         image,
+        hyperparams
     )
 
     #Save to csv
