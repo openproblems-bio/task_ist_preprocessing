@@ -29,10 +29,12 @@ if __name__ == '__main__':
     normalize_by = args.normalize
     id_code = args.id_code
     hyperparams = eval(args.hyperparams)
-    alpha = hyperparams is not None and hyperparams.get('alpha') is not None
-    max_area = hyperparams is None or hyperparams.get('max') is None or hyperparams['max']
-    find_area = hyperparams is not None and hyperparams.get('find_area') is not None and hyperparams['find_area']
+    if hyperparams is None: hyperparams = {}
+    alpha = hyperparams.get('alpha') is not None
+    max_area = hyperparams.get('max') is None or hyperparams['max']
+    find_area = hyperparams.get('find_area') is not None and hyperparams['find_area']
     prior_pct = 0.7 if args.threshold is None else args.threshold 
+    if hyperparams.get('alpha') is None: hyperparams['alpha'] = 0
 
     #TODO have different index for denovo types
     #Look for cell_types
@@ -58,8 +60,6 @@ if __name__ == '__main__':
                 adata.obs['area'] = temp[1][adata.obs['cell_id']].values
                 break
             method_list.pop()
-
-    print(adata.obs['area'])
 
     #If none found, use alpha area
     if 'area' not in adata.obs:

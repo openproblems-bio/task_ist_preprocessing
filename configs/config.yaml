@@ -52,6 +52,8 @@ PREPROCESSING:
   #       model: 
   #         - {'xy_radius': 15, 
   #           'gauss_blur': True}
+  #       segmentation:
+  #         - {'cell_num_threshold': 0.0001}
   #   normalize:
   #     area:
   #       max: [True]

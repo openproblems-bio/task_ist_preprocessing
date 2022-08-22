@@ -34,10 +34,11 @@ if __name__ == '__main__':
     metrics = {}
     metrics['coex_all'] = tx.metrics.coexpression_similarity(stdata, scdata)
     metrics['coex_thresh'] = tx.metrics.coexpression_similarity(stdata, scdata, thresh=0.5)
-    ct =  tx.metrics.coexpression_similarity_celltype(stdata, scdata, thresh=0)
-    metrics['coex_bytype_thresh'] = np.nanmean(ct['mean_diff'])
-    idx = ~np.isnan(ct['mean_diff'])
-    metrics['coex_bytype_weighted_thresh'] = np.average(ct['mean_diff'][idx], weights = ct['pct'][idx])
+    ct =  tx.metrics.coexpression_similarity_celltype(stdata, scdata, thresh=0.5)
+    if len(ct > 0):
+        metrics['coex_bytype_thresh'] = np.nanmean(ct['mean_diff'])
+        idx = ~np.isnan(ct['mean_diff'])
+        metrics['coex_bytype_weighted_thresh'] = np.average(ct['mean_diff'][idx], weights = ct['pct'][idx])
     metrics['pct_spots_unassigned'] = stdata.uns['pct_noise']
     metrics['n_cells'] = stdata.n_obs
     metrics['mean_cts_per_cell'] = np.mean(stdata.obs['n_counts'])

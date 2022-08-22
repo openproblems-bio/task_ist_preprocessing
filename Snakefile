@@ -217,7 +217,7 @@ rule baysor_no_prior:
 
 rule normalize_total:
     conda:
-        "envs/base-env.yaml"
+        "envs/area-env.yaml"
     input:
         '{results}/{dataset}/assignments_{assign}.csv'
     params:
