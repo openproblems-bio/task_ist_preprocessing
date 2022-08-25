@@ -1,0 +1,10 @@
+*.egg-info
+__pycache__/
+.ipynb_checkpoints
+results/
+.snakemake
+*.sh
+logs/
+temp/
+dependency.png
+envs/src/

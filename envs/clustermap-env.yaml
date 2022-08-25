@@ -1,0 +1,28 @@
+name: clustermap-env
+channels:
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - pip:
+    - anndata==0.7.8
+    - fastdist==1.1.3
+    - h5py==3.6.0
+    - imageio==2.13.4
+    - natsort==8.0.2
+    - networkx==2.6.3
+    - opencv-python==4.5.4.60
+    - pynndescent==0.5.5
+    - pywavelets==1.2.0
+    - scanpy==1.8.2
+    - scikit-image==0.19.1
+    - sinfo==0.3.4
+    - stdlib-list==0.8.0
+    - tifffile==2021.11.2
+    - tqdm==4.62.3
+    - umap-learn==0.5.2
+    - xlrd==1.2.0
+    - squidpy
+    - -e /mnt/c/users/habib/projects/hmgu/tx_project/txsim
+    - -e git+https://github.com/wanglab-broad/ClusterMap.git#egg=ClusterMap

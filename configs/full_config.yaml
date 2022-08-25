@@ -1,0 +1,66 @@
+#Folder where pipeline is contained (should end with 'txsim-pipeline')
+#This might be obsolete given snakemake functionality
+ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project/txsim-pipeline
+
+#Folder where intermediate/final files will be stored
+RESULTS: /mnt/d/HMGU/DATA/results
+
+#Folder where temporary files will be stored (optional)]
+TEMP: /mnt/d/HMGU/DATA/baysor/temp
+
+
+PREPROCESSING:
+    dataset: [test]
+    workflow: [segmentation, assignment, normalize]
+    segmentation:
+      cellpose:
+        min_size: [25]
+    segmentation_params:
+      expand: [0,10]
+    assignment: 
+      pciSeq:
+        opts:
+          - {'exclude_genes': ['TCIM']}
+          - {}
+    assignment_params:
+    normalize:
+      area:
+        max: [True]
+        alpha: [-1, 0]
+      total:
+        find_area: [True]
+    normalize_params:
+  batch3:
+    dataset: [test]
+    workflow: [cell-segmentation, normalize]
+    cell-segmentation:
+      clustermap:
+        model: 
+          - {'xy_radius': 15, 
+            'gauss_blur': True}
+          - {'xy_radius': 25}
+        preprocess:
+          - {'pct_filter': 0.05,
+            'LOF': True}
+          - {'pct_filter': 0.15}
+          - {}
+        segmentaton:
+          - {'dapi_grid_interval': 6}
+    cell-segmentation_params:  
+    normalize:
+      area:
+        max: [True, False]
+        alpha: [-1, 0]
+      total:
+        find_area: [True]
+    normalize_params:
+
+
+
+DATA_SCENARIOS:
+  test:
+    root_folder: /mnt/d/HMGU/DATA/test 
+    image: raw_image.tif
+    sc_data: sc_data.h5ad
+    molecules: spots.csv
+    segmented_image: segmented_image.tif

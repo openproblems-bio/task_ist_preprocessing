@@ -1,0 +1,12 @@
+name: area-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - pip:
+    - squidpy
+    - alphashape
+    - descartes
+    - -e /mnt/c/users/habib/projects/hmgu/tx_project/txsim

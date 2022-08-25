@@ -1,21 +1,89 @@
-ROOT: /lustre/groups/ml01/projects/2022_scSTsim_louis.kuemmerle
-#r_env : scIB-R-integration
-py_env : scSTsim-python
-timing: false
+#Folder where pipeline is contained (should end with 'txsim-pipeline')
+#This might be obsolete given snakemake functionality
+#ROOT: /home/icb/hrehman80//txsim-pipeline
+ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project/txsim-pipeline
+
+#Folder where intermediate/final files will be stored
+#RESULTS: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/results
+RESULTS: /mnt/d/HMGU/DATA/results
+
+#Folder where temporary files will be stored (optional)
+#TEMP: /localscratch/hrehman80
+TEMP: /mnt/d/HMGU/DATA/baysor/temp
 
 
 PREPROCESSING:
-  watershed-raw:
-    segmentation: watershed
-    normalisation: null
-  watershed-area:
-    segmentation: watershed
-    normalisation: area    
+  # batch1:
+  #   dataset: [test]
+  #   workflow: [cell-segmentation, normalize]
+  #   cell-segmentation:
+  #     clustermap:
+  #   segmentation:
+  #     watershed:
+  #   segmentation_params:
+  #     expand: [20]
+  #   assignment: 
+  #     pciSeq: 
+  #       opts: [{}]
+  #   normalize:
+  #     total:
+  batch2:
+    dataset: [test]
+    workflow: [segmentation, assignment, normalize]
+    segmentation:
+      cellpose:
+        min_size: [25]
+    segmentation_params:
+      expand: [10]
+    assignment: 
+      pciSeq:
+        opts: [{}]
+    normalize:
+      area:
+        max: [True]
+        alpha: [0]
+      total:
+    normalize_params:
+      prior_threshold: [0.501]
+  # batch3:
+  #   dataset: [test]
+  #   workflow: [cell-segmentation, normalize]
+  #   cell-segmentation:
+  #     clustermap:
+  #       model: 
+  #         - {'xy_radius': 15, 
+  #           'gauss_blur': True}
+  #       segmentation:
+  #         - {'cell_num_threshold': 0.0001}
+  #   normalize:
+  #     area:
+  #       max: [True]
+  #       alpha: [-1, 0]
+  #     total:
+  #       find_area: [True]
 
 
 DATA_SCENARIOS:
-  dev_heart:
-    organism: human
-    file_sc: ...
-    file_ST: ...
-  
+  test:
+    root_folder: /mnt/d/HMGU/DATA/test 
+    image: raw_image.tif
+    sc_data: sc_data.h5ad
+    molecules: spots.csv
+    segmented_image: segmented_image.tif
+  hippocampus:
+    root_folder: /mnt/d/HMGU/DATA/hippocampus 
+    image: CA1DapiBoundaries_7-1_right.tif
+    sc_data: scdata.h5ad
+    molecules: spots_w_celltype_rightCA1_7-1.csv
+
+# DATA_SCENARIOS:
+#   test:
+#     root_folder: /home/icb/hrehman80/test_data
+#     image: raw_image.tif
+#     sc_data: sc_data.h5ad
+#     molecules: spots.csv
+#   heart_PCW4.5:
+#     root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/heart_data
+#     image: nuclei_PCW4.5_1.tif
+#     sc_data: heart_sc.h5ad
+#     molecules: spots_PCW4.5_1.csv
