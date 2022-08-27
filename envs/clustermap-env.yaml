@@ -23,6 +23,4 @@ dependencies:
     - tqdm==4.62.3
     - umap-learn==0.5.2
     - xlrd==1.2.0
-    - squidpy
-    - -e /mnt/c/users/habib/projects/hmgu/tx_project/txsim
     - -e git+https://github.com/wanglab-broad/ClusterMap.git#egg=ClusterMap
