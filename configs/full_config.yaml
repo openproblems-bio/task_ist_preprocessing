@@ -15,6 +15,8 @@ PREPROCESSING:
     segmentation:
       cellpose:
         min_size: [25]
+      watershed:
+      custom:
     segmentation_params:
       expand: [0,10]
     assignment: 
