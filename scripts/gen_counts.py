@@ -33,19 +33,19 @@ if __name__ == '__main__':
     alpha = hyperparams.get('alpha') is not None
     max_area = hyperparams.get('max') is None or hyperparams['max']
     find_area = hyperparams.get('find_area') is not None and hyperparams['find_area']
-    prior_pct = 0.7 if args.threshold is None else args.threshold 
+    prior_pct = 0.5 if eval(args.threshold) is None else eval(args.threshold) 
     if hyperparams.get('alpha') is None: hyperparams['alpha'] = 0
 
     #TODO have different index for denovo types
     #Look for cell_types
     if os.path.exists(f'{data}/celltypes_{assignment_method}.csv'):
         adata = tx.preprocessing.generate_adata(
-            molecules=f'{data}/assignments_{assignment_method}.csv',
-            cell_types=f'{data}/celltypes_{assignment_method}.csv',
+            molecules=pd.read_csv(f'{data}/assignments_{assignment_method}.csv'),
+            cell_types=pd.read_csv(f'{data}/celltypes_{assignment_method}.csv'),
             prior_pct = prior_pct)
     else:
         adata = tx.preprocessing.generate_adata(
-            molecules=f'{data}/assignments_{assignment_method}.csv', 
+            molecules=pd.read_csv(f'{data}/assignments_{assignment_method}.csv'), 
             prior_pct=prior_pct)
 
     #Find area for normalization

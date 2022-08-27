@@ -11,6 +11,7 @@ In your `conda` environment, use the `conda-forge` channel to install:
 
 - `mamba`
 - `snakemake`
+- `anndata`
 
 Note: You can also use the `bioconda` channel to install snakemake
 

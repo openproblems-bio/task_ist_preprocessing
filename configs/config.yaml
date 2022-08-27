@@ -35,16 +35,15 @@ PREPROCESSING:
         min_size: [25]
     segmentation_params:
       expand: [10]
-    assignment: 
-      pciSeq:
-        opts: [{}]
+    assignment:
+      basic: 
+      # pciSeq:
+      #   opts: [{}]
     normalize:
-      area:
-        max: [True]
-        alpha: [0]
       total:
+        find_area: [True]
     normalize_params:
-      prior_threshold: [0.501]
+      #prior_threshold: [0.501]
   # batch3:
   #   dataset: [test]
   #   workflow: [cell-segmentation, normalize]
@@ -70,6 +69,7 @@ DATA_SCENARIOS:
     sc_data: sc_data.h5ad
     molecules: spots.csv
     segmented_image: segmented_image.tif
+    fake_file: fake.tif
   # hippocampus:
   #   root_folder: /mnt/d/HMGU/DATA/hippocampus 
   #   image: CA1DapiBoundaries_7-1_right.tif
