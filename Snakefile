@@ -141,7 +141,7 @@ rule pciSeq:
         '{results}/{dataset}/assignments_{seg}_pciSeq-{id_code}.csv',
         '{results}/{dataset}/celltypes_{seg}_pciSeq-{id_code}.csv'
     shell:
-        "python3 scripts/run_pciSeq.py "
+        "python3 scripts/run_pciseq.py "
         "-m {input.mol} "
         "-p \"{params.hyp}\" "
         "-sc {input.scd} "
