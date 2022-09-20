@@ -1,0 +1,16 @@
+name: txsim-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - squidpy
+  - alphashape
+  - descartes
+  - cellpose
+  - shapely
+  - scikit-image
+
+  - pip:
+    - -e /home/icb/daniel.strobl/txsim/txsim
