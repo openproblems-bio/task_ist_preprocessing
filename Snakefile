@@ -42,7 +42,7 @@ rule all:
 #Rules corresponding to each method
 rule pre_segmented:
     conda:
-        "envs/base-env.yaml"
+        "envs/txsim-env.yaml"
     input:
         img = lambda w: parsed.get_data_file(w.dataset, 'segmented_image')
     output:
@@ -63,7 +63,7 @@ rule pre_segmented:
 
 rule watershed:
     conda:
-        "envs/base-env.yaml"
+        "envs/txsim-env.yaml"
     input:
         img = lambda w: parsed.get_data_file(w.dataset, 'image')
     output:
@@ -151,7 +151,7 @@ rule pciSeq:
 
 rule basic_assign:
     conda:
-        "envs/base-env.yaml"
+        "envs/txsim-env.yaml"
     input:
         '{results}/{dataset}/segments_{seg}.tif',
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
@@ -217,7 +217,7 @@ rule baysor_no_prior:
 
 rule normalize_total:
     conda:
-        "envs/area-env.yaml"
+        "envs/txsim-env.yaml"
     input:
         '{results}/{dataset}/assignments_{assign}.csv'
     params:
@@ -237,7 +237,7 @@ rule normalize_total:
 rule normalize_area:
     threads: 1
     conda:
-        "envs/area-env.yaml"
+        "envs/txsim-env.yaml"
     input:
         assign = '{results}/{dataset}/assignments_{method}.csv'
     params:
@@ -256,7 +256,7 @@ rule normalize_area:
 
 rule metric:
     conda:
-        "envs/base-env.yaml"
+        "envs/txsim-env.yaml"
     input:
         '{results}/{dataset}/counts_{methods}.h5ad',
         scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
