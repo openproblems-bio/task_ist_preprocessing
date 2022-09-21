@@ -34,6 +34,7 @@ if __name__ == '__main__':
     max_area = hyperparams.get('max') is None or hyperparams['max']
     find_area = hyperparams.get('find_area') is not None and hyperparams['find_area']
     prior_pct = 0.7 if args.threshold is None else args.threshold 
+    prior_pct = float(prior_pct)
     if hyperparams.get('alpha') is None: hyperparams['alpha'] = 0
 
     #TODO have different index for denovo types
