@@ -254,12 +254,24 @@ rule normalize_area:
         "-p \"{params.hyp}\" "
         "-t {params.thr}"
 
+rule normalize_sc:
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        lambda w: parsed.get_data_file(w.dataset, 'sc_data')
+    output:
+        '{results}/{dataset}/sc_normalized.h5ad'
+    shell:
+        "python3 scripts/normalize_sc.py "
+        "-sc {input} "
+        "-o {output} "
+
 rule metric:
     conda:
         "envs/txsim-env.yaml"
     input:
         '{results}/{dataset}/counts_{methods}.h5ad',
-        scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
+        scd = '{results}/{dataset}/sc_normalized.h5ad'
     output:
         '{results}/{dataset}/metrics_{methods}.csv'
     shell:
