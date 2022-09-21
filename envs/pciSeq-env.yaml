@@ -4,8 +4,9 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+  - squidpy
   - pip
   - pip: 
     - scanpy
-    - -e /mnt/c/users/habib/projects/hmgu/tx_project/txsim
+    - -e /home/icb/daniel.strobl/txsim/txsim
     - pciSeq
