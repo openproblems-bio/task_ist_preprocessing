@@ -11,6 +11,7 @@ dependencies:
   - cellpose
   - shapely
   - scikit-image
+  - pyitlib
 
   - pip:
     - -e /home/icb/daniel.strobl/txsim/txsim
