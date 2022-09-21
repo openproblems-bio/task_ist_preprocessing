@@ -267,3 +267,15 @@ rule metric:
         "-m {wildcards.methods} "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-sc {input.scd} "
+
+rule quality_metric:
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        '{results}/{dataset}/counts_{methods}.h5ad',
+    output:
+        '{results}/{dataset}/quality_metrics_{methods}.csv'
+    shell:
+        "python3 scripts/calc_quality_metrics.py "
+        "-m {wildcards.methods} "
+        "-d {wildcards.results}/{wildcards.dataset} "
