@@ -220,16 +220,20 @@ rule normalize_total:
         "envs/txsim-env.yaml"
     input:
         '{results}/{dataset}/assignments_{assign}.csv'
+        scd = '{results}/{dataset}/sc_normalized.h5ad'
     params:
         hyp = lambda w: get_params('total', int(w.id_code), 'p'),
         thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold')
         ct = lambda w: get_params('total', int(w.id_code), 'ct_method')
         ctthresh = lambda w: get_params('total', int(w.id_code), 'ct_threshold')
+        pergene = lambda w: get_params('total', int(w.id_code), 'per_gene_correction')
+	pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
     output:
         '{results}/{dataset}/counts_{assign}_total-{id_code}.h5ad'
     shell:
         "python3 scripts/gen_counts.py "
         "-as {wildcards.assign} "
+        "--singlecell {input.scd} "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-n total "
         "-id {wildcards.id_code} "
@@ -237,6 +241,8 @@ rule normalize_total:
         "-t {params.thr} "
         "-c {params.ct} "
         "--ctcertthresh {params.ctthresh}"
+        "-g {params.pergene} "
+        "-l {params.pergene_layer}"
 
 rule normalize_area:
     threads: 1
@@ -244,16 +250,20 @@ rule normalize_area:
         "envs/txsim-env.yaml"
     input:
         assign = '{results}/{dataset}/assignments_{method}.csv'
+        scd = '{results}/{dataset}/sc_normalized.h5ad'
     params:
         hyp = lambda w: get_params('area', int(w.id_code), 'p'),
         thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold')
         ct = lambda w: get_params('area', int(w.id_code), 'ct_method')
         ctthresh = lambda w: get_params('area', int(w.id_code), 'ct_threshold')
+        pergene = lambda w: get_params('total', int(w.id_code), 'per_gene_correction')
+	pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
     output:
         '{results}/{dataset}/counts_{method}_area-{id_code}.h5ad'
     shell:
         "python3 scripts/gen_counts.py "
         "-as {wildcards.method} "
+        "--singlecell {input.scd} "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-n area "
         "-id {wildcards.id_code} "
@@ -261,6 +271,8 @@ rule normalize_area:
         "-t {params.thr} "
         "-c {params.ct} "
         "--ctcertthresh {params.ctthresh}"
+        "-g {params.pergene} "
+        "-l {params.pergene_layer}"
 
 rule normalize_sc:
     conda:

@@ -11,6 +11,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate count matrix for spatial data')
     parser.add_argument('-d', '--data', required=True, type=str, 
         help='Ouput data directory- should also contain assignments_.csv')
+    parser.add_argument('-s', '--singlecell', required=True, type=str,
+	heplp='Path to the single cell anndata')
     parser.add_argument('-as', '--assignment', required=True, type=str, 
         help='Method list after assignments_')
     parser.add_argument('-n', '--normalize', default='total', type=str,
@@ -25,6 +27,10 @@ if __name__ == '__main__':
         help='Cell type assignment method (ssam, majority, pciSeq)')
     parser.add_argument('-ct', '--ctcertthresh', default='0.7', type=str,
         help='Cell type certainty threshold')
+    parser.add_argument('-g', '--pergenecorr', type=str, default='True',
+        help='Run per gene correction')
+    parser.add_argument('-l' '--genecorrlayer', default='lognorm', type=str,
+        help='Layer to do per gene correction on'
     
     args = parser.parse_args()
 
@@ -34,6 +40,9 @@ if __name__ == '__main__':
     id_code = args.id_code
     ct_method = args.ctmethod
     ct_thresh = float(args.ctcertthresh)
+    per_gene_correction = args.pergenecorr
+    gene_corr_layer = args.genecorrlayer
+    file_sc = args.singlecell
     hyperparams = eval(args.hyperparams)
     if hyperparams is None: hyperparams = {}
     alpha = hyperparams.get('alpha') is not None
@@ -47,6 +56,8 @@ if __name__ == '__main__':
         molecules=f'{data}/assignments_{assignment_method}.csv', 
         prior_pct=prior_pct, ct_method=ct_method, ct_certainty_threshold=ct_thresh)
 
+    # Read in the single-cell data
+    adata_sc = sc.read(file_sc)
     #Find area for normalization
     if normalize_by == 'area' or find_area:
         methods = assignment_method
@@ -81,7 +92,14 @@ if __name__ == '__main__':
         tx.preprocessing.normalize_by_area(adata)
     else:
         tx.preprocessing.normalize_total(adata)
-
+    
+    # Do per-gene correction if active
+    
+    if per_gene_correction=='True':
+        tx.preprocessing.gene_efficiency_correlation(adata, adata_sc, gene_corr_layer)
+        if gene_corr_layer!='lognorm':
+            adata.layers['lognorm'] = adata.layers['norm']
+            sc.pp.log1p(adata, layer='lognorm')
 
     #Save AnnData object
     adata.write_h5ad(f"{data}/counts_{assignment_method}_{normalize_by}-{id_code}.h5ad")
