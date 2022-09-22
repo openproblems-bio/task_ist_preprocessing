@@ -31,6 +31,7 @@ if __name__ == '__main__':
         help='Run per gene correction')
     parser.add_argument('-l' '--genecorrlayer', default='lognorm', type=str,
         help='Layer to do per gene correction on'
+
     
     args = parser.parse_args()
 
@@ -43,6 +44,7 @@ if __name__ == '__main__':
     per_gene_correction = args.pergenecorr
     gene_corr_layer = args.genecorrlayer
     file_sc = args.singlecell
+
     hyperparams = eval(args.hyperparams)
     if hyperparams is None: hyperparams = {}
     alpha = hyperparams.get('alpha') is not None
@@ -52,9 +54,17 @@ if __name__ == '__main__':
     prior_pct = float(prior_pct)
     if hyperparams.get('alpha') is None: hyperparams['alpha'] = 0
 
-    adata = tx.preprocessing.generate_adata(
-        molecules=f'{data}/assignments_{assignment_method}.csv', 
-        prior_pct=prior_pct, ct_method=ct_method, ct_certainty_threshold=ct_thresh)
+    #TODO have different index for denovo types
+    #Look for cell_types
+    if os.path.exists(f'{data}/celltypes_{assignment_method}.csv'):
+        adata = tx.preprocessing.generate_adata(
+            molecules=f'{data}/assignments_{assignment_method}.csv',
+            cell_types=f'{data}/celltypes_{assignment_method}.csv',
+            prior_pct = prior_pct)
+    else:
+        adata = tx.preprocessing.generate_adata(
+            molecules=f'{data}/assignments_{assignment_method}.csv', 
+            prior_pct=prior_pct)
 
     # Read in the single-cell data
     adata_sc = sc.read(file_sc)

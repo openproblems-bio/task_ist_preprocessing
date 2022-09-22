@@ -224,10 +224,12 @@ rule normalize_total:
     params:
         hyp = lambda w: get_params('total', int(w.id_code), 'p'),
         thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold')
+
         ct = lambda w: get_params('total', int(w.id_code), 'ct_method')
         ctthresh = lambda w: get_params('total', int(w.id_code), 'ct_threshold')
         pergene = lambda w: get_params('total', int(w.id_code), 'per_gene_correction')
-	pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
+	      pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
+
     output:
         '{results}/{dataset}/counts_{assign}_total-{id_code}.h5ad'
     shell:
@@ -257,7 +259,8 @@ rule normalize_area:
         ct = lambda w: get_params('area', int(w.id_code), 'ct_method')
         ctthresh = lambda w: get_params('area', int(w.id_code), 'ct_threshold')
         pergene = lambda w: get_params('total', int(w.id_code), 'per_gene_correction')
-	pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
+	      pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
+
     output:
         '{results}/{dataset}/counts_{method}_area-{id_code}.h5ad'
     shell:

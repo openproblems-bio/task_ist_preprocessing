@@ -3,14 +3,15 @@
 ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project/txsim-pipeline
 
 #Folder where intermediate/final files will be stored
-RESULTS: /mnt/d/HMGU/DATA/results
+RESULTS: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/results/hackathon
 
 #Folder where temporary files will be stored (optional)]
-TEMP: /mnt/d/HMGU/DATA/baysor/temp
+TEMP: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/tmp
 
 
 PREPROCESSING:
-    dataset: [test]
+  batch1:
+    dataset: [test, heart_PCW4.5, hippocampus]
     workflow: [segmentation, assignment, normalize]
     segmentation:
       cellpose:
@@ -32,8 +33,9 @@ PREPROCESSING:
       total:
         find_area: [True]
     normalize_params:
-  batch3:
-    dataset: [test]
+      per_gene_correction: [True, False]
+  batch2:
+    dataset: [test, heart_PCW4.5, hippocampus]
     workflow: [cell-segmentation, normalize]
     cell-segmentation:
       clustermap:
@@ -56,13 +58,24 @@ PREPROCESSING:
       total:
         find_area: [True]
     normalize_params:
+      per_gene_correction: [True, False]    
 
 
 
 DATA_SCENARIOS:
   test:
-    root_folder: /mnt/d/HMGU/DATA/test 
+    root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/data/test 
     image: raw_image.tif
     sc_data: sc_data.h5ad
     molecules: spots.csv
     segmented_image: segmented_image.tif
+  hippocampus:
+    root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/data/hippocampus 
+    image: CA1DapiBoundaries_7-1_right.tif
+    sc_data: scdata.h5ad
+    molecules: spots_w_celltype_rightCA1_7-1.csv
+  heart_PCW4.5:
+    root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/data/heart_data
+    image: nuclei_PCW4.5_1.tif
+    sc_data: heart_sc.h5ad
+    molecules: spots_PCW4.5_1.csv    
