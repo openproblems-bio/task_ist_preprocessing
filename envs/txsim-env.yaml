@@ -15,4 +15,5 @@ dependencies:
 
   - pip:
     - -e /home/icb/daniel.strobl/txsim/txsim
+    - omnipath
     - planktonspace
