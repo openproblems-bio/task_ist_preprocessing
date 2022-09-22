@@ -21,10 +21,6 @@ if __name__ == '__main__':
         help='Optional dictionary (as string) of parameters') 
     parser.add_argument('-t', '--threshold', default=None,
         help='Threshold for percent of spots with prior cell type to assign new cell type') 
-    parser.add_argument('-c', '--ctmethod', default='ssam', type=str,
-        help='Cell type assignment method (ssam, majority, pciSeq)')
-    parser.add_argument('-ct', '--ctcertthresh', default='0.7', type=str,
-        help='Cell type certainty threshold')
     
     args = parser.parse_args()
 
@@ -32,8 +28,6 @@ if __name__ == '__main__':
     data = args.data
     normalize_by = args.normalize
     id_code = args.id_code
-    ct_method = args.ctmethod
-    ct_thresh = float(args.ctcertthresh)
     hyperparams = eval(args.hyperparams)
     if hyperparams is None: hyperparams = {}
     alpha = hyperparams.get('alpha') is not None
@@ -43,9 +37,17 @@ if __name__ == '__main__':
     prior_pct = float(prior_pct)
     if hyperparams.get('alpha') is None: hyperparams['alpha'] = 0
 
-    adata = tx.preprocessing.generate_adata(
-        molecules=f'{data}/assignments_{assignment_method}.csv', 
-        prior_pct=prior_pct, ct_method=ct_method, ct_certainty_threshold=ct_thresh)
+    #TODO have different index for denovo types
+    #Look for cell_types
+    if os.path.exists(f'{data}/celltypes_{assignment_method}.csv'):
+        adata = tx.preprocessing.generate_adata(
+            molecules=f'{data}/assignments_{assignment_method}.csv',
+            cell_types=f'{data}/celltypes_{assignment_method}.csv',
+            prior_pct = prior_pct)
+    else:
+        adata = tx.preprocessing.generate_adata(
+            molecules=f'{data}/assignments_{assignment_method}.csv', 
+            prior_pct=prior_pct)
 
     #Find area for normalization
     if normalize_by == 'area' or find_area:

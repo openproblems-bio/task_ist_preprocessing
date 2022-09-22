@@ -223,8 +223,6 @@ rule normalize_total:
     params:
         hyp = lambda w: get_params('total', int(w.id_code), 'p'),
         thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold')
-        ct = lambda w: get_params('total', int(w.id_code), 'ct_method')
-        ctthresh = lambda w: get_params('total', int(w.id_code), 'ct_threshold')
     output:
         '{results}/{dataset}/counts_{assign}_total-{id_code}.h5ad'
     shell:
@@ -234,9 +232,7 @@ rule normalize_total:
         "-n total "
         "-id {wildcards.id_code} "
         "-p \"{params.hyp}\" "
-        "-t {params.thr} "
-        "-c {params.ct} "
-        "--ctcertthresh {params.ctthresh}"
+        "-t {params.thr}"
 
 rule normalize_area:
     threads: 1
@@ -247,8 +243,6 @@ rule normalize_area:
     params:
         hyp = lambda w: get_params('area', int(w.id_code), 'p'),
         thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold')
-        ct = lambda w: get_params('area', int(w.id_code), 'ct_method')
-        ctthresh = lambda w: get_params('area', int(w.id_code), 'ct_threshold')
     output:
         '{results}/{dataset}/counts_{method}_area-{id_code}.h5ad'
     shell:
@@ -258,9 +252,7 @@ rule normalize_area:
         "-n area "
         "-id {wildcards.id_code} "
         "-p \"{params.hyp}\" "
-        "-t {params.thr} "
-        "-c {params.ct} "
-        "--ctcertthresh {params.ctthresh}"
+        "-t {params.thr}"
 
 rule normalize_sc:
     conda:
