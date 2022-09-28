@@ -30,7 +30,7 @@ if __name__ == '__main__':
     parser.add_argument('-g', '--pergenecorr', type=str, default='True',
         help='Run per gene correction')
     parser.add_argument('-l' '--genecorrlayer', default='lognorm', type=str,
-        help='Layer to do per gene correction on'
+        help='Layer to do per gene correction on')
 
     
     args = parser.parse_args()
@@ -58,8 +58,9 @@ if __name__ == '__main__':
     adata_sc = sc.read(file_sc)
     
     adata = tx.preprocessing.generate_adata(
-        molecules=f'{data}/assignments_{assignment_method}.csv', 
+        molecules=f'{data}/assignments_{assignment_method}.csv', #fix this
         prior_pct=prior_pct, ct_method=ct_method, ct_certainty_threshold=ct_thresh, adata_sc=adata_sc)
+    
     #Find area for normalization
     if normalize_by == 'area' or find_area:
         methods = assignment_method

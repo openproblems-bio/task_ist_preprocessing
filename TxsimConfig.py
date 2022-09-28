@@ -3,6 +3,7 @@ import itertools
 import json
 import csv
 import pandas as pd
+import anndata as ad
 from snakemake.io import expand
 import os
 
@@ -99,6 +100,18 @@ class ParsedConfig:
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
         df.to_csv(output_folder + '/params_dict.csv')
+
+        #Checking data files
+        for dataset in self.cfg['DATA_SCENARIOS']:
+            for key in self.cfg['DATA_SCENARIOS'][dataset]:
+                if key != 'root_folder':
+                    if not os.path.exists(self.get_data_file(dataset,key)):
+                        print(f"WARNING: The following file was not found: {self.get_data_file(dataset,key)}")
+            adata = ad.read(self.get_data_file(dataset,'sc_data'))
+            spots = pd.read_csv(self.get_data_file(dataset,'molecules'))
+            not_included = set(spots[spots.columns[0]]) - set(adata.var_names)
+            if len(not_included) > 0:
+                print(f"WARNING: For dataset '{dataset}' the following genes are in the spatial data but not RNAseq: {list(not_included)}")
         
     def gen_file_names(self):
         return self.final_files
