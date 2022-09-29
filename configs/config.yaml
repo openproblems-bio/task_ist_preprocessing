@@ -69,7 +69,7 @@ DATA_SCENARIOS:
     sc_data: sc_data.h5ad
     molecules: spots.csv
     segmented_image: segmented_image.tif
-    fake_file: fake.tif
+  #  fake_file: fake.tif
   # hippocampus:
   #   root_folder: /mnt/d/HMGU/DATA/hippocampus 
   #   image: CA1DapiBoundaries_7-1_right.tif

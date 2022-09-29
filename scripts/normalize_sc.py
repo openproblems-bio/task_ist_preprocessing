@@ -20,5 +20,6 @@ if __name__ == '__main__':
 
     adata = sc.read(file_in)
     adata = tx.preprocessing.normalize_sc(adata)
-	
+    adata.var['spatial'] = True #TODO actually figure out what spatial means
+
     adata.write_h5ad(file_out)
