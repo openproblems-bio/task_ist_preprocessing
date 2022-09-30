@@ -106,12 +106,12 @@ class ParsedConfig:
             for key in self.cfg['DATA_SCENARIOS'][dataset]:
                 if key != 'root_folder':
                     if not os.path.exists(self.get_data_file(dataset,key)):
-                        print(f"WARNING: The following file was not found: {self.get_data_file(dataset,key)}")
+                        raise Exception(f"The following file was not found: {self.get_data_file(dataset,key)}")
             adata = ad.read(self.get_data_file(dataset,'sc_data'))
             spots = pd.read_csv(self.get_data_file(dataset,'molecules'))
             not_included = set(spots[spots.columns[0]]) - set(adata.var_names)
             if len(not_included) > 0:
-                print(f"WARNING: For dataset '{dataset}' the following genes are in the spatial data but not RNAseq: {list(not_included)}")
+                raise Exception(f"For dataset '{dataset}' the following genes are in the spatial data but not RNAseq: {list(not_included)}")
         
     def gen_file_names(self):
         return self.final_files
