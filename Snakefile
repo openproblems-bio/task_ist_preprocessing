@@ -81,6 +81,26 @@ rule watershed:
         "-id {wildcards.id_code} "
         "-e {params.exp} "
 
+rule binning:
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        img = lambda w: parsed.get_data_file(w.dataset, 'image')
+    output:
+        '{results}/{dataset}/segments_binning-{id_code}.tif',
+        '{results}/{dataset}/areas_binning-{id_code}.csv'
+    params:
+        hyp = lambda w: get_params('binning', int(w.id_code), 'p'),
+        exp = lambda w: get_params('binning', int(w.id_code), 'expand')
+    shell:
+        "python3 scripts/segment_image.py "
+        "-i {input.img} "
+        "-p \"{params.hyp}\" "
+        "-o {wildcards.results}/{wildcards.dataset} "
+        "-s binning "
+        "-id {wildcards.id_code} "
+        "-e {params.exp} "
+
 rule cellpose:
     threads: 8
     resources:
