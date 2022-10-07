@@ -31,8 +31,8 @@ PREPROCESSING:
     dataset: [test]
     workflow: [segmentation, assignment, normalize]
     segmentation:
-      binning:
-        bin_size: [25]
+      cellpose:
+        min_size: [1000]
     segmentation_params:
       expand: [10]
     assignment:

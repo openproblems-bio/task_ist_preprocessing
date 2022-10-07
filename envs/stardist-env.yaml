@@ -1,0 +1,16 @@
+name: stardist-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - squidpy
+  - scikit-image
+  - pyitlib
+  - tensorflow
+  - pip:
+    - -e /home/icb/daniel.strobl/txsim/txsim
+    - omnipath
+    - planktonspace
+    - stardist
