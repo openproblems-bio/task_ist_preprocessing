@@ -2,6 +2,8 @@
 
 import argparse
 import txsim as tx
+import pandas as pd
+import skimage.io
 
 if __name__ == '__main__':
 
@@ -25,7 +27,10 @@ if __name__ == '__main__':
     id_code = args.id_code
     hyperparams = args.hyperparams
  
-    spots = tx.preprocessing.basic_assign(molecules, f'{data}/segments_{segmentation_method}.tif')
+    spots = tx.preprocessing.basic_assign(
+        pd.read_csv(molecules),
+        skimage.io.imread(f'{data}/segments_{segmentation_method}.tif')
+    )
 
     #Save in correct format
     spots.to_csv(f'{data}/assignments_{segmentation_method}_basic-{id_code}.csv', index = False)

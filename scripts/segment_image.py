@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import txsim as tx
+import tifffile
 import squidpy as sq
 from scipy import ndimage
 import skimage.io
@@ -24,7 +25,7 @@ if __name__ == '__main__':
         help='ID of method to be used for saving')
     parser.add_argument('-p', '--hyperparams', default=None, type=str,
         help='Dictionary of hyperparameters') 
-    parser.add_argument('-e', '--expand', default=None, type=str,
+    parser.add_argument('-e', '--expand', default="0", type=str,
         help='Amount to expand each segment by- can be used to approximate cell boundary') 
     
     args = parser.parse_args()
@@ -43,19 +44,26 @@ if __name__ == '__main__':
 
     #If unsegmented, segment image
     if(not binary):
-        img = sq.im.ImageContainer(image_file)
-        if(segmentation_method=='cellpose'):
-            if hyperparams is not None:
-                tx.preprocessing.segment_cellpose(img, layer = 'image', **hyperparams)
+        if(segmentation_method == 'binning'):
+            img = tifffile.imread(image_file)
+            if hyperparams is None or hyperparams['bin_size'] is None:
+                img_arr = tx.preprocessing.segment_binning(img, 20)
             else:
-                tx.preprocessing.segment_cellpose(img, layer = 'image')
+                img_arr = tx.preprocessing.segment_binning(img, hyperparams['bin_size'])
+        elif(segmentation_method == 'stardist'):
+            img = tifffile.imread(image_file)
+            img_arr = tx.preprocessing.segment_stardist(img, hyperparams)
+        elif(segmentation_method=='cellpose'):
+            img = tifffile.imread(image_file)
+            img_arr = tx.preprocessing.segment_cellpose(img, hyperparams)
         else:
+            img = sq.im.ImageContainer(image_file)
             if hyperparams is not None:
                 tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method, **hyperparams)
             else:
                 tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method)
-    
-        img_arr = img[f'segmented_{segmentation_method}'].to_numpy()[:,:,0,0]
+            img_arr = img[f'segmented_{segmentation_method}'].to_numpy()[:,:,0,0]
+        
     
     #If already segmented, label
     else:

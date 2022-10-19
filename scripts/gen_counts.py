@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import txsim as tx
+import scanpy as sc
 import pandas as pd
 import numpy as np
 import os.path
@@ -12,7 +13,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--data', required=True, type=str, 
         help='Ouput data directory- should also contain assignments_.csv')
     parser.add_argument('-s', '--singlecell', required=True, type=str,
-	heplp='Path to the single cell anndata')
+	    help='Path to the single cell anndata')
     parser.add_argument('-as', '--assignment', required=True, type=str, 
         help='Method list after assignments_')
     parser.add_argument('-n', '--normalize', default='total', type=str,
@@ -29,8 +30,8 @@ if __name__ == '__main__':
         help='Cell type certainty threshold')
     parser.add_argument('-g', '--pergenecorr', type=str, default='True',
         help='Run per gene correction')
-    parser.add_argument('-l' '--genecorrlayer', default='lognorm', type=str,
-        help='Layer to do per gene correction on'
+    parser.add_argument('-l', '--genecorrlayer', default='lognorm', type=str,
+        help='Layer to do per gene correction on')
 
     
     args = parser.parse_args()
@@ -40,7 +41,7 @@ if __name__ == '__main__':
     normalize_by = args.normalize
     id_code = args.id_code
     ct_method = args.ctmethod
-    ct_thresh = float(args.ctcertthresh)
+    ct_thresh = eval(args.ctcertthresh)
     per_gene_correction = args.pergenecorr
     gene_corr_layer = args.genecorrlayer
     file_sc = args.singlecell
@@ -50,7 +51,7 @@ if __name__ == '__main__':
     alpha = hyperparams.get('alpha') is not None
     max_area = hyperparams.get('max') is None or hyperparams['max']
     find_area = hyperparams.get('find_area') is not None and hyperparams['find_area']
-    prior_pct = 0.7 if args.threshold is None else args.threshold 
+    prior_pct = 0.7 if eval(args.threshold) is None else eval(args.threshold)
     prior_pct = float(prior_pct)
     if hyperparams.get('alpha') is None: hyperparams['alpha'] = 0
 
@@ -58,8 +59,9 @@ if __name__ == '__main__':
     adata_sc = sc.read(file_sc)
     
     adata = tx.preprocessing.generate_adata(
-        molecules=f'{data}/assignments_{assignment_method}.csv', 
+        molecules=f'{data}/assignments_{assignment_method}.csv', #fix this
         prior_pct=prior_pct, ct_method=ct_method, ct_certainty_threshold=ct_thresh, adata_sc=adata_sc)
+    
     #Find area for normalization
     if normalize_by == 'area' or find_area:
         methods = assignment_method
