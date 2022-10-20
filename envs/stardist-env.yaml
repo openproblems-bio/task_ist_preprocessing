@@ -7,10 +7,10 @@ dependencies:
   - pip
   - squidpy
   - scikit-image
-  - pyitlib
   - tensorflow
   - pip:
-    - -e /home/icb/daniel.strobl/txsim/txsim
+    - -e /home/icb/louis.kuemmerle/projects/g3/code/txsim
+    - pyitlib
     - omnipath
     - planktonspace
     - stardist
