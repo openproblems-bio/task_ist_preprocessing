@@ -205,44 +205,47 @@ rule basic_assign:
         "-s {wildcards.seg} "
         "-id {wildcards.id_code} "
 
-#TODO fix baysor
-# rule baysor_prior:
-#     conda:
-#         "envs/base-env.yaml"
-#     container:
-#         "docker://vpetukhov/baysor:master"
-#     input: 
-#         '{results}/{dataset}/segments_{seg}.tif',
-#         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
-#     params:
-#         hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
-#         tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
-#     output:
-#         '{results}/{dataset}/segments_{seg}_baysor-{id_code}.tif',
-#         '{results}/{dataset}/assignments_{seg}_baysor-{id_code}.csv',
-#         '{results}/{dataset}/areas_{seg}_baysor-{id_code}.csv'
-#     shell:
-#         "python3 scripts/run_baysor.py "
-#         "-m {input.mol} "
-#         "-p \"{params.hyp}\" "
-#         "-d {wildcards.results}/{wildcards.dataset} "
-#         "-id {wildcards.id_code} "
-#         "-s {wildcards.seg} "
-#         "{params.tmp}"
+rule baysor_prior:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt    
+    #conda:
+    #    "envs/base-env.yaml"
+    container:
+        "docker://louisk92/txsim_baysor:latest"
+    input: 
+        segmtif = '{results}/{dataset}/segments_{seg}.tif',
+        mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
+    params:
+        hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
+        tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
+    output:
+        '{results}/{dataset}/assignments_{seg}_baysor-{id_code}.csv',
+        '{results}/{dataset}/areas_{seg}_baysor-{id_code}.csv'
+    shell:
+        "python3 scripts/run_baysor.py "
+        "-m {input.mol} "
+        "-p \"{params.hyp}\" "
+        "-d {wildcards.results}/{wildcards.dataset} "
+        "-id {wildcards.id_code} "
+        "-s {wildcards.seg} "
+        "{params.tmp}"
+
 
 rule baysor_no_prior:
     threads: 8
     resources:
         mem_mb = lambda wildcards, attempt: 32000 * attempt
-    conda:
-        "envs/baysor-env.yaml"
+    #conda:
+    #    "envs/base-env.yaml"
+    container:
+        "docker://louisk92/txsim_baysor:latest"
     input:
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
         hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
         tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
     output:
-#        '{results}/{dataset}/segments_baysor-{id_code}.tif',
         '{results}/{dataset}/assignments_baysor-{id_code}.csv',
         '{results}/{dataset}/areas_baysor-{id_code}.csv'
     shell:
