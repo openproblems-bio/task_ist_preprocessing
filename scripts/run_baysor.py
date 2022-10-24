@@ -83,12 +83,12 @@ if __name__ == '__main__':
         
     if segment:
         print("Running Baysor with prior segmentation")
-        baysor_cli += f"-o {temp} {molecules} {data}/segments_{segmentation_method}.tif"
+        baysor_cli += f"-o {temp}/ {molecules} {data}/segments_{segmentation_method}.tif"
         #baysor_cli += f"{molecules} -o {temp} --save-polygons=geojson -p {data}/segments_{segmentation_method}.tif"
             
     else:
         print("Running Baysor without prior segmentation")
-        baysor_cli += f"-o {temp} {molecules}"
+        baysor_cli += f"-o {temp}/ {molecules}"
         #baysor_cli += f"{molecules} -o {temp} --save-polygons=geojson"
 
     os.system(f'''/Baysor/bin/baysor {baysor_cli}''')
