@@ -214,7 +214,7 @@ rule baysor_prior:
     container:
         "docker://louisk92/txsim_baysor:latest"
     input: 
-        segmtif = '{results}/{dataset}/segments_{seg}.tif',
+        '{results}/{dataset}/segments_{seg}.tif',
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
         hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
