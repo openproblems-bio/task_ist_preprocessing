@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
 
     baysor_cli = "run "
-    for key, val in hyperparams:
+    for key, val in hyperparams.items():
         baysor_cli += f"--{key} {val} "
         
     if segment:
