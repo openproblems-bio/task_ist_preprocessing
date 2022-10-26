@@ -102,6 +102,8 @@ rule binning:
 rule stardist:
     conda:
         "envs/stardist-env.yaml"
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     input:
         img = lambda w: parsed.get_data_file(w.dataset, 'image')
     output:
@@ -212,7 +214,9 @@ rule baysor_prior:
     #conda:
     #    "envs/base-env.yaml"
     container:
-        "docker://louisk92/txsim_baysor:latest"
+        "singularity_container/txsim_baysor_latest.sif"
+        #"docker://louisk92/txsim_baysor:latest"
+	#"docker://vpetukhov/baysor:master"
     input: 
         '{results}/{dataset}/segments_{seg}.tif',
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
@@ -239,7 +243,9 @@ rule baysor_no_prior:
     #conda:
     #    "envs/base-env.yaml"
     container:
-        "docker://louisk92/txsim_baysor:latest"
+        "singularity_container/txsim_baysor_latest.sif"
+        #"docker://louisk92/txsim_baysor:latest"
+        #"docker://vpetukhov/baysor:master"
     input:
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
