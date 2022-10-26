@@ -147,7 +147,7 @@ rule cellpose:
 rule clustermap:
     threads: 4
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 32000 * attempt + 32000 * (attempt-1)
     conda:
         "envs/clustermap-env.yaml"
     input:
