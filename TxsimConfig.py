@@ -86,6 +86,17 @@ class ParsedConfig:
 
             self.final_files.extend( expand((file_template + ".csv"),**wildcards))
             
+            # also for quality metrics
+            
+            file_template = os.path.join(self.cfg['RESULTS'], "{dataset}/quality_metrics")
+            wildcards = {'dataset': self.cfg['PREPROCESSING'][batch]['dataset']}
+
+            for group in self.cfg['PREPROCESSING'][batch]['workflow']:
+                file_template = file_template + "_{" + group + "}"
+                wildcards[group] = list(batch_combos[group])
+
+            self.final_files.extend( expand((file_template + ".csv"),**wildcards))            
+            
         self.final_files = list(set(self.final_files))
 
         #Save the dictionary of method-id -> parameter combination
