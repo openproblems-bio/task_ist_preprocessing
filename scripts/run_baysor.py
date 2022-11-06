@@ -84,6 +84,15 @@ if __name__ == '__main__':
     if not os.path.exists(temp):
         os.makedirs(temp)
 
+    baysor_seg = os.path.join(temp, "segmentation.csv")
+    baysor_cell = os.path.join(temp, "segmentation_cell_stats.csv")
+    
+    # Remove existing outputs (otherwise Errors while running Baysor might be overseen)
+    if os.path.isfile(baysor_seg):
+        os.remove(baysor_seg)
+    if os.path.isfile(baysor_cell):
+        os.remove(baysor_cell)
+        
     # Write toml
     with open(toml_file, "w") as file:
         for key, val in hparams.items():
@@ -113,9 +122,6 @@ if __name__ == '__main__':
 
     os.system(f'''/Baysor/bin/baysor {baysor_cli}''')
     print("Ran Baysor")
-
-    baysor_seg = os.path.join(temp, "segmentation.csv")
-    baysor_cell = os.path.join(temp, "segmentation_cell_stats.csv")
 
     df = pd.read_csv(baysor_seg)
     spots = pd.read_csv(molecules)
