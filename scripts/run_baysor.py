@@ -101,10 +101,11 @@ if __name__ == '__main__':
                 file.write(f'[Data]\n')
             elif key == "new-component-weight":
                 file.write(f'\n[Sampling]\n')
-            file.write(f'{key} = {val}\n')
+            if key != "scale":
+                file.write(f'{key} = {val}\n')
     
-    
-    baysor_cli = f"run -c {toml_file} -o {temp}/ {molecules}"
+    # Note: we provide scale separately because when providing it via .toml baysor can complain that's it's not a float
+    baysor_cli = f"run -s {hparams['scale']} -c {toml_file} -o {temp}/ {molecules}"
     #baysor_cli = "run "
     #for key, val in hyperparams.items():
     #    baysor_cli += f"--{key} {val} "
