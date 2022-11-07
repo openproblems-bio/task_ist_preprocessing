@@ -1,6 +1,7 @@
 
 import itertools
 import json
+import tifffile
 import csv
 import pandas as pd
 import anndata as ad
@@ -118,11 +119,7 @@ class ParsedConfig:
                 if key != 'root_folder':
                     if not os.path.exists(self.get_data_file(dataset,key)):
                         raise Exception(f"The following file was not found: {self.get_data_file(dataset,key)}")
-            adata = ad.read(self.get_data_file(dataset,'sc_data'))
-            spots = pd.read_csv(self.get_data_file(dataset,'molecules'))
-            not_included = set(spots[spots.columns[0]]) - set(adata.var_names)
-            if len(not_included) > 0:
-                raise Exception(f"For dataset '{dataset}' the following genes are in the spatial data but not RNAseq: {list(not_included)}")
+            self.check_input_files(dataset)
         
     def gen_file_names(self):
         return self.final_files
@@ -138,3 +135,60 @@ class ParsedConfig:
         if id_code >= len(self.method_dict[method]):
             return None
         return self.method_dict[method][id_code]
+
+    
+    
+    def check_input_files(self, dataset:str):
+        """Test multiple requirements for the input files of a given dataset
+        
+        Arguments
+        ---------
+        dataset: str
+            Name of dataset as given in the config.yaml
+        
+        """
+        
+        #############
+        # Load data #
+        #############
+        
+        sc_file = self.get_data_file(dataset,'sc_data')
+        spots_file = self.get_data_file(dataset,'molecules')
+        dapi_file = self.get_data_file(dataset,'image')
+        
+        adata = ad.read(sc_file)
+        spots = pd.read_csv(spots_file)
+        dapi = tifffile.imread(dapi_file)
+        
+        #########
+        # Tests #
+        #########
+        
+        # Test that there are no genes in the spatial data that we don't find in the sc data
+        not_included = set(spots[spots.columns[0]]) - set(adata.var_names)
+        if len(not_included) > 0:
+            raise Exception(f"For dataset '{dataset}' the following genes are in the spatial data but not RNAseq: {list(not_included)}")
+            
+        # Test that the spots.csv header is correct
+        for key in ["Gene", "x", "y"]:
+            if key not in spots.columns:
+                raise Exception(f"For dataset '{dataset}': '{key}' is not found in the header ({spots.columns}) in file {spots_file}")
+        
+        # Test that coordinates in spots.csv align with tif image pixels
+        if spots[["x","y"]].min().min() < 0:
+            raise Exception(f"For dataset '{dataset}': found negative coordinate values in {spots_file}")
+        if (spots["y"].max() > dapi.shape[0]) or (spots["x"].max() > dapi.shape[1]):
+            raise Exception(f"For dataset '{dataset}': Coordinates in \n\t{spots_file}\nexceed pixel range in \n\t{dapi_file}")
+        border_th = 0.2
+        large_border = spots["y"].min() > (border_th * dapi.shape[0])
+        large_border |= spots["y"].max() < ( (1 - border_th) * dapi.shape[0])
+        large_border |= spots["x"].min() > (border_th * dapi.shape[1])
+        large_border |= spots["x"].max() < ( (1 - border_th) * dapi.shape[1])
+        if large_border:
+            raise Exception(
+                f"For dataset '{dataset}': Either coordinates in \n\t{spots_file} \nare not aligned with pixel units in \n\t{dapi_file}\n" + 
+                f"or there is a very large border in \n\t{dapi_file}\nwithout gene signals in \n\t{spots_file}"
+            )
+        
+        
+        
