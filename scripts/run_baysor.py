@@ -40,6 +40,9 @@ if __name__ == '__main__':
         # Standard deviation of scale across cells. Can be either number, which means absolute value of the std, or string ended with "%" to set it relative to scale. Default: "25%"
         # "scale-std" : '"25%"',
         
+        # Not exactly sure if this one should be in [Data], therefore we don't provide it via the toml, so not possibl issues here.
+        "prior-segmentation-confidence" : 0.2,
+        
         # # Use scale estimate from DAPI if provided. Default: true
         # "estimate-scale-from-centers" : "true",
         # # Minimal number of molecules in a segmented region, required for this region to be considered as a possible cell. Default: min-molecules-per-cell / 4
@@ -101,7 +104,7 @@ if __name__ == '__main__':
                 file.write(f'[Data]\n')
             elif key == "new-component-weight":
                 file.write(f'\n[Sampling]\n')
-            if key != "scale":
+            if key not in ["scale", "prior-segmentation-confidence"]:
                 file.write(f'{key} = {val}\n')
     
     # Note: we provide scale separately because when providing it via .toml baysor can complain that's it's not a float
@@ -112,6 +115,7 @@ if __name__ == '__main__':
         
     if segment:
         print("Running Baysor with prior segmentation")
+        baysor_cli += f" --prior-segmentation-confidence {hparams['prior-segmentation-confidence']}"
         baysor_cli += f" {data}/segments_{segmentation_method}.tif"
         #baysor_cli += f"-o {temp}/ {molecules} {data}/segments_{segmentation_method}.tif"
         #baysor_cli += f"{molecules} -o {temp} --save-polygons=geojson -p {data}/segments_{segmentation_method}.tif"
