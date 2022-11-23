@@ -32,9 +32,9 @@ PREPROCESSING:
     workflow: [segmentation, assignment, normalize]
     segmentation:
       cellpose:
-        min_size: [1000]
+        min_size: [50,500]
     segmentation_params:
-      expand: [10]
+      expand: [0]
     assignment:
       basic: 
       # pciSeq:

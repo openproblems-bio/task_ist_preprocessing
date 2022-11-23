@@ -19,6 +19,29 @@ class ParsedConfig:
         #Maps all methods to list of parameters
         self.method_dict ={}
 
+
+        # Create params output folder
+        output_folder = os.path.join(self.cfg['RESULTS'], 'params')
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+        elif os.path.exists( os.path.join(output_folder, 'params_dict.csv')  ):
+            methods = pd.read_csv(os.path.join(output_folder, 'params_dict.csv'), index_col=0)   
+            for method_name in pd.unique(methods['names']):
+                for param_str in methods[methods['names'] == method_name]['params'].values:
+                    try:
+                        params = eval(param_str)
+                        if(self.method_dict.get(method_name) is None):
+                            self.method_dict[method_name] = [params]
+                        else:
+                            self.method_dict[method_name].append(params)
+                    except:
+                        if(self.method_dict.get(method_name) is None):
+                            self.method_dict[method_name] = [None]
+                        else:
+                            self.method_dict[method_name].append(None)
+
+
+
         #Creating all parameter combinations per batch
         for batch in self.cfg['PREPROCESSING']:
             #Run through each batch
@@ -100,6 +123,8 @@ class ParsedConfig:
             
         self.final_files = list(set(self.final_files))
 
+        #Save parameters
+
         #Save the dictionary of method-id -> parameter combination
         output = {"names":[], "id":[], "params":[]}
         for method in self.method_dict:
@@ -108,9 +133,9 @@ class ParsedConfig:
             output["params"].extend(self.method_dict[method])
         
         df = pd.DataFrame.from_dict(output)
-        output_folder = self.cfg['RESULTS']
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
+        
+
+
         df.to_csv(output_folder + '/params_dict.csv')
 
         #Checking data files
