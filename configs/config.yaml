@@ -33,6 +33,7 @@ PREPROCESSING:
     segmentation:
       cellpose:
         min_size: [50,500]
+        flow_threshold: [True]
     segmentation_params:
       expand: [0]
     assignment:
@@ -40,10 +41,11 @@ PREPROCESSING:
       # pciSeq:
       #   opts: [{}]
     normalize:
-      total:
-        find_area: [True]
+      area:
+        max: [True]
+        alpha: [0]
     normalize_params:
-      #prior_threshold: [0.501]
+      prior_threshold: [0.501]
   # batch3:
   #   dataset: [test]
   #   workflow: [cell-segmentation, normalize]

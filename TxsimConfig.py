@@ -24,6 +24,8 @@ class ParsedConfig:
         output_folder = os.path.join(self.cfg['RESULTS'], 'params')
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
+
+        # Read from previous file if it exsists already
         elif os.path.exists( os.path.join(output_folder, 'params_dict.csv')  ):
             methods = pd.read_csv(os.path.join(output_folder, 'params_dict.csv'), index_col=0)   
             for method_name in pd.unique(methods['names']):
@@ -131,12 +133,33 @@ class ParsedConfig:
             output["names"] += [method]  * len(self.method_dict[method])
             output["id"].extend(range(len(self.method_dict[method])))
             output["params"].extend(self.method_dict[method])
+
+            #Save each method to csv file
+            m_df = pd.DataFrame()
+            i = 0
+            for d in self.method_dict[method]:
+                if d is None:
+                    i+=1
+                    continue
+                for key, value in d.items():
+                    if key == 'p':
+                        for k, v in d['p'].items():
+                            if not k in m_df:
+                                m_df.insert(len(m_df.columns), k, pd.Series( [v], index =[i]))
+                            else:
+                                m_df.loc[i,k] = v
+                    else:
+                        if not key in m_df:
+                            m_df.insert(len(m_df.columns), key, pd.Series( [value], index =[i]))
+                        else:
+                            m_df.loc[i,key] = value
+                i+=1
+            m_df.to_csv(output_folder + f'/{method}_params.csv')
         
         df = pd.DataFrame.from_dict(output)
-        
-
-
         df.to_csv(output_folder + '/params_dict.csv')
+
+
 
         #Checking data files
         for dataset in self.cfg['DATA_SCENARIOS']:
