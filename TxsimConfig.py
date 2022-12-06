@@ -5,8 +5,10 @@ import tifffile
 import csv
 import pandas as pd
 import anndata as ad
+import numpy as np
 from snakemake.io import expand
 import os
+from collections import OrderedDict
 
 class ParsedConfig:
 
@@ -18,7 +20,6 @@ class ParsedConfig:
         self.final_files = []
         #Maps all methods to list of parameters
         self.method_dict ={}
-
 
         # Create params output folder
         output_folder = os.path.join(self.cfg['RESULTS'], 'params')
@@ -41,8 +42,6 @@ class ParsedConfig:
                             self.method_dict[method_name] = [None]
                         else:
                             self.method_dict[method_name].append(None)
-
-
 
         #Creating all parameter combinations per batch
         for batch in self.cfg['PREPROCESSING']:
@@ -159,7 +158,39 @@ class ParsedConfig:
         df = pd.DataFrame.from_dict(output)
         df.to_csv(output_folder + '/params_dict.csv')
 
-
+        readable_df = pd.DataFrame()
+        for f in self.final_files:
+            if "quality" in f: continue
+            name = f.split('metrics_')[1].replace('.csv','')
+            method_list = name.split('_')
+            for m in method_list:
+                method,idx = m.split('-'); idx = int(idx)
+                d = self.method_dict[method][idx]
+                if d is None:
+                    continue
+                for key, value in d.items():
+                    if key == 'p':
+                        for k, v in d['p'].items():
+                            if not k in readable_df:
+                                readable_df.insert(len(readable_df.columns), k, pd.Series( [v], index =[[name] ]))
+                            else:
+                                
+                                readable_df.loc[ name ,k] = v
+                    else:
+                        if not key in readable_df:
+                            readable_df.insert(len(readable_df.columns), key, pd.Series( [value], index =[ [name] ]))
+                        else:
+                            readable_df.loc[  name ,key] = value
+            #pd.concat(readable_df, pd.Series([None]*len(readable_df.columns), index = [[name]]))
+            if name not in readable_df.index:
+                print(readable_df)
+                blank = pd.Series([np.nan]*len(readable_df.columns), index = readable_df.columns ).to_frame().T
+                blank.index = [name]
+                print(blank)
+                print( pd.concat([readable_df,blank]) )
+                    
+        
+        readable_df.to_csv(output_folder + '/params_dict_readable.csv')
 
         #Checking data files
         for dataset in self.cfg['DATA_SCENARIOS']:
@@ -183,7 +214,6 @@ class ParsedConfig:
         if id_code >= len(self.method_dict[method]):
             return None
         return self.method_dict[method][id_code]
-
     
     
     def check_input_files(self, dataset:str):
@@ -237,6 +267,3 @@ class ParsedConfig:
                 f"For dataset '{dataset}': Either coordinates in \n\t{spots_file} \nare not aligned with pixel units in \n\t{dapi_file}\n" + 
                 f"or there is a very large border in \n\t{dapi_file}\nwithout gene signals in \n\t{spots_file}"
             )
-        
-        
-        
