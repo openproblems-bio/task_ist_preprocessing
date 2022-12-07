@@ -116,7 +116,7 @@ if __name__ == '__main__':
     if segment:
         print("Running Baysor with prior segmentation")
         baysor_cli += f" --prior-segmentation-confidence {hparams['prior-segmentation-confidence']}"
-        baysor_cli += f" {data}/segments_{segmentation_method}.tif"
+        baysor_cli += f" {data}/segments_{segmentation_method}.ome.tif"
         #baysor_cli += f"-o {temp}/ {molecules} {data}/segments_{segmentation_method}.tif"
         #baysor_cli += f"{molecules} -o {temp} --save-polygons=geojson -p {data}/segments_{segmentation_method}.tif"
             

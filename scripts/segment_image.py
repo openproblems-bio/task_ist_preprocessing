@@ -75,7 +75,18 @@ if __name__ == '__main__':
         img_arr = skimage.segmentation.expand_labels(img_arr, distance=expand_nuclear_area)
 
     #Save as .tif file
-    skimage.io.imsave(f'{output}/segments_{segmentation_method}-{id_code}.tif', img_arr)
+    #skimage.io.imsave(f'{output}/segments_{segmentation_method}-{id_code}.tif', img_arr)
+    with tifffile.TiffWriter(f'{output}/segments_{segmentation_method}-{id_code}.ome.tif', bigtiff=True) as tif:
+        metadata={
+            'PhysicalSizeX': 1,
+            'PhysicalSizeXUnit': 'um',
+            'PhysicalSizeY': 1,
+            'PhysicalSizeYUnit': 'um',
+        }
+        tif.write(
+            img_arr,
+            metadata=metadata
+        )
 
     #Calculate and save areas
     (unique, counts) = np.unique(img_arr, return_counts=True)

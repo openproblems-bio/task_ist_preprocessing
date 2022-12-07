@@ -183,11 +183,8 @@ class ParsedConfig:
                             readable_df.loc[  name ,key] = value
             #pd.concat(readable_df, pd.Series([None]*len(readable_df.columns), index = [[name]]))
             if name not in readable_df.index:
-                print(readable_df)
                 blank = pd.Series([np.nan]*len(readable_df.columns), index = readable_df.columns ).to_frame().T
                 blank.index = [name]
-                print(blank)
-                print( pd.concat([readable_df,blank]) )
                     
         
         readable_df.to_csv(output_folder + '/params_dict_readable.csv')

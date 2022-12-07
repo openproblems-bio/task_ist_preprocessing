@@ -37,7 +37,7 @@ if __name__ == '__main__':
     #Read data and run pciSeq
     assignments, cell_types = tx.preprocessing.run_pciSeq(
         pd.read_csv(molecules),
-        skimage.io.imread(f'{data}/segments_{segmentation_method}.tif'),
+        skimage.io.imread(f'{data}/segments_{segmentation_method}.ome.tif'),
         ad.read(sc_data),
         'celltype',
         opts

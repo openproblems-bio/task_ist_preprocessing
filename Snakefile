@@ -46,7 +46,7 @@ rule pre_segmented:
     input:
         img = lambda w: parsed.get_data_file(w.dataset, 'segmented_image')
     output:
-        '{results}/{dataset}/segments_custom-{id_code}.tif',
+        '{results}/{dataset}/segments_custom-{id_code}.ome.tif',
         '{results}/{dataset}/areas_custom-{id_code}.csv'
     params:
         hyp = lambda w: get_params('custom', int(w.id_code), 'p'),
@@ -67,7 +67,7 @@ rule watershed:
     input:
         img = lambda w: parsed.get_data_file(w.dataset, 'image')
     output:
-        '{results}/{dataset}/segments_watershed-{id_code}.tif',
+        '{results}/{dataset}/segments_watershed-{id_code}.ome.tif',
         '{results}/{dataset}/areas_watershed-{id_code}.csv'
     params:
         hyp = lambda w: get_params('watershed', int(w.id_code), 'p'),
@@ -87,7 +87,7 @@ rule binning:
     input:
         img = lambda w: parsed.get_data_file(w.dataset, 'image')
     output:
-        '{results}/{dataset}/segments_binning-{id_code}.tif',
+        '{results}/{dataset}/segments_binning-{id_code}.ome.tif',
         '{results}/{dataset}/areas_binning-{id_code}.csv'
     params:
         hyp = lambda w: get_params('binning', int(w.id_code), 'p')
@@ -107,7 +107,7 @@ rule stardist:
     input:
         img = lambda w: parsed.get_data_file(w.dataset, 'image')
     output:
-        '{results}/{dataset}/segments_stardist-{id_code}.tif',
+        '{results}/{dataset}/segments_stardist-{id_code}.ome.tif',
         '{results}/{dataset}/areas_stardist-{id_code}.csv'
     params:
         hyp = lambda w: get_params('stardist', int(w.id_code), 'p'),
@@ -130,7 +130,7 @@ rule cellpose:
     input:
         img = lambda w: parsed.get_data_file(w.dataset, 'image')
     output:
-        '{results}/{dataset}/segments_cellpose-{id_code}.tif',
+        '{results}/{dataset}/segments_cellpose-{id_code}.ome.tif',
         '{results}/{dataset}/areas_cellpose-{id_code}.csv'
     params:
         hyp = lambda w: get_params('cellpose', int(w.id_code), 'p'),
@@ -172,7 +172,7 @@ rule pciSeq:
     conda:
         "envs/pciSeq-env.yaml"
     input:
-        '{results}/{dataset}/segments_{seg}.tif',
+        '{results}/{dataset}/segments_{seg}.ome.tif',
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules'),
         scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
     params:
@@ -193,7 +193,7 @@ rule basic_assign:
     conda:
         "envs/txsim-env.yaml"
     input:
-        '{results}/{dataset}/segments_{seg}.tif',
+        '{results}/{dataset}/segments_{seg}.ome.tif',
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
         hyp = lambda w: get_params('basic', int(w.id_code), 'p')
@@ -218,7 +218,7 @@ rule baysor_prior:
         #"docker://louisk92/txsim_baysor:latest"
 	#"docker://vpetukhov/baysor:master"
     input: 
-        '{results}/{dataset}/segments_{seg}.tif',
+        '{results}/{dataset}/segments_{seg}.ome.tif',
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
         hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
