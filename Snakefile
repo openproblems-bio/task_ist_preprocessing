@@ -38,9 +38,13 @@ def get_params(
 rule all:
     input:
         final_files
+        
 
 #Rules corresponding to each method
 rule pre_segmented:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -62,6 +66,9 @@ rule pre_segmented:
         "-b "
 
 rule watershed:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -82,6 +89,9 @@ rule watershed:
         "-e {params.exp} "
 
 rule binning:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -102,6 +112,8 @@ rule binning:
 rule stardist:
     conda:
         "envs/stardist-env.yaml"
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     input:
         img = lambda w: parsed.get_data_file(w.dataset, 'image')
     output:
@@ -145,7 +157,7 @@ rule cellpose:
 rule clustermap:
     threads: 4
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 32000 * attempt + 32000 * (attempt-1)
     conda:
         "envs/clustermap-env.yaml"
     input:
@@ -188,6 +200,9 @@ rule pciSeq:
         "-id {wildcards.id_code} "
 
 rule basic_assign:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -205,44 +220,51 @@ rule basic_assign:
         "-s {wildcards.seg} "
         "-id {wildcards.id_code} "
 
-#TODO fix baysor
-# rule baysor_prior:
-#     conda:
-#         "envs/base-env.yaml"
-#     container:
-#         "docker://vpetukhov/baysor:master"
-#     input: 
-#         '{results}/{dataset}/segments_{seg}.tif',
-#         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
-#     params:
-#         hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
-#         tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
-#     output:
-#         '{results}/{dataset}/segments_{seg}_baysor-{id_code}.tif',
-#         '{results}/{dataset}/assignments_{seg}_baysor-{id_code}.csv',
-#         '{results}/{dataset}/areas_{seg}_baysor-{id_code}.csv'
-#     shell:
-#         "python3 scripts/run_baysor.py "
-#         "-m {input.mol} "
-#         "-p \"{params.hyp}\" "
-#         "-d {wildcards.results}/{wildcards.dataset} "
-#         "-id {wildcards.id_code} "
-#         "-s {wildcards.seg} "
-#         "{params.tmp}"
+rule baysor_prior:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    #conda:
+    #    "envs/base-env.yaml"
+    container:
+        "singularity_container/txsim_baysor_latest.sif"
+        #"docker://louisk92/txsim_baysor:latest"
+	#"docker://vpetukhov/baysor:master"
+    input: 
+        '{results}/{dataset}/segments_{seg}.tif',
+        mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
+    params:
+        hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
+        tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
+    output:
+        '{results}/{dataset}/assignments_{seg}_baysor-{id_code}.csv',
+        '{results}/{dataset}/areas_{seg}_baysor-{id_code}.csv'
+    shell:
+        "python3 scripts/run_baysor.py "
+        "-m {input.mol} "
+        "-p \"{params.hyp}\" "
+        "-d {wildcards.results}/{wildcards.dataset} "
+        "-id {wildcards.id_code} "
+        "-s {wildcards.seg} "
+        "{params.tmp}"
+
 
 rule baysor_no_prior:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
-    conda:
-        "envs/baysor-env.yaml"
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    #conda:
+    #    "envs/base-env.yaml"
+    container:
+        "singularity_container/txsim_baysor_latest.sif"
+        #"docker://louisk92/txsim_baysor:latest"
+        #"docker://vpetukhov/baysor:master"
     input:
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
         hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
         tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
     output:
-#        '{results}/{dataset}/segments_baysor-{id_code}.tif',
         '{results}/{dataset}/assignments_baysor-{id_code}.csv',
         '{results}/{dataset}/areas_baysor-{id_code}.csv'
     shell:
@@ -254,6 +276,9 @@ rule baysor_no_prior:
         "{params.tmp}"
 
 rule normalize_total:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -284,7 +309,9 @@ rule normalize_total:
         "-l {params.pergene_layer}"
 
 rule normalize_area:
-    threads: 1
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -315,6 +342,9 @@ rule normalize_area:
         "-l {params.pergene_layer}"
 
 rule normalize_sc:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -327,6 +357,9 @@ rule normalize_sc:
         "-o {output} "
 
 rule metric:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -341,6 +374,9 @@ rule metric:
         "-sc {input.scd} "
 
 rule quality_metric:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
