@@ -80,12 +80,18 @@ if __name__ == '__main__':
     id_code = args.id_code
     segment = True if args.segment is not None else False
     temp = args.temp if args.temp is not None else data
-    temp = Path(temp) / f"baysor_{id_code}"
+    
+    if segment:
+        temp = Path(temp) / data / f"assignments_{segmentation_method}_baysor-{id_code}"
+    else:
+        temp = Path(temp) / data / f"assignments_baysor-{id_code}"
     toml_file = temp / 'config.toml'
+    #temp = Path(temp) / f"baysor_{id_code}"
+    #toml_file = temp / 'config.toml'
 
-    #temp.mkdir(parents=True, exist_ok=True)
-    if not os.path.exists(temp):
-        os.makedirs(temp)
+    temp.mkdir(parents=True, exist_ok=True)
+    #if not os.path.exists(temp):
+    #    os.makedirs(temp)
 
     baysor_seg = os.path.join(temp, "segmentation.csv")
     baysor_cell = os.path.join(temp, "segmentation_cell_stats.csv")
