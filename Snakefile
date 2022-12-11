@@ -38,9 +38,13 @@ def get_params(
 rule all:
     input:
         final_files
+        
 
 #Rules corresponding to each method
 rule pre_segmented:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -62,6 +66,9 @@ rule pre_segmented:
         "-b "
 
 rule watershed:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -82,6 +89,9 @@ rule watershed:
         "-e {params.exp} "
 
 rule binning:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -190,6 +200,9 @@ rule pciSeq:
         "-id {wildcards.id_code} "
 
 rule basic_assign:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -210,7 +223,7 @@ rule basic_assign:
 rule baysor_prior:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt    
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     #conda:
     #    "envs/base-env.yaml"
     container:
@@ -239,7 +252,7 @@ rule baysor_prior:
 rule baysor_no_prior:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     #conda:
     #    "envs/base-env.yaml"
     container:
@@ -263,6 +276,9 @@ rule baysor_no_prior:
         "{params.tmp}"
 
 rule normalize_total:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -293,7 +309,9 @@ rule normalize_total:
         "-l {params.pergene_layer}"
 
 rule normalize_area:
-    threads: 1
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -324,6 +342,9 @@ rule normalize_area:
         "-l {params.pergene_layer}"
 
 rule normalize_sc:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -336,6 +357,9 @@ rule normalize_sc:
         "-o {output} "
 
 rule metric:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -350,6 +374,9 @@ rule metric:
         "-sc {input.scd} "
 
 rule quality_metric:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
