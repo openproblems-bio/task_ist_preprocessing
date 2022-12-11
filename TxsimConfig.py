@@ -173,6 +173,11 @@ class ParsedConfig:
         for key in ["Gene", "x", "y"]:
             if key not in spots.columns:
                 raise Exception(f"For dataset '{dataset}': '{key}' is not found in the header ({spots.columns}) in file {spots_file}")
+                
+        # Test that all entries have type str in cell type expert annotations
+        if "celltype" in spots.columns:
+            for val in spots["celltype"].unique():
+                assert isinstance(val, str), f"Cell type entry '{val}' in column 'celltype' in file {spots_file} is not a str."
         
         # Test that coordinates in spots.csv align with tif image pixels
         if spots[["x","y"]].min().min() < 0:
