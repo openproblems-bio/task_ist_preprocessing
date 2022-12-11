@@ -177,4 +177,4 @@ normalize_params:
   ct_method: ssam
   ct_threshold: 0.7
   per_gene_correction: True
-	per_gene_layer: lognorm
+  per_gene_layer: lognorm

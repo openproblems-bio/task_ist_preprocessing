@@ -81,7 +81,7 @@ if __name__ == '__main__':
             'PhysicalSizeX': 1,
             'PhysicalSizeXUnit': 'um',
             'PhysicalSizeY': 1,
-            'PhysicalSizeYUnit': 'um',
+            'PhysicalSizeYUnit': 'um'
         }
         tif.write(
             img_arr,

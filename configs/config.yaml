@@ -32,7 +32,7 @@ PREPROCESSING:
     workflow: [segmentation, assignment, normalize]
     segmentation:
       cellpose:
-        min_size: [50]
+        min_size: [50, 100]
         flow_threshold: [True]
     segmentation_params:
       expand: [0]

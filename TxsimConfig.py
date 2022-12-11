@@ -8,13 +8,15 @@ import anndata as ad
 import numpy as np
 from snakemake.io import expand
 import os
+import yaml
 from collections import OrderedDict
 
 class ParsedConfig:
 
     def __init__(
         self, 
-        config: dict
+        config: dict,
+        defaults: str = None
     ):
         self.cfg = config
         self.final_files = []
@@ -166,6 +168,14 @@ class ParsedConfig:
             for m in method_list:
                 method,idx = m.split('-'); idx = int(idx)
                 d = self.method_dict[method][idx]
+                if defaults is not None:
+                    with open(defaults,'r') as def_file:
+                        def_dict = yaml.safe_load(def_file).get(method)
+                        if d is None:
+                            d = def_dict
+                        elif def_dict is not None:
+                            def_dict.update(d)
+                            d = def_dict
                 if d is None:
                     continue
                 for key, value in d.items():
@@ -174,7 +184,6 @@ class ParsedConfig:
                             if not k in readable_df:
                                 readable_df.insert(len(readable_df.columns), k, pd.Series( [v], index =[[name] ]))
                             else:
-                                
                                 readable_df.loc[ name ,k] = v
                     else:
                         if not key in readable_df:

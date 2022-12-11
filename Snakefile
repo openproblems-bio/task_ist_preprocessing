@@ -1,7 +1,8 @@
 from TxsimConfig import *
 
 configfile: 'configs/config.yaml'
-parsed = ParsedConfig(config)
+defaults = 'configs/defaults.yaml'
+parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()
 
 #Ensures dataset is a name not a file path, and id_code is an int
