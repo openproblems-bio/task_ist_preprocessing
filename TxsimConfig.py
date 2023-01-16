@@ -160,7 +160,9 @@ class ParsedConfig:
         df = pd.DataFrame.from_dict(output)
         df.to_csv(output_folder + '/params_dict.csv')
 
+        # Create a readable dictionary for every combination in final_files
         readable_df = pd.DataFrame()
+        method_names = []
         for f in self.final_files:
             if "quality" in f: continue
             name = f.split('metrics_')[1].replace('.csv','')
@@ -176,25 +178,29 @@ class ParsedConfig:
                         elif def_dict is not None:
                             def_dict.update(d)
                             d = def_dict
-                if d is None:
+                if d is None: #This might not be necessary 
                     continue
                 for key, value in d.items():
                     if key == 'p':
                         for k, v in d['p'].items():
                             if not k in readable_df:
-                                readable_df.insert(len(readable_df.columns), k, pd.Series( [v], index =[[name] ]))
+                                readable_df.insert(len(readable_df.columns), k, pd.Series( [v], index =[ [name] ]))
+                                method_names.append(method)
                             else:
-                                readable_df.loc[ name ,k] = v
+                                readable_df.loc[name, k] = v
                     else:
                         if not key in readable_df:
                             readable_df.insert(len(readable_df.columns), key, pd.Series( [value], index =[ [name] ]))
+                            method_names.append(method)
                         else:
-                            readable_df.loc[  name ,key] = value
+                            readable_df.loc[name, key] = value
             #pd.concat(readable_df, pd.Series([None]*len(readable_df.columns), index = [[name]]))
             if name not in readable_df.index:
                 blank = pd.Series([np.nan]*len(readable_df.columns), index = readable_df.columns ).to_frame().T
                 blank.index = [name]
-                    
+        
+        #Add in the name of the method for each parameter. Note sure if there is a better way to do this
+        readable_df.columns = pd.MultiIndex.from_tuples(list(zip(*np.array([readable_df.columns.to_numpy(), method_names]))) )            
         
         readable_df.to_csv(output_folder + '/params_dict_readable.csv')
 
