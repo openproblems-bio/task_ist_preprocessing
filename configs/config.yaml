@@ -35,13 +35,14 @@ PREPROCESSING:
         min_size: [50]
         flow_threshold: [True]
     segmentation_params:
-      expand: [0]
+      expand: [0, 10, 20]
     assignment:
       basic: 
     normalize:
       area:
     normalize_params:
       prior_threshold: [0.501]
+
   # batch3:
   #   dataset: [test]
   #   workflow: [cell-segmentation, normalize]
@@ -58,7 +59,11 @@ PREPROCESSING:
   #       alpha: [-1, 0]
   #     total:
   #       find_area: [True]
-
+METRICS:
+  self-consistency:
+    dataset: test
+    files: all
+  
 
 DATA_SCENARIOS:
   test:
@@ -67,6 +72,8 @@ DATA_SCENARIOS:
     sc_data: sc_data.h5ad
     molecules: spots.csv
     segmented_image: segmented_image.tif
+    replicate_images: [raw_image.tif, segmented_image.tif, binary.tif]
+    replicate_molecules: [spots.csv]
     # fake_file: fake.tif
   # hippocampus:
   #   root_folder: /mnt/d/HMGU/DATA/hippocampus 

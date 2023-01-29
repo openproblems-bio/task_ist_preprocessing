@@ -10,6 +10,7 @@ wildcard_constraints:
     dataset="[^\/]+",
     id_code="\d+"
 
+# Helper function used to get parameters for snakemake rules
 def get_params(
     method: str, 
     id_code: int,
@@ -34,6 +35,8 @@ def get_params(
     if parsed.get_method_params(method, id_code) is not None:
         return parsed.get_method_params(method, id_code).get(param_name)
     return None
+
+
 
 #Main rule (will always be run)
 rule all:

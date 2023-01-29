@@ -23,14 +23,30 @@ class ParsedConfig:
         #Maps all methods to list of parameters
         self.method_dict ={}
 
-        # Create params output folder
-        output_folder = os.path.join(self.cfg['RESULTS'], 'params')
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
+        #Create (and read previous) params dict
+        self.gen_params_dict()
 
-        # Read from previous file if it exsists already
-        elif os.path.exists( os.path.join(output_folder, 'params_dict.csv')  ):
-            methods = pd.read_csv(os.path.join(output_folder, 'params_dict.csv'), index_col=0)   
+        #Creating all parameter combinations per batch
+        self.gen_combinations()
+
+        #Save parameters
+        self.save_parameters(defaults)
+
+        #Calculate metrics across combinations
+        self.gen_metrics()
+
+        #Checking data files
+        self.check_files()
+    
+    def gen_params_dict(self):
+        # Create params output folder
+        self.output_folder = os.path.join(self.cfg['RESULTS'], 'params')
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
+
+        # Read from previous file if it exists already
+        elif os.path.exists( os.path.join(self.output_folder, 'params_dict.csv')  ):
+            methods = pd.read_csv(os.path.join(self.output_folder, 'params_dict.csv'), index_col=0)   
             for method_name in pd.unique(methods['names']):
                 for param_str in methods[methods['names'] == method_name]['params'].values:
                     try:
@@ -45,7 +61,7 @@ class ParsedConfig:
                         else:
                             self.method_dict[method_name].append(None)
 
-        #Creating all parameter combinations per batch
+    def gen_combinations(self):
         for batch in self.cfg['PREPROCESSING']:
             #Run through each batch
             batch_combos = {}
@@ -126,8 +142,7 @@ class ParsedConfig:
             
         self.final_files = list(set(self.final_files))
 
-        #Save parameters
-
+    def save_parameters(self, defaults: str):
         #Save the dictionary of method-id -> parameter combination
         output = {"names":[], "id":[], "params":[]}
         for method in self.method_dict:
@@ -155,10 +170,10 @@ class ParsedConfig:
                         else:
                             m_df.loc[i,key] = value
                 i+=1
-            m_df.to_csv(output_folder + f'/{method}_params.csv')
+            m_df.to_csv(self.output_folder + f'/{method}_params.csv')
         
         df = pd.DataFrame.from_dict(output)
-        df.to_csv(output_folder + '/params_dict.csv')
+        df.to_csv(self.output_folder + '/params_dict.csv')
 
         # Create a readable dictionary for every combination in final_files
         readable_df = pd.DataFrame()
@@ -202,22 +217,50 @@ class ParsedConfig:
         #Add in the name of the method for each parameter. Note sure if there is a better way to do this
         readable_df.columns = pd.MultiIndex.from_tuples(list(zip(*np.array([readable_df.columns.to_numpy(), method_names]))) )            
         
-        readable_df.to_csv(output_folder + '/params_dict_readable.csv')
+        readable_df.to_csv(self.output_folder + '/params_dict_readable.csv')
 
-        #Checking data files
+    def gen_metrics(self):
+        #Create dictionary of all runs for each dataset
+        names = {}
+        for f in self.final_files:
+            if "quality" in f: continue
+            dataset = f.split('/metrics_')[0].split('/')[-1]
+            name = f.split('metrics_')[1].replace('.csv','')
+            if names.get(dataset) is None:
+                names[dataset] = [name]
+            else:
+                names[dataset].append(name)
+        
+        for metric_type in self.cfg['METRICS']:
+            if metric_type == 'self-consistency':
+                print(self.cfg['METRICS'][metric_type]['dataset'])
+
+    def check_files(self):
         for dataset in self.cfg['DATA_SCENARIOS']:
+            num_replicates = 0
             for key in self.cfg['DATA_SCENARIOS'][dataset]:
-                if key != 'root_folder':
+                if 'replicate' in key:
+                    num_reps = len(self.cfg['DATA_SCENARIOS'][dataset][key])
+                    if num_replicates > 0 and num_replicates != num_reps:
+                        print(f"Warning: number of replicates in dataset '{dataset}' does not match ({num_reps} and {num_replicates})")
+                    num_replicates = num_reps
+                    for rep in range(0, ):
+                        if not os.path.exists(self.get_replicate_file(dataset,key,rep)):
+                            raise Exception(f"The following replicate was not found: {self.get_replicate_file(dataset,key,rep)}")
+                elif key != 'root_folder':
                     if not os.path.exists(self.get_data_file(dataset,key)):
                         raise Exception(f"The following file was not found: {self.get_data_file(dataset,key)}")
-            self.check_input_files(dataset)
-        
+            self.check_dataset(dataset)
+
     def gen_file_names(self):
         return self.final_files
     
     #`dataset` should be name of dataset, `file_name`` should be desired file, both as str
     def get_data_file(self, dataset, file_name):
         return os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'] , self.cfg['DATA_SCENARIOS'][dataset][file_name])
+
+    def get_replicate_file(self, dataset, file_name, replicate_number):
+        return os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'] , self.cfg['DATA_SCENARIOS'][dataset][file_name][replicate_number])
     
     #`method` should be name of method, `id_code` should be an int
     def get_method_params(self, method, id_code):
@@ -227,8 +270,7 @@ class ParsedConfig:
             return None
         return self.method_dict[method][id_code]
     
-    
-    def check_input_files(self, dataset:str):
+    def check_dataset(self, dataset:str):
         """Test multiple requirements for the input files of a given dataset
         
         Arguments
