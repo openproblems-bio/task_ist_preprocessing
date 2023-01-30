@@ -8,7 +8,7 @@ import argparse
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate count matrix for spatial data')
     parser.add_argument('-d', '--data', required=True, type=str, 
-        help='Ouput data directory- should also count matrix')
+        help='Output data directory- should also contain count matrix')
     parser.add_argument('-m', '--methods', required=True, type=str,
         help='Methods used to generate count matrix')
     parser.add_argument('-sc', '--singlecell', required=True, type=str,

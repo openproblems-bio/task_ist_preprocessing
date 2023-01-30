@@ -60,8 +60,9 @@ PREPROCESSING:
   #     total:
   #       find_area: [True]
 METRICS:
-  self-consistency:
+  batch1:
     dataset: test
+    metrics: all
     files: all
   
 

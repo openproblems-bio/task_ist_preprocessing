@@ -239,7 +239,6 @@ rule baysor_prior:
         "-s {wildcards.seg} "
         "{params.tmp}"
 
-
 rule baysor_no_prior:
     threads: 8
     resources:
@@ -363,4 +362,16 @@ rule quality_metric:
     shell:
         "python3 scripts/calc_quality_metrics.py "
         "-m {wildcards.methods} "
+        "-d {wildcards.results}/{wildcards.dataset} "
+
+rule group_metrics:
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        parsed.get_metric_inputs
+    output:
+        '{results}/{dataset}/group_metrics.csv'
+    shell:
+        "python3 scripts/calc_group_metrics.py "
+        "-f all "
         "-d {wildcards.results}/{wildcards.dataset} "

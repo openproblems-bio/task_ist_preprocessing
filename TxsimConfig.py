@@ -231,9 +231,18 @@ class ParsedConfig:
             else:
                 names[dataset].append(name)
         
-        for metric_type in self.cfg['METRICS']:
-            if metric_type == 'self-consistency':
-                print(self.cfg['METRICS'][metric_type]['dataset'])
+        self.metric_input_files = {}
+
+        for metric_batch in self.cfg['METRICS']:
+            dataset = self.cfg['METRICS'][metric_batch]['dataset']
+            self.final_files.append( 
+                    os.path.join(self.cfg['RESULTS'], f"{dataset}/group_metrics.csv"))
+            required_inputs = []
+            for run_name in names[dataset]:
+                required_inputs.append(
+                    os.path.join(self.cfg['RESULTS'], f"{dataset}/metrics_"+name+".csv"))
+            
+            self.metric_input_files[dataset] = required_inputs
 
     def check_files(self):
         for dataset in self.cfg['DATA_SCENARIOS']:
@@ -254,7 +263,10 @@ class ParsedConfig:
 
     def gen_file_names(self):
         return self.final_files
-    
+
+    def get_metric_inputs(self, wildcards):
+        return self.metric_input_files[wildcards.dataset]
+
     #`dataset` should be name of dataset, `file_name`` should be desired file, both as str
     def get_data_file(self, dataset, file_name):
         return os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'] , self.cfg['DATA_SCENARIOS'][dataset][file_name])
