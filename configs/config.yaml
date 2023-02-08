@@ -35,7 +35,7 @@ PREPROCESSING:
         min_size: [50]
         flow_threshold: [True]
     segmentation_params:
-      expand: [0, 10, 20]
+      expand: [0, 10]
     assignment:
       basic: 
     normalize:
@@ -59,23 +59,21 @@ PREPROCESSING:
   #       alpha: [-1, 0]
   #     total:
   #       find_area: [True]
-METRICS:
-  batch1:
-    dataset: test
-    metrics: all
-    files: all
+METRICS: #TODO fix
+  # batch1:
+  #   dataset: test
+  #   metrics: all
+  #   files: all
   
 
 DATA_SCENARIOS:
   test:
     root_folder: /mnt/d/HMGU/DATA/test 
-    image: raw_image.tif
     sc_data: sc_data.h5ad
-    molecules: spots.csv
     segmented_image: segmented_image.tif
-    replicate_images: [raw_image.tif, segmented_image.tif, binary.tif]
-    replicate_molecules: [spots.csv]
-    # fake_file: fake.tif
+    images: [raw_image.tif, raw_image.tif]
+    molecules: [spots.csv, spots.csv]
+
   # hippocampus:
   #   root_folder: /mnt/d/HMGU/DATA/hippocampus 
   #   image: CA1DapiBoundaries_7-1_right.tif

@@ -120,27 +120,31 @@ class ParsedConfig:
             #Generate the final files for the batch
             #Parameters such as 'seg' in format: '{method}-{id}'
 
-            file_template = os.path.join(self.cfg['RESULTS'], "{dataset}/metrics")
-            wildcards = {'dataset': self.cfg['PREPROCESSING'][batch]['dataset']}
+            file_template = os.path.join(self.cfg['RESULTS'], "{dataset}/replicate{rep_id}/metrics") #dont use 'f' here
+            wildcards = {"dataset": ['']}
+            new_final_files = []
 
             for group in self.cfg['PREPROCESSING'][batch]['workflow']:
                 file_template = file_template + "_{" + group + "}"
                 wildcards[group] = list(batch_combos[group])
 
-            self.final_files.extend( expand((file_template + ".csv"),**wildcards))
-            
+
+            for d_set in self.cfg['PREPROCESSING'][batch]['dataset']:
+                #Number of replicates
+                wildcards["rep_id"] = range(1, len( self.cfg['DATA_SCENARIOS'][d_set]['images'])+1)
+                wildcards["dataset"]= [d_set]
+                new_final_files.extend( expand((file_template + ".csv"),**wildcards))
+
             # also for quality metrics
             
-            file_template = os.path.join(self.cfg['RESULTS'], "{dataset}/quality_metrics")
-            wildcards = {'dataset': self.cfg['PREPROCESSING'][batch]['dataset']}
+            quality_metrics = new_final_files.copy()
+            for final_file in quality_metrics:
+                new_final_files.append(final_file.replace('/metrics', '/quality_metrics'))
 
-            for group in self.cfg['PREPROCESSING'][batch]['workflow']:
-                file_template = file_template + "_{" + group + "}"
-                wildcards[group] = list(batch_combos[group])
+            self.final_files.extend(new_final_files)
 
-            self.final_files.extend( expand((file_template + ".csv"),**wildcards))            
-            
         self.final_files = list(set(self.final_files))
+        #for f in self.final_files: print(f)
 
     def save_parameters(self, defaults: str):
         #Save the dictionary of method-id -> parameter combination
@@ -220,17 +224,19 @@ class ParsedConfig:
         readable_df.to_csv(self.output_folder + '/params_dict_readable.csv')
 
     def gen_metrics(self):
+        #TODO FIX HOW THE THINGY WORKS
+        if not bool(self.cfg['METRICS']): return #Trick to see if its empty
         #Create dictionary of all runs for each dataset
         names = {}
         for f in self.final_files:
             if "quality" in f: continue
-            dataset = f.split('/metrics_')[0].split('/')[-1]
+            dataset = f.split('/metrics_')[0].split('/')[-2] #-2 since second to last = dataset, last = replicate
             name = f.split('metrics_')[1].replace('.csv','')
             if names.get(dataset) is None:
                 names[dataset] = [name]
             else:
                 names[dataset].append(name)
-        
+                
         self.metric_input_files = {}
 
         for metric_batch in self.cfg['METRICS']:
@@ -241,14 +247,13 @@ class ParsedConfig:
             for run_name in names[dataset]:
                 required_inputs.append(
                     os.path.join(self.cfg['RESULTS'], f"{dataset}/metrics_"+name+".csv"))
-            
             self.metric_input_files[dataset] = required_inputs
 
     def check_files(self):
         for dataset in self.cfg['DATA_SCENARIOS']:
             num_replicates = 0
             for key in self.cfg['DATA_SCENARIOS'][dataset]:
-                if 'replicate' in key:
+                if 'images' in key or 'molecules' in key:
                     num_reps = len(self.cfg['DATA_SCENARIOS'][dataset][key])
                     if num_replicates > 0 and num_replicates != num_reps:
                         print(f"Warning: number of replicates in dataset '{dataset}' does not match ({num_reps} and {num_replicates})")
@@ -274,6 +279,27 @@ class ParsedConfig:
     def get_replicate_file(self, dataset, file_name, replicate_number):
         return os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'] , self.cfg['DATA_SCENARIOS'][dataset][file_name][replicate_number])
     
+    def get_aggregate_inputs(self, wildcards, file_type):
+        required_inputs = []
+        
+        #Prevent confusion between quality_metrics and metrics
+        if file_type == 'metrics': file_type = "/metrics"
+
+        for final_file in self.final_files:
+            #Look for files with the same dataset and method signature as aggregated file
+            if f"{wildcards.results}/{wildcards.dataset}/replicate" not in final_file:
+                continue
+            if f"{wildcards.method}" not in final_file:
+                continue
+            #Look for files with right type (counts, metrics, quality metrics)
+            if file_type == 'counts' and '/metrics' in final_file:
+                required_inputs.append(final_file.replace('/metrics', 'counts'))
+            elif file_type in final_file:
+                required_inputs.append(final_file)
+        
+        return required_inputs
+
+    
     #`method` should be name of method, `id_code` should be an int
     def get_method_params(self, method, id_code):
         if self.method_dict.get(method) is None:
@@ -297,8 +323,8 @@ class ParsedConfig:
         #############
         
         sc_file = self.get_data_file(dataset,'sc_data')
-        spots_file = self.get_data_file(dataset,'molecules')
-        dapi_file = self.get_data_file(dataset,'image')
+        spots_file = self.get_replicate_file(dataset,'molecules',0) #Just check first one in replicates
+        dapi_file = self.get_replicate_file(dataset,'images',0)
         
         adata = ad.read(sc_file)
         spots = pd.read_csv(spots_file)
