@@ -134,6 +134,8 @@ class ParsedConfig:
                 wildcards["rep_id"] = range(1, len( self.cfg['DATA_SCENARIOS'][d_set]['images'])+1)
                 wildcards["dataset"]= [d_set]
                 new_final_files.extend( expand((file_template + ".csv"),**wildcards))
+                new_final_files.extend( expand((file_template.replace("replicate{rep_id}", "aggregated") + ".csv"),**wildcards))
+                
 
             # also for quality metrics
             
@@ -293,7 +295,7 @@ class ParsedConfig:
                 continue
             #Look for files with right type (counts, metrics, quality metrics)
             if file_type == 'counts' and '/metrics' in final_file:
-                required_inputs.append(final_file.replace('/metrics', 'counts'))
+                required_inputs.append(final_file.replace('/metrics', '/counts').replace('.csv','.h5ad'))
             elif file_type in final_file:
                 required_inputs.append(final_file)
         

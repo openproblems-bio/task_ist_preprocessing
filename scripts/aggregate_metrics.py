@@ -11,23 +11,27 @@ if __name__ == '__main__':
         help='Output data directory- ')
     parser.add_argument('-m', '--methods', required=True, type=str,
         help='Methods used to generate count matrices')
+    parser.add_argument('-t', '--metric_type', required=True, type=str,
+        help='Type of metrics, either "quality_metrics" or "metric" ')
+    
     
     args = parser.parse_args()
     
     data = args.data
     methods = args.methods
+    metric_type = args.metric_type
 
     if not os.path.exists( os.path.join(data, "aggregated") ):
         os.makedirs( os.path.join(data, "aggregated") )
 
-    replicate_folders = [ f.path for f in os.scandir(data) if f.is_dir() and 'replicate' in f.path]
-    adata_list = []
+    replicate_folders = [f.path for f in os.scandir(data) if f.is_dir() and 'replicate' in f.path]
+    metric_list = []
     
     for replicate in replicate_folders:
-        count_file_name = os.path.join(replicate, f"counts_{methods}.h5ad")
-        adata_list.append( ad.read(count_file_name) )
+        metric_file_name = os.path.join(replicate, f"{metric_type}_{methods}.csv")
+        metric_list.append( pd.read_csv(metric_file_name, index_col = 0) )
 
-    adata = tx.preprocessing.aggregate_count_matrices(adata_list)
+    metric = tx.metrics.aggregate_metrics(metric_list)
 
-    adata.write_h5ad(os.path.join(data, f"aggregated/counts_{methods}.h5ad"))
+    metric.to_csv(os.path.join(data, f"aggregated/{metric_type}_{methods}.csv"))
     

@@ -4,7 +4,7 @@ configfile: 'configs/config.yaml'
 defaults = 'configs/defaults.yaml'
 parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()
-#final_files.append( '/mnt/d/HMGU/DATA/results/test/aggregated/metrics_cellpose-1_basic-0_area-0.csv')
+final_files.append( '/mnt/d/HMGU/DATA/results/test/aggregated/counts_cellpose-1_basic-0_area-0.h5ad')
 #for f in final_files: print(f)
 
 #Ensures dataset is a name not a file path, and id_code is an int
@@ -12,6 +12,8 @@ wildcard_constraints:
     dataset="[^\/]+",
     id_code="\d+",
     rep_id="\d+"
+
+ruleorder: aggregate_metrics > metric > aggregate_quality_metrics > quality_metric
 
 # Helper function used to get parameters for snakemake rules
 def get_params(
@@ -389,7 +391,7 @@ rule aggregate_counts:
     shell:
         "python3 scripts/aggregate_counts.py "
         "-m {wildcards.method}"
-        "-d {wildcards.results}/{wildcards.dataset}/aggregated "
+        "-d {wildcards.results}/{wildcards.dataset} "
 
 rule aggregate_metrics:
     conda:
@@ -400,8 +402,9 @@ rule aggregate_metrics:
         '{results}/{dataset}/aggregated/metrics_{method}.csv'
     shell:
         "python3 scripts/aggregate_metrics.py "
-        "-m {wildcards.method}"
-        "-d {wildcards.results}/{wildcards.dataset}/aggregated "
+        "-m {wildcards.method} "
+        "-d {wildcards.results}/{wildcards.dataset} "
+        "-t metrics"
 
 rule aggregate_quality_metrics:
     conda:
@@ -411,10 +414,9 @@ rule aggregate_quality_metrics:
     output:
         '{results}/{dataset}/aggregated/quality_metrics_{method}.csv'
     shell:
-        "python3 scripts/aggregate_quality_metrics.py "
-        "-m {wildcards.method}"
-        "-d {wildcards.results}/{wildcards.dataset}/aggregated "
-
-
+        "python3 scripts/aggregate_metrics.py "
+        "-m {wildcards.method} "
+        "-d {wildcards.results}/{wildcards.dataset} "
+        "-t quality_metrics "
 
 
