@@ -26,12 +26,14 @@ if __name__ == '__main__':
 
     replicate_folders = [f.path for f in os.scandir(data) if f.is_dir() and 'replicate' in f.path]
     metric_list = []
+    name_list = []
     
     for replicate in replicate_folders:
         metric_file_name = os.path.join(replicate, f"{metric_type}_{methods}.csv")
         metric_list.append( pd.read_csv(metric_file_name, index_col = 0) )
+        name_list.append(replicate.split("/")[-1])
 
-    metric = tx.metrics.aggregate_metrics(metric_list)
+    metric = tx.metrics.aggregate_metrics(metric_list, name_list)
 
     metric.to_csv(os.path.join(data, f"aggregated/{metric_type}_{methods}.csv"))
     

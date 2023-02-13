@@ -390,7 +390,7 @@ rule aggregate_counts:
         '{results}/{dataset}/aggregated/counts_{method}.h5ad'
     shell:
         "python3 scripts/aggregate_counts.py "
-        "-m {wildcards.method}"
+        "-m {wildcards.method} "
         "-d {wildcards.results}/{wildcards.dataset} "
 
 rule aggregate_metrics:

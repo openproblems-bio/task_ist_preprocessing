@@ -137,11 +137,13 @@ class ParsedConfig:
                 new_final_files.extend( expand((file_template.replace("replicate{rep_id}", "aggregated") + ".csv"),**wildcards))
                 
 
-            # also for quality metrics
+            # also for quality metrics and counts
             
             quality_metrics = new_final_files.copy()
             for final_file in quality_metrics:
                 new_final_files.append(final_file.replace('/metrics', '/quality_metrics'))
+                new_final_files.append(final_file.replace('/metrics', '/counts').replace(".csv",".h5ad"))
+                
 
             self.final_files.extend(new_final_files)
 
@@ -186,6 +188,7 @@ class ParsedConfig:
         method_names = []
         for f in self.final_files:
             if "quality" in f: continue
+            if "counts" in f: continue
             name = f.split('metrics_')[1].replace('.csv','')
             method_list = name.split('_')
             for m in method_list:
