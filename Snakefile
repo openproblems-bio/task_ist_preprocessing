@@ -4,12 +4,13 @@ configfile: 'configs/config.yaml'
 defaults = 'configs/defaults.yaml'
 parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()
-final_files.append( '/mnt/d/HMGU/DATA/results/test/aggregated/counts_cellpose-1_basic-0_area-0.h5ad')
+
 #for f in final_files: print(f)
 
 #Ensures dataset is a name not a file path, and id_code is an int
 wildcard_constraints:
     dataset="[^\/]+",
+    replicate="[^\/]+",
     id_code="\d+",
     rep_id="\d+"
 
@@ -379,7 +380,7 @@ rule group_metrics:
     shell:
         "python3 scripts/calc_group_metrics.py "
         "-f all "
-        "-d {wildcards.results}/{wildcards.dataset}/{replicate} "
+        "-d {wildcards.results}/{wildcards.dataset}/{wildcards.replicate} "
 
 rule aggregate_counts:
     conda:
@@ -418,5 +419,16 @@ rule aggregate_quality_metrics:
         "-m {wildcards.method} "
         "-d {wildcards.results}/{wildcards.dataset} "
         "-t quality_metrics "
+
+rule aggregate_group_metrics:
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        lambda w : parsed.get_aggregate_inputs(w, 'group_metrics') 
+    output:
+        '{results}/{dataset}/aggregated/aggregated_group_metrics.csv'
+    shell:
+        "python3 scripts/aggregate_group_metrics.py "
+        "-d {wildcards.results}/{wildcards.dataset} "
 
 

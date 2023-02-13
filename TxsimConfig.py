@@ -241,7 +241,7 @@ class ParsedConfig:
         #Create dictionary of all runs for each dataset
         names = {}
         for f in self.final_files:
-            if "quality" in f: continue
+            if "/metrics" not in f : continue
             dataset = f.split('/metrics_')[0].split('/')[-2] #-2 since second to last = dataset, last = replicate
             name = f.split('metrics_')[1].replace('.csv','')
             if names.get(dataset) is None:
@@ -253,12 +253,15 @@ class ParsedConfig:
 
         for metric_batch in self.cfg['METRICS']:
             dataset = self.cfg['METRICS'][metric_batch]['dataset']
-            self.final_files.append( 
-                    os.path.join(self.cfg['RESULTS'], f"{dataset}/group_metrics.csv"))
+            for rep in range(1, len( self.cfg['DATA_SCENARIOS'][dataset]['images'])+1):
+                self.final_files.append( 
+                        os.path.join(self.cfg['RESULTS'], f"{dataset}/replicate{rep}/group_metrics.csv"))
+            self.final_files.append( os.path.join(self.cfg['RESULTS'], f"{dataset}/aggregated/group_metrics.csv"))
+            self.final_files.append( os.path.join(self.cfg['RESULTS'], f"{dataset}/aggregated/aggregated_group_metrics.csv"))
             required_inputs = []
             for run_name in names[dataset]:
                 required_inputs.append(
-                    os.path.join(self.cfg['RESULTS'], f"{dataset}/metrics_"+name+".csv"))
+                    os.path.join(self.cfg['RESULTS'], f"{dataset}/metrics_{run_name}.csv"))
             self.metric_input_files[dataset] = required_inputs
 
     def check_files(self):
@@ -282,7 +285,10 @@ class ParsedConfig:
         return self.final_files
 
     def get_metric_inputs(self, wildcards):
-        return self.metric_input_files[wildcards.dataset]
+        output = []
+        for input_file in self.metric_input_files[wildcards.dataset]:
+            output.append(input_file.replace("/metrics", f"/{wildcards.replicate}/metrics"))
+        return list(set(output))
 
     #`dataset` should be name of dataset, `file_name`` should be desired file, both as str
     def get_data_file(self, dataset, file_name):
@@ -303,6 +309,10 @@ class ParsedConfig:
                 continue
             if f"{wildcards.results}/{wildcards.dataset}" not in final_file:
                 continue
+            if file_type == 'group_metrics':
+                if 'group_metrics' in final_file and 'aggregated' not in final_file:
+                    required_inputs.append(final_file)
+                continue
             if f"{wildcards.method}" not in final_file:
                 continue
             #Look for files with right type (counts, metrics, quality metrics)
@@ -312,7 +322,7 @@ class ParsedConfig:
             elif file_type != 'counts' and file_type in final_file:
                 required_inputs.append(final_file)
         
-        return required_inputs
+        return list(set(required_inputs))
 
     #`method` should be name of method, `id_code` should be an int
     def get_method_params(self, method, id_code):

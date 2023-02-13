@@ -12,7 +12,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--methods', required=True, type=str,
         help='Methods used to generate count matrices')
     parser.add_argument('-t', '--metric_type', required=True, type=str,
-        help='Type of metrics, either "quality_metrics" or "metric" ')
+        help='Type of metrics, either "quality_metrics" or "metrics" ')
     
     
     args = parser.parse_args()
