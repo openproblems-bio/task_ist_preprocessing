@@ -33,7 +33,9 @@ if __name__ == '__main__':
         metric_list.append( pd.read_csv(metric_file_name, index_col = 0) )
         name_list.append(replicate.split("/")[-1])
 
-    metric = tx.metrics.aggregate_metrics(metric_list, name_list)
+    aggregated_metric = pd.read_csv(os.path.join(data, f"aggregated/{metric_type}_{methods}.csv"), index_col=0)
 
-    metric.to_csv(os.path.join(data, f"aggregated/{metric_type}_{methods}.csv"))
+    metric = tx.metrics.aggregate_metrics(metric_list, aggregated_metric, name_list=name_list)
+
+    metric.to_csv(os.path.join(data, f"aggregated/aggregated_{metric_type}_{methods}.csv"))
     

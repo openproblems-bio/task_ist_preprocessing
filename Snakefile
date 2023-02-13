@@ -399,7 +399,7 @@ rule aggregate_metrics:
     input:
         lambda w : parsed.get_aggregate_inputs(w, 'metrics') 
     output:
-        '{results}/{dataset}/aggregated/metrics_{method}.csv'
+        '{results}/{dataset}/aggregated/aggregated_metrics_{method}.csv'
     shell:
         "python3 scripts/aggregate_metrics.py "
         "-m {wildcards.method} "
@@ -412,7 +412,7 @@ rule aggregate_quality_metrics:
     input:
         lambda w : parsed.get_aggregate_inputs(w, 'quality_metrics') 
     output:
-        '{results}/{dataset}/aggregated/quality_metrics_{method}.csv'
+        '{results}/{dataset}/aggregated/aggregated_quality_metrics_{method}.csv'
     shell:
         "python3 scripts/aggregate_metrics.py "
         "-m {wildcards.method} "

@@ -134,16 +134,22 @@ class ParsedConfig:
                 wildcards["rep_id"] = range(1, len( self.cfg['DATA_SCENARIOS'][d_set]['images'])+1)
                 wildcards["dataset"]= [d_set]
                 new_final_files.extend( expand((file_template + ".csv"),**wildcards))
-                new_final_files.extend( expand((file_template.replace("replicate{rep_id}", "aggregated") + ".csv"),**wildcards))
+                new_final_files.extend( expand((file_template.replace("replicate{rep_id}/", "aggregated/aggregated_") + ".csv"),**wildcards))
+                new_final_files.extend( expand((file_template.replace("replicate{rep_id}/", "aggregated/") + ".csv"),**wildcards))
                 
 
             # also for quality metrics and counts
             
             quality_metrics = new_final_files.copy()
             for final_file in quality_metrics:
-                new_final_files.append(final_file.replace('/metrics', '/quality_metrics'))
-                new_final_files.append(final_file.replace('/metrics', '/counts').replace(".csv",".h5ad"))
-                
+                if '/metrics' in final_file:
+                    new_final_files.append(final_file.replace('/metrics', '/quality_metrics'))
+                if '_metrics' in final_file:
+                    new_final_files.append(final_file.replace('_metrics', '_quality_metrics'))
+                if 'aggregated_metrics' in final_file:
+                    new_final_files.append(final_file.replace('aggregated_metrics', 'counts').replace(".csv",".h5ad"))
+                    new_final_files.append(final_file.replace('aggregated_quality_metrics', 'quality_metrics'))
+                    
 
             self.final_files.extend(new_final_files)
 
@@ -189,6 +195,7 @@ class ParsedConfig:
         for f in self.final_files:
             if "quality" in f: continue
             if "counts" in f: continue
+            if "aggregated" in f: continue
             name = f.split('metrics_')[1].replace('.csv','')
             method_list = name.split('_')
             for m in method_list:
@@ -292,19 +299,21 @@ class ParsedConfig:
 
         for final_file in self.final_files:
             #Look for files with the same dataset and method signature as aggregated file
-            if f"{wildcards.results}/{wildcards.dataset}/replicate" not in final_file:
+            if "aggregated/aggregated" in final_file:
+                continue
+            if f"{wildcards.results}/{wildcards.dataset}" not in final_file:
                 continue
             if f"{wildcards.method}" not in final_file:
                 continue
             #Look for files with right type (counts, metrics, quality metrics)
             if file_type == 'counts' and '/metrics' in final_file:
+                if 'aggregated' in final_file: continue # prevent cyclic graph
                 required_inputs.append(final_file.replace('/metrics', '/counts').replace('.csv','.h5ad'))
-            elif file_type in final_file:
+            elif file_type != 'counts' and file_type in final_file:
                 required_inputs.append(final_file)
         
         return required_inputs
 
-    
     #`method` should be name of method, `id_code` should be an int
     def get_method_params(self, method, id_code):
         if self.method_dict.get(method) is None:

@@ -60,10 +60,10 @@ PREPROCESSING:
   #     total:
   #       find_area: [True]
 METRICS: #TODO fix
-  # batch1:
-  #   dataset: test
-  #   metrics: all
-  #   files: all
+#   batch1:
+#     dataset: test
+#     metrics: all
+#     files: all
   
 
 DATA_SCENARIOS:
