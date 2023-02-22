@@ -80,7 +80,7 @@ if __name__ == '__main__':
     id_code = args.id_code
     segment = True if args.segment is not None else False
     temp = args.temp if args.temp is not None else data
-    temp = Path(temp) / f"baysor_{id_code}"
+    temp = Path(temp)
     toml_file = temp / 'config.toml'
 
     #temp.mkdir(parents=True, exist_ok=True)

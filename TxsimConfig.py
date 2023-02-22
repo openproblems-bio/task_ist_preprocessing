@@ -200,17 +200,20 @@ class ParsedConfig:
             method_list = name.split('_')
             for m in method_list:
                 method,idx = m.split('-'); idx = int(idx)
-                d = self.method_dict[method][idx]
+                if self.method_dict[method][idx] is not None:
+                    d = self.method_dict[method][idx].copy()
+                else:
+                    continue
                 if defaults is not None:
                     with open(defaults,'r') as def_file:
                         def_dict = yaml.safe_load(def_file).get(method)
                         if d is None:
                             d = def_dict
                         elif def_dict is not None:
+                            if method == 'pciSeq' and d['p'].get('opts') is not None:
+                                d['p'] = d['p']['opts']
                             def_dict.update(d)
                             d = def_dict
-                if d is None: #This might not be necessary 
-                    continue
                 for key, value in d.items():
                     if key == 'p':
                         for k, v in d['p'].items():
@@ -236,7 +239,6 @@ class ParsedConfig:
         readable_df.to_csv(self.output_folder + '/params_dict_readable.csv')
 
     def gen_metrics(self):
-        #TODO FIX HOW THE THINGY WORKS
         if not bool(self.cfg['METRICS']): return #Trick to see if its empty
         #Create dictionary of all runs for each dataset
         names = {}

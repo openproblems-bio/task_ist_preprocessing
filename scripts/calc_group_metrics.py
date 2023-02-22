@@ -21,6 +21,8 @@ if __name__ == '__main__':
 
     if files == 'all':
         count_files = list( filter(lambda file: 'counts_' in file, os.listdir(data)))
+    else:
+        count_files = list(eval(files)) #TODO fix every instance of eval -> not good style apparently
 
     for count_matrix in count_files:
         path = os.path.join(data, count_matrix)

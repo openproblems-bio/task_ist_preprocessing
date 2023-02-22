@@ -62,7 +62,7 @@ clustermap:
 
 pciSeq:
   # list of genes to be excluded during cell-typing, e.g ['Aldoc', 'Id2'] to exclude all spots from Aldoc and Id2
-  exclude_genes: []
+  exclude_genes: None
 
   # Maximum number of loops allowed for the Variational Bayes to run
   max_iter: 1000

@@ -232,7 +232,7 @@ rule baysor_prior:
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     params:
         hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
-        tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
+        tmp = f"{config['TEMP']}"
     output:
         '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_baysor-{id_code}.csv',
         '{results}/{dataset}/replicate{rep_id}/areas_{seg}_baysor-{id_code}.csv'
@@ -243,7 +243,7 @@ rule baysor_prior:
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
         "-s {wildcards.seg} "
-        "{params.tmp}"
+        "--temp {params.tmp}/rep{wildcards.rep_id}/{wildcards.seg}_baysor-{wildcards.id_code}"
 
 rule baysor_no_prior:
     threads: 8
@@ -259,7 +259,7 @@ rule baysor_no_prior:
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     params:
         hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
-        tmp = "" if config.get('TEMP') is None else f"--temp {config['TEMP']} "
+        tmp = f"{config['TEMP']}"
     output:
         '{results}/{dataset}/replicate{rep_id}/assignments_baysor-{id_code}.csv',
         '{results}/{dataset}/replicate{rep_id}/areas_baysor-{id_code}.csv'
@@ -269,7 +269,7 @@ rule baysor_no_prior:
         "-p \"{params.hyp}\" "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
-        "{params.tmp}"
+        "--temp {params.tmp}/rep{wildcards.rep_id}/baysor-{wildcards.id_code}"
 
 rule normalize_total:
     conda:

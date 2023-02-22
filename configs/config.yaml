@@ -28,16 +28,18 @@ PREPROCESSING:
   #   normalize:
   #     total:
   batch2:
-    dataset: [test]
+    dataset: [test_xenium]
     workflow: [segmentation, assignment, normalize]
     segmentation:
       cellpose:
         min_size: [50]
         flow_threshold: [True]
     segmentation_params:
-      expand: [0, 10]
+      expand: [0, 20]
     assignment:
-      basic: 
+      basic:
+      pciSeq: 
+        opts: [{'max_iter': 1002}]
     normalize:
       area:
     normalize_params:
@@ -59,9 +61,9 @@ PREPROCESSING:
   #       alpha: [-1, 0]
   #     total:
   #       find_area: [True]
-METRICS: #TODO fix
+METRICS:
   batch1:
-    dataset: test
+    dataset: test_xenium
     metrics: all
     files: all
   
@@ -73,7 +75,11 @@ DATA_SCENARIOS:
     segmented_image: segmented_image.tif
     images: [raw_image.tif, raw_image.tif]
     molecules: [spots.csv, spots.csv]
-
+  test_xenium:
+    root_folder: /mnt/d/HMGU/DATA/Xenium 
+    sc_data: scdata.h5ad
+    images: [test_replicates/image1.tif, test_replicates/image2.tif, test_replicates/image3.tif]
+    molecules: [test_replicates/spots_rep1.csv, test_replicates/spots_rep2.csv, test_replicates/spots_rep3.csv]
   # hippocampus:
   #   root_folder: /mnt/d/HMGU/DATA/hippocampus 
   #   image: CA1DapiBoundaries_7-1_right.tif
