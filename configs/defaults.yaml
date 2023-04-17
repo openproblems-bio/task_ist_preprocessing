@@ -175,7 +175,7 @@ total:
   use_max_area: True
 
 normalize_params:
-  ct_method: ssam
+  ct_method: majority
   ct_threshold: 0.7
   per_gene_correction: True
   per_gene_layer: lognorm

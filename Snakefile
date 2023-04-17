@@ -278,8 +278,8 @@ rule normalize_total:
         '{results}/{dataset}/replicate{rep_id}/assignments_{assign}.csv',
         scd = '{results}/{dataset}/sc_normalized.h5ad'
     params:
-        hyper_params = lambda w: get_params('custom', int(w.id_code), 'hyper_params'),
-        group_params = lambda w: get_params('custom', int(w.id_code), 'group_params')
+        hyper_params = lambda w: get_params('total', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('total', int(w.id_code), 'group_params')
         # thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold'),
         # ct = lambda w: get_params('total', int(w.id_code), 'ct_method'),
         # ctthresh = lambda w: get_params('total', int(w.id_code), 'ct_threshold'),
@@ -311,8 +311,8 @@ rule normalize_area:
         assign = '{results}/{dataset}/replicate{rep_id}/assignments_{method}.csv',
         scd = '{results}/{dataset}/sc_normalized.h5ad'
     params:
-        hyper_params = lambda w: get_params('custom', int(w.id_code), 'hyper_params'),
-        group_params = lambda w: get_params('custom', int(w.id_code), 'group_params')
+        hyper_params = lambda w: get_params('area', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('area', int(w.id_code), 'group_params')
         # thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold'),
         # ct = lambda w: get_params('area', int(w.id_code), 'ct_method'),
         # ctthresh = lambda w: get_params('area', int(w.id_code), 'ct_threshold'),

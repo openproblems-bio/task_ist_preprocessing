@@ -25,8 +25,8 @@ if __name__ == '__main__':
         help='ID of method to be used for saving')
     parser.add_argument('-p', '--hyperparams', default=None, type=str,
         help='Dictionary of hyperparameters') 
-    parser.add_argument('-e', '--expand', default="0", type=str,
-        help='Amount to expand each segment by- can be used to approximate cell boundary') 
+    parser.add_argument('-g', '--groupparams', default=None, type=str,
+        help='Optional dictionary (as string) of group parameters') 
     
     args = parser.parse_args()
 
@@ -35,8 +35,10 @@ if __name__ == '__main__':
     binary = args.binary
     segmentation_method = args.segment
     id_code = args.id_code
+
     hyperparams = eval(args.hyperparams)
-    expand_nuclear_area = eval(args.expand)
+    groupparams = eval(args.groupparams)
+    expand_nuclear_area = groupparams.get('expand') #If None, it will not expand after segmenting
     
     #Create output folder if needed
     if not os.path.exists(output):

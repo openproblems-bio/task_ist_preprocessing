@@ -40,17 +40,17 @@ PREPROCESSING:
       # prior_threshold: [0.501]
       # max_area: [4000, 20000]  
       # min_area: [100, 500, 750]
-      # min_counts: [1]
+      min_counts: [2]
       # min_cell_percentage: 0.5
-      # apply_QC: True
+      apply_QC: [True]
 
 
 
 METRICS:
-  batch1:
-    dataset: test
-    metrics: all
-    files: all
+  # batch1:
+  #   dataset: test
+  #   metrics: all
+  #   files: all
   
 
 DATA_SCENARIOS:
