@@ -18,58 +18,44 @@ PREPROCESSING:
   #   workflow: [cell-segmentation, normalize]
   #   cell-segmentation:
   #     baysor:
-  #   segmentation:
-  #     watershed:
-  #   segmentation_params:
-  #     expand: [20]
-  #   assignment: 
-  #     pciSeq: 
-  #       opts: [{}]
   #   normalize:
-  #     total:
+  #     area:
   batch2:
-    dataset: [test_xenium]
+    dataset: [test]
     workflow: [segmentation, assignment, normalize]
     segmentation:
       cellpose:
-        min_size: [50]
-        flow_threshold: [True]
+        min_size: [0]
+        # flow_threshold: [True]
     segmentation_params:
-      expand: [0, 20]
+      expand: [0]
     assignment:
-      basic:
+      # basic:
       pciSeq: 
         opts: [{'max_iter': 1002}]
     normalize:
       area:
+        use_max_area: [True]
     normalize_params:
-      prior_threshold: [0.501]
+      # prior_threshold: [0.501]
+      # max_area: [4000, 20000]  
+      # min_area: [100, 500, 750]
+      # min_counts: [1]
+      # min_cell_percentage: 0.5
+      # apply_QC: True
 
-  # batch3:
-  #   dataset: [test]
-  #   workflow: [cell-segmentation, normalize]
-  #   cell-segmentation:
-  #     clustermap:
-  #       model: 
-  #         - {'xy_radius': 15, 
-  #           'gauss_blur': True}
-  #       segmentation:
-  #         - {'cell_num_threshold': 0.0001}
-  #   normalize:
-  #     area:
-  #       max: [True]
-  #       alpha: [-1, 0]
-  #     total:
-  #       find_area: [True]
+
+
 METRICS:
   batch1:
-    dataset: test_xenium
+    dataset: test
     metrics: all
     files: all
   
 
 DATA_SCENARIOS:
   test:
+    check_dataset: False
     root_folder: /mnt/d/HMGU/DATA/test 
     sc_data: sc_data.h5ad
     segmented_image: segmented_image.tif

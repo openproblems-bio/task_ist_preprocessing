@@ -49,7 +49,8 @@ if __name__ == '__main__':
     hyperparams = eval(args.hyperparams)
     if hyperparams is None: hyperparams = {}
     alpha = hyperparams.get('alpha') is not None
-    max_area = hyperparams.get('max') is None or hyperparams['max']
+    use_max_area = hyperparams.get('use_max_area') is None or hyperparams['use_max_area']
+    apply_QC = hyperparams.get('apply_QC') is not None and hyperparams['apply_QC']
     find_area = hyperparams.get('find_area') is not None and hyperparams['find_area']
     prior_pct = 0.7 if eval(args.threshold) is None else eval(args.threshold)
     prior_pct = float(prior_pct)
@@ -85,7 +86,7 @@ if __name__ == '__main__':
             adata=adata,
             alpha=hyperparams['alpha']
         )
-        if 'area' in adata.obs and max_area:
+        if 'area' in adata.obs and use_max_area:
             adata.obs['area'] = np.maximum(adata.obs['alpha_area'], adata.obs['area'])
     
     if 'area' not in adata.obs and 'alpha_area' in adata.obs:
@@ -104,6 +105,16 @@ if __name__ == '__main__':
         if gene_corr_layer!='lognorm':
             adata.layers['lognorm'] = adata.layers['norm']
             sc.pp.log1p(adata, layer='lognorm')
+
+    #Quality control step
+    # min_counts: int = 10, 
+    #min_counts = 10 if eval(args.min_counts) is None else int(args.min_counts)
+    # min_cell_percentage: float = 0.8, 
+    # min_area: Optional[float] = None, 
+    # max_area: Optional[float] = None,
+
+    #TODO uh fix this so the parameters are actually passed into this function
+    tx.preprocessing.filter_cells(adata, obs_key="passed_QC")
 
     #Save AnnData object
     adata.write_h5ad(f"{data}/counts_{assignment_method}_{normalize_by}-{id_code}.h5ad")

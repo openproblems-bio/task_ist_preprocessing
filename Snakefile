@@ -59,16 +59,16 @@ rule pre_segmented:
         '{results}/{dataset}/replicate{rep_id}/segments_custom-{id_code}.ome.tif',
         '{results}/{dataset}/replicate{rep_id}/areas_custom-{id_code}.csv'
     params:
-        hyp = lambda w: get_params('custom', int(w.id_code), 'p'),
-        exp = lambda w: get_params('custom', int(w.id_code), 'expand')
+        hyper_params = lambda w: get_params('custom', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('custom', int(w.id_code), 'group_params')
     shell:
         "python3 scripts/segment_image.py "
         "-i {input.img} "
-        "-p \"{params.hyp}\" "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
         "-o {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s custom "
         "-id {wildcards.id_code} "
-        "-e {params.exp} "
         "-b "
 
 rule watershed:
@@ -80,16 +80,16 @@ rule watershed:
         '{results}/{dataset}/replicate{rep_id}/segments_watershed-{id_code}.ome.tif',
         '{results}/{dataset}/replicate{rep_id}/areas_watershed-{id_code}.csv'
     params:
-        hyp = lambda w: get_params('watershed', int(w.id_code), 'p'),
-        exp = lambda w: get_params('watershed', int(w.id_code), 'expand')
+        hyper_params = lambda w: get_params('watershed', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('watershed', int(w.id_code), 'group_params')
     shell:
         "python3 scripts/segment_image.py "
         "-i {input.img} "
-        "-p \"{params.hyp}\" "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
         "-o {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s watershed "
         "-id {wildcards.id_code} "
-        "-e {params.exp} "
 
 rule binning:
     conda:
@@ -100,11 +100,11 @@ rule binning:
         '{results}/{dataset}/replicate{rep_id}/segments_binning-{id_code}.ome.tif',
         '{results}/{dataset}/replicate{rep_id}/areas_binning-{id_code}.csv'
     params:
-        hyp = lambda w: get_params('binning', int(w.id_code), 'p')
+        hyper_params = lambda w: get_params('binning', int(w.id_code), 'hyper_params'),
     shell:
         "python3 scripts/segment_image.py "
         "-i {input.img} "
-        "-p \"{params.hyp}\" "
+        "-p \"{params.hyper_params}\" "
         "-o {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s binning "
         "-id {wildcards.id_code} "
@@ -120,16 +120,16 @@ rule stardist:
         '{results}/{dataset}/replicate{rep_id}/segments_stardist-{id_code}.ome.tif',
         '{results}/{dataset}/replicate{rep_id}/areas_stardist-{id_code}.csv'
     params:
-        hyp = lambda w: get_params('stardist', int(w.id_code), 'p'),
-        exp = lambda w: get_params('stardist', int(w.id_code), 'expand')
+        hyper_params = lambda w: get_params('stardist', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('stardist', int(w.id_code), 'group_params')
     shell:
         "python3 scripts/segment_image.py "
         "-i {input.img} "
-        "-p \"{params.hyp}\" "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
         "-o {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s stardist "
         "-id {wildcards.id_code} "
-        "-e {params.exp} "
 
 rule cellpose:
     threads: 8
@@ -143,16 +143,16 @@ rule cellpose:
         '{results}/{dataset}/replicate{rep_id}/segments_cellpose-{id_code}.ome.tif',
         '{results}/{dataset}/replicate{rep_id}/areas_cellpose-{id_code}.csv'
     params:
-        hyp = lambda w: get_params('cellpose', int(w.id_code), 'p'),
-        exp = lambda w: get_params('cellpose', int(w.id_code), 'expand')
+        hyper_params = lambda w: get_params('cellpose', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('cellpose', int(w.id_code), 'group_params')
     shell:
         "python3 scripts/segment_image.py "
         "-i {input.img} "
-        "-p \"{params.hyp}\" "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
         "-o {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s cellpose "
         "-id {wildcards.id_code} "
-        "-e {params.exp} "
 
 rule clustermap:
     threads: 4
@@ -164,13 +164,13 @@ rule clustermap:
         img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1),
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     params:
-        hyp = lambda w: get_params('clustermap', int(w.id_code), 'p')
+        hyper_params = lambda w: get_params('clustermap', int(w.id_code), 'hyper_params')
     output:
         '{results}/{dataset}/replicate{rep_id}/assignments_clustermap-{id_code}.csv'
     shell:
         "python3 scripts/run_clustermap.py "
         "-m {input.mol} "
-        "-p \"{params.hyp}\" "
+        "-p \"{params.hyper_params}\" "
         "-i {input.img} "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
@@ -186,14 +186,14 @@ rule pciSeq:
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1),
         scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
     params:
-        hyp = lambda w: get_params('pciSeq', int(w.id_code), 'p')
+        hyper_params = lambda w: get_params('pciSeq', int(w.id_code), 'hyper_params')
     output:
         '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_pciSeq-{id_code}.csv',
         '{results}/{dataset}/replicate{rep_id}/celltypes_{seg}_pciSeq-{id_code}.csv'
     shell:
         "python3 scripts/run_pciseq.py "
         "-m {input.mol} "
-        "-p \"{params.hyp}\" "
+        "-p \"{params.hyper_params}\" "
         "-sc {input.scd} "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s {wildcards.seg} "
@@ -206,13 +206,13 @@ rule basic_assign:
         '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     params:
-        hyp = lambda w: get_params('basic', int(w.id_code), 'p')
+        hyper_params = lambda w: get_params('basic', int(w.id_code), 'hyper_params')
     output:
         '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_basic-{id_code}.csv'
     shell:
         "python3 scripts/basic_assignment.py "
         "-m {input.mol} "
-        "-p \"{params.hyp}\" "
+        "-p \"{params.hyper_params}\" "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s {wildcards.seg} "
         "-id {wildcards.id_code} "
@@ -231,7 +231,7 @@ rule baysor_prior:
         '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     params:
-        hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
+        hyper_params = lambda w: get_params('baysor', int(w.id_code), 'hyper_params'),
         tmp = f"{config['TEMP']}"
     output:
         '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_baysor-{id_code}.csv',
@@ -239,7 +239,7 @@ rule baysor_prior:
     shell:
         "python3 scripts/run_baysor.py "
         "-m {input.mol} "
-        "-p \"{params.hyp}\" "
+        "-p \"{params.hyper_params}\" "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
         "-s {wildcards.seg} "
@@ -258,7 +258,7 @@ rule baysor_no_prior:
     input:
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     params:
-        hyp = lambda w: get_params('baysor', int(w.id_code), 'p'),
+        hyper_params = lambda w: get_params('baysor', int(w.id_code), 'hyper_params'),
         tmp = f"{config['TEMP']}"
     output:
         '{results}/{dataset}/replicate{rep_id}/assignments_baysor-{id_code}.csv',
@@ -266,7 +266,7 @@ rule baysor_no_prior:
     shell:
         "python3 scripts/run_baysor.py "
         "-m {input.mol} "
-        "-p \"{params.hyp}\" "
+        "-p \"{params.hyper_params}\" "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
         "--temp {params.tmp}/rep{wildcards.rep_id}/baysor-{wildcards.id_code}"
@@ -278,12 +278,13 @@ rule normalize_total:
         '{results}/{dataset}/replicate{rep_id}/assignments_{assign}.csv',
         scd = '{results}/{dataset}/sc_normalized.h5ad'
     params:
-        hyp = lambda w: get_params('total', int(w.id_code), 'p'),
-        thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold'),
-        ct = lambda w: get_params('total', int(w.id_code), 'ct_method'),
-        ctthresh = lambda w: get_params('total', int(w.id_code), 'ct_threshold'),
-        pergene = lambda w: get_params('total', int(w.id_code), 'per_gene_correction'),
-	    pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
+        hyper_params = lambda w: get_params('custom', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('custom', int(w.id_code), 'group_params')
+        # thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold'),
+        # ct = lambda w: get_params('total', int(w.id_code), 'ct_method'),
+        # ctthresh = lambda w: get_params('total', int(w.id_code), 'ct_threshold'),
+        # pergene = lambda w: get_params('total', int(w.id_code), 'per_gene_correction'),
+	    # pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
 
     output:
         '{results}/{dataset}/replicate{rep_id}/counts_{assign}_total-{id_code}.h5ad'
@@ -294,12 +295,13 @@ rule normalize_total:
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-n total "
         "-id {wildcards.id_code} "
-        "-p \"{params.hyp}\" "
-        "-t {params.thr} "
-        "-c {params.ct} "
-        "--ctcertthresh {params.ctthresh} "
-        "-g {params.pergene} "
-        "-l {params.pergene_layer}"
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+        # "-t {params.thr} "
+        # "-c {params.ct} "
+        # "--ctcertthresh {params.ctthresh} "
+        # "-g {params.pergene} "
+        # "-l {params.pergene_layer}"
 
 rule normalize_area:
     threads: 1
@@ -309,12 +311,13 @@ rule normalize_area:
         assign = '{results}/{dataset}/replicate{rep_id}/assignments_{method}.csv',
         scd = '{results}/{dataset}/sc_normalized.h5ad'
     params:
-        hyp = lambda w: get_params('area', int(w.id_code), 'p'),
-        thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold'),
-        ct = lambda w: get_params('area', int(w.id_code), 'ct_method'),
-        ctthresh = lambda w: get_params('area', int(w.id_code), 'ct_threshold'),
-        pergene = lambda w: get_params('total', int(w.id_code), 'per_gene_correction'),
-	    pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
+        hyper_params = lambda w: get_params('custom', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('custom', int(w.id_code), 'group_params')
+        # thr = lambda w: get_params('total', int(w.id_code), 'prior_threshold'),
+        # ct = lambda w: get_params('area', int(w.id_code), 'ct_method'),
+        # ctthresh = lambda w: get_params('area', int(w.id_code), 'ct_threshold'),
+        # pergene = lambda w: get_params('total', int(w.id_code), 'per_gene_correction'),
+	    # pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
 
     output:
         '{results}/{dataset}/replicate{rep_id}/counts_{method}_area-{id_code}.h5ad'
@@ -325,12 +328,13 @@ rule normalize_area:
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-n area "
         "-id {wildcards.id_code} "
-        "-p \"{params.hyp}\" "
-        "-t {params.thr} "
-        "-c {params.ct} "
-        "--ctcertthresh {params.ctthresh} "
-        "-g {params.pergene} "
-        "-l {params.pergene_layer}"
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+        # "-t {params.thr} "
+        # "-c {params.ct} "
+        # "--ctcertthresh {params.ctthresh} "
+        # "-g {params.pergene} "
+        # "-l {params.pergene_layer}"
 
 rule normalize_sc:
     conda:

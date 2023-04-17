@@ -156,8 +156,9 @@ baysor:
   # "gene-composition-neigborhood" : 20, # TODO: ErrorException("Unexpected value in the config: 'gene-composition-neigborhood'")
   # Number of pixels per cell of minimal size, used to estimate size of the final plot. For most protocols values around 7-30 give enough visualization quality. Default: 15
   # "min-pixels-per-cell" : 15, # TODO: didn't check this one, plotting is not so important i guess
-    
-
+  
+basic:
+  dummy_param: 0
 
 # ----------------- NORMALIZATION ----------------- #
 
@@ -166,15 +167,21 @@ baysor:
 area:
   prior_pct: 0.7
   alpha: 0
-  max: True
+  use_max_area: True
 
 total:
   prior_pct: 0.7
   find_area: False
-  max: True
+  use_max_area: True
 
 normalize_params:
   ct_method: ssam
   ct_threshold: 0.7
   per_gene_correction: True
   per_gene_layer: lognorm
+  max_area: None
+  min_area: None
+  min_counts: 10
+  min_cell_percentage: 0.8
+  apply_QC: False
+

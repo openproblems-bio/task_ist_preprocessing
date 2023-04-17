@@ -78,29 +78,24 @@ class ParsedConfig:
                     group_params = self.cfg['PREPROCESSING'][batch].get(f'{group}_params')
                     params = self.cfg['PREPROCESSING'][batch][group][method]
 
-                    #If there are params specific to a method, include them
-                    if(params is not None):
+                    # If there are params specific to a method, include them     
+                    if params is not None:
                         #Create cartesian product of method-specific params
                         p_dict = list( dict(zip(params.keys(), x)) for x in itertools.product(*params.values()) )
-                        
-                        #Merge with cartesian product of overall parameters if necessary
-                        if(group_params is not None):
-                            temp_dict = { **{'p':p_dict} , **group_params}
-                            combos = list(dict(zip(temp_dict.keys(), x)) for x in itertools.product(*temp_dict.values()))
-                        else:
-                            temp_dict = {'p':p_dict}
-                            combos = list(dict(zip(temp_dict.keys(), x)) for x in itertools.product(*temp_dict.values()))
-                        method_combos.extend(combos)
-                        
-                    #If no method params, only use overall params
-                    else:
-                        if(group_params is not None):
-                            combos = list(dict(zip(group_params.keys(), x)) for x in itertools.product(*group_params.values()))
-                            method_combos.extend(combos)
-                        #If no method params and no overall params
-                        else:
-                            method_combos.extend({None})
-                
+                    else: p_dict = [{}]
+                    
+                    # If there are params for the group, include them     
+                    if group_params is not None:
+                        #Create cartesian product of group params
+                        group_dict = list( dict(zip(group_params.keys(), x)) for x in itertools.product(*group_params.values()) )
+                    else: group_dict = [{}]
+                    
+                    # Merge with cartesian product of overall parameters
+                    temp_dict = { **{'hyper_params':p_dict} , **{'group_params':group_dict}}
+                    combos = list(dict(zip(temp_dict.keys(), x)) for x in itertools.product(*temp_dict.values()))
+                    method_combos.extend(combos)
+        
+
                     #Check if any params match method_dict
                     #If not, new name->method_dict, add to batch_combos[group]
                     #Otherwise add method_dict name to batch_combos
@@ -154,7 +149,6 @@ class ParsedConfig:
             self.final_files.extend(new_final_files)
 
         self.final_files = list(set(self.final_files))
-        #for f in self.final_files: print(f)
 
     def save_parameters(self, defaults: str):
         #Save the dictionary of method-id -> parameter combination
@@ -172,17 +166,19 @@ class ParsedConfig:
                     i+=1
                     continue
                 for key, value in d.items():
-                    if key == 'p':
-                        for k, v in d['p'].items():
+                    if key == 'hyper_params':
+                        for k, v in d['hyper_params'].items():
                             if not k in m_df:
                                 m_df.insert(len(m_df.columns), k, pd.Series( [v], index =[i]))
                             else:
                                 m_df.loc[i,k] = v
-                    else:
-                        if not key in m_df:
-                            m_df.insert(len(m_df.columns), key, pd.Series( [value], index =[i]))
-                        else:
-                            m_df.loc[i,key] = value
+                    
+                    elif key == 'group_params':
+                        for k, v in d['group_params'].items():
+                            if not k in m_df:
+                                m_df.insert(len(m_df.columns), k, pd.Series( [v], index =[i]))
+                            else:
+                                m_df.loc[i,k] = v
                 i+=1
             m_df.to_csv(self.output_folder + f'/{method}_params.csv')
         
@@ -199,24 +195,37 @@ class ParsedConfig:
             name = f.split('metrics_')[1].replace('.csv','')
             method_list = name.split('_')
             for m in method_list:
+                #Check each method based on the name of the final file
                 method,idx = m.split('-'); idx = int(idx)
                 if self.method_dict[method][idx] is not None:
                     d = self.method_dict[method][idx].copy()
                 else:
-                    continue
-                if defaults is not None:
-                    with open(defaults,'r') as def_file:
-                        def_dict = yaml.safe_load(def_file).get(method)
-                        if d is None:
-                            d = def_dict
-                        elif def_dict is not None:
-                            if method == 'pciSeq' and d['p'].get('opts') is not None:
-                                d['p'] = d['p']['opts']
-                            def_dict.update(d)
-                            d = def_dict
+                    d = None
+                #Compare the config parameters with the default parameters
+                with open(defaults,'r') as def_file:
+                    def_dict = yaml.safe_load(def_file).get(method)
+                    if def_dict is None:
+                        raise Exception(f"No defaults found for method {method}")
+                    if d is None:
+                        d = def_dict
+                    else:
+                        if method == 'pciSeq' and d['hyper_params'].get('opts') is not None:
+                            d['hyper_params'] = d['hyper_params']['opts']
+                        #Check to see if unknown parameters
+                        if d.get('hyper_params') is not None:
+                            for key in d['hyper_params']:
+                                if key not in def_dict:
+                                    raise Exception(f"Unknown parameter '{key}' for method {method}")
+                            #Update dictionary with defaults and save back into original
+                            def_dict.update(d['hyper_params'])
+                            d.pop('hyper_params')
+                        #TODO check for the general parameters like segmentation_parameters
+                        def_dict.update(d)
+                        d = def_dict
+                #Run through each key and insert it into a dataframe
                 for key, value in d.items():
-                    if key == 'p':
-                        for k, v in d['p'].items():
+                    if key == 'group_params':
+                        for k, v in d['group_params'].items():
                             if not k in readable_df:
                                 readable_df.insert(len(readable_df.columns), k, pd.Series( [v], index =[ [name] ]))
                                 method_names.append(method)
@@ -228,17 +237,18 @@ class ParsedConfig:
                             method_names.append(method)
                         else:
                             readable_df.loc[name, key] = value
-            #pd.concat(readable_df, pd.Series([None]*len(readable_df.columns), index = [[name]]))
+
             if name not in readable_df.index:
                 blank = pd.Series([np.nan]*len(readable_df.columns), index = readable_df.columns ).to_frame().T
                 blank.index = [name]
         
-        #Add in the name of the method for each parameter. Note sure if there is a better way to do this
+        #Add in the name of the method for each parameter. Not sure if there is a better way to do this
         readable_df.columns = pd.MultiIndex.from_tuples(list(zip(*np.array([readable_df.columns.to_numpy(), method_names]))) )            
         
-        readable_df.to_csv(self.output_folder + '/params_dict_readable.csv')
+        readable_df.to_csv(self.output_folder + '/params_dict_readable.csv') 
 
     def gen_metrics(self):
+        #TODO fix when metrics are called on dataset not being run (is this even a bug?)
         if not bool(self.cfg['METRICS']): return #Trick to see if its empty
         #Create dictionary of all runs for each dataset
         names = {}
@@ -270,18 +280,29 @@ class ParsedConfig:
         for dataset in self.cfg['DATA_SCENARIOS']:
             num_replicates = 0
             for key in self.cfg['DATA_SCENARIOS'][dataset]:
+                
+                #For replicate files
                 if 'images' in key or 'molecules' in key:
                     num_reps = len(self.cfg['DATA_SCENARIOS'][dataset][key])
+                    #Confirm number of replicates is equal for each key
                     if num_replicates > 0 and num_replicates != num_reps:
                         print(f"Warning: number of replicates in dataset '{dataset}' does not match ({num_reps} and {num_replicates})")
                     num_replicates = num_reps
-                    for rep in range(0, ):
+                    for rep in range(0, num_replicates):
                         if not os.path.exists(self.get_replicate_file(dataset,key,rep)):
                             raise Exception(f"The following replicate was not found: {self.get_replicate_file(dataset,key,rep)}")
-                elif key != 'root_folder':
+                
+                #Check non-replicate files
+                elif key != 'root_folder' and key != 'check_dataset':
                     if not os.path.exists(self.get_data_file(dataset,key)):
                         raise Exception(f"The following file was not found: {self.get_data_file(dataset,key)}")
-            self.check_dataset(dataset)
+            
+            #Confirm dataset needs to be checked (on by default)
+            if 'check_dataset' in self.cfg['DATA_SCENARIOS'][dataset] and self.cfg['DATA_SCENARIOS'][dataset]['check_dataset'] is False:
+                print(f"Not checking dataset '{dataset}' due to flag")
+            else:
+                print(f"Checking dataset '{dataset}'...")
+                self.check_dataset(dataset)
 
     def gen_file_names(self):
         return self.final_files
@@ -330,8 +351,10 @@ class ParsedConfig:
     def get_method_params(self, method, id_code):
         if self.method_dict.get(method) is None:
             return None
+            #raise Exception(f"Cannot find method: {method}") 
         if id_code >= len(self.method_dict[method]):
             return None
+            #raise Exception(f"Cannot find index {idx} in method '{method}'")
         return self.method_dict[method][id_code]
     
     def check_dataset(self, dataset:str):

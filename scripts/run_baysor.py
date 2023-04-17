@@ -73,7 +73,7 @@ if __name__ == '__main__':
     hyperparams = eval(args.hyperparams)
     hparams = {}
     for key in DEFAULT_HYPERPARAMS:
-        if key in hyperparams:
+        if hyperparams is not None and key in hyperparams:
             hparams[key] = hyperparams[key]
         else:
             hparams[key] = DEFAULT_HYPERPARAMS[key]
