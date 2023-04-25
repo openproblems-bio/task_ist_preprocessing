@@ -4,6 +4,7 @@ import numpy as np
 import scanpy as sc
 import txsim as tx
 import argparse
+import os
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate count matrix for spatial data')
@@ -22,6 +23,11 @@ if __name__ == '__main__':
 
     #Gather information on spatial data
     df = tx.quality_metrics.all_quality_metrics(stdata)
-
     df.to_csv(f'{data}/quality_metrics_{methods}.csv')
+
+    if not os.path.exists(f'{data}/filtered'):
+        os.makedirs(f'{data}/filtered')
     
+    #Also with filtered cells
+    df_filtered = tx.quality_metrics.all_quality_metrics(stdata[stdata.obs['passed_QC']])
+    df_filtered.to_csv(f'{data}/filtered/quality_metrics_{methods}.csv')

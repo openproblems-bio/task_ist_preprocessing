@@ -355,7 +355,8 @@ rule metric:
         '{results}/{dataset}/{replicate}/counts_{methods}.h5ad',
         scd = '{results}/{dataset}/sc_normalized.h5ad'
     output:
-        '{results}/{dataset}/{replicate}/metrics_{methods}.csv'
+        '{results}/{dataset}/{replicate}/metrics_{methods}.csv',
+        '{results}/{dataset}/{replicate}/filtered/metrics_{methods}.csv'
     shell:
         "python3 scripts/calc_metrics.py "
         "-m {wildcards.methods} "
@@ -368,7 +369,8 @@ rule quality_metric:
     input:
         '{results}/{dataset}/{replicate}/counts_{methods}.h5ad',
     output:
-        '{results}/{dataset}/{replicate}/quality_metrics_{methods}.csv'
+        '{results}/{dataset}/{replicate}/quality_metrics_{methods}.csv',
+        '{results}/{dataset}/{replicate}/filtered/quality_metrics_{methods}.csv'
     shell:
         "python3 scripts/calc_quality_metrics.py "
         "-m {wildcards.methods} "
@@ -398,13 +400,16 @@ rule aggregate_counts:
         "-m {wildcards.method} "
         "-d {wildcards.results}/{wildcards.dataset} "
 
+#TODO run filtered 
 rule aggregate_metrics:
     conda:
         "envs/txsim-env.yaml"
     input:
         lambda w : parsed.get_aggregate_inputs(w, 'metrics') 
     output:
-        '{results}/{dataset}/aggregated/aggregated_metrics_{method}.csv'
+        '{results}/{dataset}/aggregated/aggregated_metrics_{method}.csv',
+        '{results}/{dataset}/aggregated/filtered/aggregated_metrics_{method}.csv'
+
     shell:
         "python3 scripts/aggregate_metrics.py "
         "-m {wildcards.method} "
@@ -417,7 +422,8 @@ rule aggregate_quality_metrics:
     input:
         lambda w : parsed.get_aggregate_inputs(w, 'quality_metrics') 
     output:
-        '{results}/{dataset}/aggregated/aggregated_quality_metrics_{method}.csv'
+        '{results}/{dataset}/aggregated/aggregated_quality_metrics_{method}.csv',
+        '{results}/{dataset}/aggregated/filtered/aggregated_quality_metrics_{method}.csv'
     shell:
         "python3 scripts/aggregate_metrics.py "
         "-m {wildcards.method} "

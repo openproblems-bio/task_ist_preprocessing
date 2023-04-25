@@ -62,13 +62,11 @@ if __name__ == '__main__':
     find_area = hyperparams.get('find_area') is not None and bool(hyperparams['find_area'])
     if hyperparams.get('alpha') is None: hyperparams['alpha'] = 0
 
-    apply_QC = groupparams.get('apply_QC') is not None and bool(groupparams['apply_QC'])
     qc_params = {}
-    if apply_QC:
-        if groupparams.get('min_counts') is not None: qc_params['min_counts'] = groupparams.get('min_counts')
-        if groupparams.get('min_cell_percentage') is not None: qc_params['min_cell_percentage'] = groupparams.get('min_cell_percentage')
-        qc_params['min_area'] = groupparams.get('min_area') # if None, will be handled later
-        qc_params['max_area'] = groupparams.get('max_area')
+    if groupparams.get('min_counts') is not None: qc_params['min_counts'] = groupparams.get('min_counts')
+    if groupparams.get('min_cell_percentage') is not None: qc_params['min_cell_percentage'] = groupparams.get('min_cell_percentage')
+    qc_params['min_area'] = groupparams.get('min_area') # if None, will be handled later
+    qc_params['max_area'] = groupparams.get('max_area')
         
     # Read in the single-cell data
     adata_sc = sc.read(file_sc)
@@ -121,9 +119,8 @@ if __name__ == '__main__':
             sc.pp.log1p(adata, layer='lognorm')
 
     #Quality control step
-    if apply_QC:
-        tx.preprocessing.filter_cells(adata, obs_key="passed_QC", **qc_params)
-        print("Ran quality control")
+    tx.preprocessing.filter_cells(adata, obs_key="passed_QC", **qc_params)
+    print("Ran quality control")
 
     #Save AnnData object
     adata.write_h5ad(f"{data}/counts_{assignment_method}_{normalize_by}-{id_code}.h5ad")

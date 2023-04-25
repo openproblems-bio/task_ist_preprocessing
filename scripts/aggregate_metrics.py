@@ -34,8 +34,21 @@ if __name__ == '__main__':
         name_list.append(replicate.split("/")[-1])
 
     aggregated_metric = pd.read_csv(os.path.join(data, f"aggregated/{metric_type}_{methods}.csv"), index_col=0)
-
     metric = tx.metrics.aggregate_metrics(metric_list, aggregated_metric, name_list=name_list)
-
     metric.to_csv(os.path.join(data, f"aggregated/aggregated_{metric_type}_{methods}.csv"))
     
+    #Filtered metrics
+
+    if not os.path.exists( os.path.join(data, "aggregated/filtered") ):
+        os.makedirs( os.path.join(data, "aggregated/filtered") )
+    
+    metric_list = []
+    name_list = []
+    for replicate in replicate_folders:
+        metric_file_name = os.path.join(replicate, f"filtered/{metric_type}_{methods}.csv")
+        metric_list.append( pd.read_csv(metric_file_name, index_col = 0) )
+        name_list.append(replicate.split("/")[-1])
+
+    aggregated_metric = pd.read_csv(os.path.join(data, f"aggregated/filtered/{metric_type}_{methods}.csv"), index_col=0)
+    metric = tx.metrics.aggregate_metrics(metric_list, aggregated_metric, name_list=name_list)
+    metric.to_csv(os.path.join(data, f"aggregated/filtered/aggregated_{metric_type}_{methods}.csv"))

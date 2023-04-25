@@ -42,7 +42,6 @@ PREPROCESSING:
       # min_area: [100, 500, 750]
       min_counts: [2]
       # min_cell_percentage: 0.5
-      apply_QC: [True]
 
 
 

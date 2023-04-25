@@ -183,5 +183,4 @@ normalize_params:
   min_area: None
   min_counts: 10
   min_cell_percentage: 0.8
-  apply_QC: False
 
