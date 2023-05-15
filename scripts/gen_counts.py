@@ -47,14 +47,6 @@ if __name__ == '__main__':
     groupparams = eval(args.groupparams)
     if groupparams is None: groupparams = {}
 
-    gen_params = {}
-    if groupparams.get('ct_method') is not None: gen_params['ct_method'] = groupparams.get('ct_method')
-    if groupparams.get('ct_threshold') is not None:  gen_params['ct_certainty_threshold'] = groupparams.get('ct_threshold')
-    if groupparams.get('prior_pct') is not None: gen_params['prior_pct'] = groupparams.get('prior_pct')
-
-    per_gene_correction = groupparams.get('per_gene_correction') is None or bool(groupparams['per_gene_correction'])
-    gene_corr_layer = groupparams.get('gen_corr_layer') if groupparams.get('gen_corr_layer') is not None else 'lognorm'
-
     hyperparams = eval(args.hyperparams)
     if hyperparams is None: hyperparams = {}
     alpha = hyperparams.get('alpha') is not None
@@ -73,7 +65,7 @@ if __name__ == '__main__':
     
     adata = tx.preprocessing.generate_adata(
         molecules=pd.read_csv(f'{data}/assignments_{assignment_method}.csv'),
-        adata_sc=adata_sc, **gen_params)
+        adata_sc=adata_sc)
     
     #Find area for normalization
     if normalize_by == 'area' or find_area:
@@ -109,14 +101,6 @@ if __name__ == '__main__':
         tx.preprocessing.normalize_by_area(adata)
     else:
         tx.preprocessing.normalize_total(adata)
-    
-    # Do per-gene correction if active
-    
-    if per_gene_correction:
-        tx.preprocessing.gene_efficiency_correction(adata, adata_sc, gene_corr_layer)
-        if gene_corr_layer!='lognorm':
-            adata.layers['lognorm'] = adata.layers['norm']
-            sc.pp.log1p(adata, layer='lognorm')
 
     #Quality control step
     tx.preprocessing.filter_cells(adata, obs_key="passed_QC", **qc_params)

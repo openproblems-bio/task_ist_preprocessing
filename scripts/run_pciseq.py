@@ -31,7 +31,7 @@ if __name__ == '__main__':
     segmentation_method = args.segment
     sc_data = args.singlecell
     hyperparams = eval(args.hyperparams)
-    opts = dict(hyperparams.get('opts')) if hyperparams is not None else None
+    opts = dict(hyperparams.get('opts')) if (hyperparams is not None and hyperparams.get('opts') is not None) else None
     id_code = args.id_code
  
     #Read data and run pciSeq

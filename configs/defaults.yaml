@@ -165,22 +165,30 @@ basic:
 
 #other params?
 area:
-  prior_pct: 0.7
   alpha: 0
   use_max_area: True
 
 total:
-  prior_pct: 0.7
   find_area: False
   use_max_area: True
 
 normalize_params:
-  ct_method: majority
-  ct_threshold: 0.7
-  per_gene_correction: True
-  per_gene_layer: lognorm
   max_area: None
   min_area: None
   min_counts: 10
   min_cell_percentage: 0.8
 
+# ----------------- ANNOTATION ----------------- #
+majority:
+  prior_pct: 0.7
+
+ssam:
+  dummy_param: 0
+
+pciSeq:
+  dummy_param: 0
+
+annotation_params:
+  ct_threshold: 0.7
+  per_gene_correction: False
+  per_gene_layer: lognorm

@@ -22,7 +22,7 @@ PREPROCESSING:
   #     area:
   batch2:
     dataset: [test]
-    workflow: [segmentation, assignment, normalize]
+    workflow: [segmentation, assignment, normalize, annotate]
     segmentation:
       cellpose:
         min_size: [0]
@@ -31,8 +31,8 @@ PREPROCESSING:
       expand: [0]
     assignment:
       # basic:
-      pciSeq: 
-        opts: [{'max_iter': 1002}]
+      pciSeq: #TODO opts might not be working
+        #opts: [{'max_iter': 1002}]
     normalize:
       area:
         use_max_area: [True]
@@ -42,6 +42,11 @@ PREPROCESSING:
       # min_area: [100, 500, 750]
       min_counts: [2]
       # min_cell_percentage: 0.5
+    annotate:
+      majority:
+    annotate_params:
+      ct_threshold : [0.7] #TODO fix threshold to be method specific
+    
 
 
 

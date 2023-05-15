@@ -21,13 +21,14 @@ if __name__ == '__main__':
     #Read count matrices
     stdata = sc.read(f'{data}/counts_{methods}.h5ad')
 
-    #Gather information on spatial data
-    df = tx.quality_metrics.all_quality_metrics(stdata)
-    df.to_csv(f'{data}/quality_metrics_{methods}.csv')
-
-    if not os.path.exists(f'{data}/filtered'):
-        os.makedirs(f'{data}/filtered')
+    if not os.path.exists(f'{data}/unfiltered'):
+        os.makedirs(f'{data}/unfiltered')
     
     #Also with filtered cells
     df_filtered = tx.quality_metrics.all_quality_metrics(stdata[stdata.obs['passed_QC']])
-    df_filtered.to_csv(f'{data}/filtered/quality_metrics_{methods}.csv')
+    df_filtered.to_csv(f'{data}/quality_metrics_{methods}.csv')
+
+    #Unfiltered
+    df = tx.quality_metrics.all_quality_metrics(stdata)
+    df.to_csv(f'{data}/unfiltered/quality_metrics_{methods}.csv')
+

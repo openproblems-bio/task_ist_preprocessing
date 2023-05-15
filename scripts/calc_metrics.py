@@ -25,14 +25,15 @@ if __name__ == '__main__':
     scdata = sc.read(sc_data)
     stdata = sc.read(f'{data}/counts_{methods}.h5ad')
 
-    #Gather information on spatial data
-    df = tx.metrics.all_metrics(stdata, scdata)
-    df.to_csv(f'{data}/metrics_{methods}.csv')
+    if not os.path.exists(f'{data}/unfiltered'):
+        os.makedirs(f'{data}/unfiltered')
 
-    if not os.path.exists(f'{data}/filtered'):
-        os.makedirs(f'{data}/filtered')
-
-    #Also with filtered cells
+    #With filtered cells
     df_filtered = tx.metrics.all_metrics(stdata[stdata.obs['passed_QC']], scdata)
-    df_filtered.to_csv(f'{data}/filtered/metrics_{methods}.csv')
+    df_filtered.to_csv(f'{data}/metrics_{methods}.csv')
+
+    #Unfiltered
+    df = tx.metrics.all_metrics(stdata, scdata)
+    df.to_csv(f'{data}/unfiltered/metrics_{methods}.csv')
+
     

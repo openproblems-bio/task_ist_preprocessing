@@ -336,6 +336,30 @@ rule normalize_area:
         # "-g {params.pergene} "
         # "-l {params.pergene_layer}"
 
+rule annotate_counts:
+    threads: 1
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        counts = '{results}/{dataset}/replicate{rep_id}/counts_{method}.h5ad',
+        scd = '{results}/{dataset}/sc_normalized.h5ad'
+    params:
+        hyper_params = lambda w: get_params(w.ct_method, int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params(w.ct_method, int(w.id_code), 'group_params')
+
+    output:
+        '{results}/{dataset}/replicate{rep_id}/counts_{method}_{ct_method}-{id_code}.h5ad'
+    shell:
+        "python3 scripts/annotate_counts.py "
+        "-c {wildcards.method} "
+        "--singlecell {input.scd} "
+        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
+        "-a {wildcards.ct_method} "
+        "-id {wildcards.id_code} "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+
+
 rule normalize_sc:
     conda:
         "envs/txsim-env.yaml"
@@ -356,7 +380,7 @@ rule metric:
         scd = '{results}/{dataset}/sc_normalized.h5ad'
     output:
         '{results}/{dataset}/{replicate}/metrics_{methods}.csv',
-        '{results}/{dataset}/{replicate}/filtered/metrics_{methods}.csv'
+        '{results}/{dataset}/{replicate}/unfiltered/metrics_{methods}.csv'
     shell:
         "python3 scripts/calc_metrics.py "
         "-m {wildcards.methods} "
@@ -370,7 +394,7 @@ rule quality_metric:
         '{results}/{dataset}/{replicate}/counts_{methods}.h5ad',
     output:
         '{results}/{dataset}/{replicate}/quality_metrics_{methods}.csv',
-        '{results}/{dataset}/{replicate}/filtered/quality_metrics_{methods}.csv'
+        '{results}/{dataset}/{replicate}/unfiltered/quality_metrics_{methods}.csv'
     shell:
         "python3 scripts/calc_quality_metrics.py "
         "-m {wildcards.methods} "
@@ -408,7 +432,7 @@ rule aggregate_metrics:
         lambda w : parsed.get_aggregate_inputs(w, 'metrics') 
     output:
         '{results}/{dataset}/aggregated/aggregated_metrics_{method}.csv',
-        '{results}/{dataset}/aggregated/filtered/aggregated_metrics_{method}.csv'
+        '{results}/{dataset}/aggregated/unfiltered/aggregated_metrics_{method}.csv'
 
     shell:
         "python3 scripts/aggregate_metrics.py "
@@ -423,7 +447,7 @@ rule aggregate_quality_metrics:
         lambda w : parsed.get_aggregate_inputs(w, 'quality_metrics') 
     output:
         '{results}/{dataset}/aggregated/aggregated_quality_metrics_{method}.csv',
-        '{results}/{dataset}/aggregated/filtered/aggregated_quality_metrics_{method}.csv'
+        '{results}/{dataset}/aggregated/unfiltered/aggregated_quality_metrics_{method}.csv'
     shell:
         "python3 scripts/aggregate_metrics.py "
         "-m {wildcards.method} "
