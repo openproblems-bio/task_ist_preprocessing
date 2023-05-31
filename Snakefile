@@ -424,7 +424,6 @@ rule aggregate_counts:
         "-m {wildcards.method} "
         "-d {wildcards.results}/{wildcards.dataset} "
 
-#TODO run filtered 
 rule aggregate_metrics:
     conda:
         "envs/txsim-env.yaml"

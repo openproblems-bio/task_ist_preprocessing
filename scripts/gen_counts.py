@@ -64,7 +64,7 @@ if __name__ == '__main__':
     adata_sc = sc.read(file_sc)
     
     adata = tx.preprocessing.generate_adata(
-        molecules=pd.read_csv(f'{data}/assignments_{assignment_method}.csv'),
+        input_spots=pd.read_csv(f'{data}/assignments_{assignment_method}.csv'),
         adata_sc=adata_sc)
     
     #Find area for normalization

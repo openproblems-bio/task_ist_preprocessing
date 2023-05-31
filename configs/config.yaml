@@ -32,7 +32,7 @@ PREPROCESSING:
     assignment:
       # basic:
       pciSeq: #TODO opts might not be working
-        #opts: [{'max_iter': 1002}]
+        opts: [{'max_iter': 1002}]
     normalize:
       area:
         use_max_area: [True]
@@ -43,9 +43,10 @@ PREPROCESSING:
       min_counts: [2]
       # min_cell_percentage: 0.5
     annotate:
-      majority:
+      pciSeqCT:
+        threshold: [0.6]
     annotate_params:
-      ct_threshold : [0.7] #TODO fix threshold to be method specific
+      per_gene_correction : [False]
     
 
 
@@ -63,9 +64,10 @@ DATA_SCENARIOS:
     root_folder: /mnt/d/HMGU/DATA/test 
     sc_data: sc_data.h5ad
     segmented_image: segmented_image.tif
-    images: [raw_image.tif, raw_image.tif]
-    molecules: [spots.csv, spots.csv]
+    images: [raw_image.tif]
+    molecules: [spots.csv]
   test_xenium:
+    check_dataset: False
     root_folder: /mnt/d/HMGU/DATA/Xenium 
     sc_data: scdata.h5ad
     images: [test_replicates/image1.tif, test_replicates/image2.tif, test_replicates/image3.tif]

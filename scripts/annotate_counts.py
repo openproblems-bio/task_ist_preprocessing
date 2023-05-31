@@ -45,29 +45,27 @@ if __name__ == '__main__':
     file_sc = args.singlecell
 
     groupparams = eval(args.groupparams)
+    hyperparams = eval(args.hyperparams)
     if groupparams is None: groupparams = {}
-
-    gen_params = {}
-    if groupparams.get('ct_threshold') is not None:  gen_params['ct_certainty_threshold'] = groupparams.get('ct_threshold')
-    if groupparams.get('prior_pct') is not None: gen_params['prior_pct'] = groupparams.get('prior_pct')
+    if hyperparams is None: hyperparams = {}
 
     per_gene_correction = groupparams.get('per_gene_correction') is not None and bool(groupparams['per_gene_correction'])
     gene_corr_layer = groupparams.get('gen_corr_layer') if groupparams.get('gen_corr_layer') is not None else 'lognorm'
+    prior_celltypes = None
 
     # Read in the single-cell data
     adata_sc = sc.read(file_sc)
     
     adata = sc.read(f'{data}/counts_{counts_method}.h5ad')
 
-    if annotate_with == 'pciSeq':
+    if annotate_with == 'pciSeqCT':
         methods = counts_method
         method_list = counts_method.split('_')
         #Work backwards through method list until areas file is found
         for i in range(0, len(method_list)):
             methods = '_'.join(method_list)
             if(os.path.exists(f'{data}/celltypes_{methods}.csv')):
-                prior_celltypes = pd.read_csv(f'{data}/celltypes_{methods}.csv', header=None, index_col = 0)
-                groupparams['prior_celltypes'] = prior_celltypes
+                prior_celltypes = pd.read_csv(f'{data}/celltypes_{methods}.csv', index_col = 0)
                 break
             method_list.pop()
 
@@ -75,7 +73,8 @@ if __name__ == '__main__':
         adata,
         adata_sc = adata_sc,
         ct_method=annotate_with,
-        **groupparams
+        hyperparams=hyperparams,
+        prior_celltypes=prior_celltypes,
     )
 
     # Do per-gene correction if active

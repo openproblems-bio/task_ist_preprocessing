@@ -180,15 +180,14 @@ normalize_params:
 
 # ----------------- ANNOTATION ----------------- #
 majority:
-  prior_pct: 0.7
+  threshold: 0.7
 
 ssam:
-  dummy_param: 0
+  threshold: 0.7
 
-pciSeq:
-  dummy_param: 0
+pciSeqCT:
+  threshold: 0.7
 
 annotation_params:
-  ct_threshold: 0.7
   per_gene_correction: False
   per_gene_layer: lognorm
