@@ -107,4 +107,4 @@ if __name__ == '__main__':
     print("Ran quality control")
 
     #Save AnnData object
-    adata.write_h5ad(f"{data}/counts_{assignment_method}_{normalize_by}-{id_code}.h5ad")
+    adata.write_h5ad(f"{data}/normcounts_{assignment_method}_{normalize_by}-{id_code}.h5ad")

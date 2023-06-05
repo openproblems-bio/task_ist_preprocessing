@@ -287,7 +287,7 @@ rule normalize_total:
 	    # pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
 
     output:
-        '{results}/{dataset}/replicate{rep_id}/counts_{assign}_total-{id_code}.h5ad'
+        '{results}/{dataset}/replicate{rep_id}/normcounts_{assign}_total-{id_code}.h5ad'
     shell:
         "python3 scripts/gen_counts.py "
         "-as {wildcards.assign} "
@@ -320,7 +320,7 @@ rule normalize_area:
 	    # pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
 
     output:
-        '{results}/{dataset}/replicate{rep_id}/counts_{method}_area-{id_code}.h5ad'
+        '{results}/{dataset}/replicate{rep_id}/normcounts_{method}_area-{id_code}.h5ad'
     shell:
         "python3 scripts/gen_counts.py "
         "-as {wildcards.method} "
@@ -341,7 +341,7 @@ rule annotate_counts:
     conda:
         "envs/txsim-env.yaml"
     input:
-        counts = '{results}/{dataset}/replicate{rep_id}/counts_{method}.h5ad',
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
         scd = '{results}/{dataset}/sc_normalized.h5ad'
     params:
         hyper_params = lambda w: get_params(w.ct_method, int(w.id_code), 'hyper_params'),

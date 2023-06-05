@@ -21,7 +21,7 @@ PREPROCESSING:
   #   normalize:
   #     area:
   batch2:
-    dataset: [test]
+    dataset: [test_xenium]
     workflow: [segmentation, assignment, normalize, annotate]
     segmentation:
       cellpose:
@@ -43,8 +43,8 @@ PREPROCESSING:
       min_counts: [2]
       # min_cell_percentage: 0.5
     annotate:
-      pciSeqCT:
-        threshold: [0.6]
+      ssam:
+        threshold: [0.5]
     annotate_params:
       per_gene_correction : [False]
     
@@ -52,10 +52,10 @@ PREPROCESSING:
 
 
 METRICS:
-  # batch1:
-  #   dataset: test
-  #   metrics: all
-  #   files: all
+  batch1:
+    dataset: test_xenium
+    metrics: all
+    files: all
   
 
 DATA_SCENARIOS:
