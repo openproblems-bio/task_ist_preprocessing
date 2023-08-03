@@ -1,0 +1,11 @@
+name: mesmer-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - squidpy
+  - pip:
+    - deepcell
+    - -e /Users/louis.kuemmerle/Promotion/projects/G3/code/debug/txsim

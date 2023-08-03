@@ -154,6 +154,28 @@ rule cellpose:
         "-id {wildcards.id_code} "
         "-e {params.exp} "
 
+rule mesmer:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
+    conda: 
+        "envs/cellpose-env.yaml"
+    input:
+        img = lambda w: parsed.get_data_file(w.dataset, 'image')
+    output:
+        '{results}/{dataset}/segments_mesmer-{id_code}.tif',
+        '{results}/{dataset}/areas_mesmer-{id_code}.csv'
+    params:
+        hyp = lambda w: get_params('mesmer', int(w.id_code), 'p'),
+        exp = lambda w: get_params('mesmer', int(w.id_code), 'expand')
+    shell:
+        "python3 scripts/run_mesmer.py "
+        "-i {input.img} "
+        "-p \"{params.hyp}\" "
+        "-o {wildcards.results}/{wildcards.dataset} "
+        "-id {wildcards.id_code} "
+        "-e {params.exp} "
+
 rule clustermap:
     threads: 4
     resources:
