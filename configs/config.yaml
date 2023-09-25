@@ -25,9 +25,9 @@ PREPROCESSING:
     segmentation_params:
       expand: [0]
     assignment:
-      # basic:
-      pciSeq: #TODO opts might not be working
-        opts: [{'max_iter': 1002}]
+      basic:
+      #pciSeq: #TODO opts might not be working
+      #  opts: [{'max_iter': 1002}]
     normalize:
       area:
         use_max_area: [True]
