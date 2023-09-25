@@ -1,41 +1,34 @@
 #Folder where pipeline is contained (should end with 'txsim-pipeline')
 #This might be obsolete given snakemake functionality
 #ROOT: /home/icb/hrehman80//txsim-pipeline
-ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project/txsim-pipeline
+ROOT: /home/icb/cheng-wei.liao/txsim-pipeline
 
 #Folder where intermediate/final files will be stored
 #RESULTS: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/results
-RESULTS: /mnt/d/HMGU/DATA/results
+RESULTS: /home/icb/cheng-wei.liao/txsim-pipeline/results_test
 
 #Folder where temporary files will be stored (optional)
 #TEMP: /localscratch/hrehman80
-TEMP: /mnt/d/HMGU/DATA/baysor/temp
-
+TEMP: /home/icb/cheng-wei.liao/txsim-pipeline/temp
 
 PREPROCESSING:
-  # batch1:
-  #   dataset: [test]
-  #   workflow: [cell-segmentation, normalize]
-  #   cell-segmentation:
-  #     baysor:
-  #   normalize:
-  #     area:
-  batch2:
-    dataset: [test_xenium]
+  batch1:
+    dataset: [test]
     workflow: [segmentation, assignment, normalize, annotate]
     segmentation:
       cellpose:
         min_size: [0]
+        model_type :  ["cyto"]
         # flow_threshold: [True]
     segmentation_params:
       expand: [0]
     assignment:
-      # basic:
-      pciSeq: #TODO opts might not be working
-        opts: [{'max_iter': 1002}]
+      basic:
+      #pciSeq: #TODO opts might not be working
+      #  opts: [{'max_iter': 1002}]
     normalize:
       area:
-        use_max_area: [True]
+      #  use_max_area: [True]
     normalize_params:
       # prior_threshold: [0.501]
       # max_area: [4000, 20000]  
@@ -43,35 +36,22 @@ PREPROCESSING:
       min_counts: [2]
       # min_cell_percentage: 0.5
     annotate:
-      ssam:
-        threshold: [0.5]
+      majority:
+      #ssam:
+      #  threshold: [0.5]
     annotate_params:
       per_gene_correction : [False]
-    
 
 
-
-METRICS:
-  batch1:
-    dataset: test_xenium
-    metrics: all
-    files: all
-  
 
 DATA_SCENARIOS:
   test:
     check_dataset: False
-    root_folder: /mnt/d/HMGU/DATA/test 
+    root_folder: /home/icb/cheng-wei.liao/data/test
     sc_data: sc_data.h5ad
     segmented_image: segmented_image.tif
     images: [raw_image.tif]
     molecules: [spots.csv]
-  test_xenium:
-    check_dataset: False
-    root_folder: /mnt/d/HMGU/DATA/Xenium 
-    sc_data: scdata.h5ad
-    images: [test_replicates/image1.tif, test_replicates/image2.tif, test_replicates/image3.tif]
-    molecules: [test_replicates/spots_rep1.csv, test_replicates/spots_rep2.csv, test_replicates/spots_rep3.csv]
   # hippocampus:
   #   root_folder: /mnt/d/HMGU/DATA/hippocampus 
   #   image: CA1DapiBoundaries_7-1_right.tif
