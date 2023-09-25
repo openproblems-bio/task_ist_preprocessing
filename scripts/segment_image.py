@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import txsim as tx
+import txsim.txsim as tx
 import tifffile
 import squidpy as sq
 from scipy import ndimage

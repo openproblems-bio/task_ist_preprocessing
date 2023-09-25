@@ -2,7 +2,7 @@
 
 import argparse
 from collections import OrderedDict
-import txsim as tx
+import txsim.txsim as tx
 import pandas as pd
 import anndata as ad
 import skimage.io

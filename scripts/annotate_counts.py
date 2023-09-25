@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import txsim as tx
+import txsim.txsim as tx
 import scanpy as sc
 import pandas as pd
 import numpy as np
