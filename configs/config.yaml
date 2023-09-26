@@ -16,9 +16,9 @@ PREPROCESSING:
     dataset: [test]
     workflow: [segmentation, assignment, normalize]
     segmentation:
-    #  cellpose:
-    #    min_size: [0]
-    #    model_type :  ["cyto"]
+      cellpose:
+        min_size: [0]
+        model_type :  ["cyto"]
         # flow_threshold: [True]
     segmentation_params:
       expand: [0]
