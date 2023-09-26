@@ -63,6 +63,7 @@ class ParsedConfig:
 
     def gen_combinations(self):
         for batch in self.cfg['PREPROCESSING']:
+            print(f"Processing batch: {batch}")
             #Run through each batch
             batch_combos = {}
             for group in self.cfg['PREPROCESSING'][batch]['workflow']:
@@ -71,6 +72,10 @@ class ParsedConfig:
                 #Check if any of those combinations exist already
                 #If not, add new entry to dictionary
                 batch_combos[group] = []
+                print(f"Processing group: {group}")
+                if not self.cfg['PREPROCESSING'][batch].get(group):
+                    print(f"Warning: No methods defined for batch: {batch}, group: {group}")
+                    continue
                 for method in self.cfg['PREPROCESSING'][batch][group]:
                     #List of all method parameter combinations
                     method_combos = []
