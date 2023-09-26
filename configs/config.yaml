@@ -30,7 +30,7 @@ PREPROCESSING:
       #  opts: [{'max_iter': 1002}]
     normalize:
       area:
-        use_max_area: [True]
+      #  use_max_area: [True]
     normalize_params:
       # prior_threshold: [0.501]
       # max_area: [4000, 20000]  
@@ -38,8 +38,9 @@ PREPROCESSING:
       min_counts: [2]
       # min_cell_percentage: 0.5
     annotate:
-      ssam:
-        threshold: [0.5]
+      majority:
+      #ssam:
+      #  threshold: [0.5]
     annotate_params:
       per_gene_correction : [False]
 
