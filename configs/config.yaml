@@ -12,8 +12,6 @@ RESULTS: /home/icb/cheng-wei.liao/txsim-pipeline/results_test
 TEMP: /home/icb/cheng-wei.liao/txsim-pipeline/temp
 
 PREPROCESSING:
-
-
   batch1:
     dataset: [test]
     workflow: [segmentation, assignment, normalize]
