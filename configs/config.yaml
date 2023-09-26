@@ -35,12 +35,12 @@ PREPROCESSING:
       # min_area: [100, 500, 750]
       min_counts: [2]
       # min_cell_percentage: 0.5
-    annotate:
-      majority:
-      #ssam:
-      #  threshold: [0.5]
-    annotate_params:
-      per_gene_correction : [False]
+    #annotate:
+    #  majority:
+    #  #ssam:
+    #  #  threshold: [0.5]
+    #annotate_params:
+    #  per_gene_correction : [False]
 
 
 
