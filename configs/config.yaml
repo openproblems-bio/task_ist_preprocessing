@@ -77,6 +77,10 @@ PREPROCESSING:
 
 
 METRICS:
+  batch1:
+    dataset: test
+    metrics: all
+    files: all
 
 DATA_SCENARIOS:
   test:
