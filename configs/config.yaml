@@ -14,7 +14,7 @@ TEMP: /home/icb/cheng-wei.liao/txsim-pipeline/temp
 PREPROCESSING:
   batch1:
     dataset: [test]
-    workflow: [segmentation, assignment, normalize, annotate]
+    workflow: [segmentation] #assignment, normalize, annotate
     segmentation:
       cellpose:
         min_size: [0]
@@ -23,27 +23,27 @@ PREPROCESSING:
         cellprob_threshold : [0] #[-3,-2,-1,0,1,2,3]
         flow_threshold : [0]
         # flow_threshold: [True]
-    segmentation_params:
-      expand: [0]
-    assignment:
-      basic:
-      #pciSeq: #TODO opts might not be working
-      #  opts: [{'max_iter': 1002}]
-    normalize:
-      area:
-      #  use_max_area: [True]
-    normalize_params:
-      # prior_threshold: [0.501]
-      # max_area: [4000, 20000]  
-      # min_area: [100, 500, 750]
-      min_counts: [2]
-      # min_cell_percentage: 0.5
-    annotate:
-      majority:
-      #ssam:
-      #  threshold: [0.5]
-    annotate_params:
-      per_gene_correction : [False]
+    # segmentation_params:
+    #   expand: [0]
+    # assignment:
+    #   basic:
+    #   #pciSeq: #TODO opts might not be working
+    #   #  opts: [{'max_iter': 1002}]
+    # normalize:
+    #   area:
+    #   #  use_max_area: [True]
+    # normalize_params:
+    #   # prior_threshold: [0.501]
+    #   # max_area: [4000, 20000]  
+    #   # min_area: [100, 500, 750]
+    #   min_counts: [2]
+    #   # min_cell_percentage: 0.5
+    # annotate:
+    #   majority:
+    #   #ssam:
+    #   #  threshold: [0.5]
+    # annotate_params:
+    #   per_gene_correction : [False]
   # batch2:
   #   dataset: [test]
   #   workflow: [segmentation, assignment, normalize, annotate]
