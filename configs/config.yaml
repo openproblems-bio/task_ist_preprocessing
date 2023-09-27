@@ -44,7 +44,7 @@ PREPROCESSING:
       #  threshold: [0.5]
     annotate_params:
       per_gene_correction : [False]
-  batch3:
+  batch2:
     dataset: [test]
     workflow: [segmentation]
     segmentation:
@@ -57,6 +57,8 @@ PREPROCESSING:
         distance_transform_func: ["distance_transform_edt"]
         local_maxima_func: ["find_local_maxima"]
         post_processing_func: ["remove_small_objects"]
+
+    
 
 
 
