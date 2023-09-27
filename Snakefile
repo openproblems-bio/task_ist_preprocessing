@@ -287,7 +287,7 @@ rule normalize_total:
 	    # pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
 
     output:
-        '{results}/{dataset}/replicate{rep_id}/normcounts_{assign}_total-{id_code}.h5ad'
+        '{results}/{dataset}/replicate{rep_id}/normcounts_{method}_total-{id_code}.h5ad'
     shell:
         "python3 scripts/gen_counts.py "
         "-as {wildcards.assign} "
