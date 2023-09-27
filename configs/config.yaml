@@ -44,6 +44,19 @@ PREPROCESSING:
       #  threshold: [0.5]
     annotate_params:
       per_gene_correction : [False]
+  batch3:
+    dataset: [test]
+    workflow: [segmentation]
+    segmentation:
+      watershed:
+        normalize_func: ["gamma"] #["gamma","log"]
+        normalize_gamma : [1] #[1,2,3,4]
+        contrast_adjustment_func: ["equalize_adapthist"] #["equalize_adapthist","equalize_hist","rescale_intensity"]
+        blur_func: ["gaussian"]#["gaussian","median"]
+        threshold_func: ["otsu"]
+        distance_transform_func: ["distance_transform_edt"]
+        local_maxima_func: ["find_local_maxima"]
+        post_processing_func: ["remove_small_objects"]
 
 
 
