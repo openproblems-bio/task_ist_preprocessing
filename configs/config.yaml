@@ -14,7 +14,7 @@ TEMP: /home/icb/cheng-wei.liao/txsim-pipeline/temp
 PREPROCESSING:
   batch1:
     dataset: [test]
-    workflow: [segmentation, assignment, normalize]
+    workflow: [segmentation]
     segmentation:
       cellpose:
         min_size: [0]
@@ -22,19 +22,19 @@ PREPROCESSING:
         # flow_threshold: [True]
     segmentation_params:
       expand: [0]
-    assignment:
-      basic:
-      #pciSeq: #TODO opts might not be working
-      #  opts: [{'max_iter': 1002}]
-    normalize:
-      area:
-      #  use_max_area: [True]
-    normalize_params:
-      # prior_threshold: [0.501]
-      # max_area: [4000, 20000]  
-      # min_area: [100, 500, 750]
-      min_counts: [2]
-      # min_cell_percentage: 0.5
+    #assignment:
+    #  basic:
+    #  #pciSeq: #TODO opts might not be working
+    #  #  opts: [{'max_iter': 1002}]
+    #normalize:
+    #  area:
+    #  #  use_max_area: [True]
+    #normalize_params:
+    #  # prior_threshold: [0.501]
+    #  # max_area: [4000, 20000]  
+    #  # min_area: [100, 500, 750]
+    #  min_counts: [2]
+    #  # min_cell_percentage: 0.5
     #annotate:
     #  majority:
     #  #ssam:
