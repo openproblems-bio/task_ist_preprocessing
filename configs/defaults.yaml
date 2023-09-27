@@ -1,11 +1,159 @@
+
 # ----------------- SEGMENTATION ----------------- #
 
-#How to add blur + other parameters that matter?
+# Parameters for watershed
+# normalize_func : Function to perform image normalization for example gamma, sigmoid
+# contrast_adjustment_func: Function to adjust/balance the contract of the image
+# blur_func: Funtion to blurr the image
+# threshold_func: Funtions to find the masking threshold for the image to apply on watershed
+# distance_transform_func: Function to perfrom distance_transform
+# local_maxima_func: Function to find local maximum as marker for watershed
+# post_processing_func: Function to perfrom image processing after segmentation
+
+
+# Default parameters for pre-processing functions
+
+# normalize
+# adjust_gamma(image, gamma=1, gain=1)
+# adjust_log(image, gain=1, inv=False)
+# adjust_sigmoid(image, cutoff=0.5, gain=10, inv=False)
+
+# contrast adjustment
+# equalize_adapthist(image, kernel_size=None, clip_limit=0.01, nbins=256)
+# equalize_hist(image, nbins=256, mask=None)
+# rescale_intensity(image, in_range='image', out_range='dtype')
+
+# blur
+# gaussian(image, sigma=1, output=None, mode='nearest', cval=0, preserve_range=False, truncate=4.0, *, channel_axis=<ChannelAxisNotSet>)
+# median(image, footprint=None, out=None, mode='nearest', cval=0.0, behavior='ndimage')
+
+
+# threshold
+# threshold_otsu(image=None, nbins=256, *, hist=None)
+# threshold_triangle(image, nbins=256)
+# rank.otsu(image, footprint, out=None, mask=None, shift_x=False, shift_y=False, shift_z=False)
+
+
+# distance transform
+# distance_transform_edt(input, sampling=None, return_distances=True, return_indices=False, distances=None, indices=None)
+
+
+# local maxima
+# find_local_maxima(distance_transform, min_distance=5)
+
+
+# post processing
+# remove_small_objects(ar, min_size=64, connectivity=1, *, out=None)
+
+
 watershed:
-  thresh: None
-  geq: False
+  normalize_func: "gamma"
+  normalize_gamma: 1
+  normalize_gain: 1
+  normalize_inv: False
+  normalize_cutoff: 0.5
+
+  contrast_adjustment_func: "equalize_adapthist"
+  contrast_adjustment_kernel_size: None
+  contrast_adjustment_clip_limit: 0.01
+  contrast_adjustment_nbins: 256
+  contrast_adjustment_mask: None
+  contrast_adjustment_in_range: "image"
+  contrast_adjustment_out_range: "dtype"
+
+  blur_func: "gaussian"
+  blur_sigma: 1
+  blur_output: None
+  blur_mode: 'nearest'
+  blur_cval: 0
+  blur_preserve_range: False
+  blur_truncate: 4.0
+  blur_footprint: None
+  blur_out: None
+  blur_behavior: 'ndimage'
+
+  threshold_func: "otsu"
+  threshold_nbins: 256
+  threshold_hist: None
+  threshold_out: None
+  threshold_mask: None
+  threshold_shift_x: False
+  threshold_shift_y: False
+  threshold_shift_z: False
+  threshold_footprint: "square"
+  threshold_footprint_size: 10
+
+  distance_transform_func: "distance_transform_edt"
+  distance_transform_sampling: None
+  distance_transform_return_distances: True
+  distance_transform_return_indices: False
+  distance_transform_distances: None
+  distance_transform_indices: None
+  
+  local_maxima_func: "find_local_maxima"
+  local_maxima_min_distance: 5
+
+  post_processing_func_1: "remove_small_objects"
+  post_processing_min_size_1: 64
+  post_processing_connectivity_1: 1
+  post_processing_out_1: None
+
+  post_processing_func_2: "remove_small_holes"
+  post_processing_area_threshold_2: 64
+  post_processing_connectivity_2: 1
+  post_processing_out_2: None
+
+
+# Parameters for cellpose
+
+## Parameter used in GUI
+
+# flow_threshold: Flow error threshold. Cells with errors below this threshold are retained. A higher threshold may keep more cells but some may be poorly segmented.
+
+# cellprob_threshold: Pixels with value above this threshold are kept for masks. A lower threshold can find more and larger masks.
+
+# stitch_threshold: If this value is more than 0.0, not do_3D, and image sizes are equal, masks are stitched in 3D to return volume segmentation. A higher threshold results in more stitching but can create larger segments.
+
+# channels: A list indicating which channels to segment. None means all channels will be segmented. The number and choice of channels can affect segmentation results.
+
+## Detailed Parameter
+
+# z_axis: Axis index for the Z (depth) dimension. None implies it will be determined automatically. Important for 3D images.
+
+# normalize: If True, normalize image so that 0.0 corresponds to 1st percentile and 1.0 corresponds to 99th percentile of image intensities in each channel. This can enhance contrast and improve segmentation.
+
+# invert: If True, invert image pixel intensity before running network. This can be beneficial when objects of interest are dark on a light background.
+
+# rescale: Rescale factor applied if diameter is not provided. None implies it will be estimated automatically. This could affect cell size in final segmentation.
+
+# diameter (pixel): Estimated cell diameter. None implies diameter will be estimated automatically. Affects the size of cells in segmentation.
+
+# do_3D: If True, run 3D segmentation on 4D image input. Determines the dimensionality of the segmentation.
+
+# anisotropy: Rescaling factor for 3D segmentation. None implies no rescaling. Important when Z spacing is different from X or Y spacing.
+
+# net_avg: If True, runs the 4 built-in networks and averages the results. If False, runs a single network. Multiple networks may increase accuracy but take more time.
+
+# augment: If True, augment the image by tiling with overlapping tiles and flipping overlapped regions. This can enhance the robustness of the segmentation but requires more computation.
+
+# tile: If True, tile the image to ensure GPU/CPU memory usage is limited. Prevents out-of-memory errors.
+
+# tile_overlap: Determines the fraction of overlap of tiles when computing flows. A larger overlap may improve consistency at the expense of increased computation.
+
+# resample: If True, run dynamics at the original image size. May improve segmentation accuracy but be slower.
+
+# interp: If True, interpolate during 2D dynamics. Not available for 3D. May improve segmentation accuracy but be slower.
+
+# min_size: Minimum number of pixels per mask. A smaller value may yield more but smaller segments.
+
+# progress: PyQt progress bar. None means no progress bar will be shown.
+
+# loop_run: If True, continue running the loop until the model is loaded. Useful for preventing early termination.
+
+# model_loaded: If True, the model is already loaded. Useful for saving loading time when repeatedly running the segmentation.
 
 cellpose:
+  model: None
   batch_size: 8
   channels: None
   channel_axis: None
@@ -18,15 +166,14 @@ cellpose:
   anisotropy: None
   net_avg: False
   augment: False
-  tile: True
+  tile: False
   tile_overlap: 0.1
   resample: True
-  interp: True
+  interp: False
   flow_threshold: 0.4
   cellprob_threshold: 0.0
-  compute_masks: True
-  min_size: 15 #SCALE PARAM
-  stitch_threshold: 0.0
+  min_size: 15
+  stitch_threshold: 0.0 # Only for 3D data
   progress: None
   loop_run: False
   model_loaded: False
