@@ -153,7 +153,7 @@ watershed:
 # model_loaded: If True, the model is already loaded. Useful for saving loading time when repeatedly running the segmentation.
 
 cellpose:
-  model: None
+  model_type: None
   batch_size: 8
   channels: None
   channel_axis: None
