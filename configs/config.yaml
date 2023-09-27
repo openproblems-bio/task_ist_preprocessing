@@ -56,6 +56,8 @@ PREPROCESSING:
         threshold_func: ["otsu"]
         distance_transform_func: ["distance_transform_edt"]
         local_maxima_func: ["find_local_maxima"]
+        post_processing_func_1: "remove_small_objects"
+        post_processing_func_2: "remove_small_holes"
     segmentation_params:
       expand: [0]
     # assignment:
