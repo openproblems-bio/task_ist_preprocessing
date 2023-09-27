@@ -19,7 +19,7 @@ PREPROCESSING:
       cellpose:
         min_size: [0]
         model_type :  ["cyto"]
-        diameter : [None] #[None,50,60,70,80,90,100]
+        diameter : [80] #[None,50,60,70,80,90,100]
         cellprob_threshold : [0] #[-3,-2,-1,0,1,2,3]
         flow_threshold : [0]
         # flow_threshold: [True]
