@@ -72,8 +72,8 @@ if __name__ == '__main__':
             else:
                 tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method)
             img_arr = img[f'segmented_{segmentation_method}'].to_numpy()[:,:,0,0]
-    #If already segmented, label
-    else:
+    
+    else: #If already segmented, label
         img_arr = skimage.io.imread(image_file)
         img_arr = skimage.measure.label(img_arr, connectivity=1)
     print("Segmentation Done!")
