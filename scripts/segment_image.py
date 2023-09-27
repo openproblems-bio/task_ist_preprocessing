@@ -57,8 +57,15 @@ if __name__ == '__main__':
             img_arr = tx.preprocessing.segment_stardist(img, hyperparams)
         elif(segmentation_method=='cellpose'):
             img = tifffile.imread(image_file)
+            print("In cellpose!")
             img_arr = tx.preprocessing.segment_cellpose(img, hyperparams)
-        else:
+
+        elif(segmentation_method=='watershed'):
+            print("In watershed!")
+            img = tifffile.imread(image_file)
+            img_arr = tx.preprocessing.segment_watershed(img, hyperparams)
+            
+        else: #TODO: Do we still need this?
             img = sq.im.ImageContainer(image_file)
             if hyperparams is not None:
                 tx.preprocessing.segment_nuclei(img, layer = 'image', method=segmentation_method, **hyperparams)
