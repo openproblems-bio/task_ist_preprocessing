@@ -341,7 +341,7 @@ rule annotate_counts:
     conda:
         "envs/txsim-env.yaml"
     input: # TODO: check of this is the error
-        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{assign}_total-{id_code}.h5ad',
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}_area-{id_code}.h5ad',
         scd = '{results}/{dataset}/sc_normalized.h5ad'
     params:
         hyper_params = lambda w: get_params(w.ct_method, int(w.id_code), 'hyper_params'),
