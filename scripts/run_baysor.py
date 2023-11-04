@@ -109,18 +109,14 @@ if __name__ == '__main__':
     hyperparams = eval(args.hyperparams)
     hparams = {}
     for key in DEFAULT_HYPERPARAMS:
-        if key in hyperparams:
+        if hyperparams is not None and key in hyperparams:
             hparams[key] = hyperparams[key]
         else:
             hparams[key] = DEFAULT_HYPERPARAMS[key]
     id_code = args.id_code
     segment = True if args.segment is not None else False
     temp = args.temp if args.temp is not None else data
-    
-    if segment:
-        temp = Path(temp) / data / f"assignments_{segmentation_method}_baysor-{id_code}"
-    else:
-        temp = Path(temp) / data / f"assignments_baysor-{id_code}"
+    temp = Path(temp)
     toml_file = temp / 'config.toml'
     #temp = Path(temp) / f"baysor_{id_code}"
     #toml_file = temp / 'config.toml'
@@ -161,7 +157,7 @@ if __name__ == '__main__':
     if segment:
         print("Running Baysor with prior segmentation")
         baysor_cli += f" --prior-segmentation-confidence {hparams['prior-segmentation-confidence']}"
-        baysor_cli += f" {data}/segments_{segmentation_method}.tif"
+        baysor_cli += f" {data}/segments_{segmentation_method}.ome.tif"
         #baysor_cli += f"-o {temp}/ {molecules} {data}/segments_{segmentation_method}.tif"
         #baysor_cli += f"{molecules} -o {temp} --save-polygons=geojson -p {data}/segments_{segmentation_method}.tif"
             

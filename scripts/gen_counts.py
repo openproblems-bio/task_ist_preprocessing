@@ -21,17 +21,19 @@ if __name__ == '__main__':
     parser.add_argument('-id', '--id_code', required=True, type = str,
         help='ID of method to be used for saving')
     parser.add_argument('-p', '--hyperparams', default=None, type=str,
-        help='Optional dictionary (as string) of parameters') 
-    parser.add_argument('-t', '--threshold', default=None,
-        help='Threshold for percent of spots with prior cell type to assign new cell type') 
-    parser.add_argument('-c', '--ctmethod', default='ssam', type=str,
-        help='Cell type assignment method (ssam, majority, pciSeq)')
-    parser.add_argument('-ct', '--ctcertthresh', default='0.7', type=str,
-        help='Cell type certainty threshold')
-    parser.add_argument('-g', '--pergenecorr', type=str, default='True',
-        help='Run per gene correction')
-    parser.add_argument('-l', '--genecorrlayer', default='lognorm', type=str,
-        help='Layer to do per gene correction on')
+        help='Optional dictionary (as string) of method-specific parameters') 
+    parser.add_argument('-g', '--groupparams', default=None, type=str,
+        help='Optional dictionary (as string) of group parameters') 
+    # parser.add_argument('-t', '--threshold', default=None,
+    #     help='Threshold for percent of spots with prior cell type to assign new cell type') 
+    # parser.add_argument('-c', '--ctmethod', default='ssam', type=str,
+    #     help='Cell type assignment method (ssam, majority, pciSeq)')
+    # parser.add_argument('-ct', '--ctcertthresh', default='0.7', type=str,
+    #     help='Cell type certainty threshold')
+    # parser.add_argument('-g', '--pergenecorr', type=str, default='True',
+    #     help='Run per gene correction')
+    # parser.add_argument('-l', '--genecorrlayer', default='lognorm', type=str,
+    #     help='Layer to do per gene correction on')
 
     
     args = parser.parse_args()
@@ -40,27 +42,30 @@ if __name__ == '__main__':
     data = args.data
     normalize_by = args.normalize
     id_code = args.id_code
-    ct_method = args.ctmethod
-    ct_thresh = eval(args.ctcertthresh)
-    per_gene_correction = args.pergenecorr
-    gene_corr_layer = args.genecorrlayer
     file_sc = args.singlecell
+
+    groupparams = eval(args.groupparams)
+    if groupparams is None: groupparams = {}
 
     hyperparams = eval(args.hyperparams)
     if hyperparams is None: hyperparams = {}
     alpha = hyperparams.get('alpha') is not None
-    max_area = hyperparams.get('max') is None or hyperparams['max']
-    find_area = hyperparams.get('find_area') is not None and hyperparams['find_area']
-    prior_pct = 0.7 if eval(args.threshold) is None else eval(args.threshold)
-    prior_pct = float(prior_pct)
+    use_max_area = hyperparams.get('use_max_area') is None or bool(hyperparams['use_max_area'])
+    find_area = hyperparams.get('find_area') is not None and bool(hyperparams['find_area'])
     if hyperparams.get('alpha') is None: hyperparams['alpha'] = 0
 
+    qc_params = {}
+    if groupparams.get('min_counts') is not None: qc_params['min_counts'] = groupparams.get('min_counts')
+    if groupparams.get('min_cell_percentage') is not None: qc_params['min_cell_percentage'] = groupparams.get('min_cell_percentage')
+    qc_params['min_area'] = groupparams.get('min_area') # if None, will be handled later
+    qc_params['max_area'] = groupparams.get('max_area')
+        
     # Read in the single-cell data
     adata_sc = sc.read(file_sc)
     
     adata = tx.preprocessing.generate_adata(
-        molecules=f'{data}/assignments_{assignment_method}.csv', #fix this
-        prior_pct=prior_pct, ct_method=ct_method, ct_certainty_threshold=ct_thresh, adata_sc=adata_sc)
+        input_spots=pd.read_csv(f'{data}/assignments_{assignment_method}.csv'),
+        adata_sc=adata_sc)
     
     #Find area for normalization
     if normalize_by == 'area' or find_area:
@@ -85,7 +90,7 @@ if __name__ == '__main__':
             adata=adata,
             alpha=hyperparams['alpha']
         )
-        if 'area' in adata.obs and max_area:
+        if 'area' in adata.obs and use_max_area:
             adata.obs['area'] = np.maximum(adata.obs['alpha_area'], adata.obs['area'])
     
     if 'area' not in adata.obs and 'alpha_area' in adata.obs:
@@ -96,14 +101,10 @@ if __name__ == '__main__':
         tx.preprocessing.normalize_by_area(adata)
     else:
         tx.preprocessing.normalize_total(adata)
-    
-    # Do per-gene correction if active
-    
-    if per_gene_correction=='True':
-        tx.preprocessing.gene_efficiency_correlation(adata, adata_sc, gene_corr_layer)
-        if gene_corr_layer!='lognorm':
-            adata.layers['lognorm'] = adata.layers['norm']
-            sc.pp.log1p(adata, layer='lognorm')
+
+    #Quality control step
+    tx.preprocessing.filter_cells(adata, obs_key="passed_QC", **qc_params)
+    print("Ran quality control")
 
     #Save AnnData object
-    adata.write_h5ad(f"{data}/counts_{assignment_method}_{normalize_by}-{id_code}.h5ad")
+    adata.write_h5ad(f"{data}/normcounts_{assignment_method}_{normalize_by}-{id_code}.h5ad")

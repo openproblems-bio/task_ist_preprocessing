@@ -29,7 +29,7 @@ if __name__ == '__main__':
  
     spots = tx.preprocessing.basic_assign(
         pd.read_csv(molecules),
-        skimage.io.imread(f'{data}/segments_{segmentation_method}.tif')
+        skimage.io.imread(f'{data}/segments_{segmentation_method}.ome.tif')
     )
 
     #Save in correct format

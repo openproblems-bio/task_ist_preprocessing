@@ -17,59 +17,61 @@ PREPROCESSING:
   #   dataset: [test]
   #   workflow: [cell-segmentation, normalize]
   #   cell-segmentation:
-  #     clustermap:
-  #   segmentation:
-  #     watershed:
-  #   segmentation_params:
-  #     expand: [20]
-  #   assignment: 
-  #     pciSeq: 
-  #       opts: [{}]
-  #   normalize:
-  #     total:
-  batch2:
-    dataset: [test]
-    workflow: [segmentation, assignment, normalize]
-    segmentation:
-      cellpose:
-        min_size: [1000]
-    segmentation_params:
-      expand: [10]
-    assignment:
-      basic: 
-      # pciSeq:
-      #   opts: [{}]
-    normalize:
-      total:
-        find_area: [True]
-    normalize_params:
-      #prior_threshold: [0.501]
-  # batch3:
-  #   dataset: [test]
-  #   workflow: [cell-segmentation, normalize]
-  #   cell-segmentation:
-  #     clustermap:
-  #       model: 
-  #         - {'xy_radius': 15, 
-  #           'gauss_blur': True}
-  #       segmentation:
-  #         - {'cell_num_threshold': 0.0001}
+  #     baysor:
   #   normalize:
   #     area:
-  #       max: [True]
-  #       alpha: [-1, 0]
-  #     total:
-  #       find_area: [True]
+  batch2:
+    dataset: [test_xenium]
+    workflow: [segmentation, assignment, normalize, annotate]
+    segmentation:
+      cellpose:
+        min_size: [0]
+        # flow_threshold: [True]
+    segmentation_params:
+      expand: [0]
+    assignment:
+      # basic:
+      pciSeq: #TODO opts might not be working
+        opts: [{'max_iter': 1002}]
+    normalize:
+      area:
+        use_max_area: [True]
+    normalize_params:
+      # prior_threshold: [0.501]
+      # max_area: [4000, 20000]  
+      # min_area: [100, 500, 750]
+      min_counts: [2]
+      # min_cell_percentage: 0.5
+    annotate:
+      ssam:
+        threshold: [0.5]
+    annotate_params:
+      per_gene_correction : [False]
+    
 
+
+
+METRICS:
+  batch1:
+    dataset: test_xenium
+    metrics: all
+    files: all
+  
 
 DATA_SCENARIOS:
   test:
+    check_dataset: False
     root_folder: /mnt/d/HMGU/DATA/test 
-    image: raw_image.tif
     sc_data: sc_data.h5ad
-    molecules: spots.csv
     segmented_image: segmented_image.tif
-    # fake_file: fake.tif
+    images: [raw_image.tif]
+    molecules: [spots.csv]
+  test_xenium:
+    check_dataset: False
+    root_folder: /mnt/d/HMGU/DATA/Xenium 
+    sc_data: scdata.h5ad
+    images: [test_replicates/image1.tif, test_replicates/image2.tif, test_replicates/image3.tif]
+    molecules: [test_replicates/spots_rep1.csv, test_replicates/spots_rep2.csv, test_replicates/spots_rep3.csv]
   # hippocampus:
   #   root_folder: /mnt/d/HMGU/DATA/hippocampus 
   #   image: CA1DapiBoundaries_7-1_right.tif
