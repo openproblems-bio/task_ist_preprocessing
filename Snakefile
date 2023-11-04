@@ -227,9 +227,8 @@ rule baysor_prior:
     #conda:
     #    "envs/base-env.yaml"
     container:
-        "singularity_container/txsim_baysor_latest.sif"
-        #"docker://louisk92/txsim_baysor:latest"
-	#"docker://vpetukhov/baysor:master"
+        "singularity_container/baysor_v0.6.2bin.sif"
+        #"docker://louisk92/txsim_baysor:v0.6.2bin"
     input: 
         '{results}/{dataset}/segments_{seg}.tif',
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
@@ -256,9 +255,8 @@ rule baysor_no_prior:
     #conda:
     #    "envs/base-env.yaml"
     container:
-        "singularity_container/txsim_baysor_latest.sif"
-        #"docker://louisk92/txsim_baysor:latest"
-        #"docker://vpetukhov/baysor:master"
+        "singularity_container/baysor_v0.6.2bin.sif"
+        #"docker://louisk92/txsim_baysor:v0.6.2bin"
     input:
         mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     params:
@@ -348,12 +346,14 @@ rule normalize_sc:
     conda:
         "envs/txsim-env.yaml"
     input:
-        lambda w: parsed.get_data_file(w.dataset, 'sc_data')
+        ref = lambda w: parsed.get_data_file(w.dataset, 'sc_data'),
+        mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
     output:
         '{results}/{dataset}/sc_normalized.h5ad'
     shell:
         "python3 scripts/normalize_sc.py "
-        "-sc {input} "
+        "-sc {input.ref} "
+        "-m {input.mol} "
         "-o {output} "
 
 rule metric:
