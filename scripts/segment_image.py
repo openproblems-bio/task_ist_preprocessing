@@ -11,6 +11,24 @@ import numpy as np
 import argparse
 import os
 
+def convert_to_lower_dtype(arr):
+    # Find the maximum value in the array
+    max_val = arr.max()
+
+    # Determine the smallest unsigned integer dtype that can hold the max value
+    if max_val <= np.iinfo(np.uint8).max:
+        new_dtype = np.uint8
+    elif max_val <= np.iinfo(np.uint16).max:
+        new_dtype = np.uint16
+    elif max_val <= np.iinfo(np.uint32).max:
+        new_dtype = np.uint32
+    else:
+        new_dtype = np.uint64
+
+    # Convert the array to the determined dtype
+    return arr.astype(new_dtype)
+
+
 if __name__ == '__main__':
 
     #Parse arguments
@@ -35,7 +53,8 @@ if __name__ == '__main__':
     binary = args.binary
     segmentation_method = args.segment
     id_code = args.id_code
-
+    
+    print("################## ", args.groupparams)
     hyperparams = eval(args.hyperparams)
     groupparams = eval(args.groupparams)
     expand_nuclear_area = groupparams.get('expand') #If None, it will not expand after segmenting
@@ -48,10 +67,10 @@ if __name__ == '__main__':
     if(not binary):
         if(segmentation_method == 'binning'):
             img = tifffile.imread(image_file)
-            if hyperparams is None or hyperparams['bin_size'] is None:
-                img_arr = tx.preprocessing.segment_binning(img, 20)
-            else:
-                img_arr = tx.preprocessing.segment_binning(img, hyperparams['bin_size'])
+            #if hyperparams is None or hyperparams['bin_size'] is None:
+            #    img_arr = tx.preprocessing.segment_binning(img, 20)
+            #else:
+            img_arr = tx.preprocessing.segment_binning(img, hyperparams['bin_size'])
         elif(segmentation_method == 'stardist'):
             img = tifffile.imread(image_file)
             img_arr = tx.preprocessing.segment_stardist(img, hyperparams)
@@ -75,7 +94,8 @@ if __name__ == '__main__':
     #Expand nuclear area to reflect whole cell area
     if expand_nuclear_area is not None and expand_nuclear_area != 0:
         img_arr = skimage.segmentation.expand_labels(img_arr, distance=expand_nuclear_area)
-
+    
+    img_arr = convert_to_lower_dtype(img_arr)
     #Save as .tif file
     #skimage.io.imsave(f'{output}/segments_{segmentation_method}-{id_code}.tif', img_arr)
     with tifffile.TiffWriter(f'{output}/segments_{segmentation_method}-{id_code}.ome.tif', bigtiff=True) as tif:
@@ -89,6 +109,7 @@ if __name__ == '__main__':
             img_arr,
             metadata=metadata
         )
+    tifffile.imwrite(f'{output}/segments_{segmentation_method}-{id_code}.tif', img_arr)
 
     #Calculate and save areas
     (unique, counts) = np.unique(img_arr, return_counts=True)

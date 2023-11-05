@@ -2,6 +2,7 @@ cluster:
   sbatch
     --partition={resources.partition}
     --cpus-per-task={threads}
+    --qos={resources.qos}
     --job-name=smk_{rule}
     --output=logs/{rule}_output_%j.txt
     --error=logs/{rule}_output_%j.txt

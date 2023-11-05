@@ -30,7 +30,7 @@ def convert_str_ids_to_ints(df, file_path_for_error_messages=None):
     
     # Conver nan vlaues to None for the cell type column #TODO: check why we need this here for baysor
     if "celltype" in df.columns:
-        df.loc[df["celltype"].isnull(),"celltype"] = "None"
+        df.loc[df["celltype"].isnull(),"celltype"] = "None_sp"
         
     return df
 
@@ -157,7 +157,8 @@ if __name__ == '__main__':
     if segment:
         print("Running Baysor with prior segmentation")
         baysor_cli += f" --prior-segmentation-confidence {hparams['prior-segmentation-confidence']}"
-        baysor_cli += f" {data}/segments_{segmentation_method}.ome.tif"
+        baysor_cli += f" {data}/segments_{segmentation_method}.tif"
+        #baysor_cli += f" {data}/segments_{segmentation_method}.ome.tif" #TODO: ideally the container works with this line
         #baysor_cli += f"-o {temp}/ {molecules} {data}/segments_{segmentation_method}.tif"
         #baysor_cli += f"{molecules} -o {temp} --save-polygons=geojson -p {data}/segments_{segmentation_method}.tif"
             

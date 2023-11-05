@@ -56,7 +56,7 @@ if __name__ == '__main__':
     # Read in the single-cell data
     adata_sc = sc.read(file_sc)
     
-    adata = sc.read(f'{data}/counts_{counts_method}.h5ad')
+    adata = sc.read(f'{data}/normcounts_{counts_method}.h5ad')
 
     if annotate_with == 'pciSeqCT':
         methods = counts_method

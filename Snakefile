@@ -1,6 +1,6 @@
 from TxsimConfig import *
 
-configfile: 'configs/config.yaml'
+configfile: 'configs/config_231104_xenium.yaml'
 defaults = 'configs/defaults.yaml'
 parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()
@@ -111,10 +111,12 @@ rule binning:
         '{results}/{dataset}/replicate{rep_id}/areas_binning-{id_code}.csv'
     params:
         hyper_params = lambda w: get_params('binning', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('binning', int(w.id_code), 'group_params')
     shell:
         "python3 scripts/segment_image.py "
         "-i {input.img} "
         "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
         "-o {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s binning "
         "-id {wildcards.id_code} "
@@ -194,7 +196,8 @@ rule pciSeq:
     input:
         '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1),
-        scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
+        scd = '{results}/{dataset}/sc_normalized.h5ad'
+        #scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
     params:
         hyper_params = lambda w: get_params('pciSeq', int(w.id_code), 'hyper_params')
     output:
@@ -255,7 +258,7 @@ rule baysor_prior:
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
         "-s {wildcards.seg} "
-        "--temp {params.tmp}/rep{wildcards.rep_id}/{wildcards.seg}_baysor-{wildcards.id_code}"
+        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.seg}_baysor-{wildcards.id_code}"
 
 rule baysor_no_prior:
     threads: 8
@@ -280,7 +283,7 @@ rule baysor_no_prior:
         "-p \"{params.hyper_params}\" "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
-        "--temp {params.tmp}/rep{wildcards.rep_id}/baysor-{wildcards.id_code}"
+        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/baysor-{wildcards.id_code}"
 
 rule normalize_total:
     threads: 8
@@ -384,7 +387,7 @@ rule normalize_sc:
         "envs/txsim-env.yaml"
     input:
         ref = lambda w: parsed.get_data_file(w.dataset, 'sc_data'),
-        mol = lambda w: parsed.get_data_file(w.dataset, 'molecules')
+        mol = lambda w: parsed.get_data_file_list(w.dataset, 'molecules')
     output:
         '{results}/{dataset}/sc_normalized.h5ad'
     shell:

@@ -1,5 +1,8 @@
 # ----------------- SEGMENTATION ----------------- #
 
+custom: 
+  dummy_param: None
+
 #How to add blur + other parameters that matter?
 watershed:
   thresh: None
@@ -7,6 +10,7 @@ watershed:
 
 cellpose:
   batch_size: 8
+  model_type: "cyto"
   channels: None
   channel_axis: None
   z_axis: None
@@ -30,6 +34,9 @@ cellpose:
   progress: None
   loop_run: False
   model_loaded: False
+
+binning:
+  bin_size: 30
 
 segmentation_params:
   expand: 0 #SCALE PARAM
@@ -121,17 +128,17 @@ baysor:
   
   # [Data]
   # Name of the x column in the input data. Default: "x"
-  x-column : '"x"'
+  x : '"x"'
   # Name of the y column in the input data. Default: "y"
-  y-column : '"y"'
+  y : '"y"'
   # Name of the y column in the input data. Default: "z"
-  z-column : '"z"'
+  z : '"z"'
   # Name of gene column in the input data. Default: "gene"
-  gene-column : '"Gene"'
+  gene : '"Gene"'
   # Minimal number of molecules per gene. Default: 1
-  min-molecules-per-gene : 1
+  min_molecules_per_gene : 1
   # Minimal number of molecules for a cell to be considered as real. It's an important parameter, as it's used to infer several other parameters. Default: 3
-  min-molecules-per-cell : 3
+  min_molecules_per_cell : 3
   # Scale parameter, which suggest approximate cell radius for the algorithm. This parameter is required.
   scale : 50 #SCALE PARAM
   # Standard deviation of scale across cells. Can be either number, which means absolute value of the std, or string ended with "%" to set it relative to scale. Default: "25%"
