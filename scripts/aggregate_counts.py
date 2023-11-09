@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import anndata as ad
-import txsim.txsim as tx
+import txsim as tx
 import argparse
 import os
 

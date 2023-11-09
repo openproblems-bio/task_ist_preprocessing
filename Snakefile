@@ -1,6 +1,6 @@
 from TxsimConfig import *
 
-configfile: 'configs/config.yaml'
+configfile: 'configs/config_test.yaml'
 defaults = 'configs/defaults.yaml'
 parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()
@@ -48,9 +48,13 @@ def get_params(
 rule all:
     input:
         final_files
+        
 
 #Rules corresponding to each method
 rule pre_segmented:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -72,6 +76,9 @@ rule pre_segmented:
         "-b "
 
 rule watershed:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -92,6 +99,9 @@ rule watershed:
         "-id {wildcards.id_code} "
 
 rule binning:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -101,10 +111,12 @@ rule binning:
         '{results}/{dataset}/replicate{rep_id}/areas_binning-{id_code}.csv'
     params:
         hyper_params = lambda w: get_params('binning', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('binning', int(w.id_code), 'group_params')
     shell:
         "python3 scripts/segment_image.py "
         "-i {input.img} "
         "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
         "-o {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s binning "
         "-id {wildcards.id_code} "
@@ -184,7 +196,8 @@ rule pciSeq:
     input:
         '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1),
-        scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
+        scd = '{results}/{dataset}/sc_normalized.h5ad'
+        #scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
     params:
         hyper_params = lambda w: get_params('pciSeq', int(w.id_code), 'hyper_params')
     output:
@@ -200,6 +213,9 @@ rule pciSeq:
         "-id {wildcards.id_code} "
 
 rule basic_assign:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -220,13 +236,12 @@ rule basic_assign:
 rule baysor_prior:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt    
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     #conda:
     #    "envs/base-env.yaml"
     container:
-        "singularity_container/txsim_baysor_latest.sif"
-        #"docker://louisk92/txsim_baysor:latest"
-	#"docker://vpetukhov/baysor:master"
+        "singularity_container/baysor_v0.6.2bin.sif"
+        #"docker://louisk92/txsim_baysor:v0.6.2bin"
     input: 
         '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
@@ -243,18 +258,17 @@ rule baysor_prior:
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
         "-s {wildcards.seg} "
-        "--temp {params.tmp}/rep{wildcards.rep_id}/{wildcards.seg}_baysor-{wildcards.id_code}"
+        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.seg}_baysor-{wildcards.id_code}"
 
 rule baysor_no_prior:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     #conda:
     #    "envs/base-env.yaml"
     container:
-        "singularity_container/txsim_baysor_latest.sif"
-        #"docker://louisk92/txsim_baysor:latest"
-        #"docker://vpetukhov/baysor:master"
+        "singularity_container/baysor_v0.6.2bin.sif"
+        #"docker://louisk92/txsim_baysor:v0.6.2bin"
     input:
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     params:
@@ -269,9 +283,12 @@ rule baysor_no_prior:
         "-p \"{params.hyper_params}\" "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
-        "--temp {params.tmp}/rep{wildcards.rep_id}/baysor-{wildcards.id_code}"
+        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/baysor-{wildcards.id_code}"
 
 rule normalize_total:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -287,7 +304,7 @@ rule normalize_total:
 	    # pergene_layer = lambda w: get_params('total', int(w.id_code), 'per_gene_layer')
 
     output:
-        '{results}/{dataset}/replicate{rep_id}/normcounts_{method}_total-{id_code}.h5ad'
+        '{results}/{dataset}/replicate{rep_id}/normcounts_{assign}_total-{id_code}.h5ad'
     shell:
         "python3 scripts/gen_counts.py "
         "-as {wildcards.assign} "
@@ -304,7 +321,9 @@ rule normalize_total:
         # "-l {params.pergene_layer}"
 
 rule normalize_area:
-    threads: 1
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -340,7 +359,7 @@ rule annotate_counts:
     threads: 1
     conda:
         "envs/txsim-env.yaml"
-    input: # TODO: check of this is the error
+    input:
         counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
         scd = '{results}/{dataset}/sc_normalized.h5ad'
     params:
@@ -361,18 +380,26 @@ rule annotate_counts:
 
 
 rule normalize_sc:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
-        lambda w: parsed.get_data_file(w.dataset, 'sc_data')
+        ref = lambda w: parsed.get_data_file(w.dataset, 'sc_data'),
+        mol = lambda w: parsed.get_data_file_list(w.dataset, 'molecules')
     output:
         '{results}/{dataset}/sc_normalized.h5ad'
     shell:
         "python3 scripts/normalize_sc.py "
-        "-sc {input} "
+        "-sc {input.ref} "
+        "-m {input.mol} "
         "-o {output} "
 
 rule metric:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -388,6 +415,9 @@ rule metric:
         "-sc {input.scd} "
 
 rule quality_metric:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:

@@ -2,7 +2,7 @@
 
 import argparse
 from collections import OrderedDict
-import txsim.txsim as tx
+import txsim as tx
 import pandas as pd
 import anndata as ad
 import skimage.io
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     hyperparams = eval(args.hyperparams)
     opts = dict(hyperparams.get('opts')) if (hyperparams is not None and hyperparams.get('opts') is not None) else None
     id_code = args.id_code
- 
+    
     #Read data and run pciSeq
     assignments, cell_types = tx.preprocessing.run_pciSeq(
         pd.read_csv(molecules),

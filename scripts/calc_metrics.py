@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 import scanpy as sc
-import txsim.txsim as tx
+import txsim as tx
 import argparse
 import os
 

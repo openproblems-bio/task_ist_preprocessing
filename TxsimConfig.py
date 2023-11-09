@@ -63,7 +63,6 @@ class ParsedConfig:
 
     def gen_combinations(self):
         for batch in self.cfg['PREPROCESSING']:
-            print(f"Processing batch: {batch}")
             #Run through each batch
             batch_combos = {}
             for group in self.cfg['PREPROCESSING'][batch]['workflow']:
@@ -72,10 +71,6 @@ class ParsedConfig:
                 #Check if any of those combinations exist already
                 #If not, add new entry to dictionary
                 batch_combos[group] = []
-                print(f"Processing group: {group}")
-                if not self.cfg['PREPROCESSING'][batch].get(group):
-                    print(f"Warning: No methods defined for batch: {batch}, group: {group}")
-                    continue
                 for method in self.cfg['PREPROCESSING'][batch][group]:
                     #List of all method parameter combinations
                     method_combos = []
@@ -286,6 +281,12 @@ class ParsedConfig:
             num_replicates = 0
             for key in self.cfg['DATA_SCENARIOS'][dataset]:
                 
+                #print("#x#x#x#x#x#x#x#x")
+                #print(self.cfg['DATA_SCENARIOS'][dataset][key])
+                #print(type(self.cfg['DATA_SCENARIOS'][dataset][key]))
+                #print((type(self.cfg['DATA_SCENARIOS'][dataset][key]) == str))
+                #print(isinstance(self.cfg['DATA_SCENARIOS'][dataset][key],str))
+                
                 #For replicate files
                 if 'images' in key or 'molecules' in key:
                     num_reps = len(self.cfg['DATA_SCENARIOS'][dataset][key])
@@ -298,7 +299,10 @@ class ParsedConfig:
                             raise Exception(f"The following replicate was not found: {self.get_replicate_file(dataset,key,rep)}")
                 
                 #Check non-replicate files
-                elif key != 'root_folder' and key != 'check_dataset':
+                elif (key != 'root_folder') and (key != 'check_dataset') and (type(self.cfg['DATA_SCENARIOS'][dataset][key]) == str):
+                    #print(f"key : {key}")
+                    #print(f"key : {key}")
+                    #print(f"type(self.cfg['DATA_SCENARIOS'][dataset][key]) == str : {type(self.cfg['DATA_SCENARIOS'][dataset][key]) == str}")
                     if not os.path.exists(self.get_data_file(dataset,key)):
                         raise Exception(f"The following file was not found: {self.get_data_file(dataset,key)}")
             
@@ -306,7 +310,7 @@ class ParsedConfig:
             if 'check_dataset' in self.cfg['DATA_SCENARIOS'][dataset] and self.cfg['DATA_SCENARIOS'][dataset]['check_dataset'] is False:
                 print(f"Not checking dataset '{dataset}' due to flag")
             else:
-                print(f"Checking dataset '{dataset}'...")
+                #print(f"Checking dataset '{dataset}'...")
                 self.check_dataset(dataset)
 
     def gen_file_names(self):
@@ -320,7 +324,17 @@ class ParsedConfig:
 
     #`dataset` should be name of dataset, `file_name`` should be desired file, both as str
     def get_data_file(self, dataset, file_name):
+        #print("###############")
+        #print(dataset, file_name)
+        #print(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'] , self.cfg['DATA_SCENARIOS'][dataset][file_name])
         return os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'] , self.cfg['DATA_SCENARIOS'][dataset][file_name])
+
+    def get_data_file_list(self, dataset, file_list_name):
+        assert type(self.cfg['DATA_SCENARIOS'][dataset][file_list_name]) == list;
+        paths = [
+            os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'],name) for name in self.cfg['DATA_SCENARIOS'][dataset][file_list_name]
+        ]
+        return paths
 
     def get_replicate_file(self, dataset, file_name, replicate_number):
         return os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'] , self.cfg['DATA_SCENARIOS'][dataset][file_name][replicate_number])
@@ -397,6 +411,11 @@ class ParsedConfig:
         for key in ["Gene", "x", "y"]:
             if key not in spots.columns:
                 raise Exception(f"For dataset '{dataset}': '{key}' is not found in the header ({spots.columns}) in file {spots_file}")
+                
+        # Test that all entries have type str in cell type expert annotations
+        if "celltype" in spots.columns:
+            for val in spots["celltype"].unique():
+                assert isinstance(val, str), f"Cell type entry '{val}' in column 'celltype' in file {spots_file} is not a str."
         
         # Test that coordinates in spots.csv align with tif image pixels
         if spots[["x","y"]].min().min() < 0:

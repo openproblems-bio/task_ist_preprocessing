@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import txsim.txsim as tx
+import txsim as tx
 import scanpy as sc
 import pandas as pd
 import numpy as np
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     adata_sc = sc.read(file_sc)
     
     adata = tx.preprocessing.generate_adata(
-        input_spots=pd.read_csv(f'{data}/assignments_{assignment_method}.csv'),
+    input_spots=pd.read_csv(f'{data}/assignments_{assignment_method}.csv'),
         adata_sc=adata_sc)
     
     #Find area for normalization

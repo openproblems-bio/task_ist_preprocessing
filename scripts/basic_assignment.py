@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-import txsim.txsim as tx
+import txsim as tx
 import pandas as pd
 import skimage.io
 
