@@ -58,7 +58,7 @@ clustermap:
     contamination: 0.1
     pct_filter: 0.05
     LOF: False
-  segmentaton:
+  segmentaton: #TODO: incorrect spelling here, but guess this was changed in some newer branch anyway
     cell_num_threshold: 0.01
     dapi_grid_interval: 5
     add_dapi: True
