@@ -3,6 +3,38 @@ import argparse
 import os
 from pathlib import Path
 
+
+def convert_str_ids_to_ints(df, file_path_for_error_messages=None):
+    """Convert cell ids like "CR4b68f93d8-27" to 27
+    
+    The file argument is just for creating more informative Error messages.
+    """
+    
+    df = df.copy()
+    file = file_path_for_error_messages
+    
+    unique_cell_values = df.loc[~df["cell"].isnull(), "cell"].unique()
+    unique_types = {type(value) for value in unique_cell_values}
+    n_cells_pre = len(df.loc[~df["cell"].isnull(),"cell"].unique())
+    if (len(unique_types) == 1) and (str in unique_types):
+        df.loc[~df["cell"].isnull(),"cell"] = df.loc[~df["cell"].isnull(),"cell"].apply(lambda i: i.split("-")[-1]).astype(int)
+    elif (len(unique_types) != 1):
+        raise ValueError(f"Non NaN values of column 'cell' in file {file} have multiple types: {unique_types}")
+    n_cells_post = len(df.loc[~df["cell"].isnull(),"cell"].unique())
+    
+    if n_cells_pre != n_cells_post:
+        raise ValueError(f"Number of cells changed after conversion to integers, probably baysor used different substrings with same integers for some cells. Check file: {file}")
+        
+    # Convert nan values to 0 (background)
+    df.loc[df["cell"].isnull(),"cell"] = 0
+    
+    # Conver nan vlaues to None for the cell type column #TODO: check why we need this here for baysor
+    if "celltype" in df.columns:
+        df.loc[df["celltype"].isnull(),"celltype"] = "None_sp"
+        
+    return df
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Assign molecules to cells using Baysor')
@@ -24,17 +56,21 @@ if __name__ == '__main__':
         
         # [Data]
         # Name of the x column in the input data. Default: "x"
-        'x-column' : '"x"',
+        #'x-column' : '"x"',
+        'x' : '"x"',
         # Name of the y column in the input data. Default: "y"
-        "y-column" : '"y"',
+        #"y-column" : '"y"',
+        "y" : '"y"',
         # Name of the y column in the input data. Default: "z"
-        "z-column" : '"z"',
+        #"z-column" : '"z"',
+        "z" : '"z"',
         # Name of gene column in the input data. Default: "gene"
-        "gene-column" : '"Gene"',
+        #"gene-column" : '"Gene"',
+        "gene" : '"Gene"',
         # Minimal number of molecules per gene. Default: 1
-        "min-molecules-per-gene" : 1,
+        "min_molecules_per_gene" : 1,
         # Minimal number of molecules for a cell to be considered as real. It's an important parameter, as it's used to infer several other parameters. Default: 3
-        "min-molecules-per-cell" : 3,
+        "min_molecules_per_cell" : 3,
         # Scale parameter, which suggest approximate cell radius for the algorithm. This parameter is required.
         "scale" : 50,
         # Standard deviation of scale across cells. Can be either number, which means absolute value of the std, or string ended with "%" to set it relative to scale. Default: "25%"
@@ -73,18 +109,14 @@ if __name__ == '__main__':
     hyperparams = eval(args.hyperparams)
     hparams = {}
     for key in DEFAULT_HYPERPARAMS:
-        if key in hyperparams:
+        if hyperparams is not None and key in hyperparams:
             hparams[key] = hyperparams[key]
         else:
             hparams[key] = DEFAULT_HYPERPARAMS[key]
     id_code = args.id_code
     segment = True if args.segment is not None else False
     temp = args.temp if args.temp is not None else data
-    
-    if segment:
-        temp = Path(temp) / data / f"assignments_{segmentation_method}_baysor-{id_code}"
-    else:
-        temp = Path(temp) / data / f"assignments_baysor-{id_code}"
+    temp = Path(temp)
     toml_file = temp / 'config.toml'
     #temp = Path(temp) / f"baysor_{id_code}"
     #toml_file = temp / 'config.toml'
@@ -106,10 +138,13 @@ if __name__ == '__main__':
     with open(toml_file, "w") as file:
         for key, val in hparams.items():
             # TODO: extend the toml headers, check https://github.com/LouisK92/Baysor/blob/master/configs/example_config.toml
-            if key == "x-column":
-                file.write(f'[Data]\n')
-            elif key == "new-component-weight":
-                file.write(f'\n[Sampling]\n')
+            #if key == "x-column":
+            if key == "x":
+                #file.write(f'[Data]\n')
+                file.write(f'[data]\n')
+            elif key == "new_component_weight":
+                #file.write(f'\n[Sampling]\n')
+                file.write(f'\n[sampling]\n')
             if key not in ["scale", "prior-segmentation-confidence"]:
                 file.write(f'{key} = {val}\n')
     
@@ -123,6 +158,7 @@ if __name__ == '__main__':
         print("Running Baysor with prior segmentation")
         baysor_cli += f" --prior-segmentation-confidence {hparams['prior-segmentation-confidence']}"
         baysor_cli += f" {data}/segments_{segmentation_method}.tif"
+        #baysor_cli += f" {data}/segments_{segmentation_method}.ome.tif" #TODO: ideally the container works with this line
         #baysor_cli += f"-o {temp}/ {molecules} {data}/segments_{segmentation_method}.tif"
         #baysor_cli += f"{molecules} -o {temp} --save-polygons=geojson -p {data}/segments_{segmentation_method}.tif"
             
@@ -131,7 +167,9 @@ if __name__ == '__main__':
         #baysor_cli += f"-o {temp}/ {molecules}"
         #baysor_cli += f"{molecules} -o {temp} --save-polygons=geojson"
 
-    os.system(f'''/Baysor/bin/baysor {baysor_cli}''')
+    #os.system(f'''/Baysor/bin/baysor {baysor_cli}''') 
+    print(f'''baysor {baysor_cli}''')
+    os.system(f'''baysor {baysor_cli}''')
     print("Ran Baysor")
 
     df = pd.read_csv(baysor_seg)
@@ -143,6 +181,9 @@ if __name__ == '__main__':
     df = pd.read_csv(baysor_cell)
     areas = df[['cell','area']]
 
+    spots = convert_str_ids_to_ints(spots, file_path_for_error_messages=baysor_seg)
+    areas = convert_str_ids_to_ints(areas, file_path_for_error_messages=baysor_cell)    
+    
     #Save to csv
     if segment:
         areas.to_csv(f'{data}/areas_{segmentation_method}_baysor-{id_code}.csv', index = False, header = False)

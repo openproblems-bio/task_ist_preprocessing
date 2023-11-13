@@ -8,3 +8,4 @@ logs/
 temp/
 dependency.png
 envs/src/
+singularity_container/
