@@ -1,6 +1,6 @@
 from TxsimConfig import *
 
-configfile: 'configs/config_231104_xenium.yaml'
+configfile: 'configs/config.yaml'
 defaults = 'configs/defaults.yaml'
 parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()

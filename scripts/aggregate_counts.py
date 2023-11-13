@@ -26,12 +26,10 @@ if __name__ == '__main__':
     
     for replicate in replicate_folders:
         count_file_name = os.path.join(replicate, f"counts_{methods}.h5ad")
-        adata_list.append( ad.read(count_file_name) )
+        adata_list.append( ad.read_h5ad(count_file_name) )
         rep_list.append( int(replicate.split("/")[-1].replace("replicate", "")) )
 
-
     adata = tx.preprocessing.aggregate_count_matrices(adata_list, rep_list)
-
 
     adata.write_h5ad(os.path.join(data, f"aggregated/counts_{methods}.h5ad"))
     
