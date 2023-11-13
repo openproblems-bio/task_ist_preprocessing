@@ -1,6 +1,6 @@
 from TxsimConfig import *
 
-configfile: 'configs/config_231104_xenium.yaml'
+configfile: 'configs/config_test.yaml'
 defaults = 'configs/defaults.yaml'
 parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()
@@ -167,9 +167,9 @@ rule cellpose:
         "-id {wildcards.id_code} "
 
 rule clustermap:
-    threads: 4
+    threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt + 32000 * (attempt-1)
+        mem_mb = lambda wildcards, attempt: 64000 * attempt + 32000 * (attempt-1)
     conda:
         "envs/clustermap-env.yaml"
     input:

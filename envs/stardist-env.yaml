@@ -9,7 +9,8 @@ dependencies:
   - scikit-image
   - tensorflow
   - pip:
-    - -e /home/icb/louis.kuemmerle/projects/g3/code/txsim
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim
+    - PyYAML
     - pyitlib
     - omnipath
     - planktonspace
