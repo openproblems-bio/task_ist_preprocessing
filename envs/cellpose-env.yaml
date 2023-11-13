@@ -8,4 +8,5 @@ dependencies:
   - squidpy
   - pip:
     - cellpose
-    - -e /Users/louis.kuemmerle/Promotion/projects/G3/code/debug/txsim
+    - PyYAML
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim

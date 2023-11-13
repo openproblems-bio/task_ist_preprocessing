@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import txsim.txsim as tx
+import txsim as tx
+from pathlib import Path
 import tifffile
 import squidpy as sq
 from scipy import ndimage
@@ -10,6 +11,25 @@ import skimage.segmentation
 import numpy as np
 import argparse
 import os
+import yaml
+
+def convert_to_lower_dtype(arr):
+    # Find the maximum value in the array
+    max_val = arr.max()
+
+    # Determine the smallest unsigned integer dtype that can hold the max value
+    if max_val <= np.iinfo(np.uint8).max:
+        new_dtype = np.uint8
+    elif max_val <= np.iinfo(np.uint16).max:
+        new_dtype = np.uint16
+    elif max_val <= np.iinfo(np.uint32).max:
+        new_dtype = np.uint32
+    else:
+        new_dtype = np.uint64
+
+    # Convert the array to the determined dtype
+    return arr.astype(new_dtype)
+
 
 if __name__ == '__main__':
 
@@ -35,9 +55,20 @@ if __name__ == '__main__':
     binary = args.binary
     segmentation_method = args.segment
     id_code = args.id_code
-
+    
+    hparams_defaults_csv = Path(__file__).parent.parent / "configs" / "defaults.yaml"
+    with open(hparams_defaults_csv, 'r') as file:
+        defaults = yaml.safe_load(file)
+        hparams_defaults = defaults[segmentation_method]
+        gparams_defaults = defaults["segmentation_params"]
+    
+    print("################## ", args.groupparams)
     hyperparams = eval(args.hyperparams)
+    hyperparams.update({k:v for k,v in hparams_defaults.items() if k not in hyperparams})
+    hyperparams = {k:(v if v != "None" else None) for k,v in hyperparams.items()}
     groupparams = eval(args.groupparams)
+    groupparams.update({k:v for k,v in gparams_defaults.items() if k not in groupparams})
+    groupparams = {k:(v if v != "None" else None) for k,v in groupparams.items()}
     expand_nuclear_area = groupparams.get('expand') #If None, it will not expand after segmenting
     
     #Create output folder if needed
@@ -48,10 +79,10 @@ if __name__ == '__main__':
     if(not binary):
         if(segmentation_method == 'binning'):
             img = tifffile.imread(image_file)
-            if hyperparams is None or hyperparams['bin_size'] is None:
-                img_arr = tx.preprocessing.segment_binning(img, 20)
-            else:
-                img_arr = tx.preprocessing.segment_binning(img, hyperparams['bin_size'])
+            #if hyperparams is None or hyperparams['bin_size'] is None:
+            #    img_arr = tx.preprocessing.segment_binning(img, 20)
+            #else:
+            img_arr = tx.preprocessing.segment_binning(img, hyperparams['bin_size'])
         elif(segmentation_method == 'stardist'):
             img = tifffile.imread(image_file)
             img_arr = tx.preprocessing.segment_stardist(img, hyperparams)
@@ -80,7 +111,8 @@ if __name__ == '__main__':
     #Expand nuclear area to reflect whole cell area
     if expand_nuclear_area is not None and expand_nuclear_area != 0:
         img_arr = skimage.segmentation.expand_labels(img_arr, distance=expand_nuclear_area)
-
+    
+    img_arr = convert_to_lower_dtype(img_arr)
     #Save as .tif file
     #skimage.io.imsave(f'{output}/segments_{segmentation_method}-{id_code}.tif', img_arr)
     with tifffile.TiffWriter(f'{output}/segments_{segmentation_method}-{id_code}.ome.tif', bigtiff=True) as tif:
@@ -94,6 +126,7 @@ if __name__ == '__main__':
             img_arr,
             metadata=metadata
         )
+    tifffile.imwrite(f'{output}/segments_{segmentation_method}-{id_code}.tif', img_arr)
 
     #Calculate and save areas
     (unique, counts) = np.unique(img_arr, return_counts=True)
