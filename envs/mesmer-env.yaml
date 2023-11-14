@@ -7,5 +7,6 @@ dependencies:
   - pip
   - squidpy
   - pip:
-    - deepcell
-    - -e /Users/louis.kuemmerle/Promotion/projects/G3/code/debug/txsim
+    - deepcell==0.12.6
+    - PyYAML
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim

@@ -144,6 +144,12 @@ cellpose:
   #progress: None
   #model_loaded: False
 
+mesmer:
+    batch_size: 8
+    image_mpp: 0.5
+    compartment: "nuclear"
+    squeeze: None  # TODO: should None be default? also in run_mesmer.py is the if clause actually correct?
+
 binning:
   bin_size: 30
 
