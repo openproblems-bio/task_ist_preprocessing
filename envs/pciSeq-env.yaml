@@ -8,5 +8,6 @@ dependencies:
   - pip
   - pip: 
     - scanpy
-    - -e /home/icb/daniel.strobl/txsim/txsim
+    - PyYAML
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim
     - pciSeq

@@ -12,7 +12,8 @@ dependencies:
   - shapely
   - scikit-image
   - pip:
+    - PyYAML
     - pyitlib
-    - -e /home/icb/louis.kuemmerle/projects/g3/code/txsim
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim
     - omnipath
     - planktonspace
