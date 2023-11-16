@@ -7,4 +7,5 @@ dependencies:
   - pip
   - pip:
     - squidpy
-    - -e /mnt/c/users/habib/projects/hmgu/tx_project/txsim
+    - PyYAML
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim

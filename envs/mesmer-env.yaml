@@ -1,4 +1,4 @@
-name: cellpose-env
+name: mesmer-env
 channels:
   - bioconda
   - conda-forge
@@ -7,6 +7,6 @@ dependencies:
   - pip
   - squidpy
   - pip:
-    - cellpose
+    - deepcell==0.12.6
     - PyYAML
     - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim

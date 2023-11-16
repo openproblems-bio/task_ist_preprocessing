@@ -1,23 +1,133 @@
+
 # ----------------- SEGMENTATION ----------------- #
 
 custom: 
-  dummy_param: None
+  custom_dummy_param: None
 
-#How to add blur + other parameters that matter?
+# Parameters for watershed
+# - normalize_func : Function to perform image normalization for example gamma, sigmoid
+# - contrast_adjustment_func: Function to adjust/balance the contract of the image
+# - blur_func: Funtion to blurr the image
+# - threshold_func: Funtions to find the masking threshold for the image to apply on watershed
+# - distance_transform_func: Function to perfrom distance_transform
+# - local_maxima_func: Function to find local maximum as marker for watershed
+# - post_processing_func: Function to perfrom image processing after segmentation
+# Default parameters for pre-processing functions
+# - normalize
+#    - adjust_gamma(image, gamma=1, gain=1)
+#    - adjust_log(image, gain=1, inv=False)
+#    - adjust_sigmoid(image, cutoff=0.5, gain=10, inv=False)
+# - contrast adjustment
+#    - equalize_adapthist(image, kernel_size=None, clip_limit=0.01, nbins=256)
+#    - equalize_hist(image, nbins=256, mask=None)
+#    - rescale_intensity(image, in_range='image', out_range='dtype')
+# - blur
+#    - gaussian(image, sigma=1, output=None, mode='nearest', cval=0, preserve_range=False, truncate=4.0, *, channel_axis=<ChannelAxisNotSet>)
+#    - median(image, footprint=None, out=None, mode='nearest', cval=0.0, behavior='ndimage')
+# - threshold
+#    - threshold_otsu(image=None, nbins=256, *, hist=None)
+#    - threshold_triangle(image, nbins=256)
+#    - rank.otsu(image, footprint, out=None, mask=None, shift_x=False, shift_y=False, shift_z=False)
+# - distance transform
+#    - distance_transform_edt(input, sampling=None, return_distances=True, return_indices=False, distances=None, indices=None)
+# - local maxima
+#    - find_local_maxima(distance_transform, min_distance=5)
+# - post processing
+#    - remove_small_objects(ar, min_size=64, connectivity=1, *, out=None)
+
 watershed:
-  thresh: None
-  geq: False
+  normalize_func: "gamma"
+  normalize_gamma: 1
+  normalize_gain: 1
+  normalize_inv: False
+  normalize_cutoff: 0.5
+
+  contrast_adjustment_func: "equalize_hist"
+  contrast_adjustment_kernel_size: None
+  contrast_adjustment_clip_limit: 0.01
+  contrast_adjustment_nbins: 256
+  contrast_adjustment_mask: None
+  contrast_adjustment_in_range: "image"
+  contrast_adjustment_out_range: "dtype"
+
+  blur_func: "gaussian"
+  blur_sigma: 1
+  blur_output: None
+  blur_mode: 'nearest'
+  blur_cval: 0
+  blur_preserve_range: False
+  blur_truncate: 4.0
+  blur_footprint: None   #delete?
+  blur_out: None   #delete?
+  blur_behavior: 'ndimage'   #delete?
+
+  threshold_func: "otsu"
+  threshold_nbins: 256
+  threshold_hist: None
+  threshold_out: None
+  threshold_mask: None
+  threshold_shift_x: False
+  threshold_shift_y: False
+  threshold_shift_z: False
+  threshold_footprint: "square"
+  threshold_footprint_size: 10
+
+  distance_transform_func: "distance_transform_edt"
+  distance_transform_sampling: None
+  distance_transform_return_distances: True
+  distance_transform_return_indices: False
+  distance_transform_distances: None
+  distance_transform_indices: None
+  
+  local_maxima_func: "find_local_maxima"
+  local_maxima_min_distance: 5
+
+  post_processing_func_1: "remove_small_objects"
+  post_processing_min_size_1: 64
+  post_processing_connectivity_1: 1
+  post_processing_out_1: None
+
+  post_processing_func_2: "remove_small_holes"
+  post_processing_area_threshold_2: 64
+  post_processing_connectivity_2: 1
+  post_processing_out_2: None
+
+
+# Parameters for cellpose
+# - Parameter used in GUI
+#    - flow_threshold: Flow error threshold. Cells with errors below this threshold are retained. A higher threshold may keep more cells but some may be poorly segmented.
+#    - cellprob_threshold: Pixels with value above this threshold are kept for masks. A lower threshold can find more and larger masks.
+#    - stitch_threshold: If this value is more than 0.0, not do_3D, and image sizes are equal, masks are stitched in 3D to return volume segmentation. A higher threshold results in more stitching but can create larger segments.
+#    - channels: A list indicating which channels to segment. None means all channels will be segmented. The number and choice of channels can affect segmentation results.
+# - Detailed Parameter
+#    - z_axis: Axis index for the Z (depth) dimension. None implies it will be determined automatically. Important for 3D images.
+#    - normalize: If True, normalize image so that 0.0 corresponds to 1st percentile and 1.0 corresponds to 99th percentile of image intensities in each channel. This can enhance contrast and improve segmentation.
+#    - invert: If True, invert image pixel intensity before running network. This can be beneficial when objects of interest are dark on a light background.
+#    - rescale: Rescale factor applied if diameter is not provided. None implies it will be estimated automatically. This could affect cell size in final segmentation.
+#    - diameter (pixel): Estimated cell diameter. None implies diameter will be estimated automatically. Affects the size of cells in segmentation.
+#    - do_3D: If True, run 3D segmentation on 4D image input. Determines the dimensionality of the segmentation.
+#    - anisotropy: Rescaling factor for 3D segmentation. None implies no rescaling. Important when Z spacing is different from X or Y spacing.
+#    - net_avg: If True, runs the 4 built-in networks and averages the results. If False, runs a single network. Multiple networks may increase accuracy but take more time.
+#    - augment: If True, augment the image by tiling with overlapping tiles and flipping overlapped regions. This can enhance the robustness of the segmentation but requires more computation.
+#    - tile: If True, tile the image to ensure GPU/CPU memory usage is limited. Prevents out-of-memory errors.
+#    - tile_overlap: Determines the fraction of overlap of tiles when computing flows. A larger overlap may improve consistency at the expense of increased computation.
+#    - resample: If True, run dynamics at the original image size. May improve segmentation accuracy but be slower.
+#    - interp: If True, interpolate during 2D dynamics. Not available for 3D. May improve segmentation accuracy but be slower.
+#    - min_size: Minimum number of pixels per mask. A smaller value may yield more but smaller segments.
+#    - progress: PyQt progress bar. None means no progress bar will be shown.
+#    - loop_run: If True, continue running the loop until the model is loaded. Useful for preventing early termination.
+#    - model_loaded: If True, the model is already loaded. Useful for saving loading time when repeatedly running the segmentation.
 
 cellpose:
   batch_size: 8
   model_type: "cyto"
-  channels: None
+  #channels: None
   channel_axis: None
   z_axis: None
   normalize: True
   invert: False
   rescale: None
-  diameter: None
+  diameter: 30.0  #None -> infer automatically
   do_3D: False
   anisotropy: None
   net_avg: False
@@ -28,12 +138,17 @@ cellpose:
   interp: True
   flow_threshold: 0.4
   cellprob_threshold: 0.0
-  compute_masks: True
-  min_size: 15 #SCALE PARAM
-  stitch_threshold: 0.0
-  progress: None
-  loop_run: False
-  model_loaded: False
+  min_size: 15  #Can turn off with -1
+  stitch_threshold: 0.0 # Only for 3D data
+  rescale: None
+  #progress: None
+  #model_loaded: False
+
+mesmer:
+    batch_size: 8
+    image_mpp: 0.5
+    compartment: "nuclear"
+    squeeze: None  # TODO: should None be default? also in run_mesmer.py is the if clause actually correct?
 
 binning:
   bin_size: 30
@@ -44,28 +159,52 @@ segmentation_params:
 
 # ----------------- ASSIGNMENT ----------------- #
 
+
+# clustermap parameters
+# - window_size: tile data into tiles of window_size and stitch at the end. (no tiling for window_size=None)
+# - Model input params:
+#    - xy_radius: float. Estimation of radius of cells in x-y plane.
+#    - z_radius: float. Estimation of radius of cells in z axis; 0 if data is 2D. TODO
+#    - gauss_blur: bool. Choose whether to apply Gaussian blur with sigma=model_sigma.
+#    - sigma: float. Sigma value for Gaussian blur.
+#    - fast_preprocess: bool. Binarize DAPI images with erosion and morphological reconstruction before OTSU thresholding when True. Binarize DAPI images with only OTSU thresholding when False.
+# - Preprocess params:
+#    - pct_filter: Controls the threshold for marking points as noise based on the percentile of the distances distribution.
+#    - LOF: Use Unsupervised Outlier Detection using the LocalOutlierFactor (LOF) from sklearn.neighbors in preprocessing (Local noise rejection)
+#    - contamination: LOF dependent. The amount of contamination of the data set, i.e. the proportion of outliers in the data set. When fitting this is used to define the threshold on the scores of the samples. should be in the range (0, 0.5]
+# - Segmentation params:
+#    - min_spot_per_cell: Erase clusters with less than this number of spots.
+#    - cell_num_threshold: A threshold for deciding the number of cells using lambda curve. ρ (Density), δ (Distance), Lambda := λ=ρ⋅δ or λ=ln(ρ)⋅δ
+#    - add_dapi: Whether or not to add Dapi points for (Density Peak Clustering) DPC
+#    - use_genedis: Whether or not to use gene ??? for (Density Peak Clustering) DPC
+# - Preprocess and Segmentation param:
+#    - dapi_grid_interval: sample interval in DAPI image. A large value will consume more computation resources(!) and give more accurate results (most of the time)
+## recommanded combination model_fast_preprocess = True and model_gauss_blur = False
+## recommanded combination model_fast_preprocess = False and model_gauss_blur = True
+
 clustermap:
-  model: 
-    dapi: None
-    num_dims: 3
-    xy_radius: None
-    z_radius: None
-    fast_preprocess: False
-    gauss_blur: False
-    sigma: 1
-  preprocess:
-    dapi_grid_interval: 5
-    contamination: 0.1
-    pct_filter: 0.05
-    LOF: False
-  segmentaton: #TODO: incorrect spelling here, but guess this was changed in some newer branch anyway
-    cell_num_threshold: 0.01
-    dapi_grid_interval: 5
-    add_dapi: True
-    use_genedis: True
+  # tiling
+  window_size: 700  # small values to keep memory usage low, too small will lead to bad segmentations though
+  # model
+  #use_dapi: True
+  xy_radius: 40
+  z_radius: 0
+  fast_preprocess: False 
+  gauss_blur: True
+  sigma: 1
+  # preprocess
+  pct_filter: 0.0
+  LOF: False
+  contamination: 0
+  # segmentation
+  min_spot_per_cell: 5
+  cell_num_threshold: 0.1 
+  add_dapi: True
+  use_genedis: True
+  # preprocess & segmentation
+  dapi_grid_interval: 5
 
 
-# ----------------- ASSIGNMENT ----------------- #
 
 pciSeq:
   # list of genes to be excluded during cell-typing, e.g ['Aldoc', 'Id2'] to exclude all spots from Aldoc and Id2
@@ -165,7 +304,7 @@ baysor:
   # "min-pixels-per-cell" : 15, # TODO: didn't check this one, plotting is not so important i guess
   
 basic:
-  dummy_param: 0
+  basic_dummy_param: 0
 
 # ----------------- NORMALIZATION ----------------- #
 

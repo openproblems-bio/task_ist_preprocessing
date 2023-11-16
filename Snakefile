@@ -166,10 +166,32 @@ rule cellpose:
         "-s cellpose "
         "-id {wildcards.id_code} "
 
-rule clustermap:
-    threads: 4
+rule mesmer:
+    threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt + 32000 * (attempt-1)
+        mem_mb = lambda wildcards, attempt: 32000 * attempt
+    conda: 
+        "envs/mesmer-env.yaml"
+    input:
+        img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1)
+    output:
+        '{results}/{dataset}/replicate{rep_id}/segments_mesmer-{id_code}.ome.tif',
+        '{results}/{dataset}/replicate{rep_id}/areas_mesmer-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params('cellpose', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('cellpose', int(w.id_code), 'group_params')
+    shell:
+        "python3 scripts/run_mesmer.py "
+        "-i {input.img} "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+        "-o {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
+        "-id {wildcards.id_code} "
+
+rule clustermap:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt + 32000 * (attempt-1)
     conda:
         "envs/clustermap-env.yaml"
     input:
