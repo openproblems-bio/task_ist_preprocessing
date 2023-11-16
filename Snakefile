@@ -487,7 +487,8 @@ rule aggregate_group_metrics:
     conda:
         "envs/txsim-env.yaml"
     input:
-        lambda w : parsed.get_aggregate_inputs(w, 'group_metrics') 
+        lambda w : parsed.get_aggregate_inputs(w, 'group_metrics'),
+        '{results}/{dataset}/aggregated/group_metrics.csv'
     output:
         '{results}/{dataset}/aggregated/aggregated_group_metrics.csv'
     shell:
