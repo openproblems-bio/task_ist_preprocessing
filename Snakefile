@@ -1,6 +1,6 @@
 from TxsimConfig import *
 
-configfile: 'configs/config_test.yaml'
+configfile: 'configs/config_231114_xenium.yaml'
 defaults = 'configs/defaults.yaml'
 parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()
@@ -50,11 +50,36 @@ rule all:
         final_files
         
 
+rule get_tile_info:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1)
+        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1),
+    output:
+        '{results}/{dataset}/replicate{rep_id}/tile_info.csv',
+    params:
+        n_spots_baysor = f"{config['MAX_N_SPOTS_PER_TILE_BAYSOR']}",
+        n_spots_clustermap = f"{config['MAX_N_SPOTS_PER_TILE_CLUSTERMAP']}",
+        extend_n_pixel = f"{config['N_PIXEL_EXTEND_TILE']}"
+    shell:
+        "python3 scripts/retrieve_tile_info.py "
+        "-i {input.img} "
+        "-m {input.mol} "
+        "-o {output} "
+        "-nb {params.n_spots_baysor} "
+        "-nc {params.n_spots_clustermap} "
+        "-ne {params.extend_n_pixel}"
+            
+
 #Rules corresponding to each method
 rule pre_segmented:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -78,7 +103,7 @@ rule pre_segmented:
 rule watershed:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -101,7 +126,7 @@ rule watershed:
 rule binning:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -125,7 +150,7 @@ rule stardist:
     conda:
         "envs/stardist-env.yaml"
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     input:
         img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1)
     output:
@@ -146,7 +171,7 @@ rule stardist:
 rule cellpose:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda: 
         "envs/cellpose-env.yaml"
     input:
@@ -169,7 +194,7 @@ rule cellpose:
 rule mesmer:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda: 
         "envs/mesmer-env.yaml"
     input:
@@ -188,31 +213,31 @@ rule mesmer:
         "-o {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
 
-rule clustermap:
-    threads: 8
-    resources:
-        mem_mb = lambda wildcards, attempt: 64000 * attempt + 32000 * (attempt-1)
-    conda:
-        "envs/clustermap-env.yaml"
-    input:
-        img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1),
-        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
-    params:
-        hyper_params = lambda w: get_params('clustermap', int(w.id_code), 'hyper_params')
-    output:
-        '{results}/{dataset}/replicate{rep_id}/assignments_clustermap-{id_code}.csv'
-    shell:
-        "python3 scripts/run_clustermap.py "
-        "-m {input.mol} "
-        "-p \"{params.hyper_params}\" "
-        "-i {input.img} "
-        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
-        "-id {wildcards.id_code} "
+#rule clustermap:
+#    threads: 8
+#    resources:
+#        mem_mb = lambda wildcards, attempt: 200000 + 32000 * (attempt-1)  #64000 * attempt + 32000 * (attempt-1)
+#    conda:
+#        "envs/clustermap-env.yaml"
+#    input:
+#        img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1),
+#        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
+#    params:
+#        hyper_params = lambda w: get_params('clustermap', int(w.id_code), 'hyper_params')
+#    output:
+#        '{results}/{dataset}/replicate{rep_id}/assignments_clustermap-{id_code}.csv'
+#    shell:
+#        "python3 scripts/run_clustermap.py "
+#        "-m {input.mol} "
+#        "-p \"{params.hyper_params}\" "
+#        "-i {input.img} "
+#        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
+#        "-id {wildcards.id_code} "
 
 rule pciSeq:
     threads: 4
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/pciSeq-env.yaml"
     input:
@@ -237,7 +262,7 @@ rule pciSeq:
 rule basic_assign:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -255,62 +280,217 @@ rule basic_assign:
         "-s {wildcards.seg} "
         "-id {wildcards.id_code} "
 
-rule baysor_prior:
+
+rule generate_tile_of_input_data:
     threads: 8
     resources:
         mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        img = '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
+        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
+    output:
+        img_out = '{results}/{dataset}/replicate{rep_id}/dapi_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.ome.tif',
+        mol_out = '{results}/{dataset}/replicate{rep_id}/spots_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv',
+    shell:
+        "python3 scripts/generate_tile.py "
+        "-i {input.img} "
+        "-m {input.mol} "
+        "-t {wildcards.y_tiles}-{wildcards.x_tiles}-{wildcards.y_id}-{wildcards.x_id}-{n_expand_px} "
+        "--output_img {output.img_out} "
+        "--output_mol {output.mol_out}"
+
+
+rule generate_tile_of_segmentation:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
+    output:
+        '{results}/{dataset}/replicate{rep_id}/segments_{seg}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.ome.tif',
+    shell:
+        "python3 scripts/generate_tile.py "
+        "-i {input} "
+        "-t {wildcards.y_tiles}-{wildcards.x_tiles}-{wildcards.y_id}-{wildcards.x_id}-{n_expand_px} "
+        "--output_img {output}"
+
+
+rule clustermap_tile:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 200000 + 32000 * (attempt-1)  #64000 * attempt + 32000 * (attempt-1)
+    conda:
+        "envs/clustermap-env.yaml"
+    input: 
+        img = '{results}/{dataset}/replicate{rep_id}/segments_{seg}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.ome.tif',
+        mol = '{results}/{dataset}/replicate{rep_id}/spots_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
+    params:
+        hyper_params = lambda w: get_params('clustermap', int(w.id_code), 'hyper_params')
+    output:
+        '{results}/{dataset}/replicate{rep_id}/assignments_clustermap-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}.csv',
+    shell:
+        "python3 scripts/run_clustermap.py "
+        "-m {input.mol} "
+        "-o {output} "
+        "-p \"{params.hyper_params}\" "
+        "-i {input.img} "
+        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
+        "-id {wildcards.id_code} "
+
+
+rule baysor_prior_tile:
+    threads: 22
+    resources:
+        mem_mb = lambda wildcards, attempt: 200000 + 64000 * attempt
     #conda:
     #    "envs/base-env.yaml"
     container:
         "singularity_container/baysor_v0.6.2bin.sif"
         #"docker://louisk92/txsim_baysor:v0.6.2bin"
     input: 
-        '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
-        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
+        img = '{results}/{dataset}/replicate{rep_id}/segments_{seg}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.ome.tif',
+        mol = '{results}/{dataset}/replicate{rep_id}/spots_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
     params:
         hyper_params = lambda w: get_params('baysor', int(w.id_code), 'hyper_params'),
         tmp = f"{config['TEMP']}"
     output:
-        '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_baysor-{id_code}.csv',
-        '{results}/{dataset}/replicate{rep_id}/areas_{seg}_baysor-{id_code}.csv'
+        assign = '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}.csv',
+        '{results}/{dataset}/replicate{rep_id}/areas_{seg}_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}.csv'
     shell:
-        "python3 scripts/run_baysor.py "
+        "export JULIA_NUM_THREADS=20; python3 scripts/run_baysor_tile.py "
         "-m {input.mol} "
+        "-o {output.assign} "
         "-p \"{params.hyper_params}\" "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
         "-s {wildcards.seg} "
-        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.seg}_baysor-{wildcards.id_code}"
+        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.seg}_baysor-{wildcards.id_code}-{wildcards.y_tiles}-{wildcards.x_tiles}-{wildcards.y_id}-{wildcards.x_id}"
 
-rule baysor_no_prior:
-    threads: 8
+rule baysor_no_prior_tile:
+    threads: 22
     resources:
-        mem_mb = lambda wildcards, attempt: 64000 * attempt
+        mem_mb = lambda wildcards, attempt: 200000 + 64000 * attempt
     #conda:
     #    "envs/base-env.yaml"
     container:
         "singularity_container/baysor_v0.6.2bin.sif"
         #"docker://louisk92/txsim_baysor:v0.6.2bin"
-    input:
-        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
+    input: 
+        mol = '{results}/{dataset}/replicate{rep_id}/spots_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
     params:
         hyper_params = lambda w: get_params('baysor', int(w.id_code), 'hyper_params'),
         tmp = f"{config['TEMP']}"
     output:
-        '{results}/{dataset}/replicate{rep_id}/assignments_baysor-{id_code}.csv',
-        '{results}/{dataset}/replicate{rep_id}/areas_baysor-{id_code}.csv'
+        assign = '{results}/{dataset}/replicate{rep_id}/assignments_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}.csv',
+        '{results}/{dataset}/replicate{rep_id}/areas_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}.csv'
     shell:
-        "python3 scripts/run_baysor.py "
+        "export JULIA_NUM_THREADS=20; python3 scripts/run_baysor_tile.py "
         "-m {input.mol} "
+        "-o {output.assign} "
         "-p \"{params.hyper_params}\" "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
-        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/baysor-{wildcards.id_code}"
+        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.seg}_baysor-{wildcards.id_code}-{wildcards.y_tiles}-{wildcards.x_tiles}-{wildcards.y_id}-{wildcards.x_id}"
+
+
+rule aggregate_baysor_no_prior_tile_assignments:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        lambda w : parsed.get_tiles_aggregation_input_files(w.dataset, w.rep_id, "baysor", w.id_code, areas=True, seg=None)
+        #'{results}/{dataset}/replicate{rep_id}/assignments_{method}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv',
+        #'{results}/{dataset}/replicate{rep_id}/areas_{method}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
+    output:
+        '{results}/{dataset}/replicate{rep_id}/assignments_baysor-{id_code}.csv',
+        '{results}/{dataset}/replicate{rep_id}/areas_baysor-{id_code}.csv'
+    shell:
+        "python3 scripts/aggregate_tile_assignments.py "
+        "-i {input} "
+        "-o {output}"
+        #parser.add_argument('-p', '--input', nargs='+', required=True, help="Input file paths")
+        #parser.add_argument('-o', '--output', nargs='+', required=True, help="Output file paths")
+        #parser.add_argument('-m', '--molecules', required=True, help="Spots paths (needed to keep the spots order)")
+        #parser.add_argument('-i', '--image', required=True, help="Image path (to get img dimensions)")
+
+use rule aggregate_baysor_no_prior_tile_assignments as aggregate_baysor_prior_tile_assignments with:
+    input:
+        lambda w : parsed.get_tiles_aggregation_input_files(w.dataset, w.rep_id, "baysor", w.id_code, areas=True, seg=w.seg)
+    output:
+        '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_baysor-{id_code}.csv',
+        '{results}/{dataset}/replicate{rep_id}/areas_{seg}_baysor-{id_code}.csv'
+
+use rule aggregate_baysor_no_prior_tile_assignments as aggregate_clustermap_tile_assignments with:
+    input:
+        lambda w : parsed.get_tiles_aggregation_input_files(w.dataset, w.rep_id, "clustermap", w.id_code, areas=False, seg=None)
+    output:
+        '{results}/{dataset}/replicate{rep_id}/assignments_clustermap-{id_code}.csv',
+        # no areas are aggregated (for clustermap they are calculated later)
+
+
+# TODO: We can probably delete them, the full img case is captured with the n=1 tiling.
+#rule baysor_prior:
+#    threads: 22
+#    resources:
+#        mem_mb = lambda wildcards, attempt: 1000 # 200000 + 64000 * attempt
+#    #conda:
+#    #    "envs/base-env.yaml"
+#    container:
+#        "singularity_container/baysor_v0.6.2bin.sif"
+#        #"docker://louisk92/txsim_baysor:v0.6.2bin"
+#    input: 
+#        '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
+#        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
+#    params:
+#        hyper_params = lambda w: get_params('baysor', int(w.id_code), 'hyper_params'),
+#        tmp = f"{config['TEMP']}"
+#    output:
+#        '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_baysor-{id_code}.csv',
+#        '{results}/{dataset}/replicate{rep_id}/areas_{seg}_baysor-{id_code}.csv'
+#    shell:
+#        "export JULIA_NUM_THREADS=20; python3 scripts/run_baysor.py "
+#        "-m {input.mol} "
+#        "-p \"{params.hyper_params}\" "
+#        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
+#        "-id {wildcards.id_code} "
+#        "-s {wildcards.seg} "
+#        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.seg}_baysor-{wildcards.id_code}"
+
+#rule baysor_no_prior:
+#    threads: 22
+#    resources:
+#        mem_mb = lambda wildcards, attempt: 1000 #200000 + 64000 * attempt
+#    #conda:
+#    #    "envs/base-env.yaml"
+#    container:
+#        "singularity_container/baysor_v0.6.2bin.sif"
+#        #"docker://louisk92/txsim_baysor:v0.6.2bin"
+#    input:
+#        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
+#    params:
+#        hyper_params = lambda w: get_params('baysor', int(w.id_code), 'hyper_params'),
+#        tmp = f"{config['TEMP']}"
+#    output:
+#        '{results}/{dataset}/replicate{rep_id}/assignments_baysor-{id_code}.csv',
+#        '{results}/{dataset}/replicate{rep_id}/areas_baysor-{id_code}.csv'
+#    shell:
+#        "export JULIA_NUM_THREADS=20; python3 scripts/run_baysor.py "
+#        "-m {input.mol} "
+#        "-p \"{params.hyper_params}\" "
+#        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
+#        "-id {wildcards.id_code} "
+#        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/baysor-{wildcards.id_code}"
 
 rule normalize_total:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -345,7 +525,7 @@ rule normalize_total:
 rule normalize_area:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -378,7 +558,9 @@ rule normalize_area:
         # "-l {params.pergene_layer}"
 
 rule annotate_counts:
-    threads: 1
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -404,7 +586,7 @@ rule annotate_counts:
 rule normalize_sc:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -421,7 +603,7 @@ rule normalize_sc:
 rule metric:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:
@@ -439,7 +621,7 @@ rule metric:
 rule quality_metric:
     threads: 8
     resources:
-        mem_mb = lambda wildcards, attempt: 32000 * attempt
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
         "envs/txsim-env.yaml"
     input:

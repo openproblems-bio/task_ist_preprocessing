@@ -9,6 +9,7 @@ dependencies:
   - pip:
     - anndata
     - PyYAML
+    - imagecodecs
     - fastdist==1.1.3
     - h5py==3.6.0
     - imageio==2.13.4

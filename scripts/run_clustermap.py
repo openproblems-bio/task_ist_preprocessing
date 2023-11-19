@@ -155,6 +155,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Assign molecules to cells using ClusterMap')
     parser.add_argument('-m', '--molecules', required=True, type=str, 
         help='Input csv file in format [Gene, x, y]')
+    parser.add_argument('-o', '--output', required=False, tpye=str, default=None, help="Assignment output csv path")
     parser.add_argument('-d', '--data', required=True, type=str, 
         help='Ouput data directory- should also contain segmented image')
     parser.add_argument('-i', '--input', required=True, type=str, help='Input image file')
@@ -171,6 +172,7 @@ if __name__ == '__main__':
     # Get input arguments
     args = parser.parse_args()
     molecules = args.molecules
+    assign_out = args.output
     data = args.data
     image = args.input
     id_code = args.id_code
@@ -199,4 +201,7 @@ if __name__ == '__main__':
     spots["cell"] += 1
     
     #Save assignments to csv
-    spots.to_csv(f'{data}/assignments_clustermap-{id_code}.csv', index = False)
+    if assign_out is None:
+        spots.to_csv(f'{data}/assignments_clustermap-{id_code}.csv', index = False)
+    else:
+        spots.to_csv(assign_out, index = False)
