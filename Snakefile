@@ -1,7 +1,6 @@
 from TxsimConfig import *
 
-#configfile: 'configs/config_231114_xenium.yaml'
-configfile: 'configs/config_test_tiles.yaml'
+configfile: 'configs/config.yaml'
 defaults = 'configs/defaults.yaml'
 parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()
@@ -346,7 +345,7 @@ rule clustermap_tile:
 rule baysor_prior_tile:
     threads: 22
     resources:
-        mem_mb = lambda wildcards, attempt: 200000 + 64000 * attempt
+        mem_mb = lambda wildcards, attempt: 200000 + 32000 * attempt
     #conda:
     #    "envs/base-env.yaml"
     container:
@@ -362,7 +361,7 @@ rule baysor_prior_tile:
         assign = '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv',
         areas = '{results}/{dataset}/replicate{rep_id}/areas_{seg}_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
     shell:
-        "export JULIA_NUM_THREADS=20; python3 scripts/run_baysor_tile.py "
+        "export JULIA_NUM_THREADS=20; python3 scripts/run_baysor.py "
         "-m {input.mol} "
         "-o {output.assign} "
         "-p \"{params.hyper_params}\" "
@@ -374,7 +373,7 @@ rule baysor_prior_tile:
 rule baysor_no_prior_tile:
     threads: 22
     resources:
-        mem_mb = lambda wildcards, attempt: 200000 + 64000 * attempt
+        mem_mb = lambda wildcards, attempt: 200000 + 32000 * attempt
     #conda:
     #    "envs/base-env.yaml"
     container:
@@ -389,7 +388,7 @@ rule baysor_no_prior_tile:
         assign = '{results}/{dataset}/replicate{rep_id}/assignments_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv',
         areas = '{results}/{dataset}/replicate{rep_id}/areas_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
     shell:
-        "export JULIA_NUM_THREADS=20; python3 scripts/run_baysor_tile.py "
+        "export JULIA_NUM_THREADS=20; python3 scripts/run_baysor.py "
         "-m {input.mol} "
         "-o {output.assign} "
         "-p \"{params.hyper_params}\" "

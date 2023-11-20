@@ -40,7 +40,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Assign molecules to cells using Baysor')
     parser.add_argument('-m', '--molecules', required=True, type=str, 
         help='Input csv file in format [Gene, x, y]') # spot.csv
-    parser.add_argument('-o', '--output', required=False, tpye=str, default=None, help="Assignment output csv path")
+    parser.add_argument('-o', '--output', required=False, type=str, default=None, help="Assignment output csv path")
     parser.add_argument('-d', '--data', required=True, type=str, 
         help='Ouput data directory- should also contain segmented image') # <results>/<dataset>
     parser.add_argument('-s', '--segment', default=None, type=str,

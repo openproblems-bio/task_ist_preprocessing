@@ -54,5 +54,5 @@ if __name__ == '__main__':
         )
     tifffile.imwrite(img_out_path.replace("ome.tif","tif"), img)
     if spots_path:
-        spots.to_csv(spots_out_path, ignore_index=True)
+        spots.to_csv(spots_out_path, index=False)
     

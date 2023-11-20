@@ -376,6 +376,8 @@ class ParsedConfig:
         """
         rep_dir = os.path.join(self.cfg['RESULTS'], f"{dataset}/replicate{rep_id}")
         tile_info_path = os.path.join(rep_dir,"tile_info.csv")
+        if not os.path.exists(tile_info_path):
+            raise ValueError("tile_info.csv doesn't exist. First run the pipeline once with 'PRE_COMPUTE_TILE_INFO: True' in the config.yaml")
         df = pd.read_csv(tile_info_path, index_col=0)
         nx = df.loc[method,"nx"]
         ny = df.loc[method,"ny"]
