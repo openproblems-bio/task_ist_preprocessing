@@ -30,15 +30,19 @@ if __name__ == '__main__':
     # Get arguments
     args = parser.parse_args()
     
+    print("#################### INPUT - positional arguments!? or more?")
+    print(args.input)
+    print("#################### INPUT - positional arguments!? or more?")
+    
     assign_paths = [f for f in args.input if ("assignments_" in f)]
     area_paths = [f for f in args.input if ("areas_" in f)]
     spots_path = args.molecules
     img_path = args.image
     out_paths = args.output
-    if type(out_paths) == str:
-        assert "assignments" in out_paths; f"If only 1 path is given ({out_paths}), it should be the assignments path"
-        spots_out_path = out_paths
+    if (type(out_paths) == list) and (len(out_paths) == 1):
+        spots_out_path = out_paths[0]
         areas_out_path = None
+        assert "assignments" in spots_out_path; f"If only 1 path is given ({spots_out_path}), it should be the assignments path"
     elif (type(out_paths) == list) and (len(out_paths) == 2):
         spots_out_path = [p for p in out_paths if "assignments" in p][0]
         areas_out_path = [p for p in out_paths if "areas" in p][0]

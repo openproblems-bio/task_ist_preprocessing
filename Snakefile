@@ -1,6 +1,7 @@
 from TxsimConfig import *
 
-configfile: 'configs/config_231114_xenium.yaml'
+#configfile: 'configs/config_231114_xenium.yaml'
+configfile: 'configs/config_test_tiles.yaml'
 defaults = 'configs/defaults.yaml'
 parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()
@@ -57,8 +58,8 @@ rule get_tile_info:
     conda:
         "envs/txsim-env.yaml"
     input:
-        img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1)
-        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1),
+        img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1),
+        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     output:
         '{results}/{dataset}/replicate{rep_id}/tile_info.csv',
     params:
@@ -66,7 +67,7 @@ rule get_tile_info:
         n_spots_clustermap = f"{config['MAX_N_SPOTS_PER_TILE_CLUSTERMAP']}",
         extend_n_pixel = f"{config['N_PIXEL_EXTEND_TILE']}"
     shell:
-        "python3 scripts/retrieve_tile_info.py "
+        "python3 scripts/retrieve_tiles_info.py "
         "-i {input.img} "
         "-m {input.mol} "
         "-o {output} "
@@ -288,7 +289,7 @@ rule generate_tile_of_input_data:
     conda:
         "envs/txsim-env.yaml"
     input:
-        img = '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
+        img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1),
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     output:
         img_out = '{results}/{dataset}/replicate{rep_id}/dapi_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.ome.tif',
@@ -297,7 +298,7 @@ rule generate_tile_of_input_data:
         "python3 scripts/generate_tile.py "
         "-i {input.img} "
         "-m {input.mol} "
-        "-t {wildcards.y_tiles}-{wildcards.x_tiles}-{wildcards.y_id}-{wildcards.x_id}-{n_expand_px} "
+        "-t {wildcards.y_tiles}-{wildcards.x_tiles}-{wildcards.y_id}-{wildcards.x_id}-{wildcards.n_expand_px} "
         "--output_img {output.img_out} "
         "--output_mol {output.mol_out}"
 
@@ -309,13 +310,13 @@ rule generate_tile_of_segmentation:
     conda:
         "envs/txsim-env.yaml"
     input:
-        '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
+        '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif'
     output:
-        '{results}/{dataset}/replicate{rep_id}/segments_{seg}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.ome.tif',
+        '{results}/{dataset}/replicate{rep_id}/segments_{seg}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.ome.tif'
     shell:
         "python3 scripts/generate_tile.py "
         "-i {input} "
-        "-t {wildcards.y_tiles}-{wildcards.x_tiles}-{wildcards.y_id}-{wildcards.x_id}-{n_expand_px} "
+        "-t {wildcards.y_tiles}-{wildcards.x_tiles}-{wildcards.y_id}-{wildcards.x_id}-{wildcards.n_expand_px} "
         "--output_img {output}"
 
 
@@ -326,12 +327,12 @@ rule clustermap_tile:
     conda:
         "envs/clustermap-env.yaml"
     input: 
-        img = '{results}/{dataset}/replicate{rep_id}/segments_{seg}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.ome.tif',
+        img = '{results}/{dataset}/replicate{rep_id}/dapi_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.ome.tif',
         mol = '{results}/{dataset}/replicate{rep_id}/spots_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
     params:
         hyper_params = lambda w: get_params('clustermap', int(w.id_code), 'hyper_params')
     output:
-        '{results}/{dataset}/replicate{rep_id}/assignments_clustermap-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}.csv',
+        '{results}/{dataset}/replicate{rep_id}/assignments_clustermap-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
     shell:
         "python3 scripts/run_clustermap.py "
         "-m {input.mol} "
@@ -339,7 +340,7 @@ rule clustermap_tile:
         "-p \"{params.hyper_params}\" "
         "-i {input.img} "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
-        "-id {wildcards.id_code} "
+        "-id {wildcards.id_code}"
 
 
 rule baysor_prior_tile:
@@ -358,8 +359,8 @@ rule baysor_prior_tile:
         hyper_params = lambda w: get_params('baysor', int(w.id_code), 'hyper_params'),
         tmp = f"{config['TEMP']}"
     output:
-        assign = '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}.csv',
-        '{results}/{dataset}/replicate{rep_id}/areas_{seg}_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}.csv'
+        assign = '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv',
+        areas = '{results}/{dataset}/replicate{rep_id}/areas_{seg}_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
     shell:
         "export JULIA_NUM_THREADS=20; python3 scripts/run_baysor_tile.py "
         "-m {input.mol} "
@@ -385,8 +386,8 @@ rule baysor_no_prior_tile:
         hyper_params = lambda w: get_params('baysor', int(w.id_code), 'hyper_params'),
         tmp = f"{config['TEMP']}"
     output:
-        assign = '{results}/{dataset}/replicate{rep_id}/assignments_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}.csv',
-        '{results}/{dataset}/replicate{rep_id}/areas_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}.csv'
+        assign = '{results}/{dataset}/replicate{rep_id}/assignments_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv',
+        areas = '{results}/{dataset}/replicate{rep_id}/areas_baysor-{id_code}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
     shell:
         "export JULIA_NUM_THREADS=20; python3 scripts/run_baysor_tile.py "
         "-m {input.mol} "
@@ -394,7 +395,7 @@ rule baysor_no_prior_tile:
         "-p \"{params.hyper_params}\" "
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-id {wildcards.id_code} "
-        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.seg}_baysor-{wildcards.id_code}-{wildcards.y_tiles}-{wildcards.x_tiles}-{wildcards.y_id}-{wildcards.x_id}"
+        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/baysor-{wildcards.id_code}-{wildcards.y_tiles}-{wildcards.x_tiles}-{wildcards.y_id}-{wildcards.x_id}"
 
 
 rule aggregate_baysor_no_prior_tile_assignments:
@@ -404,7 +405,9 @@ rule aggregate_baysor_no_prior_tile_assignments:
     conda:
         "envs/txsim-env.yaml"
     input:
-        lambda w : parsed.get_tiles_aggregation_input_files(w.dataset, w.rep_id, "baysor", w.id_code, areas=True, seg=None)
+        lambda w : parsed.get_tiles_aggregation_input_files(w.dataset, w.rep_id, "baysor", w.id_code, areas=True, seg=None),
+        img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1),
+        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
         #'{results}/{dataset}/replicate{rep_id}/assignments_{method}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv',
         #'{results}/{dataset}/replicate{rep_id}/areas_{method}_ny{y_tiles}_nx{x_tiles}_{y_id}_{x_id}_px{n_expand_px}.csv'
     output:
@@ -412,23 +415,25 @@ rule aggregate_baysor_no_prior_tile_assignments:
         '{results}/{dataset}/replicate{rep_id}/areas_baysor-{id_code}.csv'
     shell:
         "python3 scripts/aggregate_tile_assignments.py "
-        "-i {input} "
-        "-o {output}"
-        #parser.add_argument('-p', '--input', nargs='+', required=True, help="Input file paths")
-        #parser.add_argument('-o', '--output', nargs='+', required=True, help="Output file paths")
-        #parser.add_argument('-m', '--molecules', required=True, help="Spots paths (needed to keep the spots order)")
-        #parser.add_argument('-i', '--image', required=True, help="Image path (to get img dimensions)")
+        "-p {input} "
+        "-o {output} "
+        "-m {input.mol} "
+        "-i {input.img}"
 
 use rule aggregate_baysor_no_prior_tile_assignments as aggregate_baysor_prior_tile_assignments with:
     input:
-        lambda w : parsed.get_tiles_aggregation_input_files(w.dataset, w.rep_id, "baysor", w.id_code, areas=True, seg=w.seg)
+        lambda w : parsed.get_tiles_aggregation_input_files(w.dataset, w.rep_id, "baysor", w.id_code, areas=True, seg=w.seg),
+        img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1),
+        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     output:
         '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_baysor-{id_code}.csv',
         '{results}/{dataset}/replicate{rep_id}/areas_{seg}_baysor-{id_code}.csv'
 
 use rule aggregate_baysor_no_prior_tile_assignments as aggregate_clustermap_tile_assignments with:
     input:
-        lambda w : parsed.get_tiles_aggregation_input_files(w.dataset, w.rep_id, "clustermap", w.id_code, areas=False, seg=None)
+        lambda w : parsed.get_tiles_aggregation_input_files(w.dataset, w.rep_id, "clustermap", w.id_code, areas=False, seg=None),
+        img = lambda w: parsed.get_replicate_file(w.dataset, 'images', int(w.rep_id)-1),
+        mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1)
     output:
         '{results}/{dataset}/replicate{rep_id}/assignments_clustermap-{id_code}.csv',
         # no areas are aggregated (for clustermap they are calculated later)

@@ -317,6 +317,7 @@ class ParsedConfig:
     def _file_names_for_tile_info(self):
         directories = [f.rsplit("/",1)[0] for f in self.final_files]
         directories = np.unique(directories)
+        directories = [d for d in directories if ("replicate" in d.split("/")[-1])]
         return [d + "/tile_info.csv" for d in directories]
 
     def gen_file_names(self):
@@ -373,9 +374,9 @@ class ParsedConfig:
             Assignments (and areas) csv paths
         
         """
-        rep_dir = os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'], f"replicate{rep_id}")
+        rep_dir = os.path.join(self.cfg['RESULTS'], f"{dataset}/replicate{rep_id}")
         tile_info_path = os.path.join(rep_dir,"tile_info.csv")
-        df = pd.read_csv(tile_info_path)
+        df = pd.read_csv(tile_info_path, index_col=0)
         nx = df.loc[method,"nx"]
         ny = df.loc[method,"ny"]
         extend_n_px = df.loc[method,"extend_n_px"]
