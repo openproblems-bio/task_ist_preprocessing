@@ -1,4 +1,3 @@
-
 import itertools
 import json
 import tifffile
@@ -33,7 +32,7 @@ class ParsedConfig:
         self.save_parameters(defaults)
 
         #Calculate metrics across combinations
-        self.gen_metrics()
+        self.gen_group_metrics(defaults)
 
         #Checking data files
         self.check_files()
@@ -247,35 +246,102 @@ class ParsedConfig:
         
         readable_df.to_csv(self.output_folder + '/params_dict_readable.csv') 
 
-    def gen_metrics(self):
+    def gen_group_metrics(self, defaults: str):
         #TODO fix when metrics are called on dataset not being run (is this even a bug?)
         if not bool(self.cfg['METRICS']): return #Trick to see if its empty
-        #Create dictionary of all runs for each dataset
-        names = {}
-        for f in self.final_files:
-            if "/metrics" not in f : continue
-            dataset = f.split('/metrics_')[0].split('/')[-2] #-2 since second to last = dataset, last = replicate
-            name = f.split('metrics_')[1].replace('.csv','')
-            if names.get(dataset) is None:
-                names[dataset] = [name]
-            else:
-                names[dataset].append(name)
                 
         self.metric_input_files = {}
 
+        # pairs of runs per dataset that will be used for group metrics
+        # 1 run = combination of methods (eg watershed-1_pciSeq-3_area-0)
+        # for the pairs, type = frozenset
+        self.list_of_group_pairs = {}
+        chunk_size = {}
+
         for metric_batch in self.cfg['METRICS']:
             dataset = self.cfg['METRICS'][metric_batch]['dataset']
-            for rep in range(1, len( self.cfg['DATA_SCENARIOS'][dataset]['images'])+1):
-                self.final_files.append( 
-                        os.path.join(self.cfg['RESULTS'], f"{dataset}/replicate{rep}/group_metrics.csv"))
-            self.final_files.append( os.path.join(self.cfg['RESULTS'], f"{dataset}/aggregated/group_metrics.csv"))
-            self.final_files.append( os.path.join(self.cfg['RESULTS'], f"{dataset}/aggregated/aggregated_group_metrics.csv"))
-            required_inputs = []
-            for run_name in names[dataset]:
-                required_inputs.append(
-                    os.path.join(self.cfg['RESULTS'], f"{dataset}/metrics_{run_name}.csv"))
-            self.metric_input_files[dataset] = required_inputs
+            
+            names = [] #temp list of names in a given batch
+            # 2 conditions: all or specific files, in either case, generate single list of all run names
+            if (self.cfg['METRICS'][metric_batch]['files'] == 'all'):
+                # go through every file for this dataset, and get all the runs 
+                # from the regular metric file, grab the counts file
+                for f in self.final_files:
+                    #check if file is metric
+                    if "/metrics" not in f : continue
+                    #-2 since second to last = dataset, last = replicate
+                    if (dataset != f.split('/metrics_')[0].split('/')[-2]): continue 
+                    #convert to counts
+                    name = f.split('metrics_')[1].replace('.csv','')
+                    names.append(name)
+            else:
+                #TODO modify this check correct input
+                names.extend(self.cfg['METRICS'][metric_batch]['files'])
+                    
+            
+            #generate all combinations of names list, append the combinations to growing frozenset list
+            # use frozenset so order doesn't matter AND it is hashable 
+            # so we can have set of frozensets -> remove duplicate frozensets
+            
+            #create blank list if dataset doesn't have list yet
+            if (self.list_of_group_pairs.get(dataset) is None):
+                self.list_of_group_pairs[dataset] = []
+            
+            #gen all combinations
+            names = list(set(names))
+            for pair in itertools.combinations(names,2):
+                self.list_of_group_pairs[dataset].append(frozenset(pair))
+                
+            # remove duplicate pairs
+            self.list_of_group_pairs[dataset] = list(set(self.list_of_group_pairs[dataset]))
+            
+            #TODO make sure all chunk_size is same for given dataset
+            # read a chunk size from metrics, use default otherwise 
+            chunk_size[dataset] = self.cfg['METRICS'][metric_batch].get('chunk_size')
+            if (chunk_size[dataset] is None): 
+                with open(defaults,'r') as def_file:
+                    chunk_size[dataset] = yaml.safe_load(def_file).get('metrics').get('chunk_size')
+        
+        for dataset in self.list_of_group_pairs.keys():
+            #split the list into the right number of chunks -> create new list of numbers [0, 0, 0, 0, 0, 1, 1, 1...etc]
+            len_pairs = len(self.list_of_group_pairs[dataset])
+            chunk_id_list = np.int_(np.floor(np.array(range(0,len_pairs)) / chunk_size[dataset]))
 
+            # create dataframe with 3 columns, run1, run2, and chunk_id
+            tuple_list = [tuple(x) for x in self.list_of_group_pairs[dataset]]
+            table_run_pairs  = pd.DataFrame(tuple_list, columns = ['run1','run2']).sort_values(by=['run1','run2'])
+            table_run_pairs = table_run_pairs.reset_index(drop=True)
+            table_run_pairs['chunk_id'] = chunk_id_list
+
+            #TODO add matrix for frozen list checking
+            #TODO check if existing is same, otherwise, write new table (unecessary?)
+            table_run_pairs.to_csv(os.path.join(self.cfg['RESULTS'], f"{dataset}/group_metric_chunks.csv"), index=False)
+
+            #Add final_file for each replicate, aggregate, and aggregated/aggregated
+            for rep in range(1, len( self.cfg['DATA_SCENARIOS'][dataset]['images'])+1):
+                for i in range(np.max(chunk_id_list)+1): 
+                    self.final_files.append( 
+                        os.path.join(self.cfg['RESULTS'], f"{dataset}/replicate{rep}/group_metrics-{i}.csv"))
+
+            for i in range(np.max(chunk_id_list)+1): 
+                self.final_files.append( os.path.join(self.cfg['RESULTS'], f"{dataset}/aggregated/group_metrics-{i}.csv"))
+
+            for i in range(np.max(chunk_id_list)+1): 
+                self.final_files.append( os.path.join(self.cfg['RESULTS'], f"{dataset}/aggregated/aggregated_group_metrics-{i}.csv"))
+            
+            # For each run in this dataset, make the counts an required input
+            # Generic for dataset, add replicate in get_metric_inputs
+            self.metric_input_files[dataset] = {}
+            for i in range(np.max(chunk_id_list)+1):
+                all_runs = list(table_run_pairs['run1'][table_run_pairs['chunk_id'] == i].values)
+                all_runs.extend(table_run_pairs['run2'][table_run_pairs['chunk_id'] == i].values)
+                all_runs = list(set(all_runs))
+                required_inputs = []
+                for run_name in all_runs:
+                    required_inputs.append(
+                        os.path.join(self.cfg['RESULTS'], f"{dataset}/counts_{run_name}.h5ad"))
+                self.metric_input_files[dataset][str(i)] = required_inputs
+        
     def check_files(self):
         for dataset in self.cfg['DATA_SCENARIOS']:
             num_replicates = 0
@@ -317,9 +383,10 @@ class ParsedConfig:
         return self.final_files
 
     def get_metric_inputs(self, wildcards):
+        #TODO modify so it adds file type to names
         output = []
-        for input_file in self.metric_input_files[wildcards.dataset]:
-            output.append(input_file.replace("/metrics", f"/{wildcards.replicate}/metrics"))
+        for input_file in self.metric_input_files[wildcards.dataset][wildcards.id_code]:
+            output.append(input_file.replace("/counts", f"/{wildcards.replicate}/counts"))
         return list(set(output))
 
     #`dataset` should be name of dataset, `file_name`` should be desired file, both as str
@@ -352,7 +419,8 @@ class ParsedConfig:
             if f"{wildcards.results}/{wildcards.dataset}" not in final_file:
                 continue
             if file_type == 'group_metrics':
-                if 'group_metrics' in final_file and 'aggregated' not in final_file:
+                #TODO include chunks?
+                if 'group_metrics' in final_file and 'aggregated' not in final_file and ('-'+wildcards.id_code) in final_file:
                     required_inputs.append(final_file)
                 continue
             if f"{wildcards.method}" not in final_file:

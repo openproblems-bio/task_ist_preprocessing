@@ -458,11 +458,11 @@ rule group_metrics:
     input:
         parsed.get_metric_inputs #function that can accept wildcards as input argument
     output:
-        '{results}/{dataset}/{replicate}/group_metrics.csv'
+        '{results}/{dataset}/{replicate}/group_metrics-{id_code}.csv'
     shell:
         "python3 scripts/calc_group_metrics.py "
-        "-f all "
         "-d {wildcards.results}/{wildcards.dataset}/{wildcards.replicate} "
+        "-id {wildcards.id_code}"
 
 rule aggregate_counts:
     conda:
@@ -510,11 +510,12 @@ rule aggregate_group_metrics:
         "envs/txsim-env.yaml"
     input:
         lambda w : parsed.get_aggregate_inputs(w, 'group_metrics'),
-        '{results}/{dataset}/aggregated/group_metrics.csv'
+        '{results}/{dataset}/aggregated/group_metrics-{id_code}.csv'
     output:
-        '{results}/{dataset}/aggregated/aggregated_group_metrics.csv'
+        '{results}/{dataset}/aggregated/aggregated_group_metrics-{id_code}.csv'
     shell:
         "python3 scripts/aggregate_group_metrics.py "
         "-d {wildcards.results}/{wildcards.dataset} "
+        "-id {wildcards.id_code}"
 
 

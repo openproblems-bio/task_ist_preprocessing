@@ -28,7 +28,7 @@ PREPROCESSING:
         min_size: [0]
         # flow_threshold: [True]
     segmentation_params:
-      expand: [0]
+      expand: [0, 10, 15, 25]
     assignment:
       # basic:
       pciSeq: #TODO opts might not be working
@@ -43,7 +43,7 @@ PREPROCESSING:
       min_counts: [2]
       # min_cell_percentage: 0.5
     annotate:
-      ssam:
+      majority:
         threshold: [0.5]
     annotate_params:
       per_gene_correction : [False]
@@ -55,7 +55,8 @@ METRICS:
   batch1:
     dataset: test_xenium
     metrics: all
-    files: all
+    files: all #for custom lists, you have to list ONLY the methods combinations, no prefix or suffix
+    chunk_size: 4
   
 
 DATA_SCENARIOS:
