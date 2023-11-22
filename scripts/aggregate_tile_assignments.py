@@ -87,11 +87,12 @@ if __name__ == '__main__':
         # set unassigned as background
         tile_df.loc[tile_df["not_assigned_due_to_tiling"],'cell'] = 0
         # renumber cell ids
-        ids = sorted(tile_df["cell"].unique())
-        tile_df["cell"] = tile_df["cell"].apply(lambda x: ids.index(x))
+        _, indices = np.unique(tile_df['cell'], return_inverse=True)
+        tile_df['cell'] = indices
         if isinstance(area_df, pd.DataFrame):
             area_df = area_df.loc[~area_df.index.isin(crossing_cells)]
-            area_df.index = area_df.index.to_series().apply(lambda x: ids.index(x))
+            _, indices = np.unique(area_df.index.to_series(), return_inverse=True)
+            area_df.index = indices
         
         # Subset to spots in tile
         tile_df = tile_df.loc[tile_df["in_tile"]]
