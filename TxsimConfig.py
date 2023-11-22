@@ -275,14 +275,13 @@ class ParsedConfig:
                     name = f.split('metrics_')[1].replace('.csv','')
                     names.append(name)
             else:
-                #TODO modify this check correct input
+                #TODO modify this check if input format is correct
                 names.extend(self.cfg['METRICS'][metric_batch]['files'])
-                    
-            
-            #generate all combinations of names list, append the combinations to growing frozenset list
+
+            # generate all combinations of names list, append the combinations to growing frozenset list
             # use frozenset so order doesn't matter AND it is hashable 
             # so we can have set of frozensets -> remove duplicate frozensets
-            
+
             #create blank list if dataset doesn't have list yet
             if (self.list_of_group_pairs.get(dataset) is None):
                 self.list_of_group_pairs[dataset] = []
@@ -301,7 +300,7 @@ class ParsedConfig:
             if (chunk_size[dataset] is None): 
                 with open(defaults,'r') as def_file:
                     chunk_size[dataset] = yaml.safe_load(def_file).get('metrics').get('chunk_size')
-        
+
         for dataset in self.list_of_group_pairs.keys():
             #split the list into the right number of chunks -> create new list of numbers [0, 0, 0, 0, 0, 1, 1, 1...etc]
             len_pairs = len(self.list_of_group_pairs[dataset])
@@ -313,9 +312,26 @@ class ParsedConfig:
             table_run_pairs = table_run_pairs.reset_index(drop=True)
             table_run_pairs['chunk_id'] = chunk_id_list
 
-            #TODO add matrix for frozen list checking
+            #TODO add reading matrix as input
+            all_runs = list(np.unique(table_run_pairs[['run1','run2']].values))
+            run_matrix = self.gen_group_metric_matrix(all_runs, dataset)
+
             #TODO check if existing is same, otherwise, write new table (unecessary?)
-            table_run_pairs.to_csv(os.path.join(self.cfg['RESULTS'], f"{dataset}/group_metric_chunks.csv"), index=False)
+            update_table = True
+            if os.path.exists( os.path.join(self.cfg['RESULTS'], f"{dataset}/group_metric_matrix.csv") ):
+                old_matrix = pd.read_csv(os.path.join(self.cfg['RESULTS'], f"{dataset}/group_metric_matrix.csv"),index_col=0)
+                old_matrix.sort_index(axis=0, inplace=True)
+                old_matrix.sort_index(axis=1, inplace=True)
+                run_matrix.sort_index(axis=0, inplace=True)
+                run_matrix.sort_index(axis=1, inplace=True)
+                if(old_matrix.equals(run_matrix)):
+                    print("Not updating group metrics")
+                    update_table = False
+
+            if (update_table):
+                print("Updating group metrics matrix and table")
+                run_matrix.to_csv(os.path.join(self.cfg['RESULTS'], f"{dataset}/group_metric_matrix.csv"))
+                table_run_pairs.to_csv(os.path.join(self.cfg['RESULTS'], f"{dataset}/group_metric_chunks.csv"), index=False)
 
             #Add final_file for each replicate, aggregate, and aggregated/aggregated
             for rep in range(1, len( self.cfg['DATA_SCENARIOS'][dataset]['images'])+1):
@@ -333,15 +349,29 @@ class ParsedConfig:
             # Generic for dataset, add replicate in get_metric_inputs
             self.metric_input_files[dataset] = {}
             for i in range(np.max(chunk_id_list)+1):
-                all_runs = list(table_run_pairs['run1'][table_run_pairs['chunk_id'] == i].values)
-                all_runs.extend(table_run_pairs['run2'][table_run_pairs['chunk_id'] == i].values)
-                all_runs = list(set(all_runs))
+                input_runs = list(table_run_pairs['run1'][table_run_pairs['chunk_id'] == i].values)
+                input_runs.extend(table_run_pairs['run2'][table_run_pairs['chunk_id'] == i].values)
+                input_runs = list(set(input_runs))
                 required_inputs = []
-                for run_name in all_runs:
+                for run_name in input_runs:
                     required_inputs.append(
                         os.path.join(self.cfg['RESULTS'], f"{dataset}/counts_{run_name}.h5ad"))
                 self.metric_input_files[dataset][str(i)] = required_inputs
         
+    def gen_group_metric_matrix(self, all_runs: list, dataset: str):
+        #Blank dataframe
+        run_matrix = pd.DataFrame(np.zeros((len(all_runs), len(all_runs)),dtype=np.bool_), columns = all_runs, index = all_runs)
+
+        #populate matrix based on pairings
+        for p in self.list_of_group_pairs[dataset]:
+            pair = tuple(p)
+            run_matrix.loc[pair[0], pair[1]] = True
+            run_matrix.loc[pair[1], pair[0]] = True
+
+        # Set lower triangular to False (prevent duplicates) and save
+        run_matrix.iloc[tuple(zip(np.tril_indices_from(run_matrix)))] = False
+        return run_matrix
+
     def check_files(self):
         for dataset in self.cfg['DATA_SCENARIOS']:
             num_replicates = 0

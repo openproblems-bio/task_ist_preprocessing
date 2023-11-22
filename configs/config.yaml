@@ -49,15 +49,13 @@ PREPROCESSING:
       per_gene_correction : [False]
     
 
-
-
 METRICS:
   batch1:
     dataset: test_xenium
     metrics: all
     files: all #for custom lists, you have to list ONLY the methods combinations, no prefix or suffix
-    chunk_size: 4
-  
+    chunk_size: 4 # for a given dataset, use the same chunk_size, otherwise last one will be used
+
 
 DATA_SCENARIOS:
   test:

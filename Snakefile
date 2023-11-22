@@ -456,7 +456,8 @@ rule group_metrics:
     conda:
         "envs/txsim-env.yaml"
     input:
-        parsed.get_metric_inputs #function that can accept wildcards as input argument
+        parsed.get_metric_inputs, #function that can accept wildcards as input argument
+        '{results}/{dataset}/group_metric_chunks.csv'
     output:
         '{results}/{dataset}/{replicate}/group_metrics-{id_code}.csv'
     shell:
