@@ -63,9 +63,7 @@ if __name__ == '__main__':
     # Read in the single-cell data
     adata_sc = sc.read(file_sc)
     
-    adata = tx.preprocessing.generate_adata(
-    input_spots=pd.read_csv(f'{data}/assignments_{assignment_method}.csv'),
-        adata_sc=adata_sc)
+    adata = tx.preprocessing.generate_adata(pd.read_csv(f'{data}/assignments_{assignment_method}.csv'))
     
     #Find area for normalization
     if normalize_by == 'area' or find_area:

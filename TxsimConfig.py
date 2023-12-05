@@ -9,6 +9,7 @@ from snakemake.io import expand
 import os
 import yaml
 from collections import OrderedDict
+from typing import Optional
 
 class ParsedConfig:
 
@@ -409,8 +410,17 @@ class ParsedConfig:
                 #print(f"Checking dataset '{dataset}'...")
                 self.check_dataset(dataset)
 
+    def _file_names_for_tile_info(self):
+        directories = [f.rsplit("/",1)[0] for f in self.final_files]
+        directories = np.unique(directories)
+        directories = [d for d in directories if ("replicate" in d.split("/")[-1])]
+        return [d + "/tile_info.csv" for d in directories]
+
     def gen_file_names(self):
-        return self.final_files
+        if not self.cfg["PRE_COMPUTE_TILE_INFO"]:
+            return self.final_files
+        else:
+            return self._file_names_for_tile_info()
 
     def get_metric_inputs(self, wildcards):
         #TODO modify so it adds file type to names
@@ -435,6 +445,52 @@ class ParsedConfig:
 
     def get_replicate_file(self, dataset, file_name, replicate_number):
         return os.path.join(self.cfg['DATA_SCENARIOS'][dataset]['root_folder'] , self.cfg['DATA_SCENARIOS'][dataset][file_name][replicate_number])
+    
+    def get_tiles_aggregation_input_files(
+            self, dataset: str, rep_id: int, method: str, id_code: int, seg: Optional[str] = None, 
+            areas: bool = True
+        ):
+        """Get input files of assignments (and areas) per tile for aggregation
+        
+        Arguments
+        ---------
+        dataset: str
+        rep_id: int
+        method: str
+            Assignment method (baysor or clustermap)
+        id_code: int
+            Parameter id of assignment method
+        seg: str
+            Segmentation method with id code if prior segmentation is included
+        areas: bool
+            Whether to include csvs for cell areas of each tile
+            
+        Returns
+        -------
+        list:
+            Assignments (and areas) csv paths
+        
+        """
+        rep_dir = os.path.join(self.cfg['RESULTS'], f"{dataset}/replicate{rep_id}")
+        tile_info_path = os.path.join(rep_dir,"tile_info.csv")
+        if not os.path.exists(tile_info_path):
+            raise ValueError("tile_info.csv doesn't exist. First run the pipeline once with 'PRE_COMPUTE_TILE_INFO: True' in the config.yaml")
+        df = pd.read_csv(tile_info_path, index_col=0)
+        nx = df.loc[method,"nx"]
+        ny = df.loc[method,"ny"]
+        extend_n_px = df.loc[method,"extend_n_px"]
+        files = []
+        seg_str = "" if seg is None else (seg+"_")
+        for x in range(nx):
+            for y in range(ny):
+                files.append(
+                    os.path.join(rep_dir, f"assignments_{seg_str}{method}-{id_code}_ny{ny}_nx{nx}_{y}_{x}_px{extend_n_px}.csv")
+                )
+                if areas:
+                    files.append(
+                        os.path.join(rep_dir, f"areas_{seg_str}{method}-{id_code}_ny{ny}_nx{nx}_{y}_{x}_px{extend_n_px}.csv")
+                    )
+        return files
     
     def get_aggregate_inputs(self, wildcards, file_type):
         required_inputs = []

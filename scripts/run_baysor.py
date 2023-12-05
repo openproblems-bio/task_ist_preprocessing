@@ -40,6 +40,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Assign molecules to cells using Baysor')
     parser.add_argument('-m', '--molecules', required=True, type=str, 
         help='Input csv file in format [Gene, x, y]') # spot.csv
+    parser.add_argument('-o', '--output', required=False, type=str, default=None, help="Assignment output csv path")
     parser.add_argument('-d', '--data', required=True, type=str, 
         help='Ouput data directory- should also contain segmented image') # <results>/<dataset>
     parser.add_argument('-s', '--segment', default=None, type=str,
@@ -104,6 +105,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     molecules = args.molecules
+    assign_out = args.output
     data = args.data
     segmentation_method = args.segment
     hyperparams = eval(args.hyperparams)
@@ -184,10 +186,16 @@ if __name__ == '__main__':
     spots = convert_str_ids_to_ints(spots, file_path_for_error_messages=baysor_seg)
     areas = convert_str_ids_to_ints(areas, file_path_for_error_messages=baysor_cell)    
     
-    #Save to csv
-    if segment:
-        areas.to_csv(f'{data}/areas_{segmentation_method}_baysor-{id_code}.csv', index = False, header = False)
-        spots.to_csv(f'{data}/assignments_{segmentation_method}_baysor-{id_code}.csv', index = False)
+    #Save to csv (TODO: added the -o input argument, should probably only use that one, not allowing "None")
+    if assign_out is None:
+        if segment:
+            areas.to_csv(f'{data}/areas_{segmentation_method}_baysor-{id_code}.csv', index = False, header = False)
+            spots.to_csv(f'{data}/assignments_{segmentation_method}_baysor-{id_code}.csv', index = False)
+        else:
+            areas.to_csv(f'{data}/areas_baysor-{id_code}.csv', index = False, header = False)
+            spots.to_csv(f'{data}/assignments_baysor-{id_code}.csv', index = False)
     else:
-        areas.to_csv(f'{data}/areas_baysor-{id_code}.csv', index = False, header = False)
-        spots.to_csv(f'{data}/assignments_baysor-{id_code}.csv', index = False)
+        spots.to_csv(assign_out, index = False)
+        areas_out = assign_out.replace("assignments_","areas_")
+        areas.to_csv(areas_out, index = False, header = False)
+        

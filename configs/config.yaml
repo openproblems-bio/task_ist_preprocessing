@@ -1,90 +1,118 @@
 #Folder where pipeline is contained (should end with 'txsim-pipeline')
 #This might be obsolete given snakemake functionality
 #ROOT: /home/icb/hrehman80//txsim-pipeline
-ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project/txsim-pipeline
+ROOT: /home/icb/louis.kuemmerle/projects/g3/tx/txsim-pipeline
 
 #Folder where intermediate/final files will be stored
 #RESULTS: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/results
-RESULTS: /mnt/d/HMGU/DATA/results
+RESULTS: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/results/231114_xenium_nuc
 
 #Folder where temporary files will be stored (optional)
 #TEMP: /localscratch/hrehman80
-TEMP: /mnt/d/HMGU/DATA/baysor/temp
+TEMP: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/tmp/231114_xenium_nuc
+
+# To run methods on tiles (baysor, clustermap) we need to pre calculate how to tile before the actual pipeline run
+PRE_COMPUTE_TILE_INFO: False #True
+
+# Tile settings
+MAX_N_SPOTS_PER_TILE_BAYSOR: 10000000
+MAX_N_SPOTS_PER_TILE_CLUSTERMAP: 10000000
+N_PIXEL_EXTEND_TILE: 30
 
 
 PREPROCESSING:
-  # batch1:
-  #   dataset: [test]
-  #   workflow: [cell-segmentation, normalize]
-  #   cell-segmentation:
-  #     baysor:
-  #   normalize:
-  #     area:
-  batch2:
-    dataset: [test_xenium]
+  batch0_binning:
+    dataset: [xenium_brain_new_rep2_2000px], #xenium_brain_new_rep2]
     workflow: [segmentation, assignment, normalize, annotate]
     segmentation:
-      cellpose:
-        min_size: [0]
-        # flow_threshold: [True]
-    segmentation_params:
-      expand: [0, 10, 15, 25]
+      binning:
+        bin_size: [15,30,45,60,70]
     assignment:
-      # basic:
-      pciSeq: #TODO opts might not be working
-        opts: [{'max_iter': 1002}]
+      basic:
     normalize:
       area:
-        use_max_area: [True]
-    normalize_params:
-      # prior_threshold: [0.501]
-      # max_area: [4000, 20000]  
-      # min_area: [100, 500, 750]
-      min_counts: [2]
-      # min_cell_percentage: 0.5
     annotate:
       majority:
         threshold: [0.5]
-    annotate_params:
-      per_gene_correction : [False]
-    
+  batch1_segmentation:
+    dataset: [xenium_brain_new_rep2_2000px] #, xenium_brain_new_rep2]
+    workflow: [segmentation, assignment, normalize, annotate]
+    segmentation:
+      custom:
+      mesmer:
+        image_mpp: [0.2125]
+        compartment: ["nuclear", "whole-cell"]
+      cellpose:
+        model_type: [nuclei, cyto]
+        diameter: [None, 20,30,40]
+      watershed:
+        blur_sigma: [0,1,5,10]
+    segmentation_params:
+      expand: [0, 5, 10, 20, 45, 70] 
+    assignment:
+      basic:
+    normalize:
+      area:
+    annotate:
+      majority:
+        threshold: [0.5]
+  batch2_assign:
+    dataset: [xenium_brain_new_rep2_2000px] #, xenium_brain_new_rep2]
+    workflow: [assignment, normalize, annotate]
+    assignment:
+      baysor:
+        scale: [20,30,40]
+        min_molecules_per_cell: [30]
+      clustermap:
+        xy_radius: [20,30,40]
+        sigma: [1,5]
+    normalize:
+      area:
+    annotate:
+      majority:
+        threshold: [0.5]
+  batch3_segmentation_assign:
+    dataset: [xenium_brain_new_rep2_2000px] #, xenium_brain_new_rep2]
+    workflow: [segmentation, assignment, normalize, annotate]
+    segmentation:
+      cellpose:
+        model_type: [cyto]
+        diameter: [30]
+      custom:
+    segmentation_params:
+      expand: [0] # [0,5,10,15]
+    assignment:
+      baysor:
+        scale: [30]
+        min_molecules_per_cell: [30]
+        prior-segmentation-confidence: [0.2, 0.4, 0.6, 0.8]
+    normalize:
+      area:
+    annotate:
+      majority:
+        threshold: [0.5]
+
 
 METRICS:
-  batch1:
-    dataset: test_xenium
+  eval_batch0_xenium:
+    dataset: xenium_brain_new_rep2_2000px
     metrics: all
     files: all #for custom lists, you have to list ONLY the methods combinations, no prefix or suffix
     chunk_size: 4 # for a given dataset, use the same chunk_size, otherwise last one will be used
 
 
 DATA_SCENARIOS:
-  test:
+  xenium_brain_new_rep2:
     check_dataset: False
-    root_folder: /mnt/d/HMGU/DATA/test 
-    sc_data: sc_data.h5ad
-    segmented_image: segmented_image.tif
-    images: [raw_image.tif]
+    root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/xenium_data/xenium_brain_new_rep2
+    sc_data: scrnaseq_reference.h5ad
+    segmented_image: [nuclei.tif]
+    images: [morphology_focus.ome.tif]
     molecules: [spots.csv]
-  test_xenium:
+  xenium_brain_new_rep2_2000px:
     check_dataset: False
-    root_folder: /mnt/d/HMGU/DATA/Xenium 
-    sc_data: scdata.h5ad
-    images: [test_replicates/image1.tif, test_replicates/image2.tif, test_replicates/image3.tif]
-    molecules: [test_replicates/spots_rep1.csv, test_replicates/spots_rep2.csv, test_replicates/spots_rep3.csv]
-  # hippocampus:
-  #   root_folder: /mnt/d/HMGU/DATA/hippocampus 
-  #   image: CA1DapiBoundaries_7-1_right.tif
-  #   sc_data: scdata.h5ad
-  #   molecules: spots_w_celltype_rightCA1_7-1.csv
-
-# DATA_SCENARIOS:
-#   test:
-#     root_folder: /home/icb/hrehman80/test_data
-#     image: raw_image.tif
-#     sc_data: sc_data.h5ad
-#     molecules: spots.csv
-#   heart_PCW4.5:
-#     root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/heart_data
-#     image: nuclei_PCW4.5_1.tif
-#     sc_data: heart_sc.h5ad
-#     molecules: spots_PCW4.5_1.csv
+    root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/xenium_data/xenium_brain_new_rep2_2000px
+    sc_data: scrnaseq_reference.h5ad
+    segmented_image: [nuclei.tif]
+    images: [morphology_focus.ome.tif]
+    molecules: [spots.csv]
