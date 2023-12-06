@@ -11,9 +11,9 @@ dependencies:
   - cellpose
   - shapely
   - scikit-image
+  - scikit-learn>=1.1.0
   - pip:
     - PyYAML
-    - pyitlib
     - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim
     - omnipath
     - planktonspace

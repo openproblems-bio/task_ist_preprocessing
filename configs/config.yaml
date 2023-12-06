@@ -22,7 +22,7 @@ N_PIXEL_EXTEND_TILE: 30
 
 PREPROCESSING:
   batch0_binning:
-    dataset: [xenium_brain_new_rep2_2000px], #xenium_brain_new_rep2]
+    dataset: [xenium_brain_new_rep2_2000px] #, xenium_brain_new_rep2]
     workflow: [segmentation, assignment, normalize, annotate]
     segmentation:
       binning:
@@ -56,49 +56,51 @@ PREPROCESSING:
     annotate:
       majority:
         threshold: [0.5]
-  batch2_assign:
-    dataset: [xenium_brain_new_rep2_2000px] #, xenium_brain_new_rep2]
-    workflow: [assignment, normalize, annotate]
-    assignment:
-      baysor:
-        scale: [20,30,40]
-        min_molecules_per_cell: [30]
-      clustermap:
-        xy_radius: [20,30,40]
-        sigma: [1,5]
-    normalize:
-      area:
-    annotate:
-      majority:
-        threshold: [0.5]
-  batch3_segmentation_assign:
-    dataset: [xenium_brain_new_rep2_2000px] #, xenium_brain_new_rep2]
-    workflow: [segmentation, assignment, normalize, annotate]
-    segmentation:
-      cellpose:
-        model_type: [cyto]
-        diameter: [30]
-      custom:
-    segmentation_params:
-      expand: [0] # [0,5,10,15]
-    assignment:
-      baysor:
-        scale: [30]
-        min_molecules_per_cell: [30]
-        prior-segmentation-confidence: [0.2, 0.4, 0.6, 0.8]
-    normalize:
-      area:
-    annotate:
-      majority:
-        threshold: [0.5]
+  #batch2_assign:
+  #  dataset: [xenium_brain_new_rep2_2000px] #, xenium_brain_new_rep2]
+  #  workflow: [assignment, normalize, annotate]
+  #  assignment:
+  #    baysor:
+  #      scale: [20,30,40]
+  #      min_molecules_per_cell: [30]
+  #    clustermap:
+  #      xy_radius: [20,30,40]
+  #      sigma: [1,5]
+  #  normalize:
+  #    area:
+  #  annotate:
+  #    majority:
+  #      threshold: [0.5]
+  #batch3_segmentation_assign:
+  #  dataset: [xenium_brain_new_rep2_2000px] #, xenium_brain_new_rep2]
+  #  workflow: [segmentation, assignment, normalize, annotate]
+  #  segmentation:
+  #    cellpose:
+  #      model_type: [cyto]
+  #      diameter: [30]
+  #    custom:
+  #  segmentation_params:
+  #    expand: [0] # [0,5,10,15]
+  #  assignment:
+  #    baysor:
+  #      scale: [30]
+  #      min_molecules_per_cell: [30]
+  #      prior-segmentation-confidence: [0.2, 0.4, 0.6, 0.8]
+  #  normalize:
+  #    area:
+  #  annotate:
+  #    majority:
+  #      threshold: [0.5]
 
 
 METRICS:
   eval_batch0_xenium:
     dataset: xenium_brain_new_rep2_2000px
     metrics: all
-    files: all #for custom lists, you have to list ONLY the methods combinations, no prefix or suffix
-    chunk_size: 4 # for a given dataset, use the same chunk_size, otherwise last one will be used
+    chunk_size: 10 # for a given dataset, use the same chunk_size, otherwise last one will be used
+    files: [custom-3_basic-0_area-0_majority-0, custom-4_basic-0_area-0_majority-0, cellpose-1_basic-0_area-0_majority-0, cellpose-5_basic-0_area-0_majority-0, cellpose-37_basic-0_area-0_majority-0, cellpose-46_basic-0_area-0_majority-0, binning-0_basic-0_area-0_majority-0, binning-1_basic-0_area-0_majority-0, binning-2_basic-0_area-0_majority-0, binning-3_basic-0_area-0_majority-0, binning-4_basic-0_area-0_majority-0, mesmer-5_basic-0_area-0_majority-0, watershed-14_basic-0_area-0_majority-0, watershed-16_basic-0_area-0_majority-0]
+    #files: all #for custom lists, you have to list ONLY the methods combinations, no prefix or suffix (e.g. cellpose-5_basic-0_area-0_majority-0)
+    
 
 
 DATA_SCENARIOS:
