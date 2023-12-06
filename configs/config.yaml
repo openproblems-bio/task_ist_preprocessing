@@ -98,7 +98,7 @@ METRICS:
     dataset: xenium_brain_new_rep2_2000px
     metrics: all
     chunk_size: 10 # for a given dataset, use the same chunk_size, otherwise last one will be used
-    files: [custom-3_basic-0_area-0_majority-0, custom-4_basic-0_area-0_majority-0, cellpose-1_basic-0_area-0_majority-0, cellpose-5_basic-0_area-0_majority-0, cellpose-37_basic-0_area-0_majority-0, cellpose-46_basic-0_area-0_majority-0, binning-0_basic-0_area-0_majority-0, binning-1_basic-0_area-0_majority-0, binning-2_basic-0_area-0_majority-0, binning-3_basic-0_area-0_majority-0, binning-4_basic-0_area-0_majority-0, mesmer-5_basic-0_area-0_majority-0, watershed-14_basic-0_area-0_majority-0, watershed-16_basic-0_area-0_majority-0]
+    files: [custom-0_basic-0_area-0_majority-0, cellpose-0_basic-0_area-0_majority-0, binning-0_basic-0_area-0_majority-0, binning-1_basic-0_area-0_majority-0]
     #files: all #for custom lists, you have to list ONLY the methods combinations, no prefix or suffix (e.g. cellpose-5_basic-0_area-0_majority-0)
     
 
