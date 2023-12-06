@@ -1,3 +1,4 @@
+import gc
 import pandas as pd
 import numpy as np
 import anndata as ad
@@ -36,8 +37,7 @@ if __name__ == '__main__':
         adata1 = ad.read_h5ad(os.path.join(data, 'counts_' + pair[0] + '.h5ad'))
         adata2 = ad.read_h5ad(os.path.join(data, 'counts_' + pair[1] + '.h5ad'))
         
-        ann_sim = tx.metrics.calc_annotation_similarity(
-            adata1, adata2)
+        ann_sim = tx.metrics.calc_annotation_similarity(adata1, adata2)
 
         #TODO always change to adjusted rand index?
         rand_idx = sklearn.metrics.adjusted_rand_score(
@@ -46,6 +46,10 @@ if __name__ == '__main__':
         
         metric_list['rand_index'][pair] = rand_idx
         metric_list['annotation_similarity'][pair] = ann_sim
+        
+        del adata1
+        del adata2
+        gc.collect()
     
     metric_list.to_csv(f'{data}/group_metrics-{id_code}.csv')
 
