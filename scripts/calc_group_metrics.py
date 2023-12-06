@@ -4,50 +4,49 @@ import anndata as ad
 import txsim as tx
 import argparse
 import os
+import itertools
+import sklearn
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Calculate metrics across different runs')
     parser.add_argument('-d', '--data', required=True, type=str, 
-        help='Output data directory- should also count matrix')
-    parser.add_argument('-f', '--files', required=True, type=str,
-        help='List of all files or "all" for all runs in dataset')
+        help='Output data directory')
+    parser.add_argument('-id', '--id_code', required=True, type = str,
+        help='ID of method to be used for saving')
     
     args = parser.parse_args()
     
     data = args.data
-    files = args.files
+    id_code = args.id_code
 
-    assignments = pd.DataFrame()
+    # join with parent since data include replicate
+    df = pd.read_csv(os.path.join(os.path.dirname(data), 'group_metric_chunks.csv'), index_col = False)
+    # read relevant pairs based on chunk id
+    chunk_df = df.loc[df['chunk_id']==int(id_code),['run1','run2']]
+    #print(chunk_df)
+    index_list = list(chunk_df.itertuples(index=False))
 
-    if files == 'all':
-        count_files = list( filter(lambda file: 'counts_' in file and 'norm' not in file, os.listdir(data)))
-        normcount_files = list( filter(lambda file: 'normcounts_' in file, os.listdir(data)))
-    else:
-        count_files = list(eval(files)) #TODO fix every instance of eval -> not good style apparently
+    metric_list = pd.DataFrame(
+        columns = ['rand_index', 'annotation_similarity'], 
+        index = pd.MultiIndex.from_tuples(index_list, names=('run1','run2')))
+
+    #Calculate each metric
+    #TODO make more efficient by not reloading the same one every time
+    for pair in index_list:
+        adata1 = ad.read_h5ad(os.path.join(data, 'counts_' + pair[0] + '.h5ad'))
+        adata2 = ad.read_h5ad(os.path.join(data, 'counts_' + pair[1] + '.h5ad'))
         
-    adata_list = []
-    name_list = []
+        ann_sim = tx.metrics.calc_annotation_similarity(
+            adata1, adata2)
+
+        #TODO always change to adjusted rand index?
+        rand_idx = sklearn.metrics.adjusted_rand_score(
+            adata1.uns['spots']['cell'].fillna(0).replace({-1:0}), 
+            adata2.uns['spots']['cell'].fillna(0).replace({-1:0}))
+        
+        metric_list['rand_index'][pair] = rand_idx
+        metric_list['annotation_similarity'][pair] = ann_sim
     
-    for count_matrix in normcount_files:
-        path = os.path.join(data, count_matrix)
-        adata = ad.read_h5ad(path)
-        row_name = count_matrix.replace('normcounts_', '').replace('.h5ad','')
-        assignments[row_name] = adata.uns['spots']['cell'].fillna(0).replace({-1:0})
-
-    for count_matrix in count_files:
-        path = os.path.join(data, count_matrix)
-        adata = ad.read_h5ad(path)
-        row_name = count_matrix.replace('counts_', '').replace('.h5ad','')
-        name_list.append(row_name)
-        adata_list.append(adata.copy())
-
-    df = tx.metrics.calc_rand_index(assignments)
-    df.to_csv(f'{data}/rand_matrix.csv')
-
-    df = tx.metrics.calc_annotation_matrix(adata_list = adata_list, name_list = name_list)
-    df.to_csv(f'{data}/annotation_matrix.csv')
-
-    metric_list = pd.DataFrame()
-    metric_list.to_csv(f'{data}/group_metrics.csv')
+    metric_list.to_csv(f'{data}/group_metrics-{id_code}.csv')
 
     

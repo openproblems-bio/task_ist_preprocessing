@@ -337,3 +337,6 @@ pciSeqCT:
 annotation_params:
   per_gene_correction: False
   per_gene_layer: lognorm
+
+metrics:
+  chunk_size: 10
