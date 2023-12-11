@@ -42,7 +42,7 @@ watershed:
   normalize_inv: False
   normalize_cutoff: 0.5
 
-  contrast_adjustment_func: "equalize_hist"
+  contrast_adjustment_func: "equalize_adapthist"
   contrast_adjustment_kernel_size: None
   contrast_adjustment_clip_limit: 0.01
   contrast_adjustment_nbins: 256
@@ -61,7 +61,7 @@ watershed:
   blur_out: None   #delete?
   blur_behavior: 'ndimage'   #delete?
 
-  threshold_func: "otsu"
+  threshold_func: "local_otsu"  #"otsu","triangle"
   threshold_nbins: 256
   threshold_hist: None
   threshold_out: None
@@ -70,7 +70,7 @@ watershed:
   threshold_shift_y: False
   threshold_shift_z: False
   threshold_footprint: "square"
-  threshold_footprint_size: 10
+  threshold_footprint_size: 50
 
   distance_transform_func: "distance_transform_edt"
   distance_transform_sampling: None
@@ -92,6 +92,9 @@ watershed:
   post_processing_connectivity_2: 1
   post_processing_out_2: None
 
+  bg_intensity_filter_bg_factor: 0.3 # set to 0 to disable
+  bg_intensity_filter_window_size: 1000 
+  bg_intensity_filter_bg_size: 2000
 
 # Parameters for cellpose
 # - Parameter used in GUI
