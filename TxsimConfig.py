@@ -331,6 +331,8 @@ class ParsedConfig:
 
             if (update_table):
                 print("Updating group metrics matrix and table")
+                if not os.path.exists(os.path.join(self.cfg['RESULTS'], dataset)):
+                    os.makedirs(os.path.join(self.cfg['RESULTS'], dataset))
                 run_matrix.to_csv(os.path.join(self.cfg['RESULTS'], f"{dataset}/group_metric_matrix.csv"))
                 table_run_pairs.to_csv(os.path.join(self.cfg['RESULTS'], f"{dataset}/group_metric_chunks.csv"), index=False)
 

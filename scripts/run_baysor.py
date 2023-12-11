@@ -1,6 +1,7 @@
 import pandas as pd
 import argparse
 import os
+import gc
 from pathlib import Path
 
 
@@ -53,6 +54,7 @@ if __name__ == '__main__':
         help='Temp data directory for intermediate files') # 
     
     DEFAULT_HYPERPARAMS = {
+        "use_3d" : True,
         # Taken from https://github.com/kharchenkolab/Baysor/blob/master/configs/example_config.toml
         
         # [Data]
@@ -147,11 +149,26 @@ if __name__ == '__main__':
             elif key == "new_component_weight":
                 #file.write(f'\n[Sampling]\n')
                 file.write(f'\n[sampling]\n')
-            if key not in ["scale", "prior-segmentation-confidence"]:
-                file.write(f'{key} = {val}\n')
+            if key not in ["scale", "prior-segmentation-confidence", "use_3d"]:
+                if hparams["use_3d"] or (key != "z"):
+                    file.write(f'{key} = {val}\n')
+    
+    # For 2d case: Create temp molecules file without z column (otherwise baysor uses z if available)
+    tmp_spots_for_2d = False
+    if not hparams["use_3d"]:
+        df = pd.read_csv(molecules)
+        cols = [col for col in df.columns if not (col in ["z", hparams["z"], hparams["z"].replace('"',''), hparams["z"].replace("'",'')])]
+        if len(cols) < len(df.columns):
+            molecules_2d = temp / "spots_no_z.csv"
+            df[cols].to_csv(molecules_2d, index=False)
+            tmp_spots_for_2d = True
+        del df
+        gc.collect()
     
     # Note: we provide scale separately because when providing it via .toml baysor can complain that's it's not a float
     baysor_cli = f"run -s {hparams['scale']} -c {toml_file} -o {temp}/ {molecules}"
+    if tmp_spots_for_2d:
+        baysor_cli = f"run -s {hparams['scale']} -c {toml_file} -o {temp}/ {str(molecules_2d)}"
     #baysor_cli = "run "
     #for key, val in hyperparams.items():
     #    baysor_cli += f"--{key} {val} "
@@ -199,3 +216,6 @@ if __name__ == '__main__':
         areas_out = assign_out.replace("assignments_","areas_")
         areas.to_csv(areas_out, index = False, header = False)
         
+    if tmp_spots_for_2d:
+        # Delete temp molecules file
+        molecules_2d.unlink()

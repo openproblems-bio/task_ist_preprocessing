@@ -263,6 +263,7 @@ pciSeq:
   dtype: np.float64
 
 baysor:
+  use_3d : True
   # Taken from https://github.com/kharchenkolab/Baysor/blob/master/configs/example_config.toml
   
   # [Data]
@@ -270,7 +271,7 @@ baysor:
   x : '"x"'
   # Name of the y column in the input data. Default: "y"
   y : '"y"'
-  # Name of the y column in the input data. Default: "z"
+  # Name of the z column in the input data. Default: "z"
   z : '"z"'
   # Name of gene column in the input data. Default: "gene"
   gene : '"Gene"'
