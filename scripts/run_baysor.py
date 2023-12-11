@@ -166,9 +166,15 @@ if __name__ == '__main__':
         gc.collect()
     
     # Note: we provide scale separately because when providing it via .toml baysor can complain that's it's not a float
-    baysor_cli = f"run -s {hparams['scale']} -c {toml_file} -o {temp}/ {molecules}"
-    if tmp_spots_for_2d:
-        baysor_cli = f"run -s {hparams['scale']} -c {toml_file} -o {temp}/ {str(molecules_2d)}"
+    if hparams['scale'] > 0:
+        baysor_cli = f"run -s {hparams['scale']} -c {toml_file} -o {temp}/ "
+    else:
+        baysor_cli = f"run -c {toml_file} -o {temp}/ "
+        
+    if not tmp_spots_for_2d:
+        baysor_cli += f"{molecules}"
+    else:
+        baysor_cli += f"{str(molecules_2d)}"
     #baysor_cli = "run "
     #for key, val in hyperparams.items():
     #    baysor_cli += f"--{key} {val} "

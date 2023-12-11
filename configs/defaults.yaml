@@ -283,7 +283,7 @@ baysor:
   # Minimal number of molecules for a cell to be considered as real. It's an important parameter, as it's used to infer several other parameters. Default: 3
   min_molecules_per_cell : 3
   # Scale parameter, which suggest approximate cell radius for the algorithm. This parameter is required.
-  scale : 50 #SCALE PARAM
+  scale : 50 #SCALE PARAM # if prior segmentation is provided SET TO 0 (then scale is neglected and chosen automatically)
   # Standard deviation of scale across cells. Can be either number, which means absolute value of the std, or string ended with "%" to set it relative to scale. Default: "25%"
   # "scale-std" : '"25%"',
   
