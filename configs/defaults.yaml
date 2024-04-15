@@ -372,13 +372,8 @@ FRmatch:
   subsamp_size: 10
   subsamp_iter: 2000
   subsamp_seed: 1 
-  numCores: 1 #Number of cores for parallel computing. if NULL, use the maximum number of cores detected by \code{\link[parallel]{detectCores}}. Otherwise, specify by an integer value.
+  numCores: null #Number of cores for parallel computing. if NULL, use the maximum number of cores detected by \code{\link[parallel]{detectCores}}. Otherwise, specify by an integer value.
   leiden_res: 1 # resolution for leiden clustering
   n_pcs: 20 # number of principal components for clustering
   cell_type_column: "celltype" # name of the cell type column in single cell data
-
-scrattch.hicat:
-  markers_perc: 0.8 #'markers.perc The fraction of randomly sampled markers to use for each round. Default = 0.8.
-  iter: 100  #' iter Number of iterations to perform. Default = 100.
-  method: "median" #' method Method for mapping,  choices = c("mean","median") Default = "median".
-  cell_type_column: "celltype" # name of the cell type column in single cell data
+  
