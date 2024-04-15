@@ -143,7 +143,7 @@ cellpose:
   cellprob_threshold: 0.0
   min_size: 15  #Can turn off with -1
   stitch_threshold: 0.0 # Only for 3D data
-  rescale: None
+  #rescale: None
   #progress: None
   #model_loaded: False
 
@@ -344,3 +344,41 @@ annotation_params:
 
 metrics:
   chunk_size: 10
+
+tangram:
+  sc_ct_labels : "celltype" #Labels of the cell_type layer in the single cell adata
+  device : "cpu"
+  mode : "cells" # Tangram mapping mode. 'cells', 'clusters', 'constrained'. Default is 'cells'
+  num_epochs : 1000 #Number of epochs. Default is 1000
+
+mfishtools:
+  qprob: 0.9     # Parameter for scaling mFISH to FACS
+  thresh: -3       # Set counts less than or equal to thresh to 0
+  binarize: False   # Should the data be binarized?
+  cell_type_col: "celltype" # name of the cell type column in single cell data obs
+  #column names in obs of spatial data
+  area_col: "area"
+  x_col: "centroid_x"
+  y_col: "centroid_y"
+
+FRmatch:
+  #Filtering out small/poor-quality/no-marker clusters
+  filter_size: 5 #filter based on the number of cells per cluster
+  filter_fscore: null #NULL: do not filter based on the F-beta score, otherwise specify a numeric value between 0 and 1
+  filter_nomarker: False #filter based on the boolean variable indicating if to filter reference clusters with no marker genes available in query in the case of feature_selection="reference.markers"
+  add_pseudo_marker: False # Adding pseudo marker to stabilize no expression clusters in the marker gene feature space
+  pseudo_expr: 1 #Pseudo marker expression values are drawn from uniform distribution from 0 to pseudo_expr
+  #Numeric variables for iterative subsampling size, number of iterations, and random seed for iterations
+  subsamp_size: 10
+  subsamp_iter: 2000
+  subsamp_seed: 1 
+  numCores: 1 #Number of cores for parallel computing. if NULL, use the maximum number of cores detected by \code{\link[parallel]{detectCores}}. Otherwise, specify by an integer value.
+  leiden_res: 1 # resolution for leiden clustering
+  n_pcs: 20 # number of principal components for clustering
+  cell_type_column: "celltype" # name of the cell type column in single cell data
+
+scrattch.hicat:
+  markers_perc: 0.8 #'markers.perc The fraction of randomly sampled markers to use for each round. Default = 0.8.
+  iter: 100  #' iter Number of iterations to perform. Default = 100.
+  method: "median" #' method Method for mapping,  choices = c("mean","median") Default = "median".
+  cell_type_column: "celltype" # name of the cell type column in single cell data

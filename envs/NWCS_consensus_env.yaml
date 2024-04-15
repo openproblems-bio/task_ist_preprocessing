@@ -1,0 +1,11 @@
+name: NWCS-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - pip:
+    - numpy
+    - pandas
+
+

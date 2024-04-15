@@ -1,0 +1,15 @@
+name: tangram-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - pip:
+    - pandas
+    - numpy
+    - scanpy
+    - anndata
+    - PyYAML
+    - tangram-sc
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim 
