@@ -56,7 +56,9 @@ if __name__ == '__main__':
     annotation_df = run_tangram(adata, adata_sc, sc_ct_labels=hyperparams["sc_ct_labels"],  mode = hyperparams["mode"],num_epochs = hyperparams["num_epochs"],device = hyperparams["device"])
 
 
-    
+    # Keep only 'cell_id', 'celltype', and 'score' columns
+    annotation_df = annotation_df[['cell_id', 'celltype', 'score']]
+
     
     # Save annotation
     annotation_df.obs.to_csv(args.output, index=False)

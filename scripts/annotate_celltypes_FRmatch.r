@@ -219,7 +219,9 @@ annotate_cells <- function(args) {
   #rename columns
   colnames(annotation_df)[colnames(annotation_df) == "match"] <- "celltype"
   colnames(annotation_df)[colnames(annotation_df) == "query.cell"] <- "cell_id"
- 
+  
+  # Keep only 'cell_id', 'celltype', and 'score' columns
+  annotation_df <- annotation_df[, c('cell_id', 'celltype', 'score')]
   # Save annotation
   write.csv(annotation_df, file=args$output, row.names = FALSE)
 }

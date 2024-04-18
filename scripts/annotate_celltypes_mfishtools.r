@@ -204,7 +204,8 @@ annotate_cells <- function(args) {
   colnames(annotation_df)[colnames(annotation_df) == "Correlation"] <- "score"
   
 
-  
+  # Keep only 'cell_id', 'celltype', and 'score' columns
+  annotation_df <- annotation_df[, c('cell_id', 'celltype', 'score')]
   # Save annotation
   write.csv(annotation_df, file=args$output, row.names = FALSE)
 }
