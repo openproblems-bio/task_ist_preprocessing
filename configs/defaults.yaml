@@ -360,6 +360,7 @@ mfishtools:
   area_col: "area"
   x_col: "centroid_x"
   y_col: "centroid_y"
+  cell_id: "cell_id"
 
 FRmatch:
   #Filtering out small/poor-quality/no-marker clusters
@@ -376,7 +377,9 @@ FRmatch:
   leiden_res: 1 # resolution for leiden clustering
   n_pcs: 20 # number of principal components for clustering
   cell_type_column: "celltype" # name of the cell type column in single cell data
-
+  cell_id: "cell_id" #cell id column name in spatial data
+  
 scrattch.mapping:
   cell_type_column: "celltype" # name of the cell type column in single cell data
   method: "correlation" # mapping method correlation, seurat or tree
+  cell_id: "cell_id" #cell id column name in spatial data

@@ -28,6 +28,7 @@ parse_args <- function() {
     temp_dir=NULL,
     method = NULL, 
     cell_type_col = NULL,
+    cell_id= NULL,
     per_gene_correction = NULL,
     per_gene_layer = NULL
     
@@ -61,6 +62,9 @@ parse_args <- function() {
     }
     if ("method" %in% names(params)) {
       arg_dict$method <- params$method
+    }
+    if ("cell_id" %in% names(params)) {
+      arg_dict$cell_id <- params$cell_id
     }
     
   }
@@ -100,7 +104,8 @@ annotate_cells <- function(args) {
   # Parse hyperparameters
   hyperparams <- list(
     cell_type_col = if (!is.null(args$cell_type_col)) args$cell_type_col else hparams_defaults$cell_type_col,
-    method = if (!is.null(args$method)) args$method else hparams_defaults$method
+    method = if (!is.null(args$method)) args$method else hparams_defaults$method,
+    cell_id = if (!is.null(args$cell_id)) args$cell_id else hparams_defaults$cell_id
     
   )
   groupparams <- list(
@@ -138,14 +143,14 @@ annotate_cells <- function(args) {
   adata <- read_h5ad(args$spatial)
   spatial_data = t(as.matrix(adata$X)) # transpose matrix : genes as rows and cells as columns
 
-  
+  print('Deleting')
   # delete sc celltype with less than 2 cells
   category_counts <- table(adata_sc$obs[[hyperparams$cell_type_col]])
   categories_to_keep <- names(category_counts[category_counts >= 2])
   rows_to_delete <- which(!adata_sc$obs[[hyperparams$cell_type_col]] %in% categories_to_keep)
   taxonomy.anno <- adata_sc$obs[-rows_to_delete, ]
   taxonomy.counts <- t(as.matrix(adata_sc$X[-rows_to_delete, ])) # Transpose matrix: genes as rows and cells as columns
- 
+  print('done')
 
 
 
@@ -189,7 +194,7 @@ annotate_cells <- function(args) {
   print("Mapping cell types...")
   mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 query.data=spatial_data,
-                                label.cols="cluster_label", 
+                                label.cols="cluster_label", ## Which obs in AIT.anndata contain annotations to map. E.g. "class", "subclass", etc.
                                 corr.map=corr.map,
                                 tree.map=tree.map,
                                 seurat.map=seurat.map)
@@ -201,7 +206,7 @@ annotate_cells <- function(args) {
   #tree.bootstraps = mapping.anno@detailed_results[["tree"]]
 
 
-  annotation_df$cell_id <- adata$obs$cell_id
+  annotation_df$cell_id <- adata$obs[[hyperparams$cell_id]]
   # Reorder columns in annotation_df with cell_id as the first column
   annotation_df <- annotation_df[, c("cell_id", setdiff(names(annotation_df), "cell_id"))]
   #rename columns

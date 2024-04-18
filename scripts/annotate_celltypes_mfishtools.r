@@ -32,7 +32,8 @@ parse_args <- function() {
     cell_type_col = NULL,
     area_col = NULL,
     x_col = NULL,
-    y_col=NULL
+    y_col=NULL,
+    cell_id= NULL
    
   )
   for (i in seq_along(args)) {
@@ -77,6 +78,9 @@ parse_args <- function() {
     if ("y_col" %in% names(params)) {
       arg_dict$y_col <- params$y_col
     }
+    if ("cell_id" %in% names(params)) {
+      arg_dict$cell_id <- params$cell_id
+    }
   }
   if (!is.null(g)){
     # Parse JSON string
@@ -119,7 +123,8 @@ annotate_cells <- function(args) {
     cell_type_col = if (!is.null(args$cell_type_col)) args$cell_type_col else hparams_defaults$cell_type_col,
     area_col = if (!is.null(args$area_col)) args$area_col else hparams_defaults$area_col,
     x_col = if (!is.null(args$x_col)) args$x_col else hparams_defaults$x_col,
-    y_col = if (!is.null(args$y_col)) args$y_col else hparams_defaults$y_col
+    y_col = if (!is.null(args$y_col)) args$y_col else hparams_defaults$y_col,
+    cell_id = if (!is.null(args$cell_id)) args$cell_id else hparams_defaults$cell_id
     
   )
   groupparams <- list(
@@ -196,16 +201,16 @@ annotate_cells <- function(args) {
 
 
   annotation_df <- fishMouse$mappingResult
-  annotation_df$cell_id <- adata$obs$cell_id
+  annotation_df$cell_id <- adata$obs[[hyperparams$cell_id]]
   # Reorder columns in annotation_df with cell_id as the first column
   annotation_df <- annotation_df[, c("cell_id", setdiff(names(annotation_df), "cell_id"))]
   #rename columns
   colnames(annotation_df)[colnames(annotation_df) == "Class"] <- "celltype"
   colnames(annotation_df)[colnames(annotation_df) == "Correlation"] <- "score"
   
-
   # Keep only 'cell_id', 'celltype', and 'score' columns
   annotation_df <- annotation_df[, c('cell_id', 'celltype', 'score')]
+  
   # Save annotation
   write.csv(annotation_df, file=args$output, row.names = FALSE)
 }

@@ -34,7 +34,8 @@ parse_args <- function() {
     per_gene_layer = NULL,
     cell_type_column = NULL,
     leiden_res = NULL,
-    n_pcs = NULL
+    n_pcs = NULL,
+    cell_id = NULL
   )
   for (i in seq_along(args)) {
     if (args[i] %in% c("-s", "--spatial")) {
@@ -93,6 +94,9 @@ parse_args <- function() {
     if ("n_pcs" %in% names(params)) {
       arg_dict$n_pcs <- as.integer(params$n_pcs)
     }
+    if ("cell_id" %in% names(params)) {
+      arg_dict$cell_id <- params$cell_id
+    }
   }
   if (!is.null(g)){
     # Parse JSON string
@@ -142,7 +146,8 @@ annotate_cells <- function(args) {
   prefix_ref = "",
   cell_type_column = if (!is.null(args$cell_type_column)) args$cell_type_column else hparams_defaults$cell_type_column,
   leiden_res = if (!is.null(args$leiden_res)) as.numeric(args$leiden_res) else hparams_defaults$leiden_res,
-  n_pcs = if (!is.null(args$n_pcs)) as.integer(args$n_pcs) else hparams_defaults$n_pcs
+  n_pcs = if (!is.null(args$n_pcs)) as.integer(args$n_pcs) else hparams_defaults$n_pcs,
+  cell_id = if (!is.null(args$cell_id)) args$cell_id else hparams_defaults$cell_id
   )
 
 
@@ -182,14 +187,14 @@ annotate_cells <- function(args) {
           
   #spatial data object    
   # run clustering first
-  print('creating obj')
+  print('Initial Clustering')
   adata_Seurat <- CreateSeuratObject(counts = tcrossprod(adata$X), project = "spatial", min.cells = 3, min.features = 200)
   
   
 
   all.genes <- rownames(adata_Seurat)
   adata_Seurat <- ScaleData(adata_Seurat,features = all.genes)
-  print('PCA')
+
   adata_Seurat <- RunPCA(adata_Seurat, features = all.genes)
   adata_Seurat <- FindNeighbors(adata_Seurat, dims = 1:hyperparams$n_pcs)
   adata_Seurat <- FindClusters(adata_Seurat, resolution = hyperparams$leiden_res, algorithm = 4)
@@ -200,13 +205,14 @@ annotate_cells <- function(args) {
 
   #create object
   sp_df = as.data.frame(as.matrix(adata$X))
-  sp_df <- cbind(rownames(adata$obs), sp_df)
-  colnames(sc_df)[1] <- "Sample"
+  sp_df <- cbind(adata$obs[[hyperparams$cell_id]], sp_df)
+  colnames(sp_df)[1] <- "Sample"
   object_spatial <- make_data_object(dat = sp_df,
                             tab = cell_cluster_labels_spatial,
                             markers = colnames(adata$X)) 
 
   # Run cell type annotation
+  print('Mapping cell types')
   result <- FRmatch_cell2cluster(object_spatial, object_sc,
                       feature.selection=hyperparams$feature_selection, 
                       filter.size=hyperparams$filter_size, filter.fscore=hyperparams$filter_fscore, filter.nomarker=hyperparams$filter_nomarker, #filtering clusters
@@ -214,12 +220,12 @@ annotate_cells <- function(args) {
                       subsamp.size=hyperparams$subsamp_size, subsamp.iter=hyperparams$subsamp_iter, subsamp.seed=hyperparams$subsamp_seed, #subsampling
                       numCores=hyperparams$numCores, prefix=c(hyperparams$prefix_q, hyperparams$prefix_ref))
   
-
+  # check result type
   annotation_df <- result$cell2cluster
   #rename columns
   colnames(annotation_df)[colnames(annotation_df) == "match"] <- "celltype"
   colnames(annotation_df)[colnames(annotation_df) == "query.cell"] <- "cell_id"
-  
+ 
   # Keep only 'cell_id', 'celltype', and 'score' columns
   annotation_df <- annotation_df[, c('cell_id', 'celltype', 'score')]
   # Save annotation
