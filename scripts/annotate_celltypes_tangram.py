@@ -57,8 +57,8 @@ if __name__ == '__main__':
 
 
     # Keep only 'cell_id', 'celltype', and 'score' columns
-    annotation_df = annotation_df[[hyperparams["cell_id"], 'celltype', 'score']]
+    annotation_df = annotation_df.obs[[hyperparams["cell_id"], 'celltype', 'score']]
 
     
     # Save annotation
-    annotation_df.obs.to_csv(args.output, index=False)
+    annotation_df.to_csv(args.output, index=False)

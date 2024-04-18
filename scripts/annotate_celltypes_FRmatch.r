@@ -199,8 +199,8 @@ annotate_cells <- function(args) {
   adata_Seurat <- FindNeighbors(adata_Seurat, dims = 1:hyperparams$n_pcs)
   adata_Seurat <- FindClusters(adata_Seurat, resolution = hyperparams$leiden_res, algorithm = 4)
   
-
-  cell_cluster_labels_spatial <- data.frame(Sample = attr(Idents(adata_Seurat), "names"), Cluster = Idents(adata_Seurat))
+  
+  cell_cluster_labels_spatial <- data.frame(Sample = adata$obs[[hyperparams$cell_id]], Cluster = Idents(adata_Seurat))
 
 
   #create object
