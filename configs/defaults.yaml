@@ -350,6 +350,7 @@ tangram:
   device : "cpu"
   mode : "cells" # Tangram mapping mode. 'cells', 'clusters', 'constrained'. Default is 'cells'
   num_epochs : 1000 #Number of epochs. Default is 1000
+  cell_id: "cell_id" #cell id column name in spatial data
 
 mfishtools:
   qprob: 0.9     # Parameter for scaling mFISH to FACS
@@ -378,7 +379,7 @@ FRmatch:
   n_pcs: 20 # number of principal components for clustering
   cell_type_column: "celltype" # name of the cell type column in single cell data
   cell_id: "cell_id" #cell id column name in spatial data
-  
+
 scrattch.mapping:
   cell_type_column: "celltype" # name of the cell type column in single cell data
   method: "correlation" # mapping method correlation, seurat or tree

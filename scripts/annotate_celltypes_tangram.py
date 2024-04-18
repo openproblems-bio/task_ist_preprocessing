@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
 
     # Keep only 'cell_id', 'celltype', and 'score' columns
-    annotation_df = annotation_df[['cell_id', 'celltype', 'score']]
+    annotation_df = annotation_df[[hyperparams["cell_id"], 'celltype', 'score']]
 
     
     # Save annotation
