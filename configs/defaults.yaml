@@ -376,4 +376,7 @@ FRmatch:
   leiden_res: 1 # resolution for leiden clustering
   n_pcs: 20 # number of principal components for clustering
   cell_type_column: "celltype" # name of the cell type column in single cell data
-  
+
+scrattch.mapping:
+  cell_type_column: "celltype" # name of the cell type column in single cell data
+  method: "correlation" # mapping method correlation, seurat or tree
