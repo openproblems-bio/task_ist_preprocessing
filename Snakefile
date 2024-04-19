@@ -234,22 +234,22 @@ rule mesmer:
 #        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
 #        "-id {wildcards.id_code} "
 
-rule pciSeq:
+rule pciseq:
     threads: 4
     resources:
         mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
-        "envs/pciSeq-env.yaml"
+        "envs/pciseq-env.yaml"
     input:
         '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1),
         scd = '{results}/{dataset}/sc_normalized.h5ad'
         #scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
     params:
-        hyper_params = lambda w: get_params('pciSeq', int(w.id_code), 'hyper_params')
+        hyper_params = lambda w: get_params('pciseq', int(w.id_code), 'hyper_params')
     output:
-        '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_pciSeq-{id_code}.csv',
-        '{results}/{dataset}/replicate{rep_id}/celltypes_{seg}_pciSeq-{id_code}.csv'
+        '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_pciseq-{id_code}.csv',
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{seg}_pciseq-{id_code}.csv'
     shell:
         "python3 scripts/run_pciseq.py "
         "-m {input.mol} "
