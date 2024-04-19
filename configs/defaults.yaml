@@ -209,7 +209,7 @@ clustermap:
 
 
 
-pciSeq:
+pciseq:
   # list of genes to be excluded during cell-typing, e.g ['Aldoc', 'Id2'] to exclude all spots from Aldoc and Id2
   exclude_genes: None
 
@@ -335,7 +335,7 @@ majority:
 ssam:
   threshold: 0.7
 
-pciSeqCT:
+pciseqct:
   threshold: 0.7
 
 annotation_params:
@@ -363,7 +363,7 @@ mfishtools:
   y_col: "centroid_y"
   cell_id: "cell_id"
 
-FRmatch:
+frmatch:
   #Filtering out small/poor-quality/no-marker clusters
   filter_size: 5 #filter based on the number of cells per cluster
   filter_fscore: null #NULL: do not filter based on the F-beta score, otherwise specify a numeric value between 0 and 1
@@ -380,7 +380,7 @@ FRmatch:
   cell_type_column: "celltype" # name of the cell type column in single cell data
   cell_id: "cell_id" #cell id column name in spatial data
 
-scrattch.mapping:
+scrattchmapping:
   cell_type_column: "celltype" # name of the cell type column in single cell data
   method: "correlation" # mapping method correlation, seurat or tree
   cell_id: "cell_id" #cell id column name in spatial data
