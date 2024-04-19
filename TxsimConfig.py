@@ -23,6 +23,8 @@ class ParsedConfig:
         #Maps all methods to list of parameters
         self.method_dict ={}
 
+        self.check_config_parameter_requirements()
+        
         #Create (and read previous) params dict
         self.gen_params_dict()
 
@@ -375,6 +377,36 @@ class ParsedConfig:
         run_matrix.iloc[tuple(zip(np.tril_indices_from(run_matrix)))] = False
         return run_matrix
 
+    def check_config_parameter_requirements(self):
+        """ Test that config parameters follow specific requirements
+        """
+        
+        for batch in self.cfg['PREPROCESSING']:
+            
+            # Check for parameters of cell type annotation methods
+            if "annotate" in self.cfg['PREPROCESSING'][batch]:
+                check_specific_ct_annotation_parameters(self.cfg['PREPROCESSING'][batch]['annotate'])
+                
+                
+    def check_ct_annotation_parameters(self, ann_cfg: dict):
+        """ Test that cell type annotation config parameters follow specific requirements
+        
+        Arguments
+        ---------
+        ann_cfg: dict
+            Sub dictionary of config for cell type annotation and a specific batch, i.e. 
+            self.cfg['PREPROCESSING'][batch]['annotate']
+        
+        """
+        
+        if ("nwconsensus" in ann_cfg) and ("methods" in ann_cfg["nwconsensus"]):
+            methods = ann_cfg["nwconsensus"]["methods"]
+            m_sorted = "-".join(sorted(methods.split("-")))
+            assert methods == m_sorted; f"Methods not alphabetically sorted: {m_sorted} instead of {methods}."
+        
+        
+        
+    
     def check_files(self):
         for dataset in self.cfg['DATA_SCENARIOS']:
             num_replicates = 0
