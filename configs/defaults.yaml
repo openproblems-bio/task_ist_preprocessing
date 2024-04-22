@@ -333,6 +333,7 @@ majority:
   threshold: 0.7
 
 ssam:
+  um_per_pixel: 0.2125
   threshold: 0.7
 
 pciseqct:
