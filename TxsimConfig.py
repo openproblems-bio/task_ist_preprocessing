@@ -19,6 +19,7 @@ class ParsedConfig:
         defaults: str = None
     ):
         self.cfg = config
+        self.defaults = defaults
         self.final_files = []
         #Maps all methods to list of parameters
         self.method_dict ={}
@@ -562,7 +563,20 @@ class ParsedConfig:
         if id_code >= len(self.method_dict[method]):
             return None
             #raise Exception(f"Cannot find index {idx} in method '{method}'")
+        # Add default parameters if missing
+        if self.defaults is not None:
+            self.add_missing_params_from_defaults(method, id_code)
         return self.method_dict[method][id_code]
+    
+    def add_missing_params_from_defaults(self, method, id_code):
+        """TODO: group_params are not added yet
+        """
+        hparams = self.method_dict[method][id_code]['hyper_params']
+        with open(self.defaults,'r') as def_file:
+            def_dict = yaml.safe_load(def_file).get(method)
+            if def_dict is not None:
+                add_params = {k:def_dict[k] for k in def_dict if k not in hparams}
+                hparams.update(add_params)
     
     def check_dataset(self, dataset:str):
         """Test multiple requirements for the input files of a given dataset

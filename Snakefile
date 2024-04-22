@@ -731,12 +731,13 @@ def input_files_for_consensus_annotation(id_code, results, dataset, rep_id, meth
     rep_id: ID of replicate
     method: String that describes previously ran steps
     """
-    ct_method_ids = parsed.get_method_params("nwconsensus", id_code).get("ids")
-    ct_method_ids = id_codes.split('-')
-    ct_methods = parsed.get_method_params("nwconsensus", id_code).get("ct_methods")
+    hparams = get_params('nwconsensus', int(id_code), 'hyper_params')
+    ct_method_ids = hparams.get("ids")
+    ct_method_ids = ct_method_ids.split('-')
+    ct_methods = hparams.get("methods")
     ct_methods = ct_methods.split('-')
     file_paths = [
-        f"{results}/{dataset}/replicate{rep_id}/celltype_annotations_{method}_{ct_methods}-{ct_method_id}.csv"
+        f"{results}/{dataset}/replicate{rep_id}/celltype_annotations_{method}_{ct_method}-{ct_method_id}.csv"
         for (ct_method_id, ct_method) in zip(ct_method_ids, ct_methods)
     ]
     return file_paths
@@ -748,7 +749,7 @@ rule annotate_celltypes_nwconsensus:
     conda:
         "txsim-env.yaml"
     input:
-        lambda wildcards: input_files_for_consensus_annotation(w.id_code, w.results, w.dataset, w.rep_id, w.method)
+        lambda w: input_files_for_consensus_annotation(w.id_code, w.results, w.dataset, w.rep_id, w.method)
     output:
         '{results}/{dataset}/replicate{rep_id}/celltype_annotations_{method}_nwconsensus-{id_code}.csv'
     params:
