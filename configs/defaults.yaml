@@ -387,6 +387,8 @@ nwconsensus:
   # mean frmatch-3, ssam-1 etc. When only running with default values for each method, then "0-0-0" is a good choice. 
   # Note that the consensus methods can only be run if there are runs defined in the config for individual methods that 
   # generate according ids, i.e. frmatch-3 etc.
+  # Note: this parameter can lead to reproducibility issues: The pipeline is constructed such that the id codes of
+  # parameter combinations can be different when the config was built step after step vs being complete from the start.
   
 annotation_params:
   per_gene_correction: False

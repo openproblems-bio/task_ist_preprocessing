@@ -385,7 +385,7 @@ class ParsedConfig:
             
             # Check for parameters of cell type annotation methods
             if "annotate" in self.cfg['PREPROCESSING'][batch]:
-                check_specific_ct_annotation_parameters(self.cfg['PREPROCESSING'][batch]['annotate'])
+                self.check_ct_annotation_parameters(self.cfg['PREPROCESSING'][batch]['annotate'])
                 
                 
     def check_ct_annotation_parameters(self, ann_cfg: dict):
@@ -399,7 +399,7 @@ class ParsedConfig:
         
         """
         
-        if ("nwconsensus" in ann_cfg) and ("methods" in ann_cfg["nwconsensus"]):
+        if ("nwconsensus" in ann_cfg) and isinstance(ann_cfg["nwconsensus"],dict) and ("methods" in ann_cfg["nwconsensus"]):
             methods = ann_cfg["nwconsensus"]["methods"]
             m_sorted = "-".join(sorted(methods.split("-")))
             assert methods == m_sorted; f"Methods not alphabetically sorted: {m_sorted} instead of {methods}."

@@ -75,6 +75,9 @@ mkdir logs
 
 conda activate tx
 
+export SINGULARITY_TMPDIR=<some/tmp/dir/that/exists/and/has/space>
+export APPTAINER_TMPDIR=<some/tmp/dir/that/exists/and/has/space>
+
 snakemake --profile configs/cluster/
 ```
 

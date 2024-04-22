@@ -588,9 +588,41 @@ rule normalize_area:
 # type annotation csv first for methods that are not within the txsim package. (In the future we might want to just
 # generate a csv first for all methods, also the txsim ones, and split the annotation into 2 rules in general, that
 # way things are more unified and easier to understand. Also the naming of the rules is weird "annotate_counts"...)
-ruleorder: annotate_counts > annotate_counts_txsim_methods
+#ruleorder: annotate_counts > annotate_counts_txsim_methods
 
-rule annotate_counts_txsim_methods:
+#rule annotate_counts_txsim_methods:
+#    threads: 8
+#    resources:
+#        mem_mb = lambda wildcards, attempt: 64000 * attempt
+#    conda:
+#        "envs/txsim-env.yaml"
+#    input:
+#        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
+#        scd = '{results}/{dataset}/sc_normalized.h5ad'
+#    params:
+#        hyper_params = lambda w: get_params(w.ct_method, int(w.id_code), 'hyper_params'),
+#        group_params = lambda w: get_params(w.ct_method, int(w.id_code), 'group_params')
+#    output:
+#        '{results}/{dataset}/replicate{rep_id}/counts_{method}_{ct_method}-{id_code}.h5ad'
+#    shell:
+#        "python3 scripts/annotate_counts.py "
+#        "-c {wildcards.method} "
+#        "--singlecell {input.scd} "
+#        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
+#        "-a {wildcards.ct_method} "
+#        "-id {wildcards.id_code} "
+#        "-p \"{params.hyper_params}\" "
+#        "-g \"{params.group_params}\" "
+#
+#use rule annotate_counts_txsim_methods as annotate_counts with:
+#    wildcard_constraints:
+#        ct_method="tangram|pciseqct|mfishtools|frmatch|tangram|nwconsensus"
+#    input:
+#        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
+#        scd = '{results}/{dataset}/sc_normalized.h5ad',
+#        ct_csv = '{results}/{dataset}/replicate{rep_id}/celltype_annotations_{method}_{ct_method}-{id_code}.csv'
+
+rule annotate_counts_delete_me:
     threads: 8
     resources:
         mem_mb = lambda wildcards, attempt: 64000 * attempt
@@ -598,7 +630,8 @@ rule annotate_counts_txsim_methods:
         "envs/txsim-env.yaml"
     input:
         counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
-        scd = '{results}/{dataset}/sc_normalized.h5ad'
+        scd = '{results}/{dataset}/sc_normalized.h5ad',
+        ct_csv = '{results}/{dataset}/replicate{rep_id}/celltype_annotations_{method}_{ct_method}-{id_code}.csv'
     params:
         hyper_params = lambda w: get_params(w.ct_method, int(w.id_code), 'hyper_params'),
         group_params = lambda w: get_params(w.ct_method, int(w.id_code), 'group_params')
@@ -614,13 +647,7 @@ rule annotate_counts_txsim_methods:
         "-p \"{params.hyper_params}\" "
         "-g \"{params.group_params}\" "
 
-use rule annotate_counts_txsim_methods as annotate_counts with:
-    wildcard_constraints:
-        ct_method="tangram|pciseqct|mfishtools|frmatch|tangram|nwconsensus"
-    input:
-        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
-        scd = '{results}/{dataset}/sc_normalized.h5ad',
-        ct_csv = '{results}/{dataset}/replicate{rep_id}/celltype_annotations_{method}_{ct_method}-{id_code}.csv'
+
 
 # csv generating methods
 
@@ -692,12 +719,25 @@ rule annotate_celltypes_tangram:
 
 # Consensus methods
 
-def input_files_for_consensus_annotation(id_code, results, dataset, rep_id):
+def input_files_for_consensus_annotation(id_code, results, dataset, rep_id, method):
+    """ Get cell type annotation input csvs for rule for consensus annotation
+    
+    Arguments
+    ---------
+    id_code: int
+        ID that defines the parameters for the consensus annotation
+    results: Results folder
+    dataset: data set name
+    rep_id: ID of replicate
+    method: String that describes previously ran steps
+    """
+    ct_method_ids = parsed.get_method_params("nwconsensus", id_code).get("ids")
+    ct_method_ids = id_codes.split('-')
     ct_methods = parsed.get_method_params("nwconsensus", id_code).get("ct_methods")
-    methods = ct_methods.split('-')
+    ct_methods = ct_methods.split('-')
     file_paths = [
-        f"{results}/{dataset}/replicate{rep_id}/celltype_annotations_{method}_{ct_methods}-{id_code}.csv"
-        for method in methods
+        f"{results}/{dataset}/replicate{rep_id}/celltype_annotations_{method}_{ct_methods}-{ct_method_id}.csv"
+        for (ct_method_id, ct_method) in zip(ct_method_ids, ct_methods)
     ]
     return file_paths
 
@@ -706,9 +746,9 @@ rule annotate_celltypes_nwconsensus:
     resources:
         mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
-        "NWCS_consensus_env.yaml"
+        "txsim-env.yaml"
     input:
-        lambda wildcards: input_files_for_consensus_annotation(w.id_code, w.results, w.dataset, w.rep_id)
+        lambda wildcards: input_files_for_consensus_annotation(w.id_code, w.results, w.dataset, w.rep_id, w.method)
     output:
         '{results}/{dataset}/replicate{rep_id}/celltype_annotations_{method}_nwconsensus-{id_code}.csv'
     params:
