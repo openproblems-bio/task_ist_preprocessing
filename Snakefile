@@ -777,7 +777,7 @@ rule annotate_celltypes_nwconsensus:
     resources:
         mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
-        "txsim-env.yaml"
+        "envs/txsim-env.yaml"
     input:
         lambda w: input_files_for_consensus_annotation(w.id_code, w.results, w.dataset, w.rep_id, w.method)
     output:
