@@ -78,6 +78,7 @@ conda activate tx
 
 export SINGULARITY_TMPDIR=<some/tmp/dir/that/exists/and/has/space>
 export APPTAINER_TMPDIR=<some/tmp/dir/that/exists/and/has/space>
+export MAIN_SMK_JOB_ID=$SLURM_JOB_ID
 
 snakemake --profile configs/cluster/
 ```

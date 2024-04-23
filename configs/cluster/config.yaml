@@ -4,8 +4,8 @@ cluster:
     --cpus-per-task={threads}
     --qos={resources.qos}
     --job-name=smk_{rule}
-    --output=logs/%j/{rule}_output_%j.txt
-    --error=logs/%j/{rule}_output_%j.txt
+    --output=logs/$MAIN_SMK_JOB_ID/{rule}_output_%j.txt
+    --error=logs/$MAIN_SMK_JOB_ID/{rule}_output_%j.txt
     --mem={resources.mem_mb}
     --nice=10000
     --mail-user=hrehman80@helmholtz-muenchen.de
