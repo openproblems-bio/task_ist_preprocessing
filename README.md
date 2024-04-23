@@ -72,6 +72,7 @@ To use this pipeline on a cluster it is recommended to use a cluster profile. An
 #SBATCH -p cpu_p
 
 mkdir logs
+mkdir ./logs/$SLURM_JOB_ID
 
 conda activate tx
 
