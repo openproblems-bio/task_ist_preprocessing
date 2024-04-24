@@ -12,8 +12,8 @@ def parse_args():
     parser.add_argument("-d", "--scd", type=str, help="Path to scRNAseq data reference h5ad")
     parser.add_argument("-o", "--output", type=str, help="Path to output csv with cell type annotations")
     parser.add_argument("-m", "--ct_method", type=str, help="Cell type annotation method")
-    parser.add_argument("-p", "--hyper_params", type=str, help="Dictionary of method specific hyper parameters")
-    parser.add_argument("-g", "--group_params", type=str, help="Dictionary of method group hyper parameters")
+    parser.add_argument("-p", "--hyperparams", type=str, help="Dictionary of method specific hyper parameters")
+    parser.add_argument("-g", "--groupparams", type=str, help="Dictionary of method group hyper parameters")
     return parser.parse_args()
 
 

@@ -674,7 +674,7 @@ rule annotate_celltypes_mfishtools:
         hyper_params = lambda w: get_params('mfishtools', int(w.id_code), 'hyper_params'),
         group_params = lambda w: get_params('mfishtools', int(w.id_code), 'group_params')
     shell:
-        "Rscript annotate_celltypes_mfishtools.r " 
+        "Rscript scripts/annotate_celltypes_mfishtools.r " 
         "-s {input.counts} "
         "-d {input.scd} "
         "-o {output} "
@@ -696,7 +696,7 @@ rule annotate_celltypes_frmatch:
         hyper_params = lambda w: get_params('frmatch', int(w.id_code), 'hyper_params'),
         group_params = lambda w: get_params('frmatch', int(w.id_code), 'group_params')
     shell:
-        "Rscript annotate_celltypes_FRmatch.r " 
+        "Rscript scripts/annotate_celltypes_FRmatch.r " 
         "-s {input.counts} "
         "-d {input.scd} "
         "-o {output} "
@@ -718,7 +718,7 @@ rule annotate_celltypes_scrattchmapping:
         hyper_params = lambda w: get_params('scrattchmapping', int(w.id_code), 'hyper_params'),
         group_params = lambda w: get_params('scrattchmapping', int(w.id_code), 'group_params')
     shell:
-        "Rscript annotate_celltypes_scrattchmapping.r " 
+        "Rscript scripts/annotate_celltypes_scrattchmapping.r " 
         "-s {input.counts} "
         "-d {input.scd} "
         "-o {output} "
@@ -740,7 +740,7 @@ rule annotate_celltypes_tangram:
         hyper_params = lambda w: get_params('tangram', int(w.id_code), 'hyper_params'),
         group_params = lambda w: get_params('tangram', int(w.id_code), 'group_params')
     shell:
-        "python3 annotate_celltypes_tangram.py " 
+        "python3 scripts/annotate_celltypes_tangram.py " 
         "-s {input.counts} "
         "-d {input.scd} "
         "-o {output} "
@@ -786,7 +786,7 @@ rule annotate_celltypes_nwconsensus:
         hyper_params = lambda w: get_params('nwconsensus', int(w.id_code), 'hyper_params'),
         group_params = lambda w: get_params('nwconsensus', int(w.id_code), 'group_params')
     shell:
-        "python3 annotate_celltypes_consensus_NWCS.py "
+        "python3 scripts/annotate_celltypes_consensus_NWCS.py "
         "-i {input} "
         "-o {output} "
         "-p \"{params.hyper_params}\" "
