@@ -4,9 +4,10 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.9
+  - python=3.10
   - pip
   - pip: 
+    - squidpy
     - scanpy
     - PyYAML
     - -e /home/icb/louis.kuemmerle/projects/g3/tx2/txsim

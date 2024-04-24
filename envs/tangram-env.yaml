@@ -7,6 +7,7 @@ dependencies:
   - python=3.9
   - pip
   - pip:
+    - squidpy
     - pandas
     - numpy
     - scanpy
