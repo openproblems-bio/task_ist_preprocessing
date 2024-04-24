@@ -558,10 +558,10 @@ class ParsedConfig:
     #`method` should be name of method, `id_code` should be an int
     def get_method_params(self, method, id_code):
         if self.method_dict.get(method) is None:
-            return None
+            return {}
             #raise Exception(f"Cannot find method: {method}") 
         if id_code >= len(self.method_dict[method]):
-            return None
+            return {}
             #raise Exception(f"Cannot find index {idx} in method '{method}'")
         # Add default parameters if missing
         if self.defaults is not None:

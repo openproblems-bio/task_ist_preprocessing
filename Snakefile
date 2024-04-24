@@ -40,7 +40,7 @@ def get_params(
     """
     if parsed.get_method_params(method, id_code) is not None:
         return parsed.get_method_params(method, id_code).get(param_name)
-    return None
+    return {}
 
 
 
