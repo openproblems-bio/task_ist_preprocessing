@@ -98,7 +98,7 @@ annotate_cells <- function(args) {
   # Load default hyperparameters from YAML config
   #defaults <- read_yaml("configs/defaults.yaml")
   defaults <- read_yaml(file.path(here("configs"), "defaults.yaml"))
-  hparams_defaults <- defaults$scrattch.mapping
+  hparams_defaults <- defaults$scrattchmapping
   gparams_defaults <- defaults$annotation_params
   
   # Parse hyperparameters
