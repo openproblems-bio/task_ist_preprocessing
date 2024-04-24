@@ -14,6 +14,7 @@ ENV PYTHON_VERSION=3.8
 
 # Install R packages
 RUN R -e "install.packages(c('data.table','Seurat', 'yaml', 'optparse', 'devtools','purrr'))"
+RUN R -e "install.packages('ggdendro', repos='https://cran.rstudio.com')"
 
 # Install Bioconductor packages
 RUN R -e "BiocManager::install(c('GO.db', 'WGCNA'))"
