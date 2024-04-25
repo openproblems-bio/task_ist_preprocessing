@@ -1,0 +1,14 @@
+#run git clone  https://github.com/AllenInstitute/cell_type_mapper before creating env
+name: mapmycells-env
+
+channels:
+  - defaults
+
+dependencies:
+  - python=3.9
+  - pip
+
+  - pip:
+   # - git+https://github.com/AllenInstitute/cell_type_mapper.git
+    - -r cell_type_mapper/requirements.txt
+    - -e cell_type_mapper/.
