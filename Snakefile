@@ -38,7 +38,8 @@ def get_params(
     dict
         Dictionary of parameters
     """
-    if parsed.get_method_params(method, id_code) is not None:
+    params_dict = parsed.get_method_params(method, id_code)
+    if (params_dict is not None) and (params_dict != {}):
         return parsed.get_method_params(method, id_code).get(param_name)
     return {}
 
@@ -716,7 +717,8 @@ rule annotate_celltypes_scrattchmapping:
         '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_scrattchmapping-{id_code}.csv'
     params:
         hyper_params = lambda w: get_params('scrattchmapping', int(w.id_code), 'hyper_params'),
-        group_params = lambda w: get_params('scrattchmapping', int(w.id_code), 'group_params')
+        group_params = lambda w: get_params('scrattchmapping', int(w.id_code), 'group_params'),
+        tmp = f"{config['TEMP']}"
     shell:
         "Rscript scripts/annotate_celltypes_scrattchmapping.r " 
         "-s {input.counts} "
@@ -724,6 +726,7 @@ rule annotate_celltypes_scrattchmapping:
         "-o {output} "
         "-p \"{params.hyper_params}\" "
         "-g \"{params.group_params}\" "
+        "-t {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.method}_scrattchmapping-{wildcards.id_code} "
 
 rule annotate_celltypes_tangram:
     threads: 8

@@ -4,7 +4,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.9
+  - python=3.10
   - pip
   - pip:
     - squidpy
@@ -14,4 +14,4 @@ dependencies:
     - anndata
     - PyYAML
     - tangram-sc
-    - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim 
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx2/txsim 

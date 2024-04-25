@@ -40,7 +40,9 @@ def ct_annotation():
     if ct_method == "majority":
         adata_sp = tx.preprocessing.run_majority_voting(adata_sp, adata_sp.uns["spots"])
     elif ct_method == "ssam":
-        adata_sp = tx.preprocessing.run_ssam(adata_sp, adata_sp.uns["spots"], adata_sc, um_p_px=hyperparams["um_p_px"])
+        adata_sp = tx.preprocessing.run_ssam(
+            adata_sp, adata_sp.uns["spots"], adata_sc, um_p_px=hyperparams["um_per_pixel"]
+        )
     else:
         raise ValueError(f"Invalid ct_method: {ct_method}")
     

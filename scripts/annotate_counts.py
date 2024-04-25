@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     # Apply filters (TODO: keep/remove? extend to other methods?)
     if ct_method in ['majority', 'ssam', 'pciseqct']: 
-        df_cts = df_cts.loc[df_cts["score"] < hyperparams["ct_threshold"], "celltype"] = "None_spatial"
+        df_cts = df_cts.loc[df_cts["score"] < hyperparams["ct_threshold"], "celltype"] = "None_sp"
 
     # Transfer cell type annotations to spatial data
     adata.obs['celltype'] = df_cts.loc[adata.obs['cell_id'], "celltype"]

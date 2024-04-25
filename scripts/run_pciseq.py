@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     hparams_defaults_csv = Path(__file__).parent.parent / "configs" / "defaults.yaml"
     with open(hparams_defaults_csv, 'r') as file:
-        hparams_defaults = yaml.safe_load(file)["pciSeq"]
+        hparams_defaults = yaml.safe_load(file)["pciseq"]
     
     args = parser.parse_args()
 
@@ -53,5 +53,5 @@ if __name__ == '__main__':
     )
 
     #Save to csv
-    cell_types.to_csv(f'{data}/celltypes_{segmentation_method}_pciSeq-{id_code}.csv')
-    assignments.to_csv(f'{data}/assignments_{segmentation_method}_pciSeq-{id_code}.csv', index = False)
+    cell_types.to_csv(f'{data}/celltypes_{segmentation_method}_pciseq-{id_code}.csv')
+    assignments.to_csv(f'{data}/assignments_{segmentation_method}_pciseq-{id_code}.csv', index = False)
