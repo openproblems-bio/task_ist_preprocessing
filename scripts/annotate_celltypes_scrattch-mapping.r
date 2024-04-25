@@ -16,8 +16,8 @@ print("Libraries loaded.")
 # Define argument parser function
 parse_args <- function() {
   args <- commandArgs(trailingOnly = TRUE)
-  if (length(args) < 6) {
-    stop("Error: Missing required arguments. Usage: Rscript your_script.R -s spatial_file -d dissociated_file -o output_file [-p hyperparameters -g group_parameters]")
+  if (length(args) < 8) {
+    stop("Error: Missing required arguments. Usage: Rscript your_script.R -s spatial_file -d dissociated_file -t temp_output_dir -o output_file [-p hyperparameters -g group_parameters]")
   }
   p=NULL
   g= NULL
