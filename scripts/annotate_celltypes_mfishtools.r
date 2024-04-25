@@ -11,6 +11,29 @@ suppressPackageStartupMessages({
 options(stringsAsFactors = FALSE)  
 print("Libraries loaded.")
 
+cellToClusterMapping_byCor_ <- function(medianDat,
+                                       mapDat,
+                                       refDat = NA,
+                                       clusters = NA,
+                                       genesToMap = rownames(mapDat),
+                                       use = "p",
+                                       method = "p",
+				                               returnCor=TRUE,
+                                       ...) {
+  corVar <- corTreeMapping(
+    medianDat = medianDat,
+    mapDat = mapDat, refDat = refDat, clusters = clusters,
+    genesToMap = genesToMap, use = use, method = method
+  )
+  corMatch <- getTopMatch(corVar)
+  colnames(corMatch) <- c("Class", "Correlation")
+
+  dex <- apply(corVar, 1, function(x) return(diff(sort(-x)[1:2])))
+  corMatch$DifferenceBetweenTopTwoCorrelations <- dex
+  if(returnCor)
+    corMatch <- cbind(corMatch,corVar)
+  corMatch
+}
 
 # Define argument parser function
 parse_args <- function() {
@@ -195,7 +218,7 @@ annotate_cells <- function(args) {
   # Run cell type annotation
   log2p1   <- function(x) return(log2(x+1))  # log transform function
   fishMouse <- fishScaleAndMap(mapDat=spatial_data, refSummaryDat=medianExpr,
-                            mappingFunction = cellToClusterMapping_byCor, transform = log2p1, noiselevel = hyperparams$thresh, 
+                            mappingFunction = cellToClusterMapping_byCor_, transform = log2p1, noiselevel = hyperparams$thresh, 
                             genesToMap = useGenes, metadata = metadata, qprob=hyperparams$qprob, binarize=hyperparams$binarize,
                             omitGenes = NULL,integerWeights=weights)
 
@@ -209,7 +232,7 @@ annotate_cells <- function(args) {
   colnames(annotation_df)[colnames(annotation_df) == "Correlation"] <- "score"
   
   # Keep only 'cell_id', 'celltype', and 'score' columns
-  annotation_df <- annotation_df[, c('cell_id', 'celltype', 'score')]
+  # annotation_df <- annotation_df[, c('cell_id', 'celltype', 'score')]
   
   # Save annotation
   write.csv(annotation_df, file=args$output, row.names = FALSE)
