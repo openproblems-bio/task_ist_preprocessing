@@ -3,9 +3,10 @@
 from pathlib import Path
 import argparse
 from collections import OrderedDict
-import txsim as tx
+import numpy as np
 import pandas as pd
 import anndata as ad
+import txsim as tx
 import skimage.io
 import yaml
 
@@ -43,10 +44,18 @@ if __name__ == '__main__':
     opts = dict(hyperparams.get('opts')) if (hyperparams is not None and hyperparams.get('opts') is not None) else None
     id_code = args.id_code
     
+    # Load image and assign cell ids such that there are no gaps 
+    # (NOTE, TODO: Arbitrary ids lead to an error in tx.preprocessing.run_pciSeq. The most elegant solution would be to 
+    # keep the ids. But in general thr requirements wrt cell_ids in the assignment outputs need to be checked. Also, 
+    # pciseq needs to be revisited in the txsim package under consideration of a stable release tag. It seems that 
+    # there were quite some differences wrt the methods outputs.)
+    image = skimage.io.imread(f'{data}/segments_{segmentation_method}.ome.tif')
+    image = np.unique(image, return_inverse=True)[1].reshape(image.shape)
+    
     #Read data and run pciSeq
     assignments, cell_types = tx.preprocessing.run_pciSeq(
         pd.read_csv(molecules),
-        skimage.io.imread(f'{data}/segments_{segmentation_method}.ome.tif'),
+        image,
         ad.read(sc_data),
         'celltype',
         opts

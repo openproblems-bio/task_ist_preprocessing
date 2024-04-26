@@ -2,9 +2,10 @@
 
 import yaml
 from pathlib import Path
-import txsim as tx
-import scanpy as sc
 import pandas as pd
+import anndata as ad
+import scanpy as sc
+import txsim as tx
 import argparse
 
 if __name__ == '__main__':
@@ -53,15 +54,15 @@ if __name__ == '__main__':
     gene_corr_layer = groupparams['per_gene_layer']
 
     # Read in the single-cell data
-    adata_sc = sc.read(file_sc)
-    adata = sc.read(f'{data}/normcounts_{counts_method}.h5ad')
+    adata_sc = ad.read_h5ad(file_sc)
+    adata = ad.read_h5ad(f'{data}/normcounts_{counts_method}.h5ad')
     
     # Read in the cell type annotations
     df_cts = pd.read_csv(args.annotation_csv, index_col=0)
 
     # Apply filters (TODO: keep/remove? extend to other methods?)
     if ct_method in ['majority', 'ssam', 'pciseqct']: 
-        df_cts = df_cts.loc[df_cts["score"] < hyperparams["ct_threshold"], "celltype"] = "None_sp"
+        df_cts.loc[df_cts["score"] < hyperparams["threshold"], "celltype"] = "None_sp"
 
     # Transfer cell type annotations to spatial data
     adata.obs['celltype'] = df_cts.loc[adata.obs['cell_id'], "celltype"]

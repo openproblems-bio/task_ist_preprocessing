@@ -27,6 +27,10 @@ if __name__ == '__main__':
     adata = sc.read(file_in)
     adata = tx.preprocessing.normalize_sc(adata)
     
+    # NOTE: Arbitrary columns can lead to issues for anndata in R (specifically in the method script for 
+    #       scrattch.mapping). In the future we'll need more columns (region matching filter) --> TODO
+    adata.obs = adata.obs[["celltype"]]
+    
     genes_sp = []
     for file_spots in file_spots_list:
         spots = pd.read_csv(file_spots)

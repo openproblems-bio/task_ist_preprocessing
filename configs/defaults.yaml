@@ -368,7 +368,7 @@ frmatch:
   subsamp_size: 10
   subsamp_iter: 2000
   subsamp_seed: 1 
-  numCores: null #Number of cores for parallel computing. if NULL, use the maximum number of cores detected by \code{\link[parallel]{detectCores}}. Otherwise, specify by an integer value.
+  numCores: 8 #null #Number of cores for parallel computing. if NULL, use the maximum number of cores detected by \code{\link[parallel]{detectCores}}. Otherwise, specify by an integer value.
   leiden_res: 1 # resolution for leiden clustering
   n_pcs: 20 # number of principal components for clustering
   cell_type_column: "celltype" # name of the cell type column in single cell data

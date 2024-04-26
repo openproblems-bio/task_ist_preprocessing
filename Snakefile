@@ -720,6 +720,7 @@ rule annotate_celltypes_scrattchmapping:
         group_params = lambda w: get_params('scrattchmapping', int(w.id_code), 'group_params'),
         tmp = f"{config['TEMP']}"
     shell:
+        "mkdir -p {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.method}_scrattchmapping-{wildcards.id_code} && "
         "Rscript scripts/annotate_celltypes_scrattchmapping.r " 
         "-s {input.counts} "
         "-d {input.scd} "
