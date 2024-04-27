@@ -379,6 +379,9 @@ scrattchmapping:
   method: "correlation" # mapping method correlation, seurat or tree
   cell_id: "cell_id" #cell id column name in spatial data
 
+mapmycells:
+  cell_type_column: "celltype" # name of the cell type column in single cell data
+
 nwconsensus:
   methods: "frmatch-mfishtools-pciseqct-scrattchmapping-ssam-tangram" # methods to include for consensus annotations
   # Method must be included alphabetically. Theoretically the same method can be included multiple times (e.g. with 

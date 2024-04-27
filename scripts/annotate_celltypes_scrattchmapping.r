@@ -16,8 +16,8 @@ print("Libraries loaded.")
 # Define argument parser function
 parse_args <- function() {
   args <- commandArgs(trailingOnly = TRUE)
-  if (length(args) < 6) {
-    stop("Error: Missing required arguments. Usage: Rscript your_script.R -s spatial_file -d dissociated_file -o output_file [-p hyperparameters -g group_parameters]")
+  if (length(args) < 8) {
+    stop("Error: Missing required arguments. Usage: Rscript your_script.R -s spatial_file -d dissociated_file -t temp_output_dir -o output_file [-p hyperparameters -g group_parameters]")
   }
   p=NULL
   g= NULL
@@ -143,35 +143,24 @@ annotate_cells <- function(args) {
   adata <- read_h5ad(args$spatial)
   spatial_data = t(as.matrix(adata$X)) # transpose matrix : genes as rows and cells as columns
 
-  print('Deleting')
   # delete sc celltype with less than 2 cells
   category_counts <- table(adata_sc$obs[[hyperparams$cell_type_col]])
   categories_to_keep <- names(category_counts[category_counts >= 2])
   rows_to_delete <- which(!adata_sc$obs[[hyperparams$cell_type_col]] %in% categories_to_keep)
   taxonomy.anno <- adata_sc$obs[-rows_to_delete, ]
   taxonomy.counts <- t(as.matrix(adata_sc$X[-rows_to_delete, ])) # Transpose matrix: genes as rows and cells as columns
-  print('done')
 
 
 
   ## Ensure 'cluster' field exists, as required by scrattch.taxonomy.
   taxonomy.anno$cluster = taxonomy.anno[[hyperparams$cell_type_col]]
-
-  ## Compute top 1000 binary marker genes for clusters (or use a pre-existing vector)
-  #binary.genes = top_binary_genes(taxonomy.counts, taxonomy.anno$cluster, 1000)
   binary.genes <- intersect(rownames(spatial_data),rownames(taxonomy.counts))
-  ## Compute UMAP coordinates (or use precomputed coordinates)
-  # print('Computing PCs')
-  # pcs  <- prcomp(logCPM(taxonomy.counts)[binary.genes,], scale = TRUE)$rotation
-  # print('Computing umap')
-  # umap.coords = umap(pcs[,1:30])$layout
 
-  ## Set rownames to your annotation and UMAP data.frames with sample identifiers (Required!)
-  ##rownames(taxonomy.anno) = taxonomy.anno$sample_name
   umap.coords <- data.frame(
-  x = taxonomy.anno$x,  
-  y = taxonomy.anno$y   
+  x = runif(length(taxonomy.anno$cluster)),
+  y = runif(length(taxonomy.anno$cluster))
   )
+
   rownames(umap.coords) = colnames(taxonomy.counts)
   taxonomyDir = args$temp_dir
 
@@ -181,12 +170,11 @@ annotate_cells <- function(args) {
                   meta.data = taxonomy.anno,
                   feature.set = binary.genes,
                   umap.coords = umap.coords,
-                  taxonomyName = "sc_data", ## NEW!
+                  taxonomyName = "sc_data", 
                   taxonomyDir = taxonomyDir,
                   subsample=2000)
 
   ## Add markers to dendrogram
-  write.csv(AIT.anndata$obs,file = 'temp.csv')
   print('Adding dendogram markers')
   AIT.anndata = addDendrogramMarkers(AIT.anndata = AIT.anndata)
 
