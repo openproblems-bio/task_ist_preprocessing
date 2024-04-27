@@ -16,7 +16,7 @@ def copy_and_rename_pciseq_annotation_table():
     
     df = pd.read_csv(input_file, index_col=0)
     pd.DataFrame(data={
-        "cell_id": df["cell_id"],
+        "cell_id": df.index.values,
         "celltype": df["type"],
         "score": df["prob"],
     }).to_csv(output_file, index=False)

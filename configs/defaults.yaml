@@ -375,7 +375,7 @@ frmatch:
   cell_id: "cell_id" #cell id column name in spatial data
 
 scrattchmapping:
-  cell_type_column: "celltype" # name of the cell type column in single cell data
+  cell_type_col: "celltype" # name of the cell type column in single cell data
   method: "correlation" # mapping method correlation, seurat or tree
   cell_id: "cell_id" #cell id column name in spatial data
 

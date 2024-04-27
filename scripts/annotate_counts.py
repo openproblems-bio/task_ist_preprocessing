@@ -65,7 +65,7 @@ if __name__ == '__main__':
         df_cts.loc[df_cts["score"] < hyperparams["threshold"], "celltype"] = "None_sp"
 
     # Transfer cell type annotations to spatial data
-    adata.obs['celltype'] = df_cts.loc[adata.obs['cell_id'], "celltype"]
+    adata.obs['celltype'] = df_cts.loc[adata.obs['cell_id'], "celltype"].values
 
     # Do per-gene correction if active
     if per_gene_correction:
