@@ -751,6 +751,29 @@ rule annotate_celltypes_tangram:
         "-p \"{params.hyper_params}\" "
         "-g \"{params.group_params}\" "
 
+rule annotate_celltypes_mapmycells:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/mapmycells-env.yaml"
+    input:
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
+        scd = '{results}/{dataset}/sc_normalized.h5ad',
+    output:
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_mapmycells-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params('mapmycells', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('mapmycells', int(w.id_code), 'group_params')
+    shell:
+        "python3 scripts/annotate_celltypes_mapmycells.py " 
+        "-s {input.counts} "
+        "-d {input.scd} "
+        "-o {output} "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+        "-t {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.method}_mapmycells-{wildcards.id_code} "
+
 # Consensus methods
 
 def input_files_for_consensus_annotation(id_code, results, dataset, rep_id, method):

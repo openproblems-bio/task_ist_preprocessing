@@ -9,4 +9,5 @@ dependencies:
   - pip:
     - cellpose
     - PyYAML
-    - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim
+    - rasterio
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx2/txsim

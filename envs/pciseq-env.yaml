@@ -10,5 +10,6 @@ dependencies:
     - squidpy
     - scanpy
     - PyYAML
+    - rasterio
     - -e /home/icb/louis.kuemmerle/projects/g3/tx2/txsim
     - pciSeq
