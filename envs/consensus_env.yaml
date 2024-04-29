@@ -1,4 +1,4 @@
-name: NWCS-env
+name: consensus-env
 channels:
   - conda-forge
   - defaults

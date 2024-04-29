@@ -231,11 +231,26 @@ annotate_cells <- function(args) {
   colnames(annotation_df)[colnames(annotation_df) == "Class"] <- "celltype"
   colnames(annotation_df)[colnames(annotation_df) == "Correlation"] <- "score"
   
-  # Keep only 'cell_id', 'celltype', and 'score' columns
-  # annotation_df <- annotation_df[, c('cell_id', 'celltype', 'score')]
-  
+  annotation_df <- annotation_df[, -which(names(annotation_df) == "DifferenceBetweenTopTwoCorrelations")]
+
+  # calculate probabilities from correlations
+  calculate_probability <- function(row) {
+    
+    y <- row[5:length(row)]    # Extract values from the 5th column onwards
+    scaledCorrelation <- pmax(y - (max(y) / 2), 0) ^ 2
+    probability <- scaledCorrelation / sum(scaledCorrelation)
+    return(probability)
+  }
+
+
+  probabilities <- t(apply(annotation_df[,5:ncol(annotation_df)], 1, calculate_probability))
+  new_df <- cbind(annotation_df[, 1:4], probabilities)
+  colnames(new_df) <- c(colnames(annotation_df)[1:4], colnames(probabilities))
+
+
+
   # Save annotation
-  write.csv(annotation_df, file=args$output, row.names = FALSE)
+  write.csv(new_df, file=args$output, row.names = FALSE)
 }
 
 
