@@ -50,7 +50,10 @@ if __name__ == '__main__':
     # pciseq needs to be revisited in the txsim package under consideration of a stable release tag. It seems that 
     # there were quite some differences wrt the methods outputs.)
     image = skimage.io.imread(f'{data}/segments_{segmentation_method}.ome.tif')
+    background_exists = 0 in image
     image = np.unique(image, return_inverse=True)[1].reshape(image.shape)
+    if not background_exists:
+        image += 1
     
     #Read data and run pciSeq
     assignments, cell_types = tx.preprocessing.run_pciSeq(
