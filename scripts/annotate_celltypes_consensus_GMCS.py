@@ -5,10 +5,6 @@ import numpy as np
 import os
 
 
-import numpy as np
-import pandas as pd
-
-
 
 def geometric_median(points, max_iter=100, tol=1e-5):
     """
@@ -45,16 +41,29 @@ def geometric_median(points, max_iter=100, tol=1e-5):
 
 def read_data(file_path):
     """
-    Read data from a CSV file and return the DataFrame without 'celltype' and 'score' columns.
+    Read data from a CSV file and return the DataFrame without 'celltype' and 'score' columns, add columns for cell type probabilities if they don't exist
     
     Args:
         file_path (str): Path to the CSV file.
         
     Returns:
-        pandas.DataFrame: DataFrame containing the data from the CSV file without 'celltype' and 'score' columns.
+        pandas.DataFrame: DataFrame containing the data 
     """
     data = pd.read_csv(file_path)
+    # Check if there are any columns apart from 'celltype', 'score', and 'cell_id'
+    other_columns = [col for col in data.columns if col not in ['celltype', 'score', 'cell_id']]
+
+    if not other_columns:
+        # Create new columns for each unique value in 'celltype'
+        unique_cell_types = data['celltype'].unique()
+        for cell_type in unique_cell_types:
+            # For rows where 'celltype' is equal to the current cell_type,
+            # set the value of the corresponding column to 'score'
+            data[cell_type] = data.loc[data['celltype'] == cell_type, 'score']
+
+    # Drop 'celltype' and 'score' columns
     data.drop(columns=['celltype', 'score'], inplace=True, errors='ignore')
+
     return data
 
 def geometric_median_combining(method_files):
@@ -90,29 +99,46 @@ def geometric_median_combining(method_files):
         
 
     
-    cell_ids = cell_ids_list[0] 
-
-    # Reindex each matching DataFrame
+    cell_ids = cell_ids_list[0] #we assume all files have the same cell_ids 
+    all_cell_types_list = ['cell_id'] + list(all_cell_types - {'cell_id'})#make cell_id the first column
+ 
+   
     for i, matching in enumerate(matchings):
         missing_cell_types = all_cell_types - set(matching.columns)
-        for cell_type in missing_cell_types:
-            matching[cell_type] = float(0) # add missing cell types
-        # Reorder columns to match all_cell_types order
-        matchings[i] = matching.reindex(columns=all_cell_types)
+
+        # add missing cell types
+        missing_df = pd.DataFrame({cell_type: [np.nan] * len(matching) for cell_type in missing_cell_types})
+        matching = pd.concat([matching, missing_df], axis=1)
+
+        # Reorder columns to match all_cell_types_list order
+        matching = matching.reindex(columns=all_cell_types_list)
+
+
+        # Fill nan values by  distributed remaining probability
+        row_sums = matching.drop(columns='cell_id').sum(axis=1)
+        remaining_proportion = 1 - row_sums
+        n_missing_cell_type_columns = matching.isna().sum(axis=1)
+        adjustment_values = remaining_proportion / n_missing_cell_type_columns
+        adjustment_values[n_missing_cell_type_columns == 0] = 0
+        adjustment_values[remaining_proportion <= 0] = 0
+  
+        columns_to_fill = matching.columns[1:]
+        for column in columns_to_fill:
+            matching[column] = matching[column].fillna(adjustment_values)
+
+        matchings[i] = matching
+
 
     # Create a 3D array
     n_cells = len(cell_ids)
     n_methods = len(matchings)
-    n_celltypes = len(all_cell_types)-1
+    n_celltypes = len(all_cell_types_list)-1
     data_3d = np.empty((n_cells, n_methods, n_celltypes))
     for i, matching in enumerate(matchings):
         for j, cell_id in enumerate(cell_ids):
-           data_3d[j, i, :] = matching.loc[matching['cell_id'] == cell_id].iloc[0].drop('cell_id').values
+            data_3d[j, i, :] = matching.loc[matching['cell_id'] == cell_id].iloc[0].drop('cell_id').values
 
 
-    
-
-    all_cell_types.remove("cell_id")
 
     
    
@@ -124,8 +150,8 @@ def geometric_median_combining(method_files):
 
    
 
-    combined_df = pd.DataFrame(np.array(geometric_medians), columns=list(all_cell_types))
-    print(all_cell_types)
+    combined_df = pd.DataFrame(np.array(geometric_medians), columns=all_cell_types_list[1:])
+   
     # Add cell_id column
     combined_df.insert(0, 'cell_id', cell_ids.values)
     return combined_df
@@ -173,7 +199,7 @@ if __name__ == '__main__':
     combined_matching.insert(1, 'celltype', combined_matching.iloc[:, 1:].idxmax(axis=1))
     combined_matching.insert(2, 'score', combined_matching.iloc[:, 2:].max(axis=1))
   
-    print(combined_matching)
+   
     # Save annotation
     combined_matching.to_csv(args.output_file, index=False)
 
