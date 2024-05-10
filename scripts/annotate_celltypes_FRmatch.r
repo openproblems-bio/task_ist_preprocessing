@@ -55,6 +55,7 @@ parse_args <- function() {
   if (!is.null(p)) {
     # Parse JSON string
     json_string <- gsub("\\'", '"', p )  # Replace single quotes with double quotes
+    json_string <- gsub(": None", ": null", p) # Replace None to null (loading from yaml converted null to None, ie convert back)
     params <- fromJSON(json_string)
     
     
