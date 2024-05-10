@@ -9,10 +9,10 @@ final_files = parsed.gen_file_names()
 
 #Ensures dataset is a name not a file path, and id_code is an int
 wildcard_constraints:
-    dataset=r"[^\/]+",
-    replicate=r"[^\/]+",
-    id_code=r"\d+",
-    rep_id=r"\d+"
+    dataset="[^\/]+",
+    replicate="[^\/]+",
+    id_code="\d+",
+    rep_id="\d+"
 
 ruleorder: aggregate_metrics > metric > aggregate_quality_metrics > quality_metric
 
@@ -797,9 +797,9 @@ def input_files_for_consensus_annotation(id_code, results, dataset, rep_id, meth
         f"{results}/{dataset}/replicate{rep_id}/celltypes_{method}_{ct_method}-{ct_method_id}.csv"
         for (ct_method_id, ct_method) in zip(ct_method_ids, ct_methods)
     ]    
-    # This is very much unnecessary, but I got a "python does not work anymore"-level error here and can't pinpoint it
-    # down. Think in future fresh envs this can be deleted. It worked before I had some deep conda cache issues.
-    file_paths = [f.replace(" ", "") for f in file_paths]
+    ## This is very much unnecessary, but I got a "python does not work anymore"-level error here and can't pinpoint it
+    ## down. Think in future fresh envs this can be deleted. It worked before I had some deep conda cache issues.
+    #file_paths = [f.replace(" ", "") for f in file_paths]
     return file_paths
 
 rule annotate_celltypes_nwconsensus:
