@@ -398,9 +398,10 @@ class ParsedConfig:
         """
         
         if ("nwconsensus" in ann_cfg) and isinstance(ann_cfg["nwconsensus"],dict) and ("methods" in ann_cfg["nwconsensus"]):
-            methods = ann_cfg["nwconsensus"]["methods"]
-            m_sorted = "-".join(sorted(methods.split("-")))
-            assert methods == m_sorted; f"Methods not alphabetically sorted: {m_sorted} instead of {methods}."
+            assert isinstance(ann_cfg["nwconsensus"]["methods"],list)
+            for methods in ann_cfg["nwconsensus"]["methods"]:
+                m_sorted = "-".join(sorted(methods.split("-")))
+                assert methods == m_sorted; f"Methods not alphabetically sorted: {m_sorted} instead of {methods}."
         
         
         
