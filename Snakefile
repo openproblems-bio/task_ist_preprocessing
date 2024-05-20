@@ -654,11 +654,12 @@ rule annotate_celltypes_pciseqct: #NOTE: probably we'll never need hparams in th
     conda:
         "envs/txsim-env.yaml"
     input:
-        '{results}/{dataset}/replicate{rep_id}/celltypes_{seg}_pciseq-{id_code}.csv'
+        ann = '{results}/{dataset}/replicate{rep_id}/celltypes_{seg}_pciseq-{id_code}.csv',
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{seg}_{assign}_{norm}.h5ad',
     output:
         '{results}/{dataset}/replicate{rep_id}/celltypes_{seg}_{assign}_{norm}_pciseqct-{id_code}.csv'
     shell:
-        "python3 scripts/copy_celltypes_pciseqct.py -i {input} -o {output}"
+        "python3 scripts/copy_celltypes_pciseqct.py -i {input.ann} -s {input.counts} -o {output}"
 
 rule annotate_celltypes_mfishtools:
     threads: 8

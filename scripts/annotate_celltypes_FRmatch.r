@@ -55,7 +55,9 @@ parse_args <- function() {
   if (!is.null(p)) {
     # Parse JSON string
     json_string <- gsub("\\'", '"', p )  # Replace single quotes with double quotes
-    json_string <- gsub(": None", ": null", p) # Replace None to null (loading from yaml converted null to None, ie convert back)
+    json_string <- gsub(": None", ": null", json_string) # Replace None to null (loading from yaml converted null to None, ie convert back)
+    json_string <- gsub(": True", ": true", json_string) 
+    json_string <- gsub(": False", ": false", json_string) 
     params <- fromJSON(json_string)
     
     
@@ -63,7 +65,11 @@ parse_args <- function() {
       arg_dict$filter_size <- as.integer(params$filter_size)
     }
     if ("filter_fscore" %in% names(params)) {
+      if (is.null(params$filter_fscore)) {
+        arg_dict$filter_fscore <- NULL
+      } else {
       arg_dict$filter_fscore <- as.numeric(params$filter_fscore)
+      }
     }
     if ("filter_nomarker" %in% names(params)) {
       arg_dict$filter_nomarker <- as.logical(params$filter_nomarker)
@@ -98,6 +104,7 @@ parse_args <- function() {
     if ("cell_id" %in% names(params)) {
       arg_dict$cell_id <- params$cell_id
     }
+      
   }
   if (!is.null(g)){
     # Parse JSON string
@@ -189,7 +196,7 @@ annotate_cells <- function(args) {
   #spatial data object    
   # run clustering first
   print('Initial Clustering')
-  adata_Seurat <- CreateSeuratObject(counts = tcrossprod(adata$X), project = "spatial", min.cells = 3, min.features = 200)
+  adata_Seurat <- CreateSeuratObject(counts = tcrossprod(adata$X), project = "spatial", min.cells = 3)#, min.features = 200)
   
   
 
@@ -199,8 +206,7 @@ annotate_cells <- function(args) {
   adata_Seurat <- RunPCA(adata_Seurat, features = all.genes)
   adata_Seurat <- FindNeighbors(adata_Seurat, dims = 1:hyperparams$n_pcs)
   adata_Seurat <- FindClusters(adata_Seurat, resolution = hyperparams$leiden_res, algorithm = 4)
-  
-  
+
   cell_cluster_labels_spatial <- data.frame(Sample = adata$obs[[hyperparams$cell_id]], Cluster = Idents(adata_Seurat))
 
 

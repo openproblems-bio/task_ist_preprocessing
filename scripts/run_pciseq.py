@@ -54,6 +54,7 @@ if __name__ == '__main__':
     image = np.unique(image, return_inverse=True)[1].reshape(image.shape)
     if not background_exists:
         image += 1
+        image[0,0] = 0 # introduce 1 pixel as pseudo background
     
     #Read data and run pciSeq
     assignments, cell_types = tx.preprocessing.run_pciSeq(

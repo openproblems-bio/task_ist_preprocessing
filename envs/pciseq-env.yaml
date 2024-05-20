@@ -12,4 +12,4 @@ dependencies:
     - PyYAML
     - rasterio
     - -e /home/icb/louis.kuemmerle/projects/g3/tx2/txsim
-    - pciSeq
+    - git+https://github.com/acycliq/pciSeq.git@issue_14

@@ -383,10 +383,10 @@ mapmycells:
   cell_type_column: "celltype" # name of the cell type column in single cell data
 
 nwconsensus:
-  methods: "frmatch-mfishtools-pciseqct-scrattchmapping-ssam-tangram" # methods to include for consensus annotations
+  methods: "frmatch-mfishtools-scrattchmapping-ssam-tangram" # methods to include for consensus annotations
   # Method must be included alphabetically. Theoretically the same method can be included multiple times (e.g. with 
   # different ids)
-  ids: "0-0-0-0-0-0" # Provide ids of specific parameter configurations of the other runs. This parameter only makes 
+  ids: "0-0-0-0-0" # Provide ids of specific parameter configurations of the other runs. This parameter only makes 
   # sense to add after a pre run of the individual methods. E.g.: "3-1-4" for methods="frmatch-ssam-tangram" would 
   # mean frmatch-3, ssam-1 etc. When only running with default values for each method, then "0-0-0" is a good choice. 
   # Note that the consensus methods can only be run if there are runs defined in the config for individual methods that 

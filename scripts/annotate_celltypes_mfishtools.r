@@ -54,6 +54,8 @@ parse_args <- function() {
   if (!is.null(p)) {
     # Parse JSON string
     json_string <- gsub("\\'", '"', p )  # Replace single quotes with double quotes
+    json_string <- gsub(": True", ": true", json_string) 
+    json_string <- gsub(": False", ": false", json_string) 
     params <- fromJSON(json_string)
     
     # Extract parameters
