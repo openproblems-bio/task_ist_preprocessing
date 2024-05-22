@@ -147,8 +147,15 @@ annotate_cells <- function(args) {
   category_counts <- table(adata_sc$obs[[hyperparams$cell_type_col]])
   categories_to_keep <- names(category_counts[category_counts >= 2])
   rows_to_delete <- which(!adata_sc$obs[[hyperparams$cell_type_col]] %in% categories_to_keep)
-  taxonomy.anno <- adata_sc$obs[-rows_to_delete, ]
-  taxonomy.counts <- t(as.matrix(adata_sc$X[-rows_to_delete, ])) # Transpose matrix: genes as rows and cells as columns
+
+  if (length(rows_to_delete) == 0) {
+    taxonomy.anno <- adata_sc$obs
+    taxonomy.counts <- t(as.matrix(adata_sc$X))
+  } else {
+    taxonomy.anno <- adata_sc$obs[-rows_to_delete, ]
+    taxonomy.counts <- t(as.matrix(adata_sc$X[-rows_to_delete, ])) # Transpose matrix: genes as rows and cells as columns
+  }
+
 
 
 
