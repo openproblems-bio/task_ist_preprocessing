@@ -19,7 +19,7 @@ use-singularity: True
 conda-prefix: "/lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/envs/conda"
 singularity-prefix: "/lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/envs/singularity"
 singularity-args:
-  --bind /home/:/home/,/lustre/:/lustre/,/localscratch/:/localscratch/
+  --bind /home/:/home/,/lustre/:/lustre/,/localscratch/:/localscratch/,/ictstr01/:/ictstr01/
 jobs: 40
 keep-going: True
 restart-times: 2

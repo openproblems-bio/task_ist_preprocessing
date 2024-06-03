@@ -18,7 +18,7 @@ default-resources:
 use-conda: True
 use-singularity: True
 #software-deployment-method: "conda apptainer"
-singularity-args: "--bind /home/:/home/,/lustre/:/lustre/,/localscratch/:/localscratch/"
+singularity-args: "--bind /home/:/home/,/lustre/:/lustre/,/localscratch/:/localscratch/,/ictstr01/:/ictstr01/"
 jobs: 40
 keep-going: True
 restart-times: 2

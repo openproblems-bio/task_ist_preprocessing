@@ -229,12 +229,18 @@ annotate_cells <- function(args) {
   
   # check result type
   annotation_df <- result$cell2cluster
+  details_df <- result$pmat
   #rename columns
   colnames(annotation_df)[colnames(annotation_df) == "match"] <- "celltype"
   colnames(annotation_df)[colnames(annotation_df) == "query.cell"] <- "cell_id"
  
   # Keep only 'cell_id', 'celltype', and 'score' columns
   annotation_df <- annotation_df[, c('cell_id', 'celltype', 'score')]
+
+  # Min-max normalize each row of details_df
+  normalized_details_df <- t(apply(details_df, 1, function(x) (x - min(x)) / (max(x) - min(x))))
+
+  annotation_df <- cbind(annotation_df, normalized_details_df)
   # Save annotation
   write.csv(annotation_df, file=args$output, row.names = FALSE)
 }

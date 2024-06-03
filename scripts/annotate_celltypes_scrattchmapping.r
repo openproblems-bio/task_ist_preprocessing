@@ -147,14 +147,9 @@ annotate_cells <- function(args) {
   category_counts <- table(adata_sc$obs[[hyperparams$cell_type_col]])
   categories_to_keep <- names(category_counts[category_counts >= 2])
   rows_to_delete <- which(!adata_sc$obs[[hyperparams$cell_type_col]] %in% categories_to_keep)
-  taxonomy.anno <- adata_sc$obs[-rows_to_delete, , drop = FALSE]
+  taxonomy.anno <- adata_sc$obs[-rows_to_delete, ]
   taxonomy.counts <- t(as.matrix(adata_sc$X[-rows_to_delete, ])) # Transpose matrix: genes as rows and cells as columns
-  print(class(taxonomy.anno))
-  print(names(taxonomy.anno))
-  print(class(adata_sc$obs))
-  print(names(adata_sc$obs))
-  print(class(adata_sc$obs[-rows_to_delete, ]))
-  print(names(adata_sc$obs[-rows_to_delete, ]))
+
 
 
   ## Ensure 'cluster' field exists, as required by scrattch.taxonomy.
@@ -194,9 +189,7 @@ annotate_cells <- function(args) {
 
   ## Extract mapping results from S4 mappingClass
   annotation_df = getMappingResults(mapping.anno)
-
-  ## Extract tree mapping bootstraping table (We will improve this in the near future.)
-  #tree.bootstraps = mapping.anno@detailed_results[["tree"]]
+  tree_bootstraps = mapping.anno@detailed_results[["tree"]]
 
 
   annotation_df$cell_id <- adata$obs[[hyperparams$cell_id]]
@@ -220,8 +213,19 @@ annotate_cells <- function(args) {
   # Keep only 'cell_id', 'celltype', and 'score' columns
   annotation_df <- annotation_df[, c('cell_id', 'celltype', 'score')]
 
-  # Save annotation
-  write.csv(annotation_df, file=args$output, row.names = FALSE)
+
+  # # keep scores for each cell type
+  unique_cell_types <- unique(adata_sc$obs[[hyperparams$cell_type_col]])
+  columns_to_keep <- colnames(tree_bootstraps) %in% unique_cell_types
+  tree_bootstraps <- tree_bootstraps[, columns_to_keep]
+
+
+  #save annotations
+  tree_bootstraps <- cbind(cell_id = annotation_df$cell_id, tree_bootstraps)
+  merged_df <- merge(annotation_df, tree_bootstraps, by = "cell_id", all = TRUE)
+  write.csv(merged_df, file = args$output, row.names = FALSE)
+
+
 
 
 }

@@ -22,7 +22,7 @@ if __name__ == '__main__':
     # hparams_defaults_csv = Path(__file__).parent.parent / "configs" / "defaults.yaml"
     # with open(hparams_defaults_csv, 'r',encoding='utf-8') as file:
     #     defaults = yaml.safe_load(file)
-    #     hparams_defaults = defaults["consensus"] 
+    #     hparams_defaults = defaults["nwconsensus"] 
     
     # # Parse parameters
     # hyperparams = eval(args.hyperparams) if args.hyperparams else {}
@@ -40,10 +40,11 @@ if __name__ == '__main__':
         all_celltypes.update(df['celltype'].unique())
 
     result_dfs = {}
-
-  
+    desired_columns = ['cell_id', 'celltype', 'score']
     for method, df in df_dict.items():
-        df_sorted = df.sort_values('cell_id')     
+        df = df[desired_columns]
+        # Sort cell_id to ensure consistent order across all resulting DataFrames
+        df_sorted = df.sort_values('cell_id')
         # Create a pivot table with cell_id as row index, celltype as columns, and score as values
         pivot_df = df_sorted.pivot(index='cell_id', columns='celltype', values='score')        
          # Reindex to ensure all cell types appear in the same order across all resulting DataFrames

@@ -393,6 +393,10 @@ nwconsensus:
   # generate according ids, i.e. frmatch-3 etc.
   # Note: this parameter can lead to reproducibility issues: The pipeline is constructed such that the id codes of
   # parameter combinations can be different when the config was built step after step vs being complete from the start.
+
+gmconsensus:
+  methods: "frmatch-mfishtools-scrattchmapping-ssam-tangram"
+  ids: "0-0-0-0-0"
   
 annotation_params:
   per_gene_correction: False

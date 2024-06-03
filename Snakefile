@@ -776,8 +776,9 @@ rule annotate_celltypes_mapmycells:
         "-t {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.method}_mapmycells-{wildcards.id_code} "
 
 # Consensus methods
+#TODO: Probably you want to combine different consensus methods into one rule and have a hyperparameter.
 
-def input_files_for_consensus_annotation(id_code, results, dataset, rep_id, method):
+def input_files_for_consensus_annotation(id_code, results, dataset, rep_id, method, consensus):
     """ Get cell type annotation input csvs for rule for consensus annotation
     
     Arguments
@@ -788,8 +789,9 @@ def input_files_for_consensus_annotation(id_code, results, dataset, rep_id, meth
     dataset: data set name
     rep_id: ID of replicate
     method: String that describes previously ran steps
+    consensus: Type of consensus aggregation (supported: "nwconsensus", "gmconsensus")
     """
-    hparams = get_params('nwconsensus', int(id_code), 'hyper_params')
+    hparams = get_params(consensus, int(id_code), 'hyper_params')
     ct_method_ids = hparams.get("ids")
     ct_method_ids = ct_method_ids.split('-')
     ct_methods = hparams.get("methods")
@@ -810,7 +812,7 @@ rule annotate_celltypes_nwconsensus:
     conda:
         "envs/txsim-env.yaml"
     input:
-        lambda w: input_files_for_consensus_annotation(w.id_code, w.results, w.dataset, w.rep_id, w.method)
+        lambda w: input_files_for_consensus_annotation(w.id_code, w.results, w.dataset, w.rep_id, w.method, "nwconsensus")
     output:
         '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_nwconsensus-{id_code}.csv'
     params:
@@ -818,6 +820,24 @@ rule annotate_celltypes_nwconsensus:
         group_params = lambda w: get_params('nwconsensus', int(w.id_code), 'group_params')
     shell:
         "python3 scripts/annotate_celltypes_consensus_NWCS.py "
+        "-i {input} "
+        "-o {output} "
+        
+rule annotate_celltypes_gmconsensus:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        lambda w: input_files_for_consensus_annotation(w.id_code, w.results, w.dataset, w.rep_id, w.method, "gmconsensus")
+    output:
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_gmconsensus-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params('gmconsensus', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('gmconsensus', int(w.id_code), 'group_params')
+    shell:
+        "python3 scripts/annotate_celltypes_consensus_GMCS.py "
         "-i {input} "
         "-o {output} "
 
