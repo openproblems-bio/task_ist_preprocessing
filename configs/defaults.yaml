@@ -143,7 +143,7 @@ cellpose:
   cellprob_threshold: 0.0
   min_size: 15  #Can turn off with -1
   stitch_threshold: 0.0 # Only for 3D data
-  rescale: None
+  #rescale: None
   #progress: None
   #model_loaded: False
 
@@ -209,7 +209,7 @@ clustermap:
 
 
 
-pciSeq:
+pciseq:
   # list of genes to be excluded during cell-typing, e.g ['Aldoc', 'Id2'] to exclude all spots from Aldoc and Id2
   exclude_genes: None
 
@@ -333,14 +333,76 @@ majority:
   threshold: 0.7
 
 ssam:
+  um_per_pixel: 0.2125
   threshold: 0.7
 
-pciSeqCT:
+pciseqct:
   threshold: 0.7
 
+tangram:
+  sc_ct_labels : "celltype" #Labels of the cell_type layer in the single cell adata
+  device : "cpu"
+  mode : "cells" # Tangram mapping mode. 'cells', 'clusters', 'constrained'. Default is 'cells'
+  num_epochs : 1000 #Number of epochs. Default is 1000
+  cell_id: "cell_id" #cell id column name in spatial data
+
+mfishtools:
+  qprob: 0.9     # Parameter for scaling mFISH to FACS
+  thresh: -3       # Set counts less than or equal to thresh to 0
+  binarize: False   # Should the data be binarized?
+  cell_type_col: "celltype" # name of the cell type column in single cell data obs
+  #column names in obs of spatial data
+  area_col: "area"
+  x_col: "centroid_x"
+  y_col: "centroid_y"
+  cell_id: "cell_id"
+
+frmatch:
+  #Filtering out small/poor-quality/no-marker clusters
+  filter_size: 5 #filter based on the number of cells per cluster
+  filter_fscore: null #NULL: do not filter based on the F-beta score, otherwise specify a numeric value between 0 and 1
+  filter_nomarker: False #filter based on the boolean variable indicating if to filter reference clusters with no marker genes available in query in the case of feature_selection="reference.markers"
+  add_pseudo_marker: False # Adding pseudo marker to stabilize no expression clusters in the marker gene feature space
+  pseudo_expr: 1 #Pseudo marker expression values are drawn from uniform distribution from 0 to pseudo_expr
+  #Numeric variables for iterative subsampling size, number of iterations, and random seed for iterations
+  subsamp_size: 10
+  subsamp_iter: 2000
+  subsamp_seed: 1 
+  numCores: 8 #null #Number of cores for parallel computing. if NULL, use the maximum number of cores detected by \code{\link[parallel]{detectCores}}. Otherwise, specify by an integer value.
+  leiden_res: 1 # resolution for leiden clustering
+  n_pcs: 20 # number of principal components for clustering
+  cell_type_column: "celltype" # name of the cell type column in single cell data
+  cell_id: "cell_id" #cell id column name in spatial data
+
+scrattchmapping:
+  cell_type_col: "celltype" # name of the cell type column in single cell data
+  method: "correlation" # mapping method correlation, seurat or tree
+  cell_id: "cell_id" #cell id column name in spatial data
+
+mapmycells:
+  cell_type_column: "celltype" # name of the cell type column in single cell data
+
+nwconsensus:
+  methods: "frmatch-mfishtools-scrattchmapping-ssam-tangram" # methods to include for consensus annotations
+  # Method must be included alphabetically. Theoretically the same method can be included multiple times (e.g. with 
+  # different ids)
+  ids: "0-0-0-0-0" # Provide ids of specific parameter configurations of the other runs. This parameter only makes 
+  # sense to add after a pre run of the individual methods. E.g.: "3-1-4" for methods="frmatch-ssam-tangram" would 
+  # mean frmatch-3, ssam-1 etc. When only running with default values for each method, then "0-0-0" is a good choice. 
+  # Note that the consensus methods can only be run if there are runs defined in the config for individual methods that 
+  # generate according ids, i.e. frmatch-3 etc.
+  # Note: this parameter can lead to reproducibility issues: The pipeline is constructed such that the id codes of
+  # parameter combinations can be different when the config was built step after step vs being complete from the start.
+
+gmconsensus:
+  methods: "frmatch-mfishtools-scrattchmapping-ssam-tangram"
+  ids: "0-0-0-0-0"
+  
 annotation_params:
   per_gene_correction: False
   per_gene_layer: lognorm
 
+
+# ----------------- METRICS ----------------- #
 metrics:
   chunk_size: 10

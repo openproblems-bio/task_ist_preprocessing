@@ -1,13 +1,15 @@
-name: cellpose-env
+name: pciSeq-env
 channels:
   - bioconda
   - conda-forge
   - defaults
 dependencies:
+  - python=3.10
   - pip
-  - squidpy
-  - pip:
-    - cellpose<3.0.0
+  - pip: 
+    - squidpy
+    - scanpy
     - PyYAML
     - rasterio
     - -e /home/icb/louis.kuemmerle/projects/g3/tx2/txsim
+    - git+https://github.com/acycliq/pciSeq.git@issue_14
