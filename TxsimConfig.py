@@ -19,6 +19,7 @@ class ParsedConfig:
         defaults: str = None
     ):
         self.cfg = config
+        self.defaults = defaults
         self.final_files = []
         #Maps all methods to list of parameters
         self.method_dict ={}
@@ -160,95 +161,92 @@ class ParsedConfig:
             output["id"].extend(range(len(self.method_dict[method])))
             output["params"].extend(self.method_dict[method])
 
-            #Save each method to csv file
-            m_df = pd.DataFrame()
+            # Save each method to csv file
+            cols = [k for hparam_dicts in self.method_dict[method] for key in ["hyper_params", "group_params"] for k in list(hparam_dicts[key].keys())]
+            seen = set()
+            cols = [c for c in cols if not (c in seen or seen.add(c))] # NOTE: to keep the previous versions' col order, probably not important
+            m_df = pd.DataFrame(columns=cols)
             i = 0
             for d in self.method_dict[method]:
                 if d is None:
                     i+=1
                     continue
                 for key, value in d.items():
-                    if key == 'hyper_params':
-                        for k, v in d['hyper_params'].items():
-                            if not k in m_df:
-                                m_df.insert(len(m_df.columns), k, pd.Series( [v], index =[i]))
-                            else:
-                                m_df.loc[i,k] = v
-                    
-                    elif key == 'group_params':
-                        for k, v in d['group_params'].items():
-                            if not k in m_df:
-                                m_df.insert(len(m_df.columns), k, pd.Series( [v], index =[i]))
-                            else:
-                                m_df.loc[i,k] = v
+                    if key in ['hyper_params', 'group_params']:
+                        for k, v in d[key].items():
+                            m_df.loc[i,k] = v
                 i+=1
             m_df.to_csv(self.output_folder + f'/{method}_params.csv')
         
         df = pd.DataFrame.from_dict(output)
         df.to_csv(self.output_folder + '/params_dict.csv')
 
-        # Create a readable dictionary for every combination in final_files
-        readable_df = pd.DataFrame()
-        method_names = []
-        for f in self.final_files:
-            if "quality" in f: continue
-            if "counts" in f: continue
-            if "aggregated" in f: continue
-            name = f.split('metrics_')[1].replace('.csv','')
-            method_list = name.split('_')
-            for m in method_list:
-                #Check each method based on the name of the final file
-                method,idx = m.split('-'); idx = int(idx)
-                if self.method_dict[method][idx] is not None:
-                    d = self.method_dict[method][idx].copy()
-                else:
-                    d = None
-                #Compare the config parameters with the default parameters
-                with open(defaults,'r') as def_file:
-                    def_dict = yaml.safe_load(def_file).get(method)
-                    if def_dict is None:
-                        raise Exception(f"No defaults found for method {method}")
-                    if d is None:
-                        d = def_dict
-                    else:
-                        if method == 'pciSeq' and d['hyper_params'].get('opts') is not None:
-                            d['hyper_params'] = d['hyper_params']['opts']
-                        #Check to see if unknown parameters
-                        if d.get('hyper_params') is not None:
-                            for key in d['hyper_params']:
-                                if key not in def_dict:
-                                    raise Exception(f"Unknown parameter '{key}' for method {method}")
-                            #Update dictionary with defaults and save back into original
-                            def_dict.update(d['hyper_params'])
-                            d.pop('hyper_params')
-                        #TODO check for the general parameters like segmentation_parameters
-                        def_dict.update(d)
-                        d = def_dict
-                #Run through each key and insert it into a dataframe
-                for key, value in d.items():
-                    if key == 'group_params':
-                        for k, v in d['group_params'].items():
-                            if not k in readable_df:
-                                readable_df.insert(len(readable_df.columns), k, pd.Series( [v], index =[ [name] ]))
-                                method_names.append(method)
-                            else:
-                                readable_df.loc[name, k] = v
-                    else:
-                        if not key in readable_df:
-                            readable_df.insert(len(readable_df.columns), key, pd.Series( [value], index =[ [name] ]))
-                            method_names.append(method)
-                        else:
-                            readable_df.loc[name, key] = value
-
-            if name not in readable_df.index:
-                blank = pd.Series([np.nan]*len(readable_df.columns), index = readable_df.columns ).to_frame().T
-                blank.index = [name]
-        
-        #Add in the name of the method for each parameter. Not sure if there is a better way to do this
-        readable_df.columns = pd.MultiIndex.from_tuples(list(zip(*np.array([readable_df.columns.to_numpy(), method_names]))) )            
-        
+        # Create and save a readable overview table
+        readable_df = self._get_readable_param_table(defaults)
         readable_df.to_csv(self.output_folder + '/params_dict_readable.csv') 
 
+        
+    def _get_readable_param_table(self, defaults_yaml: str):
+        """ Get a dataframe with all parameter values of all runs
+        
+        The resulting dataframe has a lot of columns as all hyper parameters are captured. To reduce the dataframe to
+        the parameters that were actually changed, apply: `df.loc[:,df.nunique() > 1]`.
+        
+        Arguments
+        ---------
+        defaults_yaml: str
+            Path to yaml file with default hyper parameters
+            
+        Returns
+        -------
+        pd.DataFrame
+            index: run indices
+            columns: 2 row multiindex (parameter, method)
+            data: hyper parameter values of each run
+        
+        """
+        
+        # Load defaults
+        with open(defaults_yaml, 'r') as file:
+            defaults = yaml.safe_load(file)
+        
+        # Get columns (2 row Multiindex: row 1 = hyperparameter, row 2 = method)
+        col_idx1_hparams = []
+        col_idx2_methods = []
+        for method, param_dict in defaults.items():
+            for hparam, value in param_dict.items():
+                col_idx1_hparams.append(hparam)
+                col_idx2_methods.append(method)
+        col_idx = pd.MultiIndex.from_arrays([col_idx1_hparams,col_idx2_methods], names=('param', 'method'))
+        
+        # Get a dict mapping of the col index tuple (hparam, method) to the default hparam value
+        col_idx_to_default_value = {col_idx[i]:defaults[col_idx[i][1]][col_idx[i][0]] for i in range(len(col_idx))}
+        
+        # Get run ids
+        runs = [f.split("/")[-1] for f in self.final_files]
+        runs = [r.split("metrics_")[1].split(".csv")[0] for r in runs if r.startswith("metrics_")]
+        runs = list(set(runs))
+        
+        # Init full table with default values
+        df = pd.DataFrame(index=runs, columns=col_idx, data=col_idx_to_default_value)
+        
+        # For each run insert non-default values
+        for run in runs:
+            method_list = run.split('_')
+            for m in method_list:
+                method, idx = m.split('-'); idx = int(idx)
+                hparams_dict = self.method_dict[method][idx]["hyper_params"]
+                gparams_dict = self.method_dict[method][idx]["group_params"]
+                if hparams_dict:
+                    col_idx = [(k,method) for k in hparams_dict.keys()]
+                    df.loc[run, col_idx] = list(hparams_dict.values())
+                if gparams_dict:
+                    for gparam, value in gparams_dict.items():
+                        df.loc[run, df.columns.get_level_values('param') == gparam] = value
+        
+        return df
+    
+        
     def gen_group_metrics(self, defaults: str):
         #TODO fix when metrics are called on dataset not being run (is this even a bug?)
         if not bool(self.cfg['METRICS']): return #Trick to see if its empty
@@ -385,7 +383,7 @@ class ParsedConfig:
             
             # Check for parameters of cell type annotation methods
             if "annotate" in self.cfg['PREPROCESSING'][batch]:
-                check_specific_ct_annotation_parameters(self.cfg['PREPROCESSING'][batch]['annotate'])
+                self.check_ct_annotation_parameters(self.cfg['PREPROCESSING'][batch]['annotate'])
                 
                 
     def check_ct_annotation_parameters(self, ann_cfg: dict):
@@ -399,10 +397,11 @@ class ParsedConfig:
         
         """
         
-        if ("nwconsensus" in ann_cfg) and ("methods" in ann_cfg["nwconsensus"]):
-            methods = ann_cfg["nwconsensus"]["methods"]
-            m_sorted = "-".join(sorted(methods.split("-")))
-            assert methods == m_sorted; f"Methods not alphabetically sorted: {m_sorted} instead of {methods}."
+        if ("nwconsensus" in ann_cfg) and isinstance(ann_cfg["nwconsensus"],dict) and ("methods" in ann_cfg["nwconsensus"]):
+            assert isinstance(ann_cfg["nwconsensus"]["methods"],list)
+            for methods in ann_cfg["nwconsensus"]["methods"]:
+                m_sorted = "-".join(sorted(methods.split("-")))
+                assert methods == m_sorted; f"Methods not alphabetically sorted: {m_sorted} instead of {methods}."
         
         
         
@@ -557,12 +556,25 @@ class ParsedConfig:
     #`method` should be name of method, `id_code` should be an int
     def get_method_params(self, method, id_code):
         if self.method_dict.get(method) is None:
-            return None
+            return {}
             #raise Exception(f"Cannot find method: {method}") 
         if id_code >= len(self.method_dict[method]):
-            return None
+            return {}
             #raise Exception(f"Cannot find index {idx} in method '{method}'")
+        # Add default parameters if missing
+        if self.defaults is not None:
+            self.add_missing_params_from_defaults(method, id_code)
         return self.method_dict[method][id_code]
+    
+    def add_missing_params_from_defaults(self, method, id_code):
+        """TODO: group_params are not added yet
+        """
+        hparams = self.method_dict[method][id_code]['hyper_params']
+        with open(self.defaults,'r') as def_file:
+            def_dict = yaml.safe_load(def_file).get(method)
+            if def_dict is not None:
+                add_params = {k:def_dict[k] for k in def_dict if k not in hparams}
+                hparams.update(add_params)
     
     def check_dataset(self, dataset:str):
         """Test multiple requirements for the input files of a given dataset

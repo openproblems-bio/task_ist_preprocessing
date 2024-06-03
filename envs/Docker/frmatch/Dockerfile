@@ -17,7 +17,7 @@ RUN R -e "install.packages(c('data.table','Seurat', 'yaml', 'optparse', 'devtool
 
 # Install Bioconductor packages
 #RUN R -e "BiocManager::install(c('GO.db', 'WGCNA'))"
-RUN R -e "BiocManager::install(c('SingleCellExperiment'))"
+RUN R -e "BiocManager::install(c('SingleCellExperiment','S4Vectors'))"
 
 # Install Python packages using pip
 RUN pip3 install anndata

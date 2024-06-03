@@ -10,7 +10,7 @@ import pandas as pd
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Annotate cells with celltype labels using tangram')
+    parser = argparse.ArgumentParser(description='Annotate cells with celltype labels using mapmycells')
 
     parser.add_argument('-s', '--spatial', required=True, type=str,
 	    help='Path to the spatial data h5ad')    

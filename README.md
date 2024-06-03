@@ -72,8 +72,14 @@ To use this pipeline on a cluster it is recommended to use a cluster profile. An
 #SBATCH -p cpu_p
 
 mkdir logs
+mkdir ./logs/$SLURM_JOB_ID
 
 conda activate tx
+
+export TMPDIR=<some/tmp/dir/that/exists/and/has/space>
+export SINGULARITY_TMPDIR=<some/tmp/dir/that/exists/and/has/space>
+export APPTAINER_TMPDIR=<some/tmp/dir/that/exists/and/has/space>
+export MAIN_SMK_JOB_ID=$SLURM_JOB_ID
 
 snakemake --profile configs/cluster/
 ```

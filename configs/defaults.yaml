@@ -333,6 +333,7 @@ majority:
   threshold: 0.7
 
 ssam:
+  um_per_pixel: 0.2125
   threshold: 0.7
 
 pciseqct:
@@ -367,14 +368,14 @@ frmatch:
   subsamp_size: 10
   subsamp_iter: 2000
   subsamp_seed: 1 
-  numCores: null #Number of cores for parallel computing. if NULL, use the maximum number of cores detected by \code{\link[parallel]{detectCores}}. Otherwise, specify by an integer value.
+  numCores: 8 #null #Number of cores for parallel computing. if NULL, use the maximum number of cores detected by \code{\link[parallel]{detectCores}}. Otherwise, specify by an integer value.
   leiden_res: 1 # resolution for leiden clustering
   n_pcs: 20 # number of principal components for clustering
   cell_type_column: "celltype" # name of the cell type column in single cell data
   cell_id: "cell_id" #cell id column name in spatial data
 
 scrattchmapping:
-  cell_type_column: "celltype" # name of the cell type column in single cell data
+  cell_type_col: "celltype" # name of the cell type column in single cell data
   method: "correlation" # mapping method correlation, seurat or tree
   cell_id: "cell_id" #cell id column name in spatial data
 
@@ -382,14 +383,20 @@ mapmycells:
   cell_type_column: "celltype" # name of the cell type column in single cell data
 
 nwconsensus:
-  methods: "frmatch-mfishtools-pciseqct-scrattchmapping-ssam-tangram" # methods to include for consensus annotations
+  methods: "frmatch-mfishtools-scrattchmapping-ssam-tangram" # methods to include for consensus annotations
   # Method must be included alphabetically. Theoretically the same method can be included multiple times (e.g. with 
   # different ids)
-  ids: "0-0-0-0-0-0" # Provide ids of specific parameter configurations of the other runs. This parameter only makes 
+  ids: "0-0-0-0-0" # Provide ids of specific parameter configurations of the other runs. This parameter only makes 
   # sense to add after a pre run of the individual methods. E.g.: "3-1-4" for methods="frmatch-ssam-tangram" would 
   # mean frmatch-3, ssam-1 etc. When only running with default values for each method, then "0-0-0" is a good choice. 
   # Note that the consensus methods can only be run if there are runs defined in the config for individual methods that 
   # generate according ids, i.e. frmatch-3 etc.
+  # Note: this parameter can lead to reproducibility issues: The pipeline is constructed such that the id codes of
+  # parameter combinations can be different when the config was built step after step vs being complete from the start.
+
+gmconsensus:
+  methods: "frmatch-mfishtools-scrattchmapping-ssam-tangram"
+  ids: "0-0-0-0-0"
   
 annotation_params:
   per_gene_correction: False

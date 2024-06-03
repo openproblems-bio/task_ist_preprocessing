@@ -3,9 +3,10 @@
 from pathlib import Path
 import argparse
 from collections import OrderedDict
-import txsim as tx
+import numpy as np
 import pandas as pd
 import anndata as ad
+import txsim as tx
 import skimage.io
 import yaml
 
@@ -29,7 +30,7 @@ if __name__ == '__main__':
 
     hparams_defaults_csv = Path(__file__).parent.parent / "configs" / "defaults.yaml"
     with open(hparams_defaults_csv, 'r') as file:
-        hparams_defaults = yaml.safe_load(file)["pciSeq"]
+        hparams_defaults = yaml.safe_load(file)["pciseq"]
     
     args = parser.parse_args()
 
@@ -43,15 +44,27 @@ if __name__ == '__main__':
     opts = dict(hyperparams.get('opts')) if (hyperparams is not None and hyperparams.get('opts') is not None) else None
     id_code = args.id_code
     
+    # Load image and assign cell ids such that there are no gaps 
+    # (NOTE, TODO: Arbitrary ids lead to an error in tx.preprocessing.run_pciSeq. The most elegant solution would be to 
+    # keep the ids. But in general thr requirements wrt cell_ids in the assignment outputs need to be checked. Also, 
+    # pciseq needs to be revisited in the txsim package under consideration of a stable release tag. It seems that 
+    # there were quite some differences wrt the methods outputs.)
+    image = skimage.io.imread(f'{data}/segments_{segmentation_method}.ome.tif')
+    background_exists = 0 in image
+    image = np.unique(image, return_inverse=True)[1].reshape(image.shape)
+    if not background_exists:
+        image += 1
+        image[0,0] = 0 # introduce 1 pixel as pseudo background
+    
     #Read data and run pciSeq
     assignments, cell_types = tx.preprocessing.run_pciSeq(
         pd.read_csv(molecules),
-        skimage.io.imread(f'{data}/segments_{segmentation_method}.ome.tif'),
+        image,
         ad.read(sc_data),
         'celltype',
         opts
     )
 
     #Save to csv
-    cell_types.to_csv(f'{data}/celltypes_{segmentation_method}_pciSeq-{id_code}.csv')
-    assignments.to_csv(f'{data}/assignments_{segmentation_method}_pciSeq-{id_code}.csv', index = False)
+    cell_types.to_csv(f'{data}/celltypes_{segmentation_method}_pciseq-{id_code}.csv')
+    assignments.to_csv(f'{data}/assignments_{segmentation_method}_pciseq-{id_code}.csv', index = False)
