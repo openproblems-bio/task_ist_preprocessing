@@ -1,6 +1,6 @@
 from TxsimConfig import *
 
-configfile: 'configs/240428_ct_ann_config.yaml'
+configfile: 'configs/config.yaml'
 defaults = 'configs/defaults.yaml'
 parsed = ParsedConfig(config, defaults)
 final_files = parsed.gen_file_names()
@@ -267,6 +267,7 @@ rule pciseq:
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s {wildcards.seg} "
         "-id {wildcards.id_code} "
+
 
 ###################
 # Spot assignment #
