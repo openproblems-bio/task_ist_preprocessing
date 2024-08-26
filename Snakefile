@@ -38,9 +38,10 @@ def get_params(
     dict
         Dictionary of parameters
     """
-    if parsed.get_method_params(method, id_code) is not None:
+    params_dict = parsed.get_method_params(method, id_code)
+    if (params_dict is not None) and (params_dict != {}):
         return parsed.get_method_params(method, id_code).get(param_name)
-    return None
+    return {}
 
 
 
@@ -48,7 +49,11 @@ def get_params(
 rule all:
     input:
         final_files
-        
+
+
+#####################
+# rules for pre-run #
+#####################
 
 rule get_tile_info:
     threads: 8
@@ -74,6 +79,10 @@ rule get_tile_info:
         "-nc {params.n_spots_clustermap} "
         "-ne {params.extend_n_pixel}"
             
+
+################
+# Segmentation #
+################
 
 #Rules corresponding to each method
 rule pre_segmented:
@@ -234,22 +243,22 @@ rule mesmer:
 #        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
 #        "-id {wildcards.id_code} "
 
-rule pciSeq:
+rule pciseq:
     threads: 4
     resources:
         mem_mb = lambda wildcards, attempt: 64000 * attempt
     conda:
-        "envs/pciSeq-env.yaml"
+        "envs/pciseq-env.yaml"
     input:
         '{results}/{dataset}/replicate{rep_id}/segments_{seg}.ome.tif',
         mol = lambda w: parsed.get_replicate_file(w.dataset, 'molecules', int(w.rep_id)-1),
         scd = '{results}/{dataset}/sc_normalized.h5ad'
         #scd = lambda w: parsed.get_data_file(w.dataset, 'sc_data')
     params:
-        hyper_params = lambda w: get_params('pciSeq', int(w.id_code), 'hyper_params')
+        hyper_params = lambda w: get_params('pciseq', int(w.id_code), 'hyper_params')
     output:
-        '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_pciSeq-{id_code}.csv',
-        '{results}/{dataset}/replicate{rep_id}/celltypes_{seg}_pciSeq-{id_code}.csv'
+        '{results}/{dataset}/replicate{rep_id}/assignments_{seg}_pciseq-{id_code}.csv',
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{seg}_pciseq-{id_code}.csv'
     shell:
         "python3 scripts/run_pciseq.py "
         "-m {input.mol} "
@@ -258,6 +267,11 @@ rule pciSeq:
         "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
         "-s {wildcards.seg} "
         "-id {wildcards.id_code} "
+
+
+###################
+# Spot assignment #
+###################
 
 rule basic_assign:
     threads: 8
@@ -491,6 +505,11 @@ use rule aggregate_baysor_no_prior_tile_assignments as aggregate_clustermap_tile
 #        "-id {wildcards.id_code} "
 #        "--temp {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/baysor-{wildcards.id_code}"
 
+
+#################
+# Normalization #
+#################
+
 rule normalize_total:
     threads: 8
     resources:
@@ -561,7 +580,45 @@ rule normalize_area:
         # "-g {params.pergene} "
         # "-l {params.pergene_layer}"
 
+
+########################
+# Cell type annotation #
+########################
+
+# Rule for adding cell type annotations (from csvs) to the spatial adata and applying corrections according hparams
+
 rule annotate_counts:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
+        scd = '{results}/{dataset}/sc_normalized.h5ad',
+        ct_csv = '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_{ct_method}-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params(w.ct_method, int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params(w.ct_method, int(w.id_code), 'group_params')
+    output:
+        '{results}/{dataset}/replicate{rep_id}/counts_{method}_{ct_method}-{id_code}.h5ad'
+    shell:
+        "python3 scripts/annotate_counts.py "
+        "-c {wildcards.method} "
+        "--singlecell {input.scd} "
+        "-n {input.ct_csv} "
+        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
+        "-a {wildcards.ct_method} "
+        "-id {wildcards.id_code} "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+
+
+# csv generating methods
+
+rule annotate_celltypes_txsim_methods:
+    wildcard_constraints:
+        ct_method="majority|ssam"
     threads: 8
     resources:
         mem_mb = lambda wildcards, attempt: 64000 * attempt
@@ -573,19 +630,222 @@ rule annotate_counts:
     params:
         hyper_params = lambda w: get_params(w.ct_method, int(w.id_code), 'hyper_params'),
         group_params = lambda w: get_params(w.ct_method, int(w.id_code), 'group_params')
-
     output:
-        '{results}/{dataset}/replicate{rep_id}/counts_{method}_{ct_method}-{id_code}.h5ad'
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_{ct_method}-{id_code}.csv'
     shell:
-        "python3 scripts/annotate_counts.py "
-        "-c {wildcards.method} "
-        "--singlecell {input.scd} "
-        "-d {wildcards.results}/{wildcards.dataset}/replicate{wildcards.rep_id} "
-        "-a {wildcards.ct_method} "
-        "-id {wildcards.id_code} "
+        "python3 scripts/annotate_celltypes.py "
+        "-s {input.counts} "
+        "-d {input.scd} "
+        "-o {output} "
+        "-m {wildcards.ct_method} "
         "-p \"{params.hyper_params}\" "
         "-g \"{params.group_params}\" "
 
+rule annotate_celltypes_pciseqct: #NOTE: probably we'll never need hparams in this rule. Otherwise add this option.
+    #NOTE: in output tried to use only {seg}_{assign} instead of {seg}_{assign}_{norm} with more flexible 
+    # "assign" but it didn't work even though wildcard_constraints make sense to me...
+    #wildcard_constraints:
+    #    seg="^[^-_]*-[^-_]*$",
+    #    assign=".*"
+    #TODO: The current id_code of pciseqct and pciseq is the same. Probably we need a hyperparameter for pciseqct
+    #      to refer to an id_code of pciseq.... Currently the assumption is we run these methods only once... code=0
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        ann = '{results}/{dataset}/replicate{rep_id}/celltypes_{seg}_pciseq-{id_code}.csv',
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{seg}_{assign}_{norm}.h5ad',
+    output:
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{seg}_{assign}_{norm}_pciseqct-{id_code}.csv'
+    shell:
+        "python3 scripts/copy_celltypes_pciseqct.py -i {input.ann} -s {input.counts} -o {output}"
+
+rule annotate_celltypes_mfishtools:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    container:
+        "docker://louisk92/txsim_mfishtools:2024-04-18" 
+    input:
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
+        scd = '{results}/{dataset}/sc_normalized.h5ad',
+    output:
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_mfishtools-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params('mfishtools', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('mfishtools', int(w.id_code), 'group_params')
+    shell:
+        "Rscript scripts/annotate_celltypes_mfishtools.r " 
+        "-s {input.counts} "
+        "-d {input.scd} "
+        "-o {output} "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+        
+rule annotate_celltypes_frmatch:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    container:
+        "docker://louisk92/txsim_frmatch:2024-04-18" 
+    input:
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
+        scd = '{results}/{dataset}/sc_normalized.h5ad',
+    output:
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_frmatch-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params('frmatch', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('frmatch', int(w.id_code), 'group_params')
+    shell:
+        "Rscript scripts/annotate_celltypes_FRmatch.r " 
+        "-s {input.counts} "
+        "-d {input.scd} "
+        "-o {output} "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+
+rule annotate_celltypes_scrattchmapping:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    container:
+        "docker://louisk92/txsim_scrattchmapping:2024-04-19"
+    input:
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
+        scd = '{results}/{dataset}/sc_normalized.h5ad',
+    output:
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_scrattchmapping-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params('scrattchmapping', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('scrattchmapping', int(w.id_code), 'group_params'),
+        tmp = f"{config['TEMP']}"
+    shell:
+        "mkdir -p {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.method}_scrattchmapping-{wildcards.id_code} && "
+        "Rscript scripts/annotate_celltypes_scrattchmapping.r " 
+        "-s {input.counts} "
+        "-d {input.scd} "
+        "-o {output} "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+        "-t {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.method}_scrattchmapping-{wildcards.id_code} "
+
+rule annotate_celltypes_tangram:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/tangram-env.yaml"
+    input:
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
+        scd = '{results}/{dataset}/sc_normalized.h5ad',
+    output:
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_tangram-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params('tangram', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('tangram', int(w.id_code), 'group_params')
+    shell:
+        "python3 scripts/annotate_celltypes_tangram.py " 
+        "-s {input.counts} "
+        "-d {input.scd} "
+        "-o {output} "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+
+rule annotate_celltypes_mapmycells:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/mapmycells-env.yaml"
+    input:
+        counts = '{results}/{dataset}/replicate{rep_id}/normcounts_{method}.h5ad',
+        scd = '{results}/{dataset}/sc_normalized.h5ad',
+    output:
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_mapmycells-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params('mapmycells', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('mapmycells', int(w.id_code), 'group_params')
+    shell:
+        "python3 scripts/annotate_celltypes_mapmycells.py " 
+        "-s {input.counts} "
+        "-d {input.scd} "
+        "-o {output} "
+        "-p \"{params.hyper_params}\" "
+        "-g \"{params.group_params}\" "
+        "-t {params.tmp}/{wildcards.dataset}/rep{wildcards.rep_id}/{wildcards.method}_mapmycells-{wildcards.id_code} "
+
+# Consensus methods
+#TODO: Probably you want to combine different consensus methods into one rule and have a hyperparameter.
+
+def input_files_for_consensus_annotation(id_code, results, dataset, rep_id, method, consensus):
+    """ Get cell type annotation input csvs for rule for consensus annotation
+    
+    Arguments
+    ---------
+    id_code: int
+        ID that defines the parameters for the consensus annotation
+    results: Results folder
+    dataset: data set name
+    rep_id: ID of replicate
+    method: String that describes previously ran steps
+    consensus: Type of consensus aggregation (supported: "nwconsensus", "gmconsensus")
+    """
+    hparams = get_params(consensus, int(id_code), 'hyper_params')
+    ct_method_ids = hparams.get("ids")
+    ct_method_ids = ct_method_ids.split('-')
+    ct_methods = hparams.get("methods")
+    ct_methods = ct_methods.split('-')
+    file_paths = [
+        f"{results}/{dataset}/replicate{rep_id}/celltypes_{method}_{ct_method}-{ct_method_id}.csv"
+        for (ct_method_id, ct_method) in zip(ct_method_ids, ct_methods)
+    ]    
+    ## This is very much unnecessary, but I got a "python does not work anymore"-level error here and can't pinpoint it
+    ## down. Think in future fresh envs this can be deleted. It worked before I had some deep conda cache issues.
+    #file_paths = [f.replace(" ", "") for f in file_paths]
+    return file_paths
+
+rule annotate_celltypes_nwconsensus:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        lambda w: input_files_for_consensus_annotation(w.id_code, w.results, w.dataset, w.rep_id, w.method, "nwconsensus")
+    output:
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_nwconsensus-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params('nwconsensus', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('nwconsensus', int(w.id_code), 'group_params')
+    shell:
+        "python3 scripts/annotate_celltypes_consensus_NWCS.py "
+        "-i {input} "
+        "-o {output} "
+        
+rule annotate_celltypes_gmconsensus:
+    threads: 8
+    resources:
+        mem_mb = lambda wildcards, attempt: 64000 * attempt
+    conda:
+        "envs/txsim-env.yaml"
+    input:
+        lambda w: input_files_for_consensus_annotation(w.id_code, w.results, w.dataset, w.rep_id, w.method, "gmconsensus")
+    output:
+        '{results}/{dataset}/replicate{rep_id}/celltypes_{method}_gmconsensus-{id_code}.csv'
+    params:
+        hyper_params = lambda w: get_params('gmconsensus', int(w.id_code), 'hyper_params'),
+        group_params = lambda w: get_params('gmconsensus', int(w.id_code), 'group_params')
+    shell:
+        "python3 scripts/annotate_celltypes_consensus_GMCS.py "
+        "-i {input} "
+        "-o {output} "
+
+
+#################################
+# Prepare single cell reference #
+#################################
 
 rule normalize_sc:
     threads: 8
@@ -603,6 +863,11 @@ rule normalize_sc:
         "-sc {input.ref} "
         "-m {input.mol} "
         "-o {output} "
+
+
+###########
+# Metrics #
+###########
 
 rule metric:
     threads: 8
@@ -651,6 +916,11 @@ rule group_metrics:
         "-d {wildcards.results}/{wildcards.dataset}/{wildcards.replicate} "
         "-id {wildcards.id_code}"
 
+
+##############################
+# Aggregate multiple samples #
+##############################
+
 rule aggregate_counts:
     conda:
         "envs/txsim-env.yaml"
@@ -662,6 +932,11 @@ rule aggregate_counts:
         "python3 scripts/aggregate_counts.py "
         "-m {wildcards.method} "
         "-d {wildcards.results}/{wildcards.dataset} "
+
+
+###############################
+# Metrics for aggregated data #
+###############################
 
 rule aggregate_metrics:
     conda:

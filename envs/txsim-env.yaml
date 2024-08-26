@@ -14,6 +14,7 @@ dependencies:
   - scikit-learn>=1.1.0
   - pip:
     - PyYAML
-    - -e /home/icb/louis.kuemmerle/projects/g3/tx/txsim
+    - rasterio
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx2/txsim
     - omnipath
     - planktonspace

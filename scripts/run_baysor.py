@@ -117,6 +117,10 @@ if __name__ == '__main__':
             hparams[key] = hyperparams[key]
         else:
             hparams[key] = DEFAULT_HYPERPARAMS[key]
+    for key in ["x","y","z","gene"]: 
+        # Using eval to convert -p input deletes the '"'. Add them again. Better solution would be to redesign the reading
+        if (key in hparams) and ('"' not in hparams[key]):
+            hparams[key] = f'"{hparams[key]}"'
     id_code = args.id_code
     segment = True if args.segment is not None else False
     temp = args.temp if args.temp is not None else data
