@@ -49,9 +49,9 @@ info:
   image: The name of the image file to use for the component on the website.
   # Step 5: Replace the task_template to the name of the task.
   test_resources:
-    - type: s3
-      path: s3://openproblems-data/resources_test/task_template/
-      dest: resources_test/task_template
+    # - type: s3
+    #   path: s3://openproblems-data/resources_test/task_preprocessing_imagingbased_st/
+    #   dest: resources_test/task_preprocessing_imagingbased_st
     - type: s3
       path: s3://openproblems-data/resources_test/common/
       dest: resources_test/common
