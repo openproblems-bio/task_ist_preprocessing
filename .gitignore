@@ -10,3 +10,7 @@ temp/
 dependency.png
 envs/src/
 singularity_container/
+
+target
+.nextflow
+.resources_test
