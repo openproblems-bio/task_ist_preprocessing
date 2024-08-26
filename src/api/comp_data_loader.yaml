@@ -12,7 +12,7 @@ arguments:
     direction: input
     required: true
   - name: "--output"
-    __merge__: file_raw_data.yaml
+    __merge__: file_raw_spatialdata.yaml
     direction: output
     required: true
 # test_resources:
