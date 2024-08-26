@@ -1,0 +1,23 @@
+
+info:
+  type: data_processor
+  type_info:
+    label: Data loader
+    summary: A data loader component which downloads data from a resource and stores it as a zarr file.
+    description: |
+      TODO: fill in
+arguments:
+  - name: "--dataset_organism"
+    type: string
+    direction: input
+    required: true
+  - name: "--output"
+    __merge__: file_raw_data.yaml
+    direction: output
+    required: true
+# test_resources:
+#   - path: /resources_test/common/pancreas
+#     dest: resources_test/common/pancreas
+#   - type: python_script
+#     path: /common/component_tests/run_and_check_output.py
+      

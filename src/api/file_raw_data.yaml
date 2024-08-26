@@ -1,0 +1,185 @@
+#SpatialData object, with associated Zarr store: </paht/to/data.zarr>
+#├── Images
+#│     ├── '{rep}_he_image': DataTree[cyx] (3, 45087, 11580), (3, 22543, 5790), (3, 11271, 2895), (3, 5635, 1447), (3, 2817, 723)
+#│     ├── '{rep}_{flourescence_img}': DataTree[cyx] (2, 17098, 51187), (2, 8549, 25593), (2, 4274, 12796), (2, 2137, 6398), (2, 1068, 3199)
+#│     └── '{rep}_{flourescence_img}_3D': DataTree[czyx] (2, 8, 17098, 51187), (2, 8, 8549, 25593), (2, 8, 4274, 12796), (2, 8, 2137, 6398), (2, 8, 1068, 3199)
+#├── Labels
+#│     ├── '{rep}_{segm1}': DataTree[yxz] (17098, 51187, 3), (8549, 25593, 3), (4274, 12796, 3), (2137, 6398, 3), (1068, 3199, 3)
+#│     ├── '{rep}_{segm2}': DataTree[yxz] (17098, 51187, 3), (8549, 25593, 3), (4274, 12796, 3), (2137, 6398, 3), (1068, 3199, 3)
+#│     └── '{rep}_expert_segm_{patch}': DataTree[yxz] (17098, 51187, 3), (8549, 25593, 3), (4274, 12796, 3), (2137, 6398, 3), (1068, 3199, 3)
+#├── Points
+#│     └── '{rep}_transcripts': DataFrame with shape: (<Delayed>, 11) (3D points)
+#├── Shapes
+#│     ├── '{rep}_{segm1}_boundaries': GeoDataFrame shape: (162254, 1) (2D shapes - 3D supported??)
+#│     └── '{rep}_{segm2}_boundaries': GeoDataFrame shape: (162254, 1) (2D shapes)
+#└── Tables
+#      ├── '{rep}_{segm1}': AnnData (162254, 377)
+#      ├── '{rep}_{segm2}': AnnData (162254, 377)
+#      ├── '{reference1}': AnnData (n_obs_ref1, ?) 
+#      └── '{reference2}': AnnData (n_obs_ref2, ?)
+#with coordinate systems:
+#    ▸ '{rep}_global', with elements:
+#        ....
+
+type: file
+example: "resources_test/task_preprocessing_imagingbased_st/raw_dataset.zarr"
+label: "Raw Dataset"
+summary: An unprocessed spatial imaging dataset stored as a zarr file.
+info:
+  format:
+    type: spatialdata_zarr
+    variables:
+      - name: rep
+        type: string
+        description: The replicate identifier
+        required: true
+      - name: reference
+        type: str
+        description: Name of the reference dissociated dataset
+        required: true
+      - name: segm
+        type: string
+        description: Custom segmentation identifier
+        required: false
+      - name: patch
+        type: string
+        description: Expert segmentation image patch identifier
+        required: false
+    
+    images:
+      - type: DataTree[cyx]
+        dtype: int/float #TODO
+        name: "{rep}_image"
+        description: The raw image data
+        required: true
+      - type: DataTree[czyx]
+        dtype: int/float #TODO
+        name: "{rep}_image_3D"
+        description: The raw 3D image data
+        required: false
+      - type:
+        dtype:
+        name: "{rep}_he_image"
+        description: H&E image data
+        required: false 
+    labels:
+      - type: DataTree[yx]
+        dtype: int
+        name: "{rep}_{segm}"
+        description: Custom segmentation of the data
+        required: false
+      - type: DataTree[zyx]
+        dtype: int
+        name: "{rep}_{segm}_3D"
+        description: Custom segmentation of the 3D data
+        required: false
+      - type: DataTree[yx]
+        dtype: int
+        name: "{rep}_expert_segm_{patch}"
+        description: Expert segmentation of a patch of the data
+        required: false
+      - type: DataTree[zyx]
+        dtype: int
+        name: "{rep}_expert_segm_{patch}_3D"
+        description: Expert segmentation of a 3D patch of the data
+        required: false
+    points:
+      - type: DataFrame
+        dtype: str & float
+        name: "{rep}_transcripts"
+        description: Point cloud data of transcripts
+        required: true
+    shapes:
+      - type: GeoDataFrame
+        dtype: ???
+        name: "{rep}_{segm}_boundaries"
+        description: Cell polygons referring to "{rep}_{segm}"
+        required: false
+    tables:
+      - type: anndata
+        dtype: ???
+        name: "metadata"
+        description: Metadata of spatial dataset
+        required: true
+      - type: anndata
+        dtype: ???
+        name: "{reference}"
+        description: Map to define the reference cells to compare to for each rep
+        required: true
+      - type: anndata
+        dtype: ???
+        name: "{rep}_{segm}_table"
+        description: Count data referring to "{rep}_{segm}"
+        required: false
+    coordinate_systems:
+      - type: ???
+        dtype: ???
+        name: "{rep}_global"
+        description: Coordinate system of the replicate
+        required: true
+    
+    layers:
+      - type: integer
+        name: counts
+        description: Raw counts
+        required: true
+      - type: double
+        name: normalized
+        description: Normalized expression values
+        required: true
+    obs:
+      - type: string
+        name: cell_type
+        description: Cell type information
+        required: true
+      - type: string
+        name: batch
+        description: Batch information
+        required: true
+    var:
+      - type: boolean
+        name: hvg
+        description: Whether or not the feature is considered to be a 'highly variable gene'
+        required: true
+      - type: double
+        name: hvg_score
+        description: A ranking of the features by hvg.
+        required: true
+    obsm:
+      - type: double
+        name: X_pca
+        description: The resulting PCA embedding.
+        required: true
+    uns:
+      - type: string
+        name: dataset_id
+        description: "A unique identifier for the dataset"
+        required: true
+      - name: dataset_name
+        type: string
+        description: Nicely formatted name.
+        required: true
+      - type: string
+        name: dataset_url
+        description: Link to the original source of the dataset.
+        required: false
+      - name: dataset_reference
+        type: string
+        description: Bibtex reference of the paper in which the dataset was published.
+        required: false
+      - name: dataset_summary
+        type: string
+        description: Short description of the dataset.
+        required: true
+      - name: dataset_description
+        type: string
+        description: Long description of the dataset.
+        required: true
+      - name: dataset_organism
+        type: string
+        description: The organism of the sample in the dataset.
+        required: false
+      - type: string
+        name: normalization_id
+        description: "Which normalization was used"
+        required: true
