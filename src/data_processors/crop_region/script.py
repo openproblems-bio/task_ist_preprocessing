@@ -31,4 +31,4 @@ for i, replicate_id in enumerate(par["replicate_id"]):
 
 sdata_output = sd.concatenate(sdata_out)
 
-sdata.write(par["output"])
+sdata_output.write(par["output"])
