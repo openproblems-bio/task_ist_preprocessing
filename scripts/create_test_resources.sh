@@ -75,7 +75,7 @@ viash run src/data_processors/crop_region/config.vsh.yaml -- \
   --min_y 10000 \
   --max_y 12000
 
-aws s3 sync \
+aws s3 sync --profile op \
   "resources_test/common/2023_10x_mouse_brain_xenium" \
   "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium" \
   --delete --dryrun
