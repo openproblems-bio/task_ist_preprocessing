@@ -20,10 +20,10 @@ for i, replicate_id in enumerate(par["replicate"]):
   min_y = par["min_y"][i]
   max_y = par["max_y"][i]
   sdata = sdata.query.bounding_box(
-      axes=["x", "y"],
-      min_coordinate=[min_x, min_y],
-      max_coordinate=[max_x, max_y],
-      target_coordinate_system=f"{replicate_id}_global",
+    axes=["x", "y"],
+    min_coordinate=[min_x, min_y],
+    max_coordinate=[max_x, max_y],
+    target_coordinate_system=f"{replicate_id}_global",
   )
 
 sdata.write_zarr(par["output"])
