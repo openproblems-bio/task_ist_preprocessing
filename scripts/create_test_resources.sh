@@ -9,34 +9,34 @@ cd "$REPO_ROOT"
 set -e
 
 DATASET_ID="10x_xenium/2023_10x_mouse_brain_xenium"
-RAW_OUT="resources/tmp_datasets_raw/$DATASET_ID"
-RESOURCES_OUT="resources/datasets/10x_xenium/$DATASET_ID"
+TMP_DIR="temp/datasets/$DATASET_ID"
+OUT_DIR="resources_test/common/2023_10x_mouse_brain_xenium"
 
 # https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
 # https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_2/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs.zip
 # https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_3/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs.zip
 
 
-rep1="$RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs"
-rep2="$RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs"
-rep3="$RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs"
+rep1="$TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs"
+rep2="$TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs"
+rep3="$TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs"
 
 if [ ! -d "$rep1" ]; then
   wget https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip \
-    -O $RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
-  unzip $RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip -d $RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_1
+    -O $TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
+  unzip $TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip -d $TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_1
 fi
 
 if [ ! -d "$rep2" ]; then
   wget https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_2/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs.zip \
-    -O $RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs.zip
-  unzip $RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs.zip -d $RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_2
+    -O $TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs.zip
+  unzip $TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs.zip -d $TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_2
 fi
 
 if [ ! -d "$rep3" ]; then
   wget https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_3/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs.zip \
-    -O $RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs.zip
-  unzip $RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs.zip -d $RAW_OUT/Xenium_V1_FF_Mouse_Brain_MultiSection_3
+    -O $TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs.zip
+  unzip $TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs.zip -d $TMP_DIR/Xenium_V1_FF_Mouse_Brain_MultiSection_3
 fi
 
 # convert to zarr and concatenate
@@ -47,7 +47,7 @@ viash run src/data_loaders/download_10x_xenium/config.vsh.yaml -- \
   --replicate_id rep1 \
   --replicate_id rep2 \
   --replicate_id rep3 \
-  --output $RAW_OUT/full_dataset.zarr \
+  --output $TMP_DIR/full_dataset.zarr \
   --dataset_id "$DATASET_ID" \
   --dataset_name "Xenium V1 Fresh Frozen Mouse Brain" \
   --dataset_url "https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard" \
@@ -57,8 +57,8 @@ viash run src/data_loaders/download_10x_xenium/config.vsh.yaml -- \
 
 # crop the region
 viash run src/data_processors/crop_region/config.vsh.yaml -- \
-  --input $RAW_OUT/full_dataset.zarr \
-  --output $RESOURCES_OUT/dataset.zarr \
+  --input "$TMP_DIR/full_dataset.zarr" \
+  --output "$OUT_DIR/dataset.zarr" \
   --replicate_id "rep1" \
   --min_x 10000 \
   --max_x 12000 \
@@ -74,3 +74,8 @@ viash run src/data_processors/crop_region/config.vsh.yaml -- \
   --max_x 12000 \
   --min_y 10000 \
   --max_y 12000
+
+aws s3 sync \
+  "resources_test/common/2023_10x_mouse_brain_xenium" \
+  "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium" \
+  --delete --dryrun

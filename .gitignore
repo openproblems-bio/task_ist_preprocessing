@@ -1,7 +1,8 @@
 *.egg-info
 __pycache__/
 .ipynb_checkpoints
-results/
+/results/
+/temp/
 .snakemake
 
 logs/*

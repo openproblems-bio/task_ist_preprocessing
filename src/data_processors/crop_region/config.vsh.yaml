@@ -10,6 +10,7 @@ arguments:
     name: --output
     required: true
     description: The output file to write the cropped data to.
+    direction: output
   - type: string
     name: --replicate_id
     required: false
