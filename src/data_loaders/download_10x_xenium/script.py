@@ -1,6 +1,5 @@
-# https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard
-
 import spatialdata as sd
+import anndata as ad
 from spatialdata_io import xenium
 import shutil
 import os
@@ -8,16 +7,27 @@ import os
 ## VIASH START
 par = {
     "input": [
-        "resources/datasets_raw/10x_fresh_frozen_mouse_brain_replicates/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs",
-        "resources/datasets_raw/10x_fresh_frozen_mouse_brain_replicates/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs",
-        "resources/datasets_raw/10x_fresh_frozen_mouse_brain_replicates/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs",
+        "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs",
+        "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs",
+        "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs",
     ],
     "replicate_id": [
         "rep1",
         "rep2",
         "rep3",
     ],
-    "output": "resources/datasets/10x_xenium/10x_fresh_frozen_mouse_brain_replicates/dataset.zarr"
+    "segmentation_id": [
+        "cell",
+        "nucleus",
+    ],
+    "output": "output.zarr",
+    "dataset_id": "value",
+    "dataset_name": "value",
+    "dataset_url": "value",
+    "dataset_reference": "value",
+    "dataset_summary": "value",
+    "dataset_description": "value",
+    "dataset_organism": "value",
 }
 ## VIASH END
 
@@ -64,8 +74,7 @@ for i, input in enumerate(par["input"]):
     sdata.images[replicate_id + "_image"] = sdata.images.pop("morphology_mip")
 
     # remove morphology_focus
-    _ = sdata.images.pop("morphology_focus")
-
+    _ = sdata.imsdata = sd.concatenate(sdatas)
     # rename labels
     sdata.labels[replicate_id + "_cell"] = sdata.labels.pop("cell_labels")
     sdata.labels[replicate_id + "_nucleus"] = sdata.labels.pop("nucleus_labels")
@@ -82,8 +91,24 @@ for i, input in enumerate(par["input"]):
 
     sdatas.append(sdata)
 
-
+# concatenate the data
 sdata = sd.concatenate(sdatas)
+
+sdata.tables["table"] = ad.AnnData(
+    uns={
+        "dataset_id": par["dataset_id"],
+        "dataset_name": par["dataset_name"],
+        "dataset_url": par["dataset_url"],
+        "dataset_reference": par["dataset_reference"],
+        "dataset_summary": par["dataset_summary"],
+        "dataset_description": par["dataset_description"],
+        "dataset_organism": par["dataset_organism"],
+        "variables": {
+            "replicate_id": par["replicate_id"],
+            "segmentation_id": par["segmentation_id"],
+        }
+    }
+)
 
 print(sdata)
 

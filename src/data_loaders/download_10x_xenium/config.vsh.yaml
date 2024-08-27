@@ -15,6 +15,11 @@ argument_groups:
         required: true
         description: The replicate identifier
         multiple: true
+      - type: string
+        name: --segmentation_id
+        required: true
+        description: The segmentation identifier
+        multiple: true
 
 resources:
   - type: python_script

@@ -5,4 +5,92 @@ summary: An unprocessed spatial imaging dataset stored as a zarr file.
 info:
   format:
     type: spatialdata_zarr
-    # ...
+    variables:
+      - name: replicate_id # rep1, rep2, rep3
+        type: string
+        description: The replicate identifier
+        required: true
+      - name: reference
+        type: str
+        description: Name of the reference dissociated dataset
+        required: true
+      - name: segm # cell, nucleus
+        type: string
+        description: Custom segmentation identifier
+        required: false
+      - name: patch
+        type: string
+        description: Expert segmentation image patch identifier
+        required: false
+    
+    images:
+      - type: DataTree[cyx]
+        dtype: int/float #TODO
+        name: "{rep}_image"
+        description: The raw image data
+        required: true
+      - type: DataTree[czyx]
+        dtype: int/float #TODO
+        name: "{rep}_image_3D"
+        description: The raw 3D image data
+        required: false
+      - type:
+        dtype:
+        name: "{rep}_he_image"
+        description: H&E image data
+        required: false 
+    labels:
+      - type: DataTree[yx]
+        dtype: int
+        name: "{rep}_{segm}"
+        description: Custom segmentation of the data
+        required: false
+      - type: DataTree[zyx]
+        dtype: int
+        name: "{rep}_{segm}_3D"
+        description: Custom segmentation of the 3D data
+        required: false
+      - type: DataTree[yx]
+        dtype: int
+        name: "{rep}_expert_segm_{patch}"
+        description: Expert segmentation of a patch of the data
+        required: false
+      - type: DataTree[zyx]
+        dtype: int
+        name: "{rep}_expert_segm_{patch}_3D"
+        description: Expert segmentation of a 3D patch of the data
+        required: false
+    points:
+      - type: DataFrame
+        dtype: str & float
+        name: "{rep}_transcripts"
+        description: Point cloud data of transcripts
+        required: true
+    shapes:
+      - type: GeoDataFrame
+        dtype: ???
+        name: "{rep}_{segm}_boundaries"
+        description: Cell polygons referring to "{rep}_{segm}"
+        required: false
+    tables:
+      - type: anndata
+        dtype: ???
+        name: "metadata"
+        description: Metadata of spatial dataset
+        required: true
+      - type: anndata
+        dtype: ???
+        name: "{reference}"
+        description: Map to define the reference cells to compare to for each rep
+        required: true
+      - type: anndata
+        dtype: ???
+        name: "{rep}_{segm}_table"
+        description: Count data referring to "{rep}_{segm}"
+        required: false
+    coordinate_systems:
+      - type: ???
+        dtype: ???
+        name: "{rep}_global"
+        description: Coordinate system of the replicate
+        required: true

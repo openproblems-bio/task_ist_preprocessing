@@ -29,125 +29,174 @@ info:
   format:
     type: spatialdata_zarr
     variables:
-      - name: rep
+      - name: replicate_id
         type: string
         description: The replicate identifier
         required: true
-      - name: reference
-        type: str
-        description: Name of the reference dissociated dataset
-        required: true
-      - name: segm
+      # - name: reference_id
+      #   type: str
+      #   description: Name of the reference dissociated dataset
+      #   required: true
+      - name: segmentation_id
         type: string
         description: Custom segmentation identifier
         required: false
-      - name: patch
-        type: string
-        description: Expert segmentation image patch identifier
-        required: false
+      # - name: patch
+      #   type: string
+      #   description: Expert segmentation image patch identifier
+      #   required: false
     
     images:
-      - type: DataTree[cyx]
-        dtype: int/float #TODO
+      - type: datatree
         name: "{rep}_image"
         description: The raw image data
         required: true
-      - type: DataTree[czyx]
-        dtype: int/float #TODO
+        coordinates:
+          - type: integer
+            name: c
+            required: true
+          - type: double
+            name: "y"
+            required: true
+          - type: double
+            name: x
+            required: true
+      - type: datatree
         name: "{rep}_image_3D"
         description: The raw 3D image data
         required: false
-      - type:
-        dtype:
+        coordinates: [] # TODO
+      - type: datatree
         name: "{rep}_he_image"
         description: H&E image data
         required: false 
+        coordinates: [] # TODO
     labels:
-      - type: DataTree[yx]
+      - type: datatree
         dtype: int
         name: "{rep}_{segm}"
         description: Custom segmentation of the data
         required: false
-      - type: DataTree[zyx]
+      - type: datatree
         dtype: int
         name: "{rep}_{segm}_3D"
         description: Custom segmentation of the 3D data
         required: false
-      - type: DataTree[yx]
-        dtype: int
-        name: "{rep}_expert_segm_{patch}"
-        description: Expert segmentation of a patch of the data
-        required: false
-      - type: DataTree[zyx]
-        dtype: int
-        name: "{rep}_expert_segm_{patch}_3D"
-        description: Expert segmentation of a 3D patch of the data
-        required: false
+      # - type: datatree
+      #   dtype: int
+      #   name: "{rep}_expert_segm_{patch}"
+      #   description: Expert segmentation of a patch of the data
+      #   required: false
+      # - type: DataTree[zyx]
+      #   dtype: int
+      #   name: "{rep}_expert_segm_{patch}_3D"
+      #   description: Expert segmentation of a 3D patch of the data
+      #   required: false
     points:
-      - type: DataFrame
-        dtype: str & float
+      - type: dataframe
         name: "{rep}_transcripts"
         description: Point cloud data of transcripts
         required: true
+        columns:
+          - type: float
+            name: "x"
+            required: true
+          - type: float
+            name: "y"
+            required: true
+          - type: float
+            name: "z"
+            required: true
+          - type: categorical
+            name: feature_name
+            required: true
+          - type: integer
+            name: "cell_id"
+            required: true
+          - type: float
+            name: qv
+            required: true
+          - type: long
+            name: transcript_id
+            required: true
+          - type: boolean
+            name: overlaps_nucleus
+            required: true
+
     shapes:
-      - type: GeoDataFrame
-        dtype: ???
+      - type: dataframe
         name: "{rep}_{segm}_boundaries"
         description: Cell polygons referring to "{rep}_{segm}"
         required: false
+        columns:
+          - type: object
+            name: "geometry"
+            required: true
     tables:
       - type: anndata
-        dtype: ???
         name: "metadata"
         description: Metadata of spatial dataset
         required: true
+        uns:
+          - type: string
+            name: dataset_id
+            required: true
+          - type: string
+            name: dataset_name
+            required: true
+          - type: string
+            name: dataset_url
+            required: true
+          - type: string
+            name: dataset_reference
+            required: true
+          - type: string
+            name: dataset_summary
+            required: true
+          - type: string
+            name: dataset_description
+            required: true
+          - type: string
+            name: dataset_organism
+            required: true
+          - type: dictionary
+            name: variables
+            required: true
+            contents:
+              - type: string
+                name: replicate_id
+                required: true
+                multiple: true
+              - type: string
+                name: segmentation_id
+                required: true
+                multiple: true
+      # - type: anndata
+      #   dtype: ???
+      #   name: "{reference}"
+      #   description: Map to define the reference cells to compare to for each rep
+      #   required: true
       - type: anndata
-        dtype: ???
-        name: "{reference}"
-        description: Map to define the reference cells to compare to for each rep
-        required: true
-      - type: anndata
-        dtype: ???
         name: "{rep}_{segm}_table"
         description: Count data referring to "{rep}_{segm}"
         required: false
+        obs:
+          - type: string
+            name: cell_id
+            required: true
+        var:
+          - type: string
+            name: gene_ids
+            required: true
+          - type: string
+            name: feature_types
+            required: true
+        obsm:
+          - type: float
+            name: spatial
+            required: true
     coordinate_systems:
-      - type: ???
-        dtype: ???
+      - type: string
         name: "{rep}_global"
         description: Coordinate system of the replicate
-        required: true
-    
-    uns:
-      - type: string
-        name: dataset_id
-        description: "A unique identifier for the dataset"
-        required: true
-      - name: dataset_name
-        type: string
-        description: Nicely formatted name.
-        required: true
-      - type: string
-        name: dataset_url
-        description: Link to the original source of the dataset.
-        required: false
-      - name: dataset_reference
-        type: string
-        description: Bibtex reference of the paper in which the dataset was published.
-        required: false
-      - name: dataset_summary
-        type: string
-        description: Short description of the dataset.
-        required: true
-      - name: dataset_description
-        type: string
-        description: Long description of the dataset.
-        required: true
-      - name: dataset_organism
-        type: string
-        description: The organism of the sample in the dataset.
-        required: false
-      - type: string
-        name: normalization_id
-        description: "Which normalization was used"
         required: true
