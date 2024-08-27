@@ -26,15 +26,17 @@ sdatas = []
 for i, input in enumerate(par["input"]):
     print("parsing the data... ", end="", flush=True)
     replicate_id = par["replicate_id"][i]
+
+    # read the data
     sdata = xenium(
         path=input,
         n_jobs=8,
-        cell_boundaries=True,
+        cells_boundaries=True,
         nucleus_boundaries=True,
         morphology_focus=True,
-        cells_as_circles=True,
+        cells_as_circles=False,
     )
-
+    
     # SpatialData object
     # ├── Images
     # │     ├── 'morphology_focus': DataTree[cyx] (1, 33131, 48358), (1, 16565, 24179), (1, 8282, 12089), (1, 4141, 6044), (1, 2070, 3022)
@@ -55,40 +57,35 @@ for i, input in enumerate(par["input"]):
     #         morphology_focus (Images), morphology_mip (Images), cell_labels (Labels), nucleus_labels (Labels), transcripts (Points), cell_boundaries (Shapes), cell_circles (Shapes), nucleus_boundaries (Shapes)
 
 
-    sdata2_kwargs = {}
-
-    # process images
-    sdata2_kwargs["images"] = {
-        # morphology_focus or morphology_mip?
-        replicate_id + "_image": sdata.images["morphology_focus"],
-    }
-    sdata2_kwargs["labels"] = {
-        replicate_id + "_cell": sdata.labels["cell_labels"],
-        replicate_id + "_nucleus": sdata.labels["nucleus_labels"],
-    }
-    sdata2_kwargs["points"] = {
-        replicate_id + "_transcripts": sdata.points["transcripts"],
-    }
-    sdata2_kwargs["shapes"] = {
-        replicate_id + "_cell_boundaries": sdata.shapes["cell_boundaries"],
-        replicate_id + "_nucleus_boundaries": sdata.shapes["nucleus_boundaries"],
-    }
-    sdata2_kwargs["tables"] = {
-        replicate_id + "_cell_table": sdata.tables["table"],
-    }
-
-    sdata2 = sd.SpatialData(**sdata2_kwargs)
+    # rename coordinate system
+    sdata.rename_coordinate_systems({"global": replicate_id + "_global"})
     
+    # rename images
+    sdata.images[replicate_id + "_image"] = sdata.images.pop("morphology_mip")
 
-    # TODO: 
+    # remove morphology_focus
+    _ = sdata.images.pop("morphology_focus")
 
-    sdatas.append(sdata2)
+    # rename labels
+    sdata.labels[replicate_id + "_cell"] = sdata.labels.pop("cell_labels")
+    sdata.labels[replicate_id + "_nucleus"] = sdata.labels.pop("nucleus_labels")
+
+    # rename points
+    sdata.points[replicate_id + "_transcripts"] = sdata.points.pop("transcripts")
+
+    # rename shapes
+    sdata.shapes[replicate_id + "_cell_boundaries"] = sdata.shapes.pop("cell_boundaries")
+    sdata.shapes[replicate_id + "_nucleus_boundaries"] = sdata.shapes.pop("nucleus_boundaries")
+
+    # rename tables
+    sdata.tables[replicate_id + "_cell_table"] = sdata.tables.pop("table")
+
+    sdatas.append(sdata)
 
 
 sdata = sd.concatenate(sdatas)
 
 print(sdata)
-
 
 print("writing the data... ", end="", flush=True)
 if os.path.exists(par["output"]):
