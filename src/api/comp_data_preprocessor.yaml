@@ -1,0 +1,22 @@
+
+info:
+  type_info:
+    label: Data preprocessor
+    summary: A data loader component which downloads data from a resource and stores it as a zarr file.
+    description: |
+      TODO: fill in
+  arguments:
+  - name: "--input"
+    __merge__: file_spatialdata_raw.yaml
+    direction: input
+    required: true
+  - name: "--output"
+    __merge__: file_spatialdata_processed.yaml
+    direction: output
+    required: true
+# test_resources:
+#   - path: /resources_test/common/pancreas
+#     dest: resources_test/common/pancreas
+#   - type: python_script
+#     path: /common/component_tests/run_and_check_output.py
+      

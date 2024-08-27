@@ -22,7 +22,7 @@
 #        ....
 
 type: file
-example: "resources_test/task_preprocessing_imagingbased_st/raw_dataset.zarr"
+example: "resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr"
 label: "Raw Dataset"
 summary: An unprocessed spatial imaging dataset stored as a zarr file.
 info:
@@ -118,38 +118,6 @@ info:
         description: Coordinate system of the replicate
         required: true
     
-    layers:
-      - type: integer
-        name: counts
-        description: Raw counts
-        required: true
-      - type: double
-        name: normalized
-        description: Normalized expression values
-        required: true
-    obs:
-      - type: string
-        name: cell_type
-        description: Cell type information
-        required: true
-      - type: string
-        name: batch
-        description: Batch information
-        required: true
-    var:
-      - type: boolean
-        name: hvg
-        description: Whether or not the feature is considered to be a 'highly variable gene'
-        required: true
-      - type: double
-        name: hvg_score
-        description: A ranking of the features by hvg.
-        required: true
-    obsm:
-      - type: double
-        name: X_pca
-        description: The resulting PCA embedding.
-        required: true
     uns:
       - type: string
         name: dataset_id

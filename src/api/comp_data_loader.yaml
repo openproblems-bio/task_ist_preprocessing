@@ -1,6 +1,5 @@
 
 info:
-  type: data_processor
   type_info:
     label: Data loader
     summary: A data loader component which downloads data from a resource and stores it as a zarr file.
@@ -10,7 +9,7 @@ argument_groups:
   - name: Outputs
     arguments:
     - name: "--output"
-      __merge__: file_raw_spatialdata.yaml
+      __merge__: file_spatialdata_raw.yaml
       direction: output
       required: true
   - name: Metadata

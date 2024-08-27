@@ -1,0 +1,8 @@
+type: file
+example: "resources_test/common/2023_10x_mouse_brain_xenium/dataset_preprocessed.zarr"
+label: "Preprocessed Dataset"
+summary: An unprocessed spatial imaging dataset stored as a zarr file.
+info:
+  format:
+    type: spatialdata_zarr
+    # ...
