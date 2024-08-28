@@ -31,11 +31,13 @@ par = {
 }
 ## VIASH END
 
+assert len(par["input"]) == len(par["replicate_id"]), "Length of 'input' and 'replicate_id' must be the same."
+
 sdatas = []
 
 for i, input in enumerate(par["input"]):
-    print("parsing the data... ", end="", flush=True)
     replicate_id = par["replicate_id"][i]
+    print(f"Processing replicate '{replicate_id}'", flush=True)
 
     # read the data
     sdata = xenium(
@@ -46,26 +48,6 @@ for i, input in enumerate(par["input"]):
         morphology_focus=True,
         cells_as_circles=False,
     )
-    
-    # SpatialData object
-    # ├── Images
-    # │     ├── 'morphology_focus': DataTree[cyx] (1, 33131, 48358), (1, 16565, 24179), (1, 8282, 12089), (1, 4141, 6044), (1, 2070, 3022)
-    # │     └── 'morphology_mip': DataTree[cyx] (1, 33131, 48358), (1, 16565, 24179), (1, 8282, 12089), (1, 4141, 6044), (1, 2070, 3022)
-    # ├── Labels
-    # │     ├── 'cell_labels': DataTree[yx] (33131, 48358), (16565, 24179), (8282, 12089), (4141, 6044), (2070, 3022)
-    # │     └── 'nucleus_labels': DataTree[yx] (33131, 48358), (16565, 24179), (8282, 12089), (4141, 6044), (2070, 3022)
-    # ├── Points
-    # │     └── 'transcripts': DataFrame with shape: (<Delayed>, 8) (3D points)
-    # ├── Shapes
-    # │     ├── 'cell_boundaries': GeoDataFrame shape: (162033, 1) (2D shapes)
-    # │     ├── 'cell_circles': GeoDataFrame shape: (162033, 2) (2D shapes)
-    # │     └── 'nucleus_boundaries': GeoDataFrame shape: (162033, 1) (2D shapes)
-    # └── Tables
-    #       └── 'table': AnnData (162033, 248)
-    # with coordinate systems:
-    #     ▸ 'global', with elements:
-    #         morphology_focus (Images), morphology_mip (Images), cell_labels (Labels), nucleus_labels (Labels), transcripts (Points), cell_boundaries (Shapes), cell_circles (Shapes), nucleus_boundaries (Shapes)
-
 
     # rename coordinate system
     sdata.rename_coordinate_systems({"global": replicate_id + "_global"})
@@ -74,7 +56,8 @@ for i, input in enumerate(par["input"]):
     sdata.images[replicate_id + "_image"] = sdata.images.pop("morphology_mip")
 
     # remove morphology_focus
-    _ = sdata.imsdata = sd.concatenate(sdatas)
+    _ = sdata.images.pop("morphology_focus")
+
     # rename labels
     sdata.labels[replicate_id + "_cell"] = sdata.labels.pop("cell_labels")
     sdata.labels[replicate_id + "_nucleus"] = sdata.labels.pop("nucleus_labels")
@@ -91,10 +74,11 @@ for i, input in enumerate(par["input"]):
 
     sdatas.append(sdata)
 
-# concatenate the data
+print("Concatenate sdatas", flush=True)
 sdata = sd.concatenate(sdatas)
 
-sdata.tables["table"] = ad.AnnData(
+print("Add metadata table", flush=True)
+sdata.tables["metadata"] = ad.AnnData(
     uns={
         "dataset_id": par["dataset_id"],
         "dataset_name": par["dataset_name"],
@@ -110,9 +94,10 @@ sdata.tables["table"] = ad.AnnData(
     }
 )
 
-print(sdata)
+print(f"Output: {sdata}", flush=True)
 
-print("writing the data... ", end="", flush=True)
+print(f"Writing to '{par['output']}'", flush=True)
 if os.path.exists(par["output"]):
     shutil.rmtree(par["output"])
+
 sdata.write(par["output"])
