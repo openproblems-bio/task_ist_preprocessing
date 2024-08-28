@@ -1,0 +1,30 @@
+__merge__: ../../api/comp_data_loader.yaml # TODO: loader for scrnaseq h5ad instead of spatialdata zarr 
+name: download_allen_brain_cell_atlas
+namespace: data_loaders
+
+argument_groups:
+ - name: Inputs
+   arguments:
+     - type: file
+       name: --temp_dir
+       required: false
+       description: Path to a directory where intermediate files are saved.
+
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        packages: 
+          - git+https://github.com/alleninstitute/abc_atlas_access
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [highmem, midcpu, midtime]

@@ -1,0 +1,39 @@
+name: subset_reference
+namespace: data_processors
+
+arguments:
+  - type: file
+    name: --input
+    required: true
+    description: A h5ad file containing the data to subset.
+  - type: file
+    name: --output
+    required: true
+    description: The output file to write the subsetted data to.
+    direction: output
+  - type: string
+    name: --tissue
+    required: false
+    description: Subset the data to cells from the given tissue(s) only.
+    multiple: true
+  - type: integer
+    name: --n_cells
+    required: true
+    description: The number of cells to sample.
+    multiple: true
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi:
+          - anndata
+
+runners:
+  - type: executable
+  - type: nextflow

@@ -1,19 +1,35 @@
 type: file
-example: "resources_test/common/pancreas/raw.h5ad"
+example: "resources_test/common/pancreas/raw.h5ad" #TODO: change this to abc atlas (crop)?
 info:
   label: "Raw scRNA-seq"
   summary: An unprocessed dataset as output by a dataset loader.
+  format:
+    variables:
+      - name: cell_type_suffix
+        type: string
+        description: Suffix for specific cell type annotations, e.g. to indicate level of granularity
+        required: false
   description: |
     This dataset contains raw counts and metadata as output by a dataset loader.
 
-    The format of this file is derived from the [CELLxGENE schema v4.0.0](https://github.com/chanzuckerberg/single-cell-curation/blob/main/schema/4.0.0/schema.md).
+    The format of this file is mainly derived from the [CELLxGENE schema v4.0.0](https://github.com/chanzuckerberg/single-cell-curation/blob/main/schema/4.0.0/schema.md).
   slots:
     layers: 
       - type: integer
-        name: counts
+        name: counts #TODO: Okay to change this one to "raw"? 
         description: Raw counts
         required: true
     obs:
+      - type: string
+        name: cell_type
+        description: Classification of the cell type based on its characteristics and function within the tissue or organism.
+        required: true
+        
+      - type: string
+        name: cell_type{cell_type_suffix}
+        description: Classification of the cell type based on its characteristics and function within the tissue or organism.
+        required: false    
+    
       - type: string
         name: dataset_id
         description: Identifier for the dataset from which the cell data is derived, useful for tracking and referencing purposes.
@@ -27,11 +43,6 @@ info:
       - type: string
         name: assay_ontology_term_id
         description: Experimental Factor Ontology (`EFO:`) term identifier for the assay, providing a standardized reference to the assay type.
-        required: false
-
-      - type: string
-        name: cell_type
-        description: Classification of the cell type based on its characteristics and function within the tissue or organism.
         required: false
 
       - type: string
