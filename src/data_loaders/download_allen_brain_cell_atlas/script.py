@@ -8,25 +8,32 @@ from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 # env setup:
 # pip install -U git+https://github.com/alleninstitute/abc_atlas_access
 
-
-MANIFEST_JSON = 'releases/20230630/manifest.json' # Defines data version (Allen Brain manifest file)
-version = MANIFEST_JSON.split('/')[1]
-OUTPUT_DIR = Path(f'resources/datasets/abc_atlas_{version}')
-
-regions = ["CTXsp", "HPF", "HY", "Isocortex-1", "Isocortex-2", "Isocortex-3", "Isocortex-4", "MB", "OLF", "TH"]
+VERSION = "20230630"
 
 ## VIASH START
 par = {
-    "temp_dir": str(OUTPUT_DIR / 'tmp'),
-    "output": str(OUTPUT_DIR / f"abc_atlas_{version}.h5ad")
+    "regions": ["CTXsp", "HPF", "HY", "Isocortex-1", "Isocortex-2", "Isocortex-3", "Isocortex-4", "MB", "OLF", "TH"],
+    "output": f"abc_atlas_{VERSION}.h5ad"
 }
-
+meta = {
+    "name": "...",
+    "config": "...",
+    "temp_dir": "...",
+    "cpus": None,
+    "memory_b": None,
+    "memory_mb": None,
+    "memory_gb": None
+}
 ## VIASH END
 
-TMP_DIR = (OUTPUT_DIR / 'tmp') if par["temp_dir"] is None else Path(par["temp_dir"])
+regions = par["regions"]
+
+TMP_DIR = Path("/tmp") if meta["temp_dir"] is None else Path(meta["temp_dir"])
 
 abc_cache = AbcProjectCache.from_cache_dir(TMP_DIR)
-abc_cache.load_manifest(MANIFEST_JSON)
+abc_cache.load_manifest(
+    f"releases/{VERSION}/manifest.json"
+)  # saved to TMPDIR / releases/{VERSION}/manifest.json
 
 # From abc_cache.list_data_files('WMB-10Xv2') # TODO: potentially also load other chemistries (currently only 10Xv2)
 count_matrix_files = [f'WMB-10Xv2-{region}/raw' for region in regions]
@@ -41,18 +48,22 @@ metadata_files = [
 # Download data
 for file in count_matrix_files:
     abc_cache.get_data_path(directory='WMB-10Xv2', file_name=file)
-    
+
 for file in metadata_files:
     abc_cache.get_metadata_path(directory='WMB-10X', file_name=file)
-    
+
 # Read an concatenate the data
 obs = pd.read_csv(
-    TMP_DIR / f"metadata/WMB-10X/{version}/views/cell_metadata_with_cluster_annotation.csv", index_col=0
+    TMP_DIR
+    / f"metadata/WMB-10X/{VERSION}/views/cell_metadata_with_cluster_annotation.csv",
+    index_col=0,
 )
 
 adatas = []
 for region in regions:
-    adata = ad.read_h5ad(TMP_DIR / f"expression_matrices/WMB-10Xv2/{version}/WMB-10Xv2-{region}-raw.h5ad")
+    adata = ad.read_h5ad(
+        TMP_DIR / f"expression_matrices/WMB-10Xv2/{VERSION}/WMB-10Xv2-{region}-raw.h5ad"
+    )
     adata = adata[adata.obs_names.isin(obs.index)]
     adata.obs["region"] = region
     adatas.append(adata)
