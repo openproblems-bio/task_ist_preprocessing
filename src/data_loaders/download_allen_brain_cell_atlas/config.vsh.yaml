@@ -1,0 +1,47 @@
+__merge__: ../../api/comp_data_loader_sc.yaml
+name: download_allen_brain_cell_atlas
+namespace: data_loaders
+
+argument_groups:
+  - name: Arguments
+    arguments:
+      - type: string
+        name: --abca_version
+        required: false
+        default: "20230630"
+        description: The version of the Allen Brain Cell Atlas to download data from.
+      - type: string
+        name: --regions
+        required: false
+        description: A list of brain regions to download data for. If not provided, data for all regions will be downloaded.
+        multiple: true
+        default:
+          - CTXsp
+          - HPF
+          - HY
+          - Isocortex-1
+          - Isocortex-2
+          - Isocortex-3
+          - Isocortex-4
+          - MB
+          - OLF
+          - TH
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        packages: 
+          - git+https://github.com/alleninstitute/abc_atlas_access
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [highmem, midcpu, midtime]

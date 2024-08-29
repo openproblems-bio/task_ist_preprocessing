@@ -1,0 +1,25 @@
+cluster: 
+  sbatch
+    --partition={resources.partition}
+    --cpus-per-task={threads}
+    --qos={resources.qos}
+    --job-name=smk_{rule}
+    --output=logs/$MAIN_SMK_JOB_ID/{rule}_output_%j.txt
+    --error=logs/$MAIN_SMK_JOB_ID/{rule}_output_%j.txt
+    --mem={resources.mem_mb}
+    --nice=10000
+    --mail-user=hrehman80@helmholtz-muenchen.de
+    --time=36:00:00
+default-resources:
+  - partition=cpu_p
+  - qos=cpu_normal
+  - mem_mb=16000
+use-conda: True
+use-singularity: True
+conda-prefix: "/lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/envs/conda"
+singularity-prefix: "/lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/envs/singularity"
+singularity-args:
+  --bind /home/:/home/,/lustre/:/lustre/,/localscratch/:/localscratch/,/ictstr01/:/ictstr01/
+jobs: 40
+keep-going: True
+restart-times: 2

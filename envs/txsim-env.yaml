@@ -1,0 +1,20 @@
+name: txsim-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - squidpy
+  - alphashape
+  - descartes
+  - cellpose
+  - shapely
+  - scikit-image
+  - scikit-learn>=1.1.0
+  - pip:
+    - PyYAML
+    - rasterio
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx2/txsim
+    - omnipath
+    - planktonspace

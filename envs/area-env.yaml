@@ -1,0 +1,14 @@
+name: area-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - pip:
+    - squidpy
+    - PyYAML
+    - alphashape
+    - descartes
+    - rasterio
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx2/txsim

@@ -1,0 +1,18 @@
+name: tangram-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - squidpy
+    - pandas
+    - numpy
+    - scanpy
+    - anndata
+    - PyYAML
+    - tangram-sc
+    - rasterio
+    - -e /home/icb/louis.kuemmerle/projects/g3/tx2/txsim 

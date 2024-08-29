@@ -1,0 +1,40 @@
+__merge__: ../../api/comp_data_loader_sp.yaml
+name: download_10x_xenium
+namespace: data_loaders
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - type: file
+        name: --input
+        required: true
+        description: A 10x xenium directory
+        multiple: true
+      - type: string
+        name: --replicate_id
+        required: true
+        description: The replicate identifier
+        multiple: true
+      - type: string
+        name: --segmentation_id
+        required: true
+        description: The segmentation identifier
+        multiple: true
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi:
+          - spatialdata-io
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [highmem, midcpu, midtime]

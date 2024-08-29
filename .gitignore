@@ -1,0 +1,17 @@
+*.egg-info
+__pycache__/
+.ipynb_checkpoints
+/results/
+/temp/
+.snakemake
+
+logs/*
+!logs/README.txt
+temp/
+dependency.png
+envs/src/
+singularity_container/
+
+/.nextflow
+/resources_test
+/resources

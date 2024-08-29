@@ -1,0 +1,7 @@
+type: file
+example: "resources_test/preprocessing_imagingbased_st/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+label: "SC Dataset"
+summary: A single-cell reference dataset, preprocessed for this benchmark.
+description: |
+  This dataset contains preprocessed counts and metadata for single-cell RNA-seq data.
+__merge__: file_common_singlecell.yaml

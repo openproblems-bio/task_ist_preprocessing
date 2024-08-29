@@ -1,0 +1,81 @@
+#Folder where pipeline is contained (should end with 'txsim-pipeline')
+#This might be obsolete given snakemake functionality
+ROOT: /mnt/c/Users/Habib/Projects/HMGU/tx_project/txsim-pipeline
+
+#Folder where intermediate/final files will be stored
+RESULTS: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/results/hackathon
+
+#Folder where temporary files will be stored (optional)]
+TEMP: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/tmp
+
+
+PREPROCESSING:
+  batch1:
+    dataset: [test, heart_PCW4.5, hippocampus]
+    workflow: [segmentation, assignment, normalize]
+    segmentation:
+      cellpose:
+        min_size: [25]
+      watershed:
+      custom:
+    segmentation_params:
+      expand: [0,10]
+    assignment: 
+      pciSeq:
+        opts:
+          - {'exclude_genes': ['TCIM']}
+          - {}
+    assignment_params:
+    normalize:
+      area:
+        max: [True]
+        alpha: [-1, 0]
+      total:
+        find_area: [True]
+    normalize_params:
+      per_gene_correction: [True, False]
+  batch2:
+    dataset: [test, heart_PCW4.5, hippocampus]
+    workflow: [cell-segmentation, normalize]
+    cell-segmentation:
+      clustermap:
+        model: 
+          - {'xy_radius': 15, 
+            'gauss_blur': True}
+          - {'xy_radius': 25}
+        preprocess:
+          - {'pct_filter': 0.05,
+            'LOF': True}
+          - {'pct_filter': 0.15}
+          - {}
+        segmentaton:
+          - {'dapi_grid_interval': 6}
+    cell-segmentation_params:  
+    normalize:
+      area:
+        max: [True, False]
+        alpha: [-1, 0]
+      total:
+        find_area: [True]
+    normalize_params:
+      per_gene_correction: [True, False]    
+
+
+
+DATA_SCENARIOS:
+  test:
+    root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/data/test 
+    image: raw_image.tif
+    sc_data: sc_data.h5ad
+    molecules: spots.csv
+    segmented_image: segmented_image.tif
+  hippocampus:
+    root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/data/hippocampus 
+    image: CA1DapiBoundaries_7-1_right.tif
+    sc_data: scdata.h5ad
+    molecules: spots_w_celltype_rightCA1_7-1.csv
+  heart_PCW4.5:
+    root_folder: /lustre/groups/ml01/projects/2022_txsim_louis.kuemmerle/data/heart_data
+    image: nuclei_PCW4.5_1.tif
+    sc_data: heart_sc.h5ad
+    molecules: spots_PCW4.5_1.csv    

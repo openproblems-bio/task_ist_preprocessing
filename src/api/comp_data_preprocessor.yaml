@@ -1,0 +1,30 @@
+info:
+  type: data_processor
+  type_info:
+    label: Data preprocessor
+    summary: Preprocess a common dataset for the benchmark.
+    description: |
+      This component processes a common single-cell and a common spatial transcriptomics
+      dataset for the benchmark.
+  arguments:
+  - name: "--input_sp"
+    __merge__: file_common_spatialdata.yaml
+    direction: input
+    required: true
+  - name: "--input_sc"
+    __merge__: file_common_singlecell.yaml
+    direction: input
+    required: true
+  - name: "--output_sp"
+    __merge__: file_spatialdata.yaml
+    direction: output
+    required: true
+  - name: "--output_sc"
+    __merge__: file_singlecell.yaml
+    direction: output
+    required: true
+# test_resources:
+#   - path: /resources_test/common/pancreas
+#     dest: resources_test/common/pancreas
+#   - type: python_script
+#     path: /common/component_tests/run_and_check_output.py
