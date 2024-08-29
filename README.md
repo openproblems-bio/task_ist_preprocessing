@@ -37,11 +37,11 @@ should convince readers of the significance and relevance of your task.
 ``` mermaid
 flowchart LR
   comp_data_loader_sc[/"SC Data Loader"/]
-  file_common_singlecell("Raw SC Dataset")
+  file_common_singlecell("Common SC Dataset")
   comp_data_preprocessor[/"Data preprocessor"/]
   file_singlecell("SC Dataset")
-  file_spatialdata("Spatial Dataset")
-  file_common_spatialdata("Raw Spatial Dataset")
+  file_spatialdata("iST Dataset")
+  file_common_spatialdata("Common iST Dataset")
   comp_data_loader_sp[/"iST Data Loader"/]
   comp_data_loader_sc-->file_common_singlecell
   file_common_singlecell---comp_data_preprocessor
@@ -72,7 +72,7 @@ Arguments:
 
 </div>
 
-## File format: Raw SC Dataset
+## File format: Common SC Dataset
 
 An unprocessed dataset as output by a dataset loader.
 
@@ -234,7 +234,7 @@ Data structure:
 
 </div>
 
-## File format: Spatial Dataset
+## File format: iST Dataset
 
 A spatial transcriptomics dataset, preprocessed for this benchmark.
 
@@ -258,7 +258,7 @@ Data structure:
 
 </div>
 
-## File format: Raw Spatial Dataset
+## File format: Common iST Dataset
 
 An unprocessed spatial imaging dataset stored as a zarr file.
 
