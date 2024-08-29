@@ -6,7 +6,7 @@ info:
     description: |
       This component processes a common single-cell and a common spatial transcriptomics
       dataset for the benchmark.
-  arguments:
+arguments:
   - name: "--input_sp"
     __merge__: file_common_spatialdata.yaml
     direction: input
