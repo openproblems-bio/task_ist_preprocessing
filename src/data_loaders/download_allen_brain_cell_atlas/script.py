@@ -8,25 +8,19 @@ from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 # env setup:
 # pip install -U git+https://github.com/alleninstitute/abc_atlas_access
 
-VERSION = "20230630"
-
 ## VIASH START
 par = {
-    "regions": ["CTXsp", "HPF", "HY", "Isocortex-1", "Isocortex-2", "Isocortex-3", "Isocortex-4", "MB", "OLF", "TH"],
-    "output": f"abc_atlas_{VERSION}.h5ad"
+    "version": "20230630",
+    "regions": ["OLF", "TH"],
+    "output": f"abc_atlas_20230630.h5ad",
 }
 meta = {
-    "name": "...",
-    "config": "...",
-    "temp_dir": "...",
-    "cpus": None,
-    "memory_b": None,
-    "memory_mb": None,
-    "memory_gb": None
+    "temp_dir": "/tmp",
 }
 ## VIASH END
 
-regions = par["regions"]
+VERSION = par["version"]
+REGIONS = par["regions"]
 
 TMP_DIR = Path("/tmp") if meta["temp_dir"] is None else Path(meta["temp_dir"])
 
@@ -36,7 +30,7 @@ abc_cache.load_manifest(
 )  # saved to TMPDIR / releases/{VERSION}/manifest.json
 
 # From abc_cache.list_data_files('WMB-10Xv2') # TODO: potentially also load other chemistries (currently only 10Xv2)
-count_matrix_files = [f'WMB-10Xv2-{region}/raw' for region in regions]
+count_matrix_files = [f'WMB-10Xv2-{region}/raw' for region in REGIONS]
 
 # From abc_cache.list_metadata_files('WMB-10Xv2')
 metadata_files = [
@@ -60,7 +54,7 @@ obs = pd.read_csv(
 )
 
 adatas = []
-for region in regions:
+for region in REGIONS:
     adata = ad.read_h5ad(
         TMP_DIR / f"expression_matrices/WMB-10Xv2/{VERSION}/WMB-10Xv2-{region}-raw.h5ad"
     )
@@ -109,18 +103,7 @@ adata.var.index.name = None
 adata.uns["dataset_id"] = "2023_Yao_mouse_brain_scRNAseq_10Xv2"
 adata.uns["dataset_name"] = "2023_Yao_mouse_brain_scRNAseq_10Xv2"
 adata.uns["dataset_url"] = "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE246717"
-adata.uns["dataset_reference"] = """
-@article{yao2023high,
-  title={A high-resolution transcriptomic and spatial atlas of cell types in the whole mouse brain},
-  author={Yao, Zizhen and van Velthoven, Cindy TJ and Kunst, Michael and Zhang, Meng and McMillen, Delissa and Lee, Changkyu and Jung, Won and Goldy, Jeff and Abdelhak, Aliya and Aitken, Matthew and others},
-  journal={Nature},
-  volume={624},
-  number={7991},
-  pages={317--332},
-  year={2023},
-  publisher={Nature Publishing Group UK London}
-}
-"""
+adata.uns["dataset_reference"] = "10.1038/s41586-023-06812-z"
 adata.uns["dataset_summary"] = "A high-resolution scRNAseq atlas of cell types in the whole mouse brain"
 adata.uns["dataset_description"] = "See dataset_reference for more information. Note that we only took the 10xv2 data from the dataset."
 adata.uns["dataset_organism"] = "Mus musculus"

@@ -6,6 +6,11 @@ argument_groups:
   - name: Inputs
     arguments:
       - type: string
+        name: --version
+        required: false
+        default: "20230630"
+        description: The version of the Allen Brain Cell Atlas to download data from.
+      - type: string
         name: --regions
         required: false
         description: A list of brain regions to download data for. If not provided, data for all regions will be downloaded.
