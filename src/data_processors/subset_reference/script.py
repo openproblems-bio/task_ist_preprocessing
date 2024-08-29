@@ -4,8 +4,8 @@ import random
 
 ### VIASH START
 par = {
-    "input": "temp/datasets/allen_brain_cell_atlas/2023_Yao_mouse_brain_scRNAseq_10Xv2/tmp_dataset.h5ad",
-    "output": "resources_test/common/2023_abca_Yao_mouse_brain_scRNAseq_10Xv2/dataset.h5ad",
+    "input": "temp/datasets/allen_brain_cell_atlas/2023_yao_mouse_brain_scrnaseq_10xv2/tmp_dataset.h5ad",
+    "output": "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad",
     "n_cells": 500,
     "min_n_cells_per_cell_type": 50,
     "cell_type_key": "cell_type",
@@ -62,8 +62,11 @@ if par.get("keep_features"):
 
 # Remove empty observations and features
 print(">> Removing empty observations and features", flush=True)
+# filter_genes and filter_cells need an X to function properly...
+adata.X = adata.layers["counts"]
 sc.pp.filter_genes(adata, min_cells=1)
 sc.pp.filter_cells(adata, min_counts=2)
+del adata.X
 
 # Update dataset_id or add relevant metadata if needed
 print(">> Update metadata", flush=True)
