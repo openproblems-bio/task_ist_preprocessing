@@ -8,7 +8,7 @@ argument_groups:
       - type: file
         name: --input
         required: true
-        description: A 10x xenium zip file
+        description: A 10x xenium directory
         multiple: true
       - type: string
         name: --replicate_id

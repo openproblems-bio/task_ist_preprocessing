@@ -3,7 +3,9 @@
 #   - The input/output files
 #   - Common parameters
 #   - A unit test
-__merge__: ../../api/comp_metric.yaml
+
+# __merge__: ../../api/comp_metric.yaml
+status: disabled
 
 
 # A unique identifier for your component (required).

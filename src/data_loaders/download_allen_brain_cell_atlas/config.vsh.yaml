@@ -3,7 +3,7 @@ name: download_allen_brain_cell_atlas
 namespace: data_loaders
 
 argument_groups:
-  - name: Inputs
+  - name: Arguments
     arguments:
       - type: string
         name: --abca_version
@@ -26,14 +26,6 @@ argument_groups:
           - MB
           - OLF
           - TH
-  - name: Outputs
-    arguments:
-      - type: file
-        name: --output
-        required: true
-        direction: output
-        example: output.h5ad
-        description: Path to the output h5ad file.
 
 resources:
   - type: python_script
