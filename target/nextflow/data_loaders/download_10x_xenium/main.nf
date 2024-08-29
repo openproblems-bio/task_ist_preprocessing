@@ -2808,7 +2808,7 @@ meta = [
         {
           "type" : "file",
           "name" : "--output",
-          "label" : "Raw Spatial Dataset",
+          "label" : "Common iST Dataset",
           "summary" : "An unprocessed spatial imaging dataset stored as a zarr file.",
           "description" : "This dataset contains raw images, labels, points, shapes, and tables as output by a dataset loader.\n",
           "info" : {
@@ -3261,7 +3261,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/data_loaders/download_10x_xenium",
     "viash_version" : "0.9.0-RC7",
-    "git_commit" : "2b491029c59ef5978dc65e76d46f5db354549954",
+    "git_commit" : "bdfe04ad46ee2e64eac1cee3abc8e07faa0f98a6",
     "git_remote" : "https://github.com/openproblems-bio/task_imagingbased_st_preprocessing"
   },
   "package_config" : {

@@ -3067,7 +3067,7 @@ meta = [
         {
           "type" : "file",
           "name" : "--input_sp",
-          "label" : "Spatial Dataset",
+          "label" : "iST Dataset",
           "summary" : "A spatial transcriptomics dataset, preprocessed for this benchmark.",
           "description" : "This dataset contains preprocessed images, labels, points, shapes, and tables for spatial transcriptomics data.\n",
           "info" : {
@@ -3478,7 +3478,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.0-RC7",
-    "git_commit" : "2b491029c59ef5978dc65e76d46f5db354549954",
+    "git_commit" : "bdfe04ad46ee2e64eac1cee3abc8e07faa0f98a6",
     "git_remote" : "https://github.com/openproblems-bio/task_imagingbased_st_preprocessing"
   },
   "package_config" : {

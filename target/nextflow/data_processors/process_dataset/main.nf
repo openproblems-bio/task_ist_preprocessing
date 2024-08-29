@@ -2808,7 +2808,7 @@ meta = [
         {
           "type" : "file",
           "name" : "--input_sc",
-          "label" : "Raw SC Dataset",
+          "label" : "Common SC Dataset",
           "summary" : "An unprocessed dataset as output by a dataset loader.",
           "description" : "This dataset contains raw counts and metadata as output by a dataset loader.\n\nThe format of this file is mainly derived from the [CELLxGENE schema v4.0.0](https://github.com/chanzuckerberg/single-cell-curation/blob/main/schema/4.0.0/schema.md).\n",
           "info" : {
@@ -3067,7 +3067,7 @@ meta = [
         {
           "type" : "file",
           "name" : "--input_sp",
-          "label" : "Raw Spatial Dataset",
+          "label" : "Common iST Dataset",
           "summary" : "An unprocessed spatial imaging dataset stored as a zarr file.",
           "description" : "This dataset contains raw images, labels, points, shapes, and tables as output by a dataset loader.\n",
           "info" : {
@@ -3583,7 +3583,7 @@ meta = [
         {
           "type" : "file",
           "name" : "--output_sp",
-          "label" : "Spatial Dataset",
+          "label" : "iST Dataset",
           "summary" : "A spatial transcriptomics dataset, preprocessed for this benchmark.",
           "description" : "This dataset contains preprocessed images, labels, points, shapes, and tables for spatial transcriptomics data.\n",
           "info" : {
@@ -3911,7 +3911,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.0-RC7",
-    "git_commit" : "2b491029c59ef5978dc65e76d46f5db354549954",
+    "git_commit" : "bdfe04ad46ee2e64eac1cee3abc8e07faa0f98a6",
     "git_remote" : "https://github.com/openproblems-bio/task_imagingbased_st_preprocessing"
   },
   "package_config" : {

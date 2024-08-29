@@ -2956,7 +2956,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/data_processors/crop_region",
     "viash_version" : "0.9.0-RC7",
-    "git_commit" : "2b491029c59ef5978dc65e76d46f5db354549954",
+    "git_commit" : "bdfe04ad46ee2e64eac1cee3abc8e07faa0f98a6",
     "git_remote" : "https://github.com/openproblems-bio/task_imagingbased_st_preprocessing"
   },
   "package_config" : {
