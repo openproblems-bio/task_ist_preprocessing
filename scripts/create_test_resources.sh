@@ -99,5 +99,5 @@ viash run src/data_processors/subset_reference/config.vsh.yaml -- \
 
 aws s3 sync --profile op \
   "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2" \
-  "s3://openproblems-data/resources_test/common/2023_abca_Yao_mouse_brain_scRNAseq_10Xv2" \
+  "s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2" \
   --delete --dryrun
