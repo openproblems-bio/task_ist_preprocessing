@@ -116,13 +116,8 @@ adata.var["feature_id"] = adata.var_names
 adata.var = adata.var.rename(columns={"gene_symbol":"feature_name"})
 
 # Uns
-adata.uns["dataset_id"] = "allen_brain_cell_atlas/2023_yao_mouse_brain_scrnaseq_10xv2"
-adata.uns["dataset_name"] = "ABCA Mouse Brain scRNAseq"
-adata.uns["dataset_url"] = "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE246717"
-adata.uns["dataset_reference"] = "10.1038/s41586-023-06812-z"
-adata.uns["dataset_summary"] = "A high-resolution scRNAseq atlas of cell types in the whole mouse brain"
-adata.uns["dataset_description"] = "See dataset_reference for more information. Note that we only took the 10xv2 data from the dataset."
-adata.uns["dataset_organism"] = "Mus musculus"
+for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism"]:
+    adata.uns[key] = par[key]
 
 # Write data
 adata.write_h5ad(par["output"])

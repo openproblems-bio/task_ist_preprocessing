@@ -23,8 +23,10 @@
 
 type: file
 example: "resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr"
-label: "Raw Dataset"
+label: "Raw Spatial Dataset"
 summary: An unprocessed spatial imaging dataset stored as a zarr file.
+description: |
+  This dataset contains raw images, labels, points, shapes, and tables as output by a dataset loader.
 info:
   format:
     type: spatialdata_zarr

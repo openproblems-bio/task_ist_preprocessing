@@ -1,4 +1,4 @@
-__merge__: ../../api/comp_data_loader.yaml
+__merge__: ../../api/comp_data_loader_sp.yaml
 name: download_10x_xenium
 namespace: data_loaders
 

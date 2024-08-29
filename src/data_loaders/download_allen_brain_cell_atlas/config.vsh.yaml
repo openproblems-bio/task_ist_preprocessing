@@ -1,4 +1,4 @@
-# __merge__: ../../api/comp_data_loader.yaml # TODO: loader for scrnaseq h5ad instead of spatialdata zarr 
+__merge__: ../../api/comp_data_loader_sc.yaml
 name: download_allen_brain_cell_atlas
 namespace: data_loaders
 

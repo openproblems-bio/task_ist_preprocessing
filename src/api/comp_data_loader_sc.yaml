@@ -1,15 +1,16 @@
 
 info:
+  type: data_loader
   type_info:
-    label: Data loader
-    summary: A data loader component which downloads data from a resource and stores it as a zarr file.
+    label: SC Data Loader
+    summary: A component to download and store single-cell data.
     description: |
-      TODO: fill in
+      This component downloads data from a resource and stores it as a h5ad file.
 argument_groups:
   - name: Outputs
     arguments:
     - name: "--output"
-      __merge__: file_spatialdata_raw.yaml
+      __merge__: file_common_singlecell.yaml
       direction: output
       required: true
   - name: Metadata
