@@ -3902,7 +3902,17 @@ meta = [
       "type" : "docker",
       "id" : "docker",
       "image" : "openproblems/base_python:1.0.0",
-      "namespace_separator" : "/"
+      "namespace_separator" : "/",
+      "setup" : [
+        {
+          "type" : "python",
+          "user" : false,
+          "pypi" : [
+            "spatialdata"
+          ],
+          "upgrade" : true
+        }
+      ]
     }
   ],
   "build_info" : {
@@ -3911,7 +3921,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.0-RC7",
-    "git_commit" : "bdfe04ad46ee2e64eac1cee3abc8e07faa0f98a6",
+    "git_commit" : "89016c0e4f01ba24e1c79a0744ff1c197a8cb6f5",
     "git_remote" : "https://github.com/openproblems-bio/task_imagingbased_st_preprocessing"
   },
   "package_config" : {
@@ -4028,18 +4038,20 @@ dep = {
 ### VIASH END
 
 # Load the single-cell data
-adata_sc = sc.read(par["input_sc"])
+input_sc = sc.read(par["input_sc"])
 
 # Load the spatial data
-adata_sp = sd.read_zarr(par["input_sp"])
+input_sp = sd.read_zarr(par["input_sp"])
 
 # Process if need be
+output_sc = input_sc
+output_sp = input_sp
 
 # Save the single-cell data
-adata_sc.write_h5ad(par["output_sc"])
+output_sc.write_h5ad(par["output_sc"])
 
 # Save the spatial data
-adata_sp.write(par["output_sp"])
+output_sp.write(par["output_sp"])
 VIASHMAIN
 python -B "$tempscript"
 '''

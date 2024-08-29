@@ -11,15 +11,17 @@ par = {
 ### VIASH END
 
 # Load the single-cell data
-adata_sc = sc.read(par["input_sc"])
+input_sc = sc.read(par["input_sc"])
 
 # Load the spatial data
-adata_sp = sd.read_zarr(par["input_sp"])
+input_sp = sd.read_zarr(par["input_sp"])
 
 # Process if need be
+output_sc = input_sc
+output_sp = input_sp
 
 # Save the single-cell data
-adata_sc.write_h5ad(par["output_sc"])
+output_sc.write_h5ad(par["output_sc"])
 
 # Save the spatial data
-adata_sp.write(par["output_sp"])
+output_sp.write(par["output_sp"])

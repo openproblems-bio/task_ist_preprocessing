@@ -1,0 +1,20 @@
+type: file
+example: "..."
+label: "Segmented iST"
+summary: ...
+description: ...
+__merge__: file_spatialdata.yaml
+info:
+  format:
+    type: spatialdata_zarr
+    labels:
+      - type: datatree
+        dtype: int
+        name: "{rep}_segmentation"
+        description: Custom segmentation of the data
+        required: false
+      - type: datatree
+        dtype: int
+        name: "{rep}_segmentation_3D"
+        description: Custom segmentation of the 3D data
+        required: false

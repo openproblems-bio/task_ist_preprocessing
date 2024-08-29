@@ -41,12 +41,20 @@ flowchart LR
   comp_data_preprocessor[/"Data preprocessor"/]
   file_singlecell("SC Dataset")
   file_spatialdata("iST Dataset")
+  comp_segmentation_method[/"Segmentation"/]
+  file_spatialdata_segmented("Segmented iST")
+  comp_assignment_method[/"Segmentation"/]
+  file_spatialdata_assigned("Assigned Transcripts")
   file_common_spatialdata("Common iST Dataset")
   comp_data_loader_sp[/"iST Data Loader"/]
   comp_data_loader_sc-->file_common_singlecell
   file_common_singlecell---comp_data_preprocessor
   comp_data_preprocessor-->file_singlecell
   comp_data_preprocessor-->file_spatialdata
+  file_spatialdata---comp_segmentation_method
+  comp_segmentation_method-->file_spatialdata_segmented
+  file_spatialdata_segmented---comp_assignment_method
+  comp_assignment_method-->file_spatialdata_assigned
   file_common_spatialdata---comp_data_preprocessor
   comp_data_loader_sp-->file_common_spatialdata
 ```
@@ -245,6 +253,80 @@ Description:
 
 This dataset contains preprocessed images, labels, points, shapes, and
 tables for spatial transcriptomics data.
+
+Format:
+
+<div class="small">
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+</div>
+
+## Component type: Segmentation
+
+A segmentation of the spatial data
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input` | `file` | A spatial transcriptomics dataset, preprocessed for this benchmark. |
+| `--output` | `file` | (*Output*) … |
+
+</div>
+
+## File format: Segmented iST
+
+…
+
+Example file: `...`
+
+Description:
+
+…
+
+Format:
+
+<div class="small">
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+</div>
+
+## Component type: Segmentation
+
+A segmentation of the spatial data
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input` | `file` | … |
+| `--output` | `file` | (*Output*) A spatial transcriptomics dataset with assigned transcripts. |
+
+</div>
+
+## File format: Assigned Transcripts
+
+A spatial transcriptomics dataset with assigned transcripts
+
+Example file: `...`
+
+Description:
+
+…
 
 Format:
 
