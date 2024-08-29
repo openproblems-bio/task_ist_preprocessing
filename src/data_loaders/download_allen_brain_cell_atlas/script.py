@@ -94,7 +94,7 @@ adata.obs = adata.obs.rename(columns={old:new for new,old in rename_obs_keys.ite
 # add additional information to obs
 store_info = {
     "disease": "normal",
-    "disese_ontology_term_id": "PATO:0000461",
+    "disease_ontology_term_id": "PATO:0000461",
     "organism": "Mus musculus",
     "organism_ontology_term_id": "NCBITaxon:10090",
     "tissue_general": "brain",
