@@ -19,10 +19,10 @@ meta = {
 }
 ## VIASH END
 
+# helper variables
 VERSION = par["version"]
 REGIONS = par["regions"]
-
-TMP_DIR = Path("/tmp") if meta["temp_dir"] is None else Path(meta["temp_dir"])
+TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 
 abc_cache = AbcProjectCache.from_cache_dir(TMP_DIR)
 abc_cache.load_manifest(
