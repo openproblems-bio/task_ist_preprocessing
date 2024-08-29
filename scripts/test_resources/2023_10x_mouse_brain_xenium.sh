@@ -8,8 +8,7 @@ cd "$REPO_ROOT"
 
 set -e
 
-###################################################################################
-DATASET_ID="10x_xenium/2023_10x_mouse_brain_xenium"
+DATASET_ID="2023_10x_mouse_brain_xenium"
 TMP_DIR="temp/datasets/$DATASET_ID"
 OUT_DIR="resources_test/common/2023_10x_mouse_brain_xenium"
 
@@ -80,24 +79,4 @@ viash run src/data_processors/crop_region/config.vsh.yaml -- \
 aws s3 sync --profile op \
   "resources_test/common/2023_10x_mouse_brain_xenium" \
   "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium" \
-  --delete --dryrun
-
-###################################################################################
-DATASET_ID="allen_brain_cell_atlas/2023_yao_mouse_brain_scrnaseq_10xv2"
-TMP_DIR="temp/datasets/$DATASET_ID"
-OUT_DIR="resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2"
-
-# generate sc reference
-VIASH_TEMP=/tmp/allen_brain_cell_atlas \
-  viash run src/data_loaders/download_allen_brain_cell_atlas/config.vsh.yaml \
-  --keep true -- \
-  --output "$TMP_DIR/tmp_dataset.h5ad" --regions "OLF;TH"
-
-viash run src/data_processors/subset_reference/config.vsh.yaml -- \
-  --input "$TMP_DIR/tmp_dataset.h5ad" \
-  --output "$OUT_DIR/dataset.h5ad"
-
-aws s3 sync --profile op \
-  "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2" \
-  "s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2" \
   --delete --dryrun
