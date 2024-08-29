@@ -13,7 +13,7 @@ arguments:
     direction: output
   - type: integer
     name: --n_cells
-    required: true
+    required: false
     description: The number of cells to sample.
     default: 500
   - type: integer
@@ -23,7 +23,7 @@ arguments:
     default: 50
   - type: string
     name: --cell_type_key
-    required: true
+    required: false
     description: The key in the obs dataframe that contains the cell type information.
     default: cell_type
   - name: "--keep_cell_type_categories"

@@ -4,8 +4,8 @@ import random
 
 ### VIASH START
 par = {
-    "input": "path/to/input.h5ad",
-    "output": "path/to/output.h5ad",
+    "input": "temp/datasets/allen_brain_cell_atlas/2023_Yao_mouse_brain_scRNAseq_10Xv2/tmp_dataset.h5ad",
+    "output": "resources_test/common/2023_abca_Yao_mouse_brain_scRNAseq_10Xv2/dataset.h5ad",
     "n_cells": 500,
     "min_n_cells_per_cell_type": 50,
     "cell_type_key": "cell_type",
@@ -45,7 +45,8 @@ for ct in cell_types:
     cell_type_indices = adata.obs_names[adata.obs[par["cell_type_key"]] == ct]
     n_cells_in_type = len(cell_type_indices)
     n_per_cell_type[ct] = min(n_cells_in_type, par["min_n_cells_per_cell_type"])
-    
+    selected_indices.extend(np.random.choice(cell_type_indices, n_per_cell_type[ct], replace=False))
+
 # Cap the number of cells to sample per cell type by the total number of cells to sample
 #TODO: instead of random choice below, adjust that sum(n_per_cell_type.values()) <= par["n_cells"]
 

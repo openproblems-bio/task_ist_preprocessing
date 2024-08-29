@@ -6,7 +6,7 @@ argument_groups:
   - name: Inputs
     arguments:
       - type: string
-        name: --version
+        name: --abca_version
         required: false
         default: "20230630"
         description: The version of the Allen Brain Cell Atlas to download data from.

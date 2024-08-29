@@ -7,9 +7,9 @@ from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 
 ## VIASH START
 par = {
-    "version": "20230630",
+    "abca_version": "20230630",
     "regions": ["OLF", "TH"],
-    "output": "temp/datasets/allen_brain_cell_atlas/2023_Yao_mouse_brain_scRNAseq_10Xv2/dataset.h5ad",
+    "output": "tmp_dataset.h5ad",
 }
 meta = {
     "temp_dir": "/tmp/allen_brain_cell_atlas",
@@ -17,7 +17,7 @@ meta = {
 ## VIASH END
 
 # helper variables
-VERSION = par["version"]
+VERSION = par["abca_version"]
 REGIONS = par["regions"]
 TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 
@@ -116,8 +116,8 @@ adata.var["feature_id"] = adata.var_names
 adata.var = adata.var.rename(columns={"gene_symbol":"feature_name"})
 
 # Uns
-adata.uns["dataset_id"] = "2023_Yao_mouse_brain_scRNAseq_10Xv2"
-adata.uns["dataset_name"] = "2023_Yao_mouse_brain_scRNAseq_10Xv2"
+adata.uns["dataset_id"] = "allen_brain_cell_atlas/2023_yao_mouse_brain_scrnaseq_10xv2"
+adata.uns["dataset_name"] = "ABCA Mouse Brain scRNAseq"
 adata.uns["dataset_url"] = "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE246717"
 adata.uns["dataset_reference"] = "10.1038/s41586-023-06812-z"
 adata.uns["dataset_summary"] = "A high-resolution scRNAseq atlas of cell types in the whole mouse brain"
