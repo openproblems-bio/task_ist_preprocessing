@@ -3858,7 +3858,7 @@ meta = [
   ],
   "license" : "MIT",
   "links" : {
-    "repository" : "https://github.com/openproblems-bio/task_imagingbased_st_preprocessing",
+    "repository" : "https://github.com/openproblems-bio/task_ist_preprocessing",
     "docker_registry" : "ghcr.io"
   },
   "runners" : [
@@ -3916,19 +3916,19 @@ meta = [
     }
   ],
   "build_info" : {
-    "config" : "/home/runner/work/task_imagingbased_st_preprocessing/task_imagingbased_st_preprocessing/src/data_processors/process_dataset/config.vsh.yaml",
+    "config" : "/home/runner/work/task_ist_preprocessing/task_ist_preprocessing/src/data_processors/process_dataset/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "docker",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.0-RC7",
-    "git_commit" : "89016c0e4f01ba24e1c79a0744ff1c197a8cb6f5",
-    "git_remote" : "https://github.com/openproblems-bio/task_imagingbased_st_preprocessing"
+    "git_commit" : "bb5ab93af5b3891b83e99729895a96940cd01b71",
+    "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
-    "name" : "task_imagingbased_st_preprocessing",
+    "name" : "task_ist_preprocessing",
     "version" : "build_main",
-    "label" : "Template",
-    "summary" : "A one sentence summary of purpose and methodology. Used for creating an overview tables.",
+    "label" : "iST Preprocessing",
+    "summary" : "Benchmarking approaches for preprocessing imaging-based spatial transcriptomics",
     "description" : "Provide a clear and concise description of your task, detailing the specific problem it aims\nto solve. Outline the input data types, the expected output, and any assumptions or constraints.\nBe sure to explain any terminology or concepts that are essential for understanding the task.\n\nExplain the motivation behind your proposed task. Describe the biological or computational \nproblem you aim to address and why it's important. Discuss the current state of research in\nthis area and any gaps or challenges that your task could help address. This section \nshould convince readers of the significance and relevance of your task.\n",
     "info" : {
       "image" : "The name of the image file to use for the component on the website.",
@@ -3983,9 +3983,9 @@ meta = [
       ]
     },
     "links" : {
-      "repository" : "https://github.com/openproblems-bio/task_imagingbased_st_preprocessing",
+      "repository" : "https://github.com/openproblems-bio/task_ist_preprocessing",
       "docker_registry" : "ghcr.io",
-      "issue_tracker" : "https://github.com/openproblems-bio/task_imagingbased_st_preprocessing/issues"
+      "issue_tracker" : "https://github.com/openproblems-bio/task_ist_preprocessing/issues"
     }
   }
 }'''))
@@ -4407,7 +4407,7 @@ meta["defaults"] = [
   directives: readJsonBlob('''{
   "container" : {
     "registry" : "ghcr.io",
-    "image" : "openproblems-bio/task_imagingbased_st_preprocessing/data_processors/process_dataset",
+    "image" : "openproblems-bio/task_ist_preprocessing/data_processors/process_dataset",
     "tag" : "build_main"
   },
   "tag" : "$id"

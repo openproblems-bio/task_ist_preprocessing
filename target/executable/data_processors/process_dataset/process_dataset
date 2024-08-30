@@ -484,9 +484,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2024-08-29T15:44:15Z"
-LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_imagingbased_st_preprocessing"
-LABEL org.opencontainers.image.revision="89016c0e4f01ba24e1c79a0744ff1c197a8cb6f5"
+LABEL org.opencontainers.image.created="2024-08-30T14:09:23Z"
+LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
+LABEL org.opencontainers.image.revision="bb5ab93af5b3891b83e99729895a96940cd01b71"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -756,7 +756,7 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
 
   # determine docker image id
   if [[ "$VIASH_ENGINE_ID" == 'docker' ]]; then
-    VIASH_DOCKER_IMAGE_ID='ghcr.io/openproblems-bio/task_imagingbased_st_preprocessing/data_processors/process_dataset:build_main'
+    VIASH_DOCKER_IMAGE_ID='ghcr.io/openproblems-bio/task_ist_preprocessing/data_processors/process_dataset:build_main'
   fi
 
   # print dockerfile
