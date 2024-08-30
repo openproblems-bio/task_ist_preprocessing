@@ -3271,7 +3271,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_loaders/download_allen_brain_cell_atlas",
     "viash_version" : "0.9.0-RC7",
-    "git_commit" : "3d5fb3bd42f8b54819bcb02b5347504d25d96743",
+    "git_commit" : "de3e11b3749410a9d53e62dfc2207bc3bb3f8fb6",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
