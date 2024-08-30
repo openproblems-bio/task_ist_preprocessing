@@ -43,7 +43,7 @@ flowchart LR
   file_spatialdata("iST Dataset")
   comp_segmentation_method[/"Segmentation"/]
   file_spatialdata_segmented("Segmented iST")
-  comp_assignment_method[/"Segmentation"/]
+  comp_assignment_method[/"Assignment"/]
   file_spatialdata_assigned("Assigned Transcripts")
   file_common_spatialdata("Common iST Dataset")
   comp_data_loader_sp[/"iST Data Loader"/]
@@ -268,7 +268,7 @@ Data structure:
 
 ## Component type: Segmentation
 
-A segmentation of the spatial data
+A segmentation of the spatial data into cells
 
 Arguments:
 
@@ -303,9 +303,9 @@ Data structure:
 
 </div>
 
-## Component type: Segmentation
+## Component type: Assignment
 
-A segmentation of the spatial data
+Assigning transcripts to cells
 
 Arguments:
 

@@ -2,8 +2,8 @@ info:
   type: segmentation
   type_info:
     label: Segmentation
-    summary: A segmentation of the spatial data
-    description: A segmentation of the spatial data
+    summary: A segmentation of the spatial data into cells
+    description: A segmentation method uses the spatial data to segment an image into cells.
 arguments:
   - name: "--input"
     __merge__: file_spatialdata.yaml

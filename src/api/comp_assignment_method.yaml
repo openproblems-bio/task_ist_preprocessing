@@ -1,9 +1,9 @@
 info:
-  type: segmentation
+  type: assignment
   type_info:
-    label: Segmentation
-    summary: A segmentation of the spatial data
-    description: A segmentation of the spatial data
+    label: Assignment
+    summary: Assigning transcripts to cells
+    description: An assignment method assigns transcripts to cells based on the spatial data and the cell segmentation.
 arguments:
   - name: "--input"
     __merge__: file_spatialdata_segmented.yaml
