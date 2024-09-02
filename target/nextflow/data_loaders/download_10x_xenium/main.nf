@@ -3253,15 +3253,19 @@ meta = [
           "upgrade" : true
         }
       ]
+    },
+    {
+      "type" : "native",
+      "id" : "native"
     }
   ],
   "build_info" : {
     "config" : "/home/runner/work/task_ist_preprocessing/task_ist_preprocessing/src/data_loaders/download_10x_xenium/config.vsh.yaml",
     "runner" : "nextflow",
-    "engine" : "docker",
+    "engine" : "docker|native",
     "output" : "target/nextflow/data_loaders/download_10x_xenium",
     "viash_version" : "0.9.0-RC7",
-    "git_commit" : "de3e11b3749410a9d53e62dfc2207bc3bb3f8fb6",
+    "git_commit" : "60424e74ac8ca8a0ee5c9e980fb93e5c5e2ed967",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

@@ -502,9 +502,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_loaders download_10x_xenium"
-LABEL org.opencontainers.image.created="2024-08-30T14:20:05Z"
+LABEL org.opencontainers.image.created="2024-09-02T14:20:03Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="de3e11b3749410a9d53e62dfc2207bc3bb3f8fb6"
+LABEL org.opencontainers.image.revision="60424e74ac8ca8a0ee5c9e980fb93e5c5e2ed967"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -856,10 +856,12 @@ done
 eval set -- $VIASH_POSITIONAL_ARGS
 
 
-if   [ "$VIASH_ENGINE_ID" == "docker" ]  ; then
+if   [ "$VIASH_ENGINE_ID" == "native" ]  ; then
+  VIASH_ENGINE_TYPE='native'
+elif   [ "$VIASH_ENGINE_ID" == "docker" ]  ; then
   VIASH_ENGINE_TYPE='docker'
 else
-  ViashError "Engine '$VIASH_ENGINE_ID' is not recognized. Options are: docker."
+  ViashError "Engine '$VIASH_ENGINE_ID' is not recognized. Options are: docker, native."
   exit 1
 fi
 
@@ -1101,6 +1103,15 @@ fi
 # create parent directories of output files, if so desired
 if [ ! -z "$VIASH_PAR_OUTPUT" ] && [ ! -d "$(dirname "$VIASH_PAR_OUTPUT")" ]; then
   mkdir -p "$(dirname "$VIASH_PAR_OUTPUT")"
+fi
+
+if  [ "$VIASH_ENGINE_ID" == "native" ]  ; then
+  if [ "$VIASH_MODE" == "run" ]; then
+    VIASH_CMD="bash"
+  else
+    ViashError "Engine '$VIASH_ENGINE_ID' does not support mode '$VIASH_MODE'."
+    exit 1
+  fi
 fi
 
 if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
