@@ -8,7 +8,7 @@ cd "$REPO_ROOT"
 
 set -e
 
-DATASET_ID="10x_xenium/2023_10x_mouse_brain_xenium"
+DATASET_ID="2023_10x_mouse_brain_xenium"
 TMP_DIR="temp/datasets/$DATASET_ID"
 OUT_DIR="resources_test/common/2023_10x_mouse_brain_xenium"
 
@@ -75,11 +75,6 @@ viash run src/data_processors/crop_region/config.vsh.yaml -- \
   --max_x 12000 \
   --min_y 10000 \
   --max_y 12000
-
-# generate sc reference
-VIASH_TEMP=/tmp/allen_brain_cell_atlas \
-  viash run src/data_loaders/download_allen_brain_cell_atlas/config.vsh.yaml -- \
-  --output "$OUT_DIR/sc_reference.h5ad" --regions "OLF;TH"
 
 aws s3 sync --profile op \
   "resources_test/common/2023_10x_mouse_brain_xenium" \

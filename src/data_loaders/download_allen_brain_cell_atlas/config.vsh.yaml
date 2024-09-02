@@ -1,10 +1,15 @@
-# __merge__: ../../api/comp_data_loader.yaml # TODO: loader for scrnaseq h5ad instead of spatialdata zarr 
+__merge__: ../../api/comp_data_loader_sc.yaml
 name: download_allen_brain_cell_atlas
 namespace: data_loaders
 
 argument_groups:
-  - name: Inputs
+  - name: Arguments
     arguments:
+      - type: string
+        name: --abca_version
+        required: false
+        default: "20230630"
+        description: The version of the Allen Brain Cell Atlas to download data from.
       - type: string
         name: --regions
         required: false
@@ -21,14 +26,6 @@ argument_groups:
           - MB
           - OLF
           - TH
-  - name: Outputs
-    arguments:
-      - type: file
-        name: --output
-        required: true
-        direction: output
-        example: output.h5ad
-        description: Path to the output h5ad file.
 
 resources:
   - type: python_script

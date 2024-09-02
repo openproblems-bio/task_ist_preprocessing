@@ -1,4 +1,4 @@
-__merge__: ../../api/comp_data_loader.yaml
+__merge__: ../../api/comp_data_loader_sp.yaml
 name: download_10x_xenium
 namespace: data_loaders
 
@@ -8,7 +8,7 @@ argument_groups:
       - type: file
         name: --input
         required: true
-        description: A 10x xenium zip file
+        description: A 10x xenium directory
         multiple: true
       - type: string
         name: --replicate_id

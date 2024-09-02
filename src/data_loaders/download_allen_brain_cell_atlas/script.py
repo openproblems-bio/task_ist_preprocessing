@@ -5,62 +5,55 @@ import pandas as pd
 import anndata as ad
 from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 
-# env setup:
-# pip install -U git+https://github.com/alleninstitute/abc_atlas_access
-
-VERSION = "20230630"
-
 ## VIASH START
 par = {
-    "regions": ["CTXsp", "HPF", "HY", "Isocortex-1", "Isocortex-2", "Isocortex-3", "Isocortex-4", "MB", "OLF", "TH"],
-    "output": f"abc_atlas_{VERSION}.h5ad"
+    "abca_version": "20230630",
+    "regions": ["OLF", "TH"],
+    "output": "tmp_dataset.h5ad",
 }
 meta = {
-    "name": "...",
-    "config": "...",
-    "temp_dir": "...",
-    "cpus": None,
-    "memory_b": None,
-    "memory_mb": None,
-    "memory_gb": None
+    "temp_dir": "/tmp/allen_brain_cell_atlas",
 }
 ## VIASH END
 
-regions = par["regions"]
+# helper variables
+VERSION = par["abca_version"]
+REGIONS = par["regions"]
+TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 
-TMP_DIR = Path("/tmp") if meta["temp_dir"] is None else Path(meta["temp_dir"])
-
+print("Loading manifest", flush=True)
+# saved to TMPDIR / releases/{VERSION}/manifest.json
 abc_cache = AbcProjectCache.from_cache_dir(TMP_DIR)
 abc_cache.load_manifest(
     f"releases/{VERSION}/manifest.json"
-)  # saved to TMPDIR / releases/{VERSION}/manifest.json
+)
 
-# From abc_cache.list_data_files('WMB-10Xv2') # TODO: potentially also load other chemistries (currently only 10Xv2)
-count_matrix_files = [f'WMB-10Xv2-{region}/raw' for region in regions]
-
+print("Downloading metadata", flush=True)
 # From abc_cache.list_metadata_files('WMB-10Xv2')
 metadata_files = [
     'cell_metadata_with_cluster_annotation',
     #'gene',
     #'region_of_interest_metadata'
 ]
-
-# Download data
-for file in count_matrix_files:
-    abc_cache.get_data_path(directory='WMB-10Xv2', file_name=file)
-
 for file in metadata_files:
     abc_cache.get_metadata_path(directory='WMB-10X', file_name=file)
 
-# Read an concatenate the data
+print("Downloading expression matrices", flush=True)
+# From abc_cache.list_data_files('WMB-10Xv2') # TODO: potentially also load other chemistries (currently only 10Xv2)
+count_matrix_files = [f'WMB-10Xv2-{region}/raw' for region in REGIONS]
+
+for file in count_matrix_files:
+    abc_cache.get_data_path(directory='WMB-10Xv2', file_name=file)
+
+print("Reading obs", flush=True)
 obs = pd.read_csv(
-    TMP_DIR
-    / f"metadata/WMB-10X/{VERSION}/views/cell_metadata_with_cluster_annotation.csv",
+    TMP_DIR / f"metadata/WMB-10X/{VERSION}/views/cell_metadata_with_cluster_annotation.csv",
     index_col=0,
 )
 
+print("Reading expression matrices", flush=True)
 adatas = []
-for region in regions:
+for region in REGIONS:
     adata = ad.read_h5ad(
         TMP_DIR / f"expression_matrices/WMB-10Xv2/{VERSION}/WMB-10Xv2-{region}-raw.h5ad"
     )
@@ -68,66 +61,63 @@ for region in regions:
     adata.obs["region"] = region
     adatas.append(adata)
 
-adata = ad.concat(adatas)
+print("Concatenating data", flush=True)
+adata = ad.concat(adatas, merge="first")
 
-# Renaming etc. to match the api
-
-# Layers
+print("Processing .layers")
 adata.layers["counts"] = adata.X
+del adata.X
 
-# Obs
-new_to_old_obs_keys = {
-    "dataset_id": "dataset_label", "assay": "library_method", "cell_type":'class', 
-    "cell_type_level2": "subclass", "cell_type_level3": "supertype", "cell_type_level4": "cluster",
-    "donor_id":'donor_label', "sex": "donor_sex", "tissue": "region_of_interest_acronym", "batch": "library_label",
+print("Processing .obs")
+adata.obs = obs.loc[adata.obs.index]
+
+# rename fields
+rename_obs_keys = {
+    "dataset_id": "dataset_label",
+    "assay": "library_method",
+    "cell_type": 'class', 
+    "cell_type_level2": "subclass",
+    "cell_type_level3": "supertype",
+    "cell_type_level4": "cluster",
+    "donor_id":'donor_label',
+    "sex": "donor_sex",
+    "tissue": "region_of_interest_acronym",
+    "batch": "library_label",
     # #TODO "cell_type_unified" (?), maybe call the unified one "cell_type" and the original one "cell_type_level1"
     # other keys: "assay_ontology_term_id", "cell_type_ontology_term_id", "development_stage_ontology_term_id"
     # "diseases_ontology_term_id", "is_primary_data", "organism_ontology_term_id", "self_reported_ethnicity", 
     # "self_reported_ethnicity_ontology_term_id", "sex_ontology_term_id", "suspension_type", 
     # "suspension_type_ontology_term_id", "tissue_ontology_term_id", "tissue_general_ontology_term_id", "soma_joinid"
- }
-new_key_to_value = {
-    "disease": "healthy", "organism": "Mus musculus", "tissue_general": "brain", 
-    "development_stage": "adult", # from metadata at GEO GSE246717: all ages >= 51 days
 }
+adata.obs = adata.obs.rename(columns={old:new for new,old in rename_obs_keys.items()})
 
-adata.obs = obs.rename(columns={old:new for new,old in new_to_old_obs_keys.items()})
-for key, value in new_key_to_value.items():
+# add additional information to obs
+store_info = {
+    "disease": "normal",
+    "disease_ontology_term_id": "PATO:0000461",
+    "organism": "Mus musculus",
+    "organism_ontology_term_id": "NCBITaxon:10090",
+    "tissue_general": "brain",
+    "tissue_general_ontology_term_id": "UBERON:0000955",
+    "development_stage": "adult", # from metadata at GEO GSE246717: all ages >= 51 days
+    "development_stage_ontology_term_id": "MmusDv:0000110"
+}
+for key, value in store_info.items():
     adata.obs[key] = value
+
+# remove undesired columns
 for key in adata.obs.columns:
-    if (key not in new_to_old_obs_keys.keys()) and (key not in new_key_to_value.keys()):
+    if (key not in rename_obs_keys.keys()) and (key not in store_info.keys()):
+        print(f"Removing .obs['{key}']")
         del adata.obs[key]
 
 # Var
 adata.var["feature_id"] = adata.var_names
 adata.var = adata.var.rename(columns={"gene_symbol":"feature_name"})
-adata.var_names = adata.var["feature_name"]
-adata.var_names_make_unique()
-adata.var.index.name = None
 
 # Uns
-adata.uns["dataset_id"] = "2023_Yao_mouse_brain_scRNAseq_10Xv2"
-adata.uns["dataset_name"] = "2023_Yao_mouse_brain_scRNAseq_10Xv2"
-adata.uns["dataset_url"] = "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE246717"
-adata.uns["dataset_reference"] = """
-@article{yao2023high,
-  title={A high-resolution transcriptomic and spatial atlas of cell types in the whole mouse brain},
-  author={Yao, Zizhen and van Velthoven, Cindy TJ and Kunst, Michael and Zhang, Meng and McMillen, Delissa and Lee, Changkyu and Jung, Won and Goldy, Jeff and Abdelhak, Aliya and Aitken, Matthew and others},
-  journal={Nature},
-  volume={624},
-  number={7991},
-  pages={317--332},
-  year={2023},
-  publisher={Nature Publishing Group UK London}
-}
-"""
-adata.uns["dataset_summary"] = "A high-resolution scRNAseq atlas of cell types in the whole mouse brain"
-adata.uns["dataset_description"] = "See dataset_reference for more information. Note that we only took the 10xv2 data from the dataset."
-adata.uns["dataset_organism"] = "Mus musculus"
+for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism"]:
+    adata.uns[key] = par[key]
 
 # Write data
 adata.write_h5ad(par["output"])
-
-# Delete the temporary files and directories
-import shutil
-shutil.rmtree(TMP_DIR)

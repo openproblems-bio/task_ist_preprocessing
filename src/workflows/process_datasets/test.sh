@@ -1,33 +1,33 @@
 #!/bin/bash
 
-# Run this prior to executing this script:
-# bin/viash_build -q 'batch_integration'
 
-# get the root of the directory
-REPO_ROOT=$(git rev-parse --show-toplevel)
-
-# ensure that the command below is run from the root of the repository
-cd "$REPO_ROOT"
-
-set -e
-
-DATASETS_DIR="resources_test/common"
-OUTPUT_DIR="output/process_datasets_test"
-
-if [ ! -d "$OUTPUT_DIR" ]; then
-  mkdir -p "$OUTPUT_DIR"
-fi
-
-export NXF_VER=24.04.3
+cat > /tmp/params.yaml <<EOF
+param_list:
+  - id: my_dataset_id0
+    input_sp: path/to/my_dataset0/dataset.h5ad
+    input_sc: path/to/my_dataset0/dataset.csv
+  - id: my_dataset_id1
+    input_sp: path/to/my_dataset1/dataset.h5ad
+    input_sc: path/to/my_dataset1/dataset.csv
+reference: my_reference.csv
+EOF
 
 nextflow run . \
   -main-script target/nextflow/workflows/process_datasets/main.nf \
   -profile docker \
-  -entry auto \
-  -c common/nextflow_helpers/labels_ci.config \
-  --id run_test \
-  --input_states "$DATASETS_DIR/**/state.yaml" \
-  --rename_keys 'input:output_dataset' \
-  --settings '{"output_train": "train.h5ad", "output_test": "test.h5ad"}' \
-  --publish_dir "$OUTPUT_DIR" \
-  --output_state "state.yaml"
+  -params-file /tmp/params.yaml \
+  --publish_dir output \
+  --output_sp '$id/output_sp.zarr' \
+  --output_sc '$id/output_sc.h5ad'
+
+# created files:
+#   output/my_dataset_id0.process_datasets.output_sp.zarr
+#   output/my_dataset_id0.process_datasets.output_sc.h5ad
+#   output/my_dataset_id1.process_datasets.output_sp.zarr
+#   output/my_dataset_id1.process_datasets.output_sc.h5ad
+
+# created files:
+#   output/my_dataset_id0/output_sp.zarr
+#   output/my_dataset_id0/output_sc.h5ad
+#   output/my_dataset_id1/output_sp.zarr
+#   output/my_dataset_id1/output_sc.h5ad

@@ -1,0 +1,27 @@
+name: example
+namespace: segmentation_methods
+
+arguments:
+  - name: --input
+    required: true
+    direction: input
+    __merge__: /src/api/file_spatialdata.yaml
+  - name: --output
+    required: true
+    direction: output
+    __merge__: /src/api/file_spatialdata_segmented.yaml
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: spatialdata
+
+runners:
+  - type: executable
+  - type: nextflow

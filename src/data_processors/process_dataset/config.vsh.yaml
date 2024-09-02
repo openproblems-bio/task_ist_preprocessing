@@ -1,0 +1,35 @@
+name: process_dataset
+namespace: data_processors
+
+arguments:
+  - name: --input_sc
+    required: true
+    direction: input
+    __merge__: /src/api/file_common_singlecell.yaml
+  - name: --input_sp
+    required: true
+    direction: input
+    __merge__: /src/api/file_common_spatialdata.yaml
+  - name: --output_sc
+    required: true
+    direction: output
+    __merge__: /src/api/file_singlecell.yaml
+  - name: --output_sp
+    required: true
+    direction: output
+    __merge__: /src/api/file_spatialdata.yaml
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: spatialdata
+
+runners:
+  - type: executable
+  - type: nextflow

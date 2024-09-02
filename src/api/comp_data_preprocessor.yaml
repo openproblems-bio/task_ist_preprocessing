@@ -1,17 +1,26 @@
-
 info:
+  type: data_processor
   type_info:
     label: Data preprocessor
-    summary: A data loader component which downloads data from a resource and stores it as a zarr file.
+    summary: Preprocess a common dataset for the benchmark.
     description: |
-      TODO: fill in
-  arguments:
-  - name: "--input"
-    __merge__: file_spatialdata_raw.yaml
+      This component processes a common single-cell and a common spatial transcriptomics
+      dataset for the benchmark.
+arguments:
+  - name: "--input_sp"
+    __merge__: file_common_spatialdata.yaml
     direction: input
     required: true
-  - name: "--output"
-    __merge__: file_spatialdata_processed.yaml
+  - name: "--input_sc"
+    __merge__: file_common_singlecell.yaml
+    direction: input
+    required: true
+  - name: "--output_sp"
+    __merge__: file_spatialdata.yaml
+    direction: output
+    required: true
+  - name: "--output_sc"
+    __merge__: file_singlecell.yaml
     direction: output
     required: true
 # test_resources:
@@ -19,4 +28,3 @@ info:
 #     dest: resources_test/common/pancreas
 #   - type: python_script
 #     path: /common/component_tests/run_and_check_output.py
-      

@@ -4,18 +4,13 @@ namespace: workflows
 argument_groups:
   - name: Inputs
     arguments:
-      - name: "--input_train"
-        __merge__: /src/api/file_train_h5ad.yaml
+      - name: "--input_sc"
+        __merge__: /src/api/file_singlecell.yaml
         type: file
         direction: input
         required: true
-      - name: "--input_test"
-        __merge__: /src/api/file_test_h5ad.yaml
-        type: file
-        direction: input
-        required: true
-      - name: "--input_solution"
-        __merge__: /src/api/file_solution.yaml
+      - name: "--input_sp"
+        __merge__: /src/api/file_spatialdata.yaml
         type: file
         direction: input
         required: true
@@ -62,13 +57,13 @@ resources:
     path: /_viash.yaml
 
 dependencies:
-  - name: common/check_dataset_schema
-    repository: openproblems-v2
-  - name: common/extract_metadata
-    repository: openproblems-v2
-  - name: control_methods/true_labels
-  - name: methods/logistic_regression
-  - name: metrics/accuracy
+  # - name: common/check_dataset_schema
+  #   repository: openproblems-v2
+  # - name: common/extract_metadata
+  #   repository: openproblems-v2
+  # - name: control_methods/true_labels
+  # - name: methods/logistic_regression
+  # - name: metrics/accuracy
 
 runners:
   - type: nextflow

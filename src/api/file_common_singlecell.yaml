@@ -1,19 +1,14 @@
 type: file
-example: "resources_test/common/pancreas/raw.h5ad" #TODO: change this to abc atlas (crop)?
-info:
-  label: "Raw scRNA-seq"
-  summary: An unprocessed dataset as output by a dataset loader.
-  format:
-    variables:
-      - name: cell_type_suffix
-        type: string
-        description: Suffix for specific cell type annotations, e.g. to indicate level of granularity
-        required: false
-  description: |
-    This dataset contains raw counts and metadata as output by a dataset loader.
+example: "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+label: "Common SC Dataset"
+summary: An unprocessed dataset as output by a dataset loader.
+description: |
+  This dataset contains raw counts and metadata as output by a dataset loader.
 
-    The format of this file is mainly derived from the [CELLxGENE schema v4.0.0](https://github.com/chanzuckerberg/single-cell-curation/blob/main/schema/4.0.0/schema.md).
-  slots:
+  The format of this file is mainly derived from the [CELLxGENE schema v4.0.0](https://github.com/chanzuckerberg/single-cell-curation/blob/main/schema/4.0.0/schema.md).
+info:
+  format:
+    type: h5ad
     layers: 
       - type: integer
         name: counts #TODO: Okay to change this one to "raw"? 
@@ -26,9 +21,19 @@ info:
         required: true
         
       - type: string
-        name: cell_type{cell_type_suffix}
+        name: cell_type_level2
         description: Classification of the cell type based on its characteristics and function within the tissue or organism.
-        required: false    
+        required: false
+        
+      - type: string
+        name: cell_type_level3
+        description: Classification of the cell type based on its characteristics and function within the tissue or organism.
+        required: false
+        
+      - type: string
+        name: cell_type_level4
+        description: Classification of the cell type based on its characteristics and function within the tissue or organism.
+        required: false
     
       - type: string
         name: dataset_id
