@@ -1,0 +1,40 @@
+name: basic
+namespace: assignment_methods
+
+arguments:
+  - name: --input
+    required: true
+    direction: input
+    __merge__: /src/api/file_spatialdata.yaml
+  - name: --transcripts_key
+    type: string
+    description: The key of the transcripts within the points of the spatial data
+    required: true
+  - name: --segmentation_input
+    required: true
+    direction: input
+    __merge__: /src/api/file_spatialdata_segmented.yaml
+  - name: --coordinate_system
+    type: string
+    description: The key of the pixel space coordinate system within the spatial data
+    required: true
+  - name: --output
+    required: true
+    direction: output
+    __merge__: /src/api/file_spatialdata_assigned.yaml
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: spatialdata
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
