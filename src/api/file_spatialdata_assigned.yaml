@@ -3,13 +3,13 @@ example: "..."
 label: "Assigned Transcripts"
 summary: "A spatial transcriptomics dataset with assigned transcripts"
 description: "..."
-__merge__: file_spatialdata_segmented.yaml
+#__merge__: file_spatialdata_segmented.yaml
 info:
   format:
     type: spatialdata_zarr
     points:
       - type: dataframe
-        name: "{rep}_assigned_transcripts"
+        name: "transcripts"
         description: Point cloud data of transcripts
         required: true
         columns:
