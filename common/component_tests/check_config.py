@@ -1,6 +1,6 @@
-import yaml
 import re
 from typing import Dict, List, Union
+import openproblems
 
 ## VIASH START
 meta = {
@@ -47,22 +47,6 @@ def check_url(url: str) -> bool:
     else:
         return False
 
-def load_config(config_path: str) -> Dict:
-    with open(config_path, "r") as file:
-        config = yaml.safe_load(file)
-
-    def process_argument(argument: dict) -> dict:
-        argument["clean_name"] = argument["name"].lstrip("-")
-        return argument
-
-    config["all_arguments"] = [
-        process_argument(arg)
-        for arg_grp in config["argument_groups"]
-        for arg in arg_grp["arguments"]
-    ]
-
-    return config
-
 def check_references(references: Dict[str, Union[str, List[str]]]) -> None:
     doi = references.get("doi")
     bibtex = references.get("bibtex")
@@ -82,6 +66,17 @@ def check_references(references: Dict[str, Union[str, List[str]]]) -> None:
         for b in bibtex:
             assert re.match(r"^@.*{.*", b), f"Invalid bibtex format: {b}"
 
+def check_links(links: Dict[str, Union[str, List[str]]], required = []) -> None:
+    if not links:
+        return
+    
+    for expected_link in required:
+        assert expected_link in links, f"Link .links.{expected_link} is not defined"
+    
+    for link_type, link in links.items():
+        if link_type != "docker_registry":
+            assert check_url(link), f"Link .links.{link_type} URL '{link}' is not reachable"
+
 def check_info(this_info: Dict, this_config: Dict, comp_type: str) -> None:
     # check label, summary, description, name
     metadata_field_lengths = {
@@ -98,29 +93,25 @@ def check_info(this_info: Dict, this_config: Dict, comp_type: str) -> None:
         assert value, f"Metadata field '{field}' is not defined"
         assert "FILL IN:" not in value, f"Metadata field '{field}' not filled in"
         assert len(value) <= max_length, f"Metadata field '{field}' should not exceed {max_length} characters"
-
-    # check documentation_url and repository_url
-    documentation_url = this_info.get("documentation_url")
-    if comp_type == "method" or documentation_url:
-        assert documentation_url, "Metadata field 'documentation_url' is not defined"
-        assert check_url(documentation_url), f"Metadata field 'documentation_url' URL '{documentation_url}' is not reachable"
-
-    repository_url = this_info.get("repository_url")
-    if comp_type == "method" or repository_url:
-        assert repository_url, "Metadata field 'repository_url' is not defined"
-        assert check_url(repository_url), f"Metadata field 'repository_url' URL '{repository_url}' is not reachable"
+    
+    # check links
+    links = this_info.get("links") or this_config.get("links") or {}
+    required_links = []
+    if comp_type == "method":
+        required_links = ["documentation", "repository"]
+    check_links(links, required_links)
 
     # check references
-    references = this_info.get("references", {})
+    references = this_info.get("references") or {}
     if comp_type != "metric":
-        references = this_config.get("references", {}) or references
+        references = this_config.get("references") or references
     if comp_type != "control_method" or references:
         print("Check references fields", flush=True)
         check_references(references)
 
 ## UNIT TEST CHECKS
 print("Load config data", flush=True)
-config = load_config(meta["config"])
+config = openproblems.project.read_viash_config(meta["config"])
 info = config.get("info", {})
 comp_type = info.get("type")
 
@@ -148,7 +139,7 @@ if "preferred_normalization" in info:
 
 if "variants" in info:
     print("Checking contents of .info.variants", flush=True)
-    arg_names = [arg["name"] for arg in config["all_arguments"]] + ["preferred_normalization"]
+    arg_names = [arg["clean_name"] for arg in config["all_arguments"]] + ["preferred_normalization"]
 
     for paramset_id, paramset in info["variants"].items():
         if paramset:
