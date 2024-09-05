@@ -1,0 +1,46 @@
+# expected input
+
+parameter_sets:
+  - id: batch0_binning
+    segmentation:
+      - method_id: custom
+        parameters:
+          labels_key: "value1"
+          bin_size: [1, 2, 3]
+      - method_id: custom
+        parameters:
+          labels_key: "value2"
+          bin_size: [4, 5, 6]
+      - method_id: example
+        parameters: {}
+    assignment:
+      - method_id: basic
+        parameters: {}
+    # filters:
+    #   - annotation.method_id != "pciseq" || assignment.method == "pciseq"
+
+
+# expected output:
+
+parameter_sets:
+  - id: batch0_binning
+    segmentation:
+      - method_id: custom
+        parameters:
+          labels_key: "value1"
+          bin_size: 1
+      - method_id: custom
+        parameters:
+          labels_key: "value1"
+          bin_size: 2
+      - method_id: custom
+        parameters:
+          labels_key: "value1"
+          bin_size: 3
+      - method_id: example
+        parameters:
+    assignment:
+      - method_id: basic
+        parameters:
+    # filters:
+    #   - annotation.method_id != "pciseq" || assignment.method == "pciseq"

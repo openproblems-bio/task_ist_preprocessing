@@ -1,7 +1,7 @@
 include { findArgumentSchema } from "${meta.resources_dir}/helper.nf"
 
 workflow auto {
-  findStatesTemp(params, meta.config)
+  findStates(params, meta.config)
     | meta.workflow.run(
       auto: [publish: "state"]
     )

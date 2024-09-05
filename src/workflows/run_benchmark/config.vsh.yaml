@@ -14,6 +14,10 @@ argument_groups:
         type: file
         direction: input
         required: true
+      - name: --parameter_sets
+        type: file
+        direction: input
+        required: true
   - name: Outputs
     arguments:
       - name: "--output_scores"
@@ -32,16 +36,16 @@ argument_groups:
         required: true
         direction: output
         default: metric_configs.yaml
-      - name: "--output_dataset_info"
-        type: file
-        required: true
-        direction: output
-        default: dataset_uns.yaml
+      # - name: "--output_dataset_info"
+      #   type: file
+      #   required: true
+      #   direction: output
+      #   default: dataset_uns.yaml
       - name: "--output_task_info"
         type: file
         required: true
         direction: output
-        default: task_info.yaml
+        default: /_viash.yaml
   - name: Methods
     arguments:
       - name: "--method_ids"
@@ -57,13 +61,11 @@ resources:
     path: /_viash.yaml
 
 dependencies:
-  # - name: common/check_dataset_schema
-  #   repository: openproblems-v2
-  # - name: common/extract_metadata
-  #   repository: openproblems-v2
-  # - name: control_methods/true_labels
-  # - name: methods/logistic_regression
-  # - name: metrics/accuracy
+  # - name: h5ad/extract_uns_metadata
+  #   repository: core
+  - name: control_methods/true_labels
+  - name: methods/logistic_regression
+  - name: metrics/accuracy
 
 runners:
   - type: nextflow
