@@ -1,0 +1,20 @@
+info:
+  type: count_aggregation
+  type_info:
+    label: Count Aggregation
+    summary: Aggregating counts of transcripts within cells
+    description: Generate the raw count matrix based on the assignment of transcripts to cells.
+arguments:
+  - name: "--input"
+    __merge__: file_spatialdata_assigned.yaml
+    direction: input
+    required: true
+  - name: "--output"
+    __merge__: file_spatial_raw_counts.yaml
+    direction: output
+    required: true
+# test_resources:
+#   - path: /resources_test/common/pancreas
+#     dest: resources_test/common/pancreas
+#   - type: python_script
+#     path: /common/component_tests/run_and_check_output.py
