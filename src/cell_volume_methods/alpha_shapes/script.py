@@ -36,6 +36,7 @@ adata = ad.AnnData(
 # Calculate alpha shape area
 print('Calculate alpha shape area', flush=True)
 tx.preprocessing.calculate_alpha_area(adata=adata, alpha=par['alpha'], cell_id_col="cell_id")
+adata.obs["volume"] = adata.obs["alpha_area"]
 
 # TODO: Currently we actually calculate the area instead of the volume. Also we ignore the different z positions/layers.
 #       We could improve the calculation with 1. taking into account the scaling in z direction and 2. calculating
