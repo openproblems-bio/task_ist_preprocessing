@@ -26,11 +26,16 @@ sdata = sd.read_zarr(par['input'])
 # Init AnnData object
 print('Init AnnData object', flush=True)
 cell_ids = sorted(sdata["transcripts"]["cell_id"].unique())
-adata = ad.AnnData(obs = pd.DataFrame(index=cell_ids), uns = {"spots": sdata["transcripts"]["x","y"]})
+if cell_ids[0] == 0:
+    cell_ids = cell_ids[1:]
+adata = ad.AnnData(
+    obs = pd.DataFrame(index=cell_ids, data={"cell_id": cell_ids}),
+    uns = {"spots": sdata["transcripts"].compute()[["x","y","cell_id"]]}
+)
 
 # Calculate alpha shape area
 print('Calculate alpha shape area', flush=True)
-tx.preprocessing.calculate_alpha_area(adata=adata, alpha=par['alpha'])
+tx.preprocessing.calculate_alpha_area(adata=adata, alpha=par['alpha'], cell_id_col="cell_id")
 
 # TODO: Currently we actually calculate the area instead of the volume. Also we ignore the different z positions/layers.
 #       We could improve the calculation with 1. taking into account the scaling in z direction and 2. calculating

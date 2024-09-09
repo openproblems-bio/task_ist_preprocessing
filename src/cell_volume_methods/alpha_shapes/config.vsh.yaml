@@ -1,4 +1,4 @@
-name: alpha_shape
+name: alpha_shapes
 namespace: cell_volume_methods
 
 arguments:
@@ -7,14 +7,14 @@ arguments:
     direction: input
     __merge__: /src/api/file_spatialdata_assigned.yaml
   - name: --alpha
-    type: float
+    type: double
     description: Alpha parameter for calculating the alpha shape (0.0 refers to the convex hull)
-    required: true
+    required: false
     default: 0.0
   - name: --output
     required: true
     direction: output
-    __merge__: /src/api/file_cell_volumes.yaml
+    __merge__: /src/api/file_spatialdata_assigned.yaml
 
 resources:
   - type: python_script
@@ -25,7 +25,7 @@ engines:
     image: openproblems/base_python:1.0.0
     setup:
       - type: python
-        pypi: spatialdata, txsim
+        pypi: spatialdata, txsim, alphashape, descartes
   - type: native
 
 runners:
