@@ -3033,7 +3033,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/cell_volume_methods/alpha_shapes",
     "viash_version" : "0.9.0",
-    "git_commit" : "5af78a291f103e88f51c19bfcdd91431834f8ee3",
+    "git_commit" : "ea716cd0fca41a8441096d29bdd792bcfae866f2",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3170,6 +3170,7 @@ adata = ad.AnnData(
 # Calculate alpha shape area
 print('Calculate alpha shape area', flush=True)
 tx.preprocessing.calculate_alpha_area(adata=adata, alpha=par['alpha'], cell_id_col="cell_id")
+adata.obs["volume"] = adata.obs["alpha_area"]
 
 # TODO: Currently we actually calculate the area instead of the volume. Also we ignore the different z positions/layers.
 #       We could improve the calculation with 1. taking into account the scaling in z direction and 2. calculating

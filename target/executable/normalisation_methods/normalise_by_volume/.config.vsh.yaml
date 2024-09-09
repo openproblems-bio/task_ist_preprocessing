@@ -1,51 +1,11 @@
-name: "basic"
-namespace: "count_aggregation"
+name: "normalise_by_volume"
+namespace: "normalisation_methods"
 version: "build_main"
 argument_groups:
 - name: "Arguments"
   arguments:
   - type: "file"
     name: "--input"
-    label: "Assigned Transcripts"
-    summary: "A spatial transcriptomics dataset with assigned transcripts"
-    description: "..."
-    info:
-      format:
-        type: "spatialdata_zarr"
-        points:
-        - type: "dataframe"
-          name: "transcripts"
-          description: "Point cloud data of transcripts"
-          required: true
-          columns:
-          - type: "float"
-            name: "x"
-            required: true
-          - type: "float"
-            name: "y"
-            required: true
-          - type: "float"
-            name: "z"
-            required: true
-          - type: "categorical"
-            name: "feature_name"
-            required: true
-          - type: "integer"
-            name: "cell_id"
-            required: true
-          - type: "long"
-            name: "transcript_id"
-            required: true
-    example:
-    - "..."
-    must_exist: true
-    create_parent: true
-    required: true
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "file"
-    name: "--output"
     label: "Spatial Raw Counts"
     summary: "Unprocessed raw counts after aggregation of transcripts to cells"
     description: "This file contains the raw counts after aggregating transcripts\
@@ -82,6 +42,89 @@ argument_groups:
         - type: "string"
           name: "n_genes"
           description: "Number of genes in the cell"
+          required: true
+        var:
+        - type: "string"
+          name: "gene_name"
+          description: "Name of the gene"
+          required: true
+        - type: "string"
+          name: "n_counts"
+          description: "Number of counts of the gene"
+          required: true
+        - type: "string"
+          name: "n_cells"
+          description: "Number of cells expressing the gene"
+          required: true
+    example:
+    - "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--input_volume"
+    description: "H5ad with an obs column of cell volumes calculated from spatial\
+      \ transcriptomics data."
+    info: null
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output"
+    label: "Spatial Normalised Counts"
+    summary: "Normalised counts"
+    description: "This file contains the normalised counts of the spatial transcriptomics\
+      \ data.\n"
+    info:
+      format:
+        type: "h5ad"
+        layers:
+        - type: "integer"
+          name: "raw"
+          description: "Raw counts"
+          required: true
+        - type: "integer"
+          name: "norm"
+          description: "Normalised counts"
+          required: true
+        - type: "integer"
+          name: "lognorm"
+          description: "Log normalised counts"
+          required: true
+        obs:
+        - type: "string"
+          name: "cell_id"
+          description: "Unique identifier for the cell (from assignment step)"
+          required: true
+        - type: "string"
+          name: "centroid_x"
+          description: "X coordinate of the cell"
+          required: true
+        - type: "string"
+          name: "centroid_y"
+          description: "Y coordinate of the cell"
+          required: true
+        - type: "string"
+          name: "centroid_z"
+          description: "Z coordinate of the cell"
+          required: false
+        - type: "string"
+          name: "n_counts"
+          description: "Number of counts in the cell"
+          required: true
+        - type: "string"
+          name: "n_genes"
+          description: "Number of genes in the cell"
+          required: true
+        - type: "string"
+          name: "volume"
+          description: "Volume of the cell"
           required: true
         var:
         - type: "string"
@@ -155,18 +198,18 @@ engines:
   - type: "python"
     user: false
     pypi:
-    - "spatialdata, txsim, squidpy, rasterio"
+    - "txsim"
     upgrade: true
   entrypoint: []
   cmd: null
 - type: "native"
   id: "native"
 build_info:
-  config: "src/count_aggregation/basic/config.vsh.yaml"
-  runner: "nextflow"
+  config: "src/normalisation_methods/normalise_by_volume/config.vsh.yaml"
+  runner: "executable"
   engine: "docker|native"
-  output: "target/nextflow/count_aggregation/basic"
-  executable: "target/nextflow/count_aggregation/basic/main.nf"
+  output: "target/executable/normalisation_methods/normalise_by_volume"
+  executable: "target/executable/normalisation_methods/normalise_by_volume/normalise_by_volume"
   viash_version: "0.9.0"
   git_commit: "ea716cd0fca41a8441096d29bdd792bcfae866f2"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
