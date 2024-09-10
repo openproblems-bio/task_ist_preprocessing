@@ -1,0 +1,15 @@
+type: file
+example: "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad" #TODO: add correct example
+label: "Spatial Corrected Counts with Cell Type Annotations"
+summary: Corrected counts with cell type annotations
+description: |
+  This file contains the corrected counts of the spatial transcriptomics data and cell type annotations.
+__merge__: file_spatial_with_celltypes.yaml
+info:
+  format:
+    type: h5ad
+    layers: 
+      - type: integer
+        name: lognorm_uncorrected
+        description: Log normalised counts
+        required: false
