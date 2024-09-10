@@ -466,9 +466,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata, txsim, squidpy, rasterio"
 
 LABEL org.opencontainers.image.description="Companion container for running component count_aggregation basic"
-LABEL org.opencontainers.image.created="2024-09-09T21:41:51Z"
+LABEL org.opencontainers.image.created="2024-09-10T12:56:27Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="ea716cd0fca41a8441096d29bdd792bcfae866f2"
+LABEL org.opencontainers.image.revision="21a15c8759107bb9c3c382701f659b5695e7a552"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
