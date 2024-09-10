@@ -484,9 +484,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata, txsim"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2024-09-10T12:56:27Z"
+LABEL org.opencontainers.image.created="2024-09-10T13:10:31Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="21a15c8759107bb9c3c382701f659b5695e7a552"
+LABEL org.opencontainers.image.revision="56795cc60c6880cb0fd68b4d0971c81c67afb56e"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

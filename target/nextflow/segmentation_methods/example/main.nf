@@ -3182,7 +3182,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/segmentation_methods/example",
     "viash_version" : "0.9.0",
-    "git_commit" : "21a15c8759107bb9c3c382701f659b5695e7a552",
+    "git_commit" : "56795cc60c6880cb0fd68b4d0971c81c67afb56e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
