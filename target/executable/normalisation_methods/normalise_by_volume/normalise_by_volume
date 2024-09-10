@@ -473,9 +473,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "txsim"
 
 LABEL org.opencontainers.image.description="Companion container for running component normalisation_methods normalise_by_volume"
-LABEL org.opencontainers.image.created="2024-09-10T17:13:26Z"
+LABEL org.opencontainers.image.created="2024-09-10T17:16:04Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="ec7cd85f3ae199575500a6f10913ccfe1f3e8273"
+LABEL org.opencontainers.image.revision="126e8def79dd48aa2605061aec06dd00f689d3e7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

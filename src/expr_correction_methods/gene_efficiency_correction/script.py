@@ -24,12 +24,14 @@ adata_sp.layers["lognorm_uncorrected"] = adata_sp.layers["lognorm"]
 adata_sp_reduced = adata_sp[:,adata_sc.var_names].copy()
 obs_sp = adata_sp.obs.copy()
 
-# Annotate cell types
+# Apply gene efficiency correction
 print('Annotating cell types', flush=True)
 adata_sp_reduced = tx.preprocessing.gene_efficiency_correction(
     adata_sp_reduced, adata_sc, layer_key='lognorm', ct_key=par['celltype_key']
 )
 
+# Concatenate and reorder #TODO with the assumption that spatial and sc have the same genes things simplify
+print('Concatenating and reordering', flush=True)
 gene_order = adata_sp.var_names.tolist()
 gene_mask = ~adata_sp.var_names.isin(adata_sp_reduced.var_names)
 adata_sp = ad.concat([adata_sp[:,gene_mask], adata_sp_reduced], axis=1, join="outer") 
