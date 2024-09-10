@@ -3475,7 +3475,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/celltype_annotation_methods/ssam",
     "viash_version" : "0.9.0",
-    "git_commit" : "56795cc60c6880cb0fd68b4d0971c81c67afb56e",
+    "git_commit" : "ec7cd85f3ae199575500a6f10913ccfe1f3e8273",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
