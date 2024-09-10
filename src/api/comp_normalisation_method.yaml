@@ -1,0 +1,22 @@
+info:
+  type: normalisation
+  type_info:
+    label: Normalisation
+    summary: Normalising spatial transcriptomics data
+    description: A normalisation method normalises spatial transcriptomics data to account for technical variations and enable comparisons between samples.
+
+arguments:
+  - name: --input
+    required: true
+    direction: input
+    __merge__: /src/api/file_spatial_raw_counts.yaml
+  - name: --output
+    required: true
+    direction: output
+    __merge__: /src/api/file_spatial_norm_counts.yaml
+
+# test_resources:
+#   - path: /resources_test/common/pancreas
+#     dest: resources_test/common/pancreas
+#   - type: python_script
+#     path: /common/component_tests/run_and_check_output.py
