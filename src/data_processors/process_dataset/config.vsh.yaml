@@ -28,7 +28,8 @@ engines:
     image: openproblems/base_python:1.0.0
     setup:
       - type: python
-        pypi: spatialdata
+        pypi: spatialdata, txsim
+  - type: native
 
 runners:
   - type: executable
