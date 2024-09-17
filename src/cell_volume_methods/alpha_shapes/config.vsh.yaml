@@ -14,7 +14,7 @@ arguments:
   - name: --output
     required: true
     direction: output
-    __merge__: /src/api/file_spatialdata_assigned.yaml
+    __merge__: /src/api/file_cell_volumes.yaml
 
 resources:
   - type: python_script

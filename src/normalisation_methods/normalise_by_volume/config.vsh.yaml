@@ -10,6 +10,7 @@ arguments:
     type: file
     description: H5ad with an obs column of cell volumes calculated from spatial transcriptomics data.
     required: true
+    __merge__: /src/api/file_cell_volumes.yaml
   - name: --output
     required: true
     direction: output
