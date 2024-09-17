@@ -29,7 +29,7 @@ engines:
     image: openproblems/base_python:1.0.0
     setup:
       - type: python
-        pypi: txsim
+        github: [theislab/txsim@dev]
   - type: native
 
 runners:
