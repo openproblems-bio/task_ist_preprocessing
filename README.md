@@ -36,7 +36,17 @@ should convince readers of the significance and relevance of your task.
 
 ``` mermaid
 flowchart LR
-  comp_data_loader_sc[/"SC Data Loader"/]
+  comp_cell_volume_method[/"Cell Volume Calculation"/]
+  file_cell_volumes("Cell Volumes")
+  file_spatialdata_assigned("Assigned Transcripts")
+  comp_count_aggregation[/"Count Aggregation"/]
+  file_spatial_raw_counts("Spatial Raw Counts")
+  comp_normalisation_method[/"Normalisation"/]
+  file_spatial_norm_counts("Spatial Normalised Counts")
+  comp_celltype_annotation_method[/"Cell type annotation"/]
+  file_spatial_with_celltypes("Spatial Normalised Counts with Cell Type Annotations")
+  comp_expr_correction_method[/"Expression correction"/]
+  file_spatial_corrected("Spatial Corrected Counts with Cell Type Annotations")
   file_common_singlecell("Common SC Dataset")
   comp_data_preprocessor[/"Data preprocessor"/]
   file_singlecell("SC Dataset")
@@ -44,10 +54,19 @@ flowchart LR
   comp_segmentation_method[/"Segmentation"/]
   file_spatialdata_segmented("Segmented iST")
   comp_assignment_method[/"Assignment"/]
-  file_spatialdata_assigned("Assigned Transcripts")
   file_common_spatialdata("Common iST Dataset")
+  comp_data_loader_sc[/"SC Data Loader"/]
   comp_data_loader_sp[/"iST Data Loader"/]
-  comp_data_loader_sc-->file_common_singlecell
+  comp_cell_volume_method-->file_cell_volumes
+  comp_cell_volume_method-->file_spatialdata_assigned
+  file_spatialdata_assigned---comp_count_aggregation
+  comp_count_aggregation-->file_spatial_raw_counts
+  file_spatial_raw_counts---comp_normalisation_method
+  comp_normalisation_method-->file_spatial_norm_counts
+  file_spatial_norm_counts---comp_celltype_annotation_method
+  comp_celltype_annotation_method-->file_spatial_with_celltypes
+  file_spatial_with_celltypes---comp_expr_correction_method
+  comp_expr_correction_method-->file_spatial_corrected
   file_common_singlecell---comp_data_preprocessor
   comp_data_preprocessor-->file_singlecell
   comp_data_preprocessor-->file_spatialdata
@@ -56,12 +75,13 @@ flowchart LR
   file_spatialdata_segmented---comp_assignment_method
   comp_assignment_method-->file_spatialdata_assigned
   file_common_spatialdata---comp_data_preprocessor
+  comp_data_loader_sc-->file_common_singlecell
   comp_data_loader_sp-->file_common_spatialdata
 ```
 
-## Component type: SC Data Loader
+## Component type: Cell Volume Calculation
 
-A component to download and store single-cell data.
+Calculate the volume of cells
 
 Arguments:
 
@@ -69,14 +89,303 @@ Arguments:
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `--output` | `file` | (*Output*) An unprocessed dataset as output by a dataset loader. |
-| `--dataset_id` | `string` | NA. |
-| `--dataset_name` | `string` | NA. |
-| `--dataset_url` | `string` | (*Optional*) NA. |
-| `--dataset_reference` | `string` | (*Optional*) NA. |
-| `--dataset_summary` | `string` | NA. |
-| `--dataset_description` | `string` | NA. |
-| `--dataset_organism` | `string` | (*Optional*) NA. |
+| `--input` | `file` | (*Output*) A spatial transcriptomics dataset with assigned transcripts. |
+| `--output` | `file` | (*Output*) An obs column of cell volumes calculated from spatial transcriptomics data. |
+
+</div>
+
+## File format: Cell Volumes
+
+An obs column of cell volumes calculated from spatial transcriptomics
+data.
+
+Example file:
+`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
+
+Description:
+
+An obs column of cell volumes calculated from spatial transcriptomics
+data.
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'volume'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot            | Type     | Description             |
+|:----------------|:---------|:------------------------|
+| `obs["volume"]` | `string` | The volume of the cell. |
+
+</div>
+
+## File format: Assigned Transcripts
+
+A spatial transcriptomics dataset with assigned transcripts
+
+Example file: `...`
+
+Description:
+
+…
+
+Format:
+
+<div class="small">
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+</div>
+
+## Component type: Count Aggregation
+
+Aggregating counts of transcripts within cells
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input` | `file` | A spatial transcriptomics dataset with assigned transcripts. |
+| `--output` | `file` | (*Output*) Unprocessed raw counts after aggregation of transcripts to cells. |
+
+</div>
+
+## File format: Spatial Raw Counts
+
+Unprocessed raw counts after aggregation of transcripts to cells
+
+Example file:
+`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
+
+Description:
+
+This file contains the raw counts after aggregating transcripts to
+cells.
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes'
+     var: 'gene_name', 'n_counts', 'n_cells'
+     layers: 'raw'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_id"]` | `string` | Unique identifier for the cell (from assignment step). |
+| `obs["centroid_x"]` | `string` | X coordinate of the cell. |
+| `obs["centroid_y"]` | `string` | Y coordinate of the cell. |
+| `obs["centroid_z"]` | `string` | (*Optional*) Z coordinate of the cell. |
+| `obs["n_counts"]` | `string` | Number of counts in the cell. |
+| `obs["n_genes"]` | `string` | Number of genes in the cell. |
+| `var["gene_name"]` | `string` | Name of the gene. |
+| `var["n_counts"]` | `string` | Number of counts of the gene. |
+| `var["n_cells"]` | `string` | Number of cells expressing the gene. |
+| `layers["raw"]` | `integer` | Raw counts. |
+
+</div>
+
+## Component type: Normalisation
+
+Normalising spatial transcriptomics data
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input` | `file` | Unprocessed raw counts after aggregation of transcripts to cells. |
+| `--output` | `file` | (*Output*) Normalised counts. |
+
+</div>
+
+## File format: Spatial Normalised Counts
+
+Normalised counts
+
+Example file:
+`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
+
+Description:
+
+This file contains the normalised counts of the spatial transcriptomics
+data.
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes', 'volume'
+     var: 'gene_name', 'n_counts', 'n_cells'
+     layers: 'raw', 'norm', 'lognorm'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_id"]` | `string` | Unique identifier for the cell (from assignment step). |
+| `obs["centroid_x"]` | `string` | X coordinate of the cell. |
+| `obs["centroid_y"]` | `string` | Y coordinate of the cell. |
+| `obs["centroid_z"]` | `string` | (*Optional*) Z coordinate of the cell. |
+| `obs["n_counts"]` | `string` | Number of counts in the cell. |
+| `obs["n_genes"]` | `string` | Number of genes in the cell. |
+| `obs["volume"]` | `string` | Volume of the cell. |
+| `var["gene_name"]` | `string` | Name of the gene. |
+| `var["n_counts"]` | `string` | Number of counts of the gene. |
+| `var["n_cells"]` | `string` | Number of cells expressing the gene. |
+| `layers["raw"]` | `integer` | Raw counts. |
+| `layers["norm"]` | `integer` | Normalised counts. |
+| `layers["lognorm"]` | `integer` | Log normalised counts. |
+
+</div>
+
+## Component type: Cell type annotation
+
+Annotating cell types in spatial data
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input` | `file` | Normalised counts. |
+| `--celltype_key` | `string` | (*Optional*) NA. Default: `cell_type`. |
+| `--output` | `file` | (*Output*) Normalised counts with cell type annotations. |
+
+</div>
+
+## File format: Spatial Normalised Counts with Cell Type Annotations
+
+Normalised counts with cell type annotations
+
+Example file:
+`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
+
+Description:
+
+This file contains the normalised counts of the spatial transcriptomics
+data and cell type annotations.
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes', 'volume', 'cell_type'
+     var: 'gene_name', 'n_counts', 'n_cells'
+     layers: 'raw', 'norm', 'lognorm'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_id"]` | `string` | Unique identifier for the cell (from assignment step). |
+| `obs["centroid_x"]` | `string` | X coordinate of the cell. |
+| `obs["centroid_y"]` | `string` | Y coordinate of the cell. |
+| `obs["centroid_z"]` | `string` | (*Optional*) Z coordinate of the cell. |
+| `obs["n_counts"]` | `string` | Number of counts in the cell. |
+| `obs["n_genes"]` | `string` | Number of genes in the cell. |
+| `obs["volume"]` | `string` | Volume of the cell. |
+| `obs["cell_type"]` | `string` | Cell type of the cell. |
+| `var["gene_name"]` | `string` | Name of the gene. |
+| `var["n_counts"]` | `string` | Number of counts of the gene. |
+| `var["n_cells"]` | `string` | Number of cells expressing the gene. |
+| `layers["raw"]` | `integer` | Raw counts. |
+| `layers["norm"]` | `integer` | Normalised counts. |
+| `layers["lognorm"]` | `integer` | Log normalised counts. |
+
+</div>
+
+## Component type: Expression correction
+
+Correcting expression levels in spatial data
+
+Arguments:
+
+<div class="small">
+
+| Name       | Type   | Description                                             |
+|:-----------|:-------|:--------------------------------------------------------|
+| `--input`  | `file` | Normalised counts with cell type annotations.           |
+| `--output` | `file` | (*Output*) Corrected counts with cell type annotations. |
+
+</div>
+
+## File format: Spatial Corrected Counts with Cell Type Annotations
+
+Corrected counts with cell type annotations
+
+Example file:
+`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
+
+Description:
+
+This file contains the corrected counts of the spatial transcriptomics
+data and cell type annotations.
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes', 'volume', 'cell_type'
+     var: 'gene_name', 'n_counts', 'n_cells'
+     layers: 'raw', 'norm', 'lognorm', 'lognorm_uncorrected'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_id"]` | `string` | Unique identifier for the cell (from assignment step). |
+| `obs["centroid_x"]` | `string` | X coordinate of the cell. |
+| `obs["centroid_y"]` | `string` | Y coordinate of the cell. |
+| `obs["centroid_z"]` | `string` | (*Optional*) Z coordinate of the cell. |
+| `obs["n_counts"]` | `string` | Number of counts in the cell. |
+| `obs["n_genes"]` | `string` | Number of genes in the cell. |
+| `obs["volume"]` | `string` | Volume of the cell. |
+| `obs["cell_type"]` | `string` | Cell type of the cell. |
+| `var["gene_name"]` | `string` | Name of the gene. |
+| `var["n_counts"]` | `string` | Number of counts of the gene. |
+| `var["n_cells"]` | `string` | Number of cells expressing the gene. |
+| `layers["raw"]` | `integer` | Raw counts. |
+| `layers["norm"]` | `integer` | Normalised counts. |
+| `layers["lognorm"]` | `integer` | Log normalised counts. |
+| `layers["lognorm_uncorrected"]` | `integer` | (*Optional*) Log normalised counts. |
 
 </div>
 
@@ -190,7 +499,7 @@ Format:
     AnnData object
      obs: 'cell_type', 'cell_type_level2', 'cell_type_level3', 'cell_type_level4', 'dataset_id', 'assay', 'assay_ontology_term_id', 'cell_type_ontology_term_id', 'development_stage', 'development_stage_ontology_term_id', 'disease', 'disease_ontology_term_id', 'donor_id', 'is_primary_data', 'organism', 'organism_ontology_term_id', 'self_reported_ethnicity', 'self_reported_ethnicity_ontology_term_id', 'sex', 'sex_ontology_term_id', 'suspension_type', 'tissue', 'tissue_ontology_term_id', 'tissue_general', 'tissue_general_ontology_term_id', 'batch', 'soma_joinid'
      var: 'feature_id', 'feature_name', 'soma_joinid'
-     layers: 'counts'
+     layers: 'counts', 'raw', 'norm', 'lognorm'
      uns: 'dataset_id', 'dataset_name', 'dataset_url', 'dataset_reference', 'dataset_summary', 'dataset_description', 'dataset_organism'
 
 </div>
@@ -232,6 +541,9 @@ Data structure:
 | `var["feature_name"]` | `string` | A human-readable name for the feature, usually a gene symbol. |
 | `var["soma_joinid"]` | `integer` | (*Optional*) If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the feature. |
 | `layers["counts"]` | `integer` | Raw counts. |
+| `layers["raw"]` | `integer` | Raw counts. |
+| `layers["norm"]` | `integer` | Normalised counts. |
+| `layers["lognorm"]` | `integer` | Log normalised counts. |
 | `uns["dataset_id"]` | `string` | A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived. |
 | `uns["dataset_name"]` | `string` | A human-readable name for the dataset. |
 | `uns["dataset_url"]` | `string` | (*Optional*) Link to the original source of the dataset. |
@@ -318,28 +630,6 @@ Arguments:
 
 </div>
 
-## File format: Assigned Transcripts
-
-A spatial transcriptomics dataset with assigned transcripts
-
-Example file: `...`
-
-Description:
-
-…
-
-Format:
-
-<div class="small">
-
-</div>
-
-Data structure:
-
-<div class="small">
-
-</div>
-
 ## File format: Common iST Dataset
 
 An unprocessed spatial imaging dataset stored as a zarr file.
@@ -361,6 +651,27 @@ Format:
 Data structure:
 
 <div class="small">
+
+</div>
+
+## Component type: SC Data Loader
+
+A component to download and store single-cell data.
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--output` | `file` | (*Output*) An unprocessed dataset as output by a dataset loader. |
+| `--dataset_id` | `string` | NA. |
+| `--dataset_name` | `string` | NA. |
+| `--dataset_url` | `string` | (*Optional*) NA. |
+| `--dataset_reference` | `string` | (*Optional*) NA. |
+| `--dataset_summary` | `string` | NA. |
+| `--dataset_description` | `string` | NA. |
+| `--dataset_organism` | `string` | (*Optional*) NA. |
 
 </div>
 
