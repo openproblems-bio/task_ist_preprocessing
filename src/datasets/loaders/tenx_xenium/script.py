@@ -3,6 +3,8 @@ import anndata as ad
 from spatialdata_io import xenium
 import shutil
 import os
+import zipfile
+import tempfile
 
 ## VIASH START
 par = {
@@ -39,15 +41,23 @@ for i, input in enumerate(par["input"]):
     replicate_id = par["replicate_id"][i]
     print(f"Processing replicate '{replicate_id}'", flush=True)
 
-    # read the data
-    sdata = xenium(
-        path=input,
-        n_jobs=8,
-        cells_boundaries=True,
-        nucleus_boundaries=True,
-        morphology_focus=True,
-        cells_as_circles=False,
-    )
+    # if input is a zip, extract it to a temporary folder
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        if zipfile.is_zipfile(input):
+            print("Extracting input zip", flush=True)
+            with zipfile.ZipFile(input, "r") as zip_ref:
+                zip_ref.extractall(tmpdirname)
+                input = tmpdirname
+
+        # read the data
+        sdata = xenium(
+            path=input,
+            n_jobs=8,
+            cells_boundaries=True,
+            nucleus_boundaries=True,
+            morphology_focus=True,
+            cells_as_circles=False,
+        )
 
     # rename coordinate system
     sdata.rename_coordinate_systems({"global": replicate_id + "_global"})
