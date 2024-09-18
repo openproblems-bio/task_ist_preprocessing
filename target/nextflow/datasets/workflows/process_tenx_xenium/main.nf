@@ -3274,7 +3274,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_tenx_xenium",
     "viash_version" : "0.9.0",
-    "git_commit" : "579ac5177d46b4d758edb59717999e1269f55302",
+    "git_commit" : "92ff4fa4b928601878314d982830879bf805c9bf",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3391,11 +3391,10 @@ workflow run_wf {
       runIf: { id, state -> state.crop_region_min_x },
       fromState: [
         "input": "output",
-        "replicate_id": "replicate_id",
-        "crop_region_min_x": "crop_region_min_x",
-        "crop_region_min_y": "crop_region_min_y",
-        "crop_region_max_x": "crop_region_max_x",
-        "crop_region_max_y": "crop_region_max_y"
+        "min_x": "crop_region_min_x",
+        "min_y": "crop_region_min_y",
+        "max_x": "crop_region_max_x",
+        "max_y": "crop_region_max_y"
       ],
       toState: ["output"]
     )

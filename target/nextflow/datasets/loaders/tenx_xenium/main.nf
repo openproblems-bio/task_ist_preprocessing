@@ -3252,7 +3252,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/tenx_xenium",
     "viash_version" : "0.9.0",
-    "git_commit" : "579ac5177d46b4d758edb59717999e1269f55302",
+    "git_commit" : "92ff4fa4b928601878314d982830879bf805c9bf",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3393,38 +3393,38 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     # read the data
     sdata = xenium(
         path=par_input,
-        n_jobs=8,
+        n_jobs=meta["cpus"] or 1,
         cells_boundaries=True,
         nucleus_boundaries=True,
         morphology_focus=True,
         cells_as_circles=False,
     )
 
-# remove morphology_focus
-_ = sdata.images.pop("morphology_focus")
+    # remove morphology_focus
+    _ = sdata.images.pop("morphology_focus")
 
-print("Add uns to table", flush=True)
-new_uns = {
-    "dataset_id": par["dataset_id"],
-    "dataset_name": par["dataset_name"],
-    "dataset_url": par["dataset_url"],
-    "dataset_reference": par["dataset_reference"],
-    "dataset_summary": par["dataset_summary"],
-    "dataset_description": par["dataset_description"],
-    "dataset_organism": par["dataset_organism"],
-    "replicate_id": par["replicate_id"],
-    "segmentation_id": par["segmentation_id"],
-}
-for key, value in new_uns.items():
-    sdata.tables["table"].uns[key] = value
+    print("Add uns to table", flush=True)
+    new_uns = {
+        "dataset_id": par["dataset_id"],
+        "dataset_name": par["dataset_name"],
+        "dataset_url": par["dataset_url"],
+        "dataset_reference": par["dataset_reference"],
+        "dataset_summary": par["dataset_summary"],
+        "dataset_description": par["dataset_description"],
+        "dataset_organism": par["dataset_organism"],
+        "replicate_id": par["replicate_id"],
+        "segmentation_id": par["segmentation_id"],
+    }
+    for key, value in new_uns.items():
+        sdata.tables["table"].uns[key] = value
 
-print(f"Output: {sdata}", flush=True)
+    print(f"Output: {sdata}", flush=True)
 
-print(f"Writing to '{par['output']}'", flush=True)
-if os.path.exists(par["output"]):
-    shutil.rmtree(par["output"])
+    print(f"Writing to '{par['output']}'", flush=True)
+    if os.path.exists(par["output"]):
+        shutil.rmtree(par["output"])
 
-sdata.write(par["output"])
+    sdata.write(par["output"])
 VIASHMAIN
 python -B "$tempscript"
 '''
