@@ -8,7 +8,15 @@ arguments:
   - name: --input
     required: true
     direction: input
-    __merge__: /src/api/file_spatial_norm_counts.yaml
+    __merge__: file_spatial_norm_counts.yaml
+  - name: --input_transcripts
+    __merge__: file_spatialdata_assigned.yaml
+    direction: input
+    required: false
+  - name: --input_sc
+    required: false
+    direction: input
+    __merge__: file_singlecell.yaml
   - name: --celltype_key
     required: false
     direction: input
@@ -17,7 +25,7 @@ arguments:
   - name: --output
     required: true
     direction: output
-    __merge__: /src/api/file_spatial_with_celltypes.yaml
+    __merge__: file_spatial_with_celltypes.yaml
 # test_resources:
 #   - path: /resources_test/common/pancreas
 #     dest: resources_test/common/pancreas

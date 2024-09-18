@@ -1,19 +1,13 @@
 name: custom
 namespace: segmentation_methods
 
+__merge__: /src/api/comp_segmentation_method.yaml
+
 arguments:
-  - name: --input
-    required: true
-    direction: input
-    __merge__: /src/api/file_spatialdata.yaml
   - name: --labels_key
     type: string
     description: The key of the segmentation within the labels of the spatial data
     required: true
-  - name: --output
-    required: true
-    direction: output
-    __merge__: /src/api/file_spatialdata_segmented.yaml
 
 resources:
   - type: python_script

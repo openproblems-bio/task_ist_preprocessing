@@ -18,6 +18,9 @@ meta = {
 }
 ## VIASH END
 
+# Optional parameter check: For this specific annotation method the par['input_transcripts'] and par['input_sc'] are required
+assert par['input_transcripts'] is not None, 'Transcripts input is required for this annotation method.'
+assert par['input_sc'] is not None, 'Single cell input is required for this annotation method.'
 
 # Read input
 print('Reading input files', flush=True)

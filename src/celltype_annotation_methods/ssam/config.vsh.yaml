@@ -1,33 +1,14 @@
 name: ssam
 namespace: celltype_annotation_methods
 
+__merge__: /src/api/comp_celltype_annotation_method.yaml
+
 arguments:
-  - name: --input
-    required: true
-    direction: input
-    __merge__: /src/api/file_spatial_norm_counts.yaml
-  - name: --input_transcripts
-    required: true
-    direction: input
-    __merge__: /src/api/file_spatialdata_assigned.yaml
-  - name: --input_sc
-    required: true
-    direction: input
-    __merge__: /src/api/file_singlecell.yaml
   - name: --um_per_pixel # TODO: Should be able to infer this from transcripts
     required: false
     direction: input
     type: double
     default: 0.5
-  - name: --celltype_key
-    required: false
-    direction: input
-    type: string
-    default: cell_type
-  - name: --output
-    required: true
-    direction: output
-    __merge__: /src/api/file_spatial_with_celltypes.yaml
 
 resources:
   - type: python_script

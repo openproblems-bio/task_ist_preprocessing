@@ -1,24 +1,14 @@
 name: gene_efficiency_correction
 namespace: expr_correction_methods
 
+__merge__: /src/api/comp_expr_correction_method.yaml
+
 arguments:
-  - name: --input
-    required: true
-    direction: input
-    __merge__: /src/api/file_spatial_with_celltypes.yaml
-  - name: --input_sc
-    required: true
-    direction: input
-    __merge__: /src/api/file_singlecell.yaml
   - name: --celltype_key
     required: false
     direction: input
     type: string
     default: cell_type
-  - name: --output
-    required: true
-    direction: output
-    __merge__: /src/api/file_spatial_corrected.yaml
 
 resources:
   - type: python_script

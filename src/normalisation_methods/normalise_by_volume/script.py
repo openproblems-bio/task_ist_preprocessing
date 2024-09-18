@@ -14,6 +14,8 @@ meta = {
 }
 ## VIASH END
 
+# Optional parameter check: For this specific normalisation method the par['input_volume'] is required
+assert par['input_volume'] is not None, 'Volume input is required for this normalisation method.'
 
 # Read input
 print('Reading input files', flush=True)
