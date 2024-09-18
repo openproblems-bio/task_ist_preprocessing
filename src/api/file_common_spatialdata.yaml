@@ -1,26 +1,3 @@
-#SpatialData object, with associated Zarr store: </paht/to/data.zarr>
-#├── Images
-#│     ├── '{rep}_he_image': DataTree[cyx] (3, 45087, 11580), (3, 22543, 5790), (3, 11271, 2895), (3, 5635, 1447), (3, 2817, 723)
-#│     ├── '{rep}_{flourescence_img}': DataTree[cyx] (2, 17098, 51187), (2, 8549, 25593), (2, 4274, 12796), (2, 2137, 6398), (2, 1068, 3199)
-#│     └── '{rep}_{flourescence_img}_3D': DataTree[czyx] (2, 8, 17098, 51187), (2, 8, 8549, 25593), (2, 8, 4274, 12796), (2, 8, 2137, 6398), (2, 8, 1068, 3199)
-#├── Labels
-#│     ├── '{rep}_{segm1}': DataTree[yxz] (17098, 51187, 3), (8549, 25593, 3), (4274, 12796, 3), (2137, 6398, 3), (1068, 3199, 3)
-#│     ├── '{rep}_{segm2}': DataTree[yxz] (17098, 51187, 3), (8549, 25593, 3), (4274, 12796, 3), (2137, 6398, 3), (1068, 3199, 3)
-#│     └── '{rep}_expert_segm_{patch}': DataTree[yxz] (17098, 51187, 3), (8549, 25593, 3), (4274, 12796, 3), (2137, 6398, 3), (1068, 3199, 3)
-#├── Points
-#│     └── '{rep}_transcripts': DataFrame with shape: (<Delayed>, 11) (3D points)
-#├── Shapes
-#│     ├── '{rep}_{segm1}_boundaries': GeoDataFrame shape: (162254, 1) (2D shapes - 3D supported??)
-#│     └── '{rep}_{segm2}_boundaries': GeoDataFrame shape: (162254, 1) (2D shapes)
-#└── Tables
-#      ├── '{rep}_{segm1}': AnnData (162254, 377)
-#      ├── '{rep}_{segm2}': AnnData (162254, 377)
-#      ├── '{reference1}': AnnData (n_obs_ref1, ?) 
-#      └── '{reference2}': AnnData (n_obs_ref2, ?)
-#with coordinate systems:
-#    ▸ '{rep}_global', with elements:
-#        ....
-
 type: file
 example: "resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr"
 label: "Common iST Dataset"
@@ -30,110 +7,97 @@ description: |
 info:
   format:
     type: spatialdata_zarr
-    variables:
-      - name: replicate_id
-        type: string
-        description: The replicate identifier
-        required: true
-      # - name: reference_id
-      #   type: str
-      #   description: Name of the reference dissociated dataset
-      #   required: true
-      - name: segmentation_id
-        type: string
-        description: Custom segmentation identifier
-        required: false
-      # - name: patch
-      #   type: string
-      #   description: Expert segmentation image patch identifier
-      #   required: false
-    
     images:
-      - type: datatree
-        name: "{rep}_image"
+      - type: object
+        name: image
         description: The raw image data
         required: true
-        coordinates:
-          - type: integer
-            name: c
-            required: true
-          - type: double
-            name: "y"
-            required: true
-          - type: double
-            name: x
-            required: true
-      - type: datatree
-        name: "{rep}_image_3D"
+      - type: object
+        name: image_3D
         description: The raw 3D image data
         required: false
-        coordinates: [] # TODO
-      - type: datatree
-        name: "{rep}_he_image"
+      - type: object
+        name: he_image
         description: H&E image data
         required: false 
-        coordinates: [] # TODO
     labels:
-      - type: datatree
-        dtype: int
-        name: "{rep}_{segm}"
-        description: Custom segmentation of the data
+      - type: object
+        name: "cell_labels"
+        description: Cell segmentation labels
         required: false
-      - type: datatree
-        dtype: int
-        name: "{rep}_{segm}_3D"
-        description: Custom segmentation of the 3D data
+      - type: object
+        name: "nucleus_labels"
+        description: Cell segmentation labels
         required: false
       # - type: datatree
-      #   dtype: int
-      #   name: "{rep}_expert_segm_{patch}"
+      #   name: "{segm}_3D"
+      #   description: Custom segmentation of the 3D data
+      #   required: false
+      # - type: datatree
+      #   name: "expert_segm_{patch}"
       #   description: Expert segmentation of a patch of the data
       #   required: false
       # - type: DataTree[zyx]
-      #   dtype: int
-      #   name: "{rep}_expert_segm_{patch}_3D"
+      #   name: "expert_segm_{patch}_3D"
       #   description: Expert segmentation of a 3D patch of the data
       #   required: false
     points:
       - type: dataframe
-        name: "{rep}_transcripts"
+        name: transcripts
         description: Point cloud data of transcripts
         required: true
         columns:
           - type: float
             name: "x"
             required: true
+            description: x-coordinate of the point
           - type: float
             name: "y"
             required: true
+            description: y-coordinate of the point
           - type: float
             name: "z"
             required: true
+            description: z-coordinate of the point
           - type: categorical
             name: feature_name
             required: true
+            description: Name of the feature
           - type: integer
             name: "cell_id"
             required: true
+            description: Unique identifier of the cell
           - type: float
             name: qv
             required: true
+            description: Quality value of the point
           - type: long
             name: transcript_id
             required: true
+            description: Unique identifier of the transcript
           - type: boolean
             name: overlaps_nucleus
             required: true
-
+            description: Whether the point overlaps with a nucleus
     shapes:
       - type: dataframe
-        name: "{rep}_{segm}_boundaries"
-        description: Cell polygons referring to "{rep}_{segm}"
+        name: "cell_boundaries"
+        description: Cell boundaries
         required: false
         columns:
           - type: object
             name: "geometry"
             required: true
+            description: Geometry of the cell boundary
+      - type: dataframe
+        name: "nucleus_boundaries"
+        description: Nucleus boundaries
+        required: false
+        columns:
+          - type: object
+            name: "geometry"
+            required: true
+            description: Geometry of the nucleus boundary
     tables:
       - type: anndata
         name: "metadata"
@@ -143,62 +107,61 @@ info:
           - type: string
             name: dataset_id
             required: true
+            description: A unique identifier for the dataset
           - type: string
             name: dataset_name
             required: true
+            description: A human-readable name for the dataset
           - type: string
             name: dataset_url
             required: true
+            description: Link to the original source of the dataset
           - type: string
             name: dataset_reference
             required: true
+            description: Bibtex reference of the paper in which the dataset was published
           - type: string
             name: dataset_summary
             required: true
+            description: Short description of the dataset
           - type: string
             name: dataset_description
             required: true
+            description: Long description of the dataset
           - type: string
             name: dataset_organism
             required: true
-          - type: dictionary
-            name: variables
+            description: The organism of the sample in the dataset
+          - type: string
+            name: replicate_id
             required: true
-            contents:
-              - type: string
-                name: replicate_id
-                required: true
-                multiple: true
-              - type: string
-                name: segmentation_id
-                required: true
-                multiple: true
-      # - type: anndata
-      #   dtype: ???
-      #   name: "{reference}"
-      #   description: Map to define the reference cells to compare to for each rep
-      #   required: true
-      - type: anndata
-        name: "{rep}_{segm}_table"
-        description: Count data referring to "{rep}_{segm}"
-        required: false
+            description: A unique identifier for the replicate
+          - type: string
+            name: segmentation_id
+            required: true
+            multiple: true
+            description: A unique identifier for the segmentation
         obs:
           - type: string
             name: cell_id
             required: true
+            description: A unique identifier for the cell
         var:
           - type: string
             name: gene_ids
             required: true
+            description: Unique identifier for the gene
           - type: string
             name: feature_types
             required: true
+            description: Type of the feature
         obsm:
-          - type: float
+          - type: double
             name: spatial
             required: true
+            description: Spatial coordinates of the cell
     coordinate_systems:
-      - type: string
-        name: "{rep}_global"
+      - type: object
+        name: global
         description: Coordinate system of the replicate
         required: true

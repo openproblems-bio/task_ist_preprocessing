@@ -11,7 +11,7 @@ info:
     type: h5ad
     layers: 
       - type: integer
-        name: counts #TODO: Okay to change this one to "raw"? 
+        name: counts
         description: Raw counts
         required: true
     obs:
