@@ -489,9 +489,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component celltype_annotation_methods ssam"
-LABEL org.opencontainers.image.created="2024-09-18T08:55:58Z"
+LABEL org.opencontainers.image.created="2024-09-18T09:07:41Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="fb875811b08697d595cc0840d98bb061fdfcd1da"
+LABEL org.opencontainers.image.revision="fb0eb0c20b553424c4a48fa48d032f57223509af"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

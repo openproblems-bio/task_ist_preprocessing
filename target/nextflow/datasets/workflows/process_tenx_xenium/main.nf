@@ -2847,15 +2847,6 @@ meta = [
       "arguments" : [
         {
           "type" : "string",
-          "name" : "--dataset_id",
-          "description" : "A unique identifier for the dataset",
-          "required" : true,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "string",
           "name" : "--dataset_name",
           "description" : "Nicely formatted name.",
           "required" : true,
@@ -3294,7 +3285,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_tenx_xenium",
     "viash_version" : "0.9.0",
-    "git_commit" : "fb875811b08697d595cc0840d98bb061fdfcd1da",
+    "git_commit" : "fb0eb0c20b553424c4a48fa48d032f57223509af",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3384,6 +3375,12 @@ workflow run_wf {
 
   main:
   output_ch = input_ch
+
+    // copy id to the state
+    | map{ id, state ->
+      def new_state = state + [dataset_id: id]
+      [id, new_state]
+    }
 
     | tenx_xenium.run(
       fromState: [
