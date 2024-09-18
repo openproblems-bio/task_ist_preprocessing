@@ -2876,7 +2876,7 @@ meta = [
                     {
                       "type" : "float",
                       "name" : "z",
-                      "required" : true,
+                      "required" : false,
                       "description" : "z-coordinate of the point"
                     },
                     {
@@ -2888,13 +2888,25 @@ meta = [
                     {
                       "type" : "integer",
                       "name" : "cell_id",
-                      "required" : true,
+                      "required" : false,
                       "description" : "Unique identifier of the cell"
+                    },
+                    {
+                      "type" : "integer",
+                      "name" : "nucleus_id",
+                      "required" : false,
+                      "description" : "Unique identifier of the nucleus"
+                    },
+                    {
+                      "type" : "string",
+                      "name" : "cell_type",
+                      "required" : false,
+                      "description" : "Cell type of the cell"
                     },
                     {
                       "type" : "float",
                       "name" : "qv",
-                      "required" : true,
+                      "required" : false,
                       "description" : "Quality value of the point"
                     },
                     {
@@ -2906,7 +2918,7 @@ meta = [
                     {
                       "type" : "boolean",
                       "name" : "overlaps_nucleus",
-                      "required" : true,
+                      "required" : false,
                       "description" : "Whether the point overlaps with a nucleus"
                     }
                   ]
@@ -3178,7 +3190,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/segmentation_methods/example",
     "viash_version" : "0.9.0",
-    "git_commit" : "55efb39beb0530e566f82cf904dd36e020fd6bca",
+    "git_commit" : "cb472a6ebfdcb0ba6b7e14bbb78d184c91370ecc",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
