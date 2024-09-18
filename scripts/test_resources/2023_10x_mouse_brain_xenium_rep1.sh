@@ -16,7 +16,6 @@ param_list:
     segmentation_id:
       - cell
       - nucleus
-    dataset_id: 2023_10x_mouse_brain_xenium_rep1
     dataset_name: Xenium V1 Fresh Frozen Mouse Brain rep1
     dataset_url: https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard
     dataset_summary: Demonstration of gene expression profiling for fresh frozen mouse brain on the Xenium platform.
@@ -26,6 +25,7 @@ param_list:
     crop_region_max_x: 12000
     crop_region_min_y: 10000
     crop_region_max_y: 12000
+
 publish_dir: resources_test/common
 output: '\$id/dataset.h5ad'
 output_state: '\$id/state.yaml'

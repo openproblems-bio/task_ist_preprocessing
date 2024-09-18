@@ -12,6 +12,12 @@ workflow run_wf {
   main:
   output_ch = input_ch
 
+    // copy id to the state
+    | map{ id, state ->
+      def new_state = state + [dataset_id: id]
+      [id, new_state]
+    }
+
     | tenx_xenium.run(
       fromState: [
         "input",
