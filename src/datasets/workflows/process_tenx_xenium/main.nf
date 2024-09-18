@@ -38,11 +38,10 @@ workflow run_wf {
       runIf: { id, state -> state.crop_region_min_x },
       fromState: [
         "input": "output",
-        "replicate_id": "replicate_id",
-        "crop_region_min_x": "crop_region_min_x",
-        "crop_region_min_y": "crop_region_min_y",
-        "crop_region_max_x": "crop_region_max_x",
-        "crop_region_max_y": "crop_region_max_y"
+        "min_x": "crop_region_min_x",
+        "min_y": "crop_region_min_y",
+        "max_x": "crop_region_max_x",
+        "max_y": "crop_region_max_y"
       ],
       toState: ["output"]
     )

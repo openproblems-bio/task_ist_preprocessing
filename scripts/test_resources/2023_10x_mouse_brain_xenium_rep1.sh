@@ -8,10 +8,18 @@ cd "$REPO_ROOT"
 
 set -e
 
+if [ ! -d temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium ]; then
+  mkdir -p temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium
+fi
+if [ ! -f temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip ]; then
+  wget -O temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip \
+    https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
+fi
+
 cat > /tmp/params.yaml << HERE
 param_list:
   - id: 2023_10x_mouse_brain_xenium_rep1
-    input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
+    input: temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
     replicate_id: rep1
     segmentation_id:
       - cell
@@ -36,7 +44,6 @@ nextflow run . \
   -main-script target/nextflow/datasets/workflows/process_tenx_xenium/main.nf \
   -profile docker \
   -resume \
-  -c common/nextflow_helpers/labels_ci.config \
   -params-file /tmp/params.yaml
 
 aws s3 sync --profile op \
