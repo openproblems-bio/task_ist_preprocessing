@@ -28,6 +28,19 @@ workflow run_wf {
       toState: ["output"]
     )
 
+    | crop_region.run(
+      runIf: { id, state -> state.crop_region_min_x },
+      fromState: [
+        "input": "output",
+        "replicate_id": "replicate_id",
+        "crop_region_min_x": "crop_region_min_x",
+        "crop_region_min_y": "crop_region_min_y",
+        "crop_region_max_x": "crop_region_max_x",
+        "crop_region_max_y": "crop_region_max_y"
+      ],
+      toState: ["output"]
+    )
+
     | setState(["output"])
 
   emit:

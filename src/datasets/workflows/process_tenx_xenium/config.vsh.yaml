@@ -7,13 +7,11 @@ argument_groups:
       - type: file
         name: --input
         required: true
-        description: A 10x xenium directory
-        multiple: true
+        description: A 10x xenium directory or zip file
       - type: string
         name: --replicate_id
         required: true
         description: The replicate identifier
-        multiple: true
       - type: string
         name: --segmentation_id
         required: true
@@ -49,6 +47,25 @@ argument_groups:
         type: string
         description: The organism of the sample in the dataset.
         required: false
+  - name: Crop region
+    description: If provided, the region will be cropped to the specified coordinates.
+    arguments:
+      - type: integer
+        name: --crop_region_min_x
+        required: false
+        description: The minimum x coordinate of the region to crop.
+      - type: integer
+        name: --crop_region_max_x
+        required: false
+        description: The maximum x coordinate of the region to crop.
+      - type: integer
+        name: --crop_region_min_y
+        required: false
+        description: The minimum y coordinate of the region to crop.
+      - type: integer
+        name: --crop_region_max_y
+        required: false
+        description: The maximum y coordinate of the region to crop.
   - name: Outputs
     arguments:
     - name: "--output"
@@ -63,6 +80,7 @@ resources:
 
 dependencies:
   - name: datasets/loaders/tenx_xenium
+  - name: datasets/processors/crop_region
 
 runners:
   - type: nextflow
