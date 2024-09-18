@@ -9,6 +9,10 @@ arguments:
     required: true
     direction: input
     __merge__: /src/api/file_spatial_with_celltypes.yaml
+  - name: --input_sc
+    required: false
+    direction: input
+    __merge__: /src/api/file_singlecell.yaml
   - name: --output
     required: true
     direction: output
