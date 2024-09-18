@@ -8,27 +8,30 @@ cd "$REPO_ROOT"
 
 set -e
 
-DATASET_ID="2023_yao_mouse_brain_scrnaseq_10xv2"
-TMP_DIR="temp/datasets/$DATASET_ID"
-OUT_DIR="resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2"
+cat > /tmp/params.yaml << HERE
+param_list:
+  - id: 2023_yao_mouse_brain_scrnaseq_10xv2
+    regions:
+      - OLF
+      - TH
+    dataset_name: ABCA Mouse Brain scRNAseq
+    dataset_url: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE246717
+    dataset_reference: 10.1038/s41586-023-06812-z
+    dataset_summary: A high-resolution scRNAseq atlas of cell types in the whole mouse brain
+    dataset_description: See dataset_reference for more information. Note that we only took the 10xv2 data from the dataset.
+    dataset_organism: mus_musculus
 
-# generate sc reference
-VIASH_TEMP=/tmp/allen_brain_cell_atlas \
-  viash run src/data_loaders/download_allen_brain_cell_atlas/config.vsh.yaml \
-  --keep true -- \
-  --regions "OLF;TH" \
-  --output "$TMP_DIR/tmp_dataset.h5ad" \
-  --dataset_id "$DATASET_ID" \
-  --dataset_name "ABCA Mouse Brain scRNAseq" \
-  --dataset_url "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE246717" \
-  --dataset_reference "10.1038/s41586-023-06812-z" \
-  --dataset_summary "A high-resolution scRNAseq atlas of cell types in the whole mouse brain" \
-  --dataset_description "See dataset_reference for more information. Note that we only took the 10xv2 data from the dataset." \
-  --dataset_organism "mus_musculus"
+output: "\$id/dataset.h5ad"
+output_state: "\$id/state.yaml"
 
-viash run src/data_processors/subset_reference/config.vsh.yaml -- \
-  --input "$TMP_DIR/tmp_dataset.h5ad" \
-  --output "$OUT_DIR/dataset.h5ad"
+publish_dir: resources_test/common
+HERE
+
+nextflow run . \
+  -main-script target/nextflow/datasets/workflows/process_allen_brain_cell_atlas/main.nf \
+  -profile docker \
+  -resume \
+  -params-file /tmp/params.yaml
 
 aws s3 sync --profile op \
   "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2" \

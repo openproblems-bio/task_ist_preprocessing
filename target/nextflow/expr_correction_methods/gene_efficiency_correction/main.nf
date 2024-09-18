@@ -3349,9 +3349,16 @@ meta = [
   "repositories" : [
     {
       "type" : "github",
-      "name" : "openproblems-v2",
-      "repo" : "openproblems-bio/openproblems-v2",
-      "tag" : "main_build"
+      "name" : "openproblems",
+      "repo" : "openproblems-bio/openproblems",
+      "tag" : "build/main"
+    },
+    {
+      "type" : "github",
+      "name" : "core",
+      "repo" : "openproblems-bio/core",
+      "tag" : "build/main",
+      "path" : "viash/core"
     }
   ],
   "license" : "MIT",
@@ -3423,7 +3430,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/expr_correction_methods/gene_efficiency_correction",
     "viash_version" : "0.9.0",
-    "git_commit" : "f8bd5ea2d6e4e981b021178976a5dbfc7314e507",
+    "git_commit" : "55efb39beb0530e566f82cf904dd36e020fd6bca",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3445,9 +3452,16 @@ meta = [
     "repositories" : [
       {
         "type" : "github",
-        "name" : "openproblems-v2",
-        "repo" : "openproblems-bio/openproblems-v2",
-        "tag" : "main_build"
+        "name" : "openproblems",
+        "repo" : "openproblems-bio/openproblems",
+        "tag" : "build/main"
+      },
+      {
+        "type" : "github",
+        "name" : "core",
+        "repo" : "openproblems-bio/core",
+        "tag" : "build/main",
+        "path" : "viash/core"
       }
     ],
     "viash_version" : "0.9.0",

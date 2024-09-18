@@ -186,6 +186,15 @@ function ViashHelp {
   echo "        A list of brain regions to download data for. If not provided, data for"
   echo "        all regions will be downloaded."
   echo ""
+  echo "Caching:"
+  echo "    --cache_dir"
+  echo "        type: string"
+  echo "        Directory to cache the downloaded data."
+  echo ""
+  echo "    --output_cache_dir"
+  echo "        type: string"
+  echo "        Output directory of the cached data."
+  echo ""
   echo "Metadata:"
   echo "    --dataset_id"
   echo "        type: string, required parameter"
@@ -506,9 +515,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/alleninstitute/abc_atlas_access"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas"
-LABEL org.opencontainers.image.created="2024-09-18T15:34:20Z"
+LABEL org.opencontainers.image.created="2024-09-18T20:22:43Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="f8bd5ea2d6e4e981b021178976a5dbfc7314e507"
+LABEL org.opencontainers.image.revision="55efb39beb0530e566f82cf904dd36e020fd6bca"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -674,6 +683,28 @@ while [[ $# -gt 0 ]]; do
             else
               VIASH_PAR_REGIONS="$VIASH_PAR_REGIONS;"$(ViashRemoveFlags "$1")
             fi
+            shift 1
+            ;;
+        --cache_dir)
+            [ -n "$VIASH_PAR_CACHE_DIR" ] && ViashError Bad arguments for option \'--cache_dir\': \'$VIASH_PAR_CACHE_DIR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CACHE_DIR="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --cache_dir. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --cache_dir=*)
+            [ -n "$VIASH_PAR_CACHE_DIR" ] && ViashError Bad arguments for option \'--cache_dir=*\': \'$VIASH_PAR_CACHE_DIR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CACHE_DIR=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --output_cache_dir)
+            [ -n "$VIASH_PAR_OUTPUT_CACHE_DIR" ] && ViashError Bad arguments for option \'--output_cache_dir\': \'$VIASH_PAR_OUTPUT_CACHE_DIR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_OUTPUT_CACHE_DIR="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --output_cache_dir. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --output_cache_dir=*)
+            [ -n "$VIASH_PAR_OUTPUT_CACHE_DIR" ] && ViashError Bad arguments for option \'--output_cache_dir=*\': \'$VIASH_PAR_OUTPUT_CACHE_DIR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_OUTPUT_CACHE_DIR=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         --dataset_id)
@@ -1164,6 +1195,8 @@ from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 par = {
   'abca_version': $( if [ ! -z ${VIASH_PAR_ABCA_VERSION+x} ]; then echo "r'${VIASH_PAR_ABCA_VERSION//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'regions': $( if [ ! -z ${VIASH_PAR_REGIONS+x} ]; then echo "r'${VIASH_PAR_REGIONS//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi ),
+  'cache_dir': $( if [ ! -z ${VIASH_PAR_CACHE_DIR+x} ]; then echo "r'${VIASH_PAR_CACHE_DIR//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'output_cache_dir': $( if [ ! -z ${VIASH_PAR_OUTPUT_CACHE_DIR+x} ]; then echo "r'${VIASH_PAR_OUTPUT_CACHE_DIR//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'dataset_id': $( if [ ! -z ${VIASH_PAR_DATASET_ID+x} ]; then echo "r'${VIASH_PAR_DATASET_ID//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'dataset_name': $( if [ ! -z ${VIASH_PAR_DATASET_NAME+x} ]; then echo "r'${VIASH_PAR_DATASET_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'dataset_url': $( if [ ! -z ${VIASH_PAR_DATASET_URL+x} ]; then echo "r'${VIASH_PAR_DATASET_URL//\'/\'\"\'\"r\'}'"; else echo None; fi ),

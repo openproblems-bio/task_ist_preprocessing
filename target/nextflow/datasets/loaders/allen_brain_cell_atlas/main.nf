@@ -2847,6 +2847,29 @@ meta = [
       ]
     },
     {
+      "name" : "Caching",
+      "arguments" : [
+        {
+          "type" : "string",
+          "name" : "--cache_dir",
+          "description" : "Directory to cache the downloaded data.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--output_cache_dir",
+          "description" : "Output directory of the cached data.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
       "name" : "Metadata",
       "arguments" : [
         {
@@ -3190,9 +3213,16 @@ meta = [
   "repositories" : [
     {
       "type" : "github",
-      "name" : "openproblems-v2",
-      "repo" : "openproblems-bio/openproblems-v2",
-      "tag" : "main_build"
+      "name" : "openproblems",
+      "repo" : "openproblems-bio/openproblems",
+      "tag" : "build/main"
+    },
+    {
+      "type" : "github",
+      "name" : "core",
+      "repo" : "openproblems-bio/core",
+      "tag" : "build/main",
+      "path" : "viash/core"
     }
   ],
   "license" : "MIT",
@@ -3269,7 +3299,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "f8bd5ea2d6e4e981b021178976a5dbfc7314e507",
+    "git_commit" : "55efb39beb0530e566f82cf904dd36e020fd6bca",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3291,9 +3321,16 @@ meta = [
     "repositories" : [
       {
         "type" : "github",
-        "name" : "openproblems-v2",
-        "repo" : "openproblems-bio/openproblems-v2",
-        "tag" : "main_build"
+        "name" : "openproblems",
+        "repo" : "openproblems-bio/openproblems",
+        "tag" : "build/main"
+      },
+      {
+        "type" : "github",
+        "name" : "core",
+        "repo" : "openproblems-bio/core",
+        "tag" : "build/main",
+        "path" : "viash/core"
       }
     ],
     "viash_version" : "0.9.0",
@@ -3360,6 +3397,8 @@ from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 par = {
   'abca_version': $( if [ ! -z ${VIASH_PAR_ABCA_VERSION+x} ]; then echo "r'${VIASH_PAR_ABCA_VERSION//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'regions': $( if [ ! -z ${VIASH_PAR_REGIONS+x} ]; then echo "r'${VIASH_PAR_REGIONS//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi ),
+  'cache_dir': $( if [ ! -z ${VIASH_PAR_CACHE_DIR+x} ]; then echo "r'${VIASH_PAR_CACHE_DIR//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'output_cache_dir': $( if [ ! -z ${VIASH_PAR_OUTPUT_CACHE_DIR+x} ]; then echo "r'${VIASH_PAR_OUTPUT_CACHE_DIR//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_id': $( if [ ! -z ${VIASH_PAR_DATASET_ID+x} ]; then echo "r'${VIASH_PAR_DATASET_ID//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_name': $( if [ ! -z ${VIASH_PAR_DATASET_NAME+x} ]; then echo "r'${VIASH_PAR_DATASET_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_url': $( if [ ! -z ${VIASH_PAR_DATASET_URL+x} ]; then echo "r'${VIASH_PAR_DATASET_URL//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),

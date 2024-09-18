@@ -1,0 +1,122 @@
+name: process_allen_brain_cell_atlas
+namespace: datasets/workflows
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - type: string
+        name: --abca_version
+        required: false
+        default: "20230630"
+        description: The version of the Allen Brain Cell Atlas to download data from.
+      - type: string
+        name: --regions
+        required: false
+        description: A list of brain regions to download data for. If not provided, data for all regions will be downloaded.
+        multiple: true
+        default:
+          - CTXsp
+          - HPF
+          - HY
+          - Isocortex-1
+          - Isocortex-2
+          - Isocortex-3
+          - Isocortex-4
+          - MB
+          - OLF
+          - TH
+  - name: Metadata
+    arguments:
+      - type: string
+        name: --id
+        description: "A unique identifier for the dataset"
+        required: true
+      - name: --dataset_name
+        type: string
+        description: Nicely formatted name.
+        required: true
+      - type: string
+        name: --dataset_url
+        description: Link to the original source of the dataset.
+        required: false
+      - name: --dataset_reference
+        type: string
+        description: Bibtex reference of the paper in which the dataset was published.
+        required: false
+      - name: --dataset_summary
+        type: string
+        description: Short description of the dataset.
+        required: true
+      - name: --dataset_description
+        type: string
+        description: Long description of the dataset.
+        required: true
+      - name: --dataset_organism
+        type: string
+        description: The organism of the sample in the dataset.
+        required: false
+  - name: Sampling options
+    arguments:
+      - name: "--do_subsample"
+        type: boolean
+        default: false
+        description: "Whether or not to subsample the dataset"
+      - name: "--n_obs"
+        type: integer
+        description: Maximum number of observations to be kept. It might end up being less because empty cells / genes are removed.
+        default: 500
+      - name: "--n_vars"
+        type: integer
+        description: Maximum number of variables to be kept. It might end up being less because empty cells / genes are removed.
+        default: 500
+      - name: "--keep_features"
+        type: string
+        multiple: true
+        description: A list of genes to keep.
+      - name: "--keep_cell_type_categories"
+        type: "string"
+        multiple: true
+        description: "Categories indexes to be selected"
+        required: false
+      - name: "--keep_batch_categories"
+        type: "string"
+        multiple: true
+        description: "Categories indexes to be selected"
+        required: false
+      - name: "--even"
+        type: "boolean_true"
+        description: Subsample evenly from different batches
+      - name: "--seed"
+        type: "integer"
+        description: "A seed for the subsampling."
+        example: 123
+  - name: Outputs
+    arguments:
+    - name: "--output"
+      __merge__: /src/api/file_common_singlecell.yaml
+      direction: output
+      required: true
+
+resources:
+  - type: nextflow_script
+    path: main.nf
+    entrypoint: run_wf
+  - path: /common/nextflow_helpers/helper.nf
+
+dependencies:
+  - name: datasets/loaders/allen_brain_cell_atlas
+  - name: datasets/processors/subsample
+    repository: openproblems
+  - name: datasets/normalization/log_cp
+    repository: openproblems
+  - name: datasets/processors/pca
+    repository: openproblems
+  - name: datasets/processors/hvg
+    repository: openproblems
+  - name: datasets/processors/knn
+    repository: openproblems
+  - name: h5ad/extract_uns_metadata
+    repository: core
+
+runners:
+  - type: nextflow

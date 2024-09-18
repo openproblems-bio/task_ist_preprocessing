@@ -25,6 +25,16 @@ argument_groups:
           - MB
           - OLF
           - TH
+  - name: Caching
+    arguments:
+      - type: string
+        name: --cache_dir
+        required: false
+        description: Directory to cache the downloaded data.
+      - type: string
+        name: --output_cache_dir
+        required: false
+        description: Output directory of the cached data.
   - name: Metadata
     arguments:
       - type: string
