@@ -168,14 +168,6 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "string"
-    name: "--labels_key"
-    description: "The key of the segmentation within the labels of the spatial data"
-    info: null
-    required: true
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
   - type: "file"
     name: "--output"
     label: "Segmented iST"
@@ -198,11 +190,25 @@ argument_groups:
     direction: "output"
     multiple: false
     multiple_sep: ";"
+  - type: "string"
+    name: "--labels_key"
+    description: "The key of the segmentation within the labels of the spatial data"
+    info: null
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 resources:
 - type: "python_script"
   path: "script.py"
   is_executable: true
-info: null
+info:
+  type: "segmentation"
+  type_info:
+    label: "Segmentation"
+    summary: "A segmentation of the spatial data into cells"
+    description: "A segmentation method uses the spatial data to segment an image\
+      \ into cells."
 status: "enabled"
 repositories:
 - type: "github"
@@ -262,7 +268,7 @@ build_info:
   output: "target/executable/segmentation_methods/custom"
   executable: "target/executable/segmentation_methods/custom/custom"
   viash_version: "0.9.0"
-  git_commit: "495437d607ec8c883151d6d402dea1ec7cca4c09"
+  git_commit: "fb875811b08697d595cc0840d98bb061fdfcd1da"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

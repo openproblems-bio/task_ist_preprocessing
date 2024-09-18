@@ -21,6 +21,10 @@ meta = {
 # if par['coordinate_system'] == None:
 #    par['coordinate_system'] = 'global'
 
+# Optional parameter check: For this specific assignment method the par['segmentation_input'] is required
+assert par['segmentation_input'] is not None, 'Segmentation input is required for this assignment method.'
+
+
 # Read input
 print('Reading input files', flush=True)
 sdata = sd.read_zarr(par['input'])

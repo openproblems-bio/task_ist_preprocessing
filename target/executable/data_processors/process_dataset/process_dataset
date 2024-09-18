@@ -481,12 +481,13 @@ function ViashDockerfile {
 FROM openproblems/base_python:1.0.0
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata, txsim"
+  pip install --upgrade --no-cache-dir "spatialdata" && \
+  pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2024-09-17T12:57:25Z"
+LABEL org.opencontainers.image.created="2024-09-18T08:55:57Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="495437d607ec8c883151d6d402dea1ec7cca4c09"
+LABEL org.opencontainers.image.revision="fb875811b08697d595cc0840d98bb061fdfcd1da"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

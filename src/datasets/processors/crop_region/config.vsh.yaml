@@ -1,0 +1,45 @@
+name: crop_region
+namespace: datasets/processors
+
+arguments:
+  - type: file
+    name: --input
+    required: true
+    description: A zarr file containing the data to crop.
+  - type: file
+    name: --output
+    required: true
+    description: The output file to write the cropped data to.
+    direction: output
+  - type: integer
+    name: --min_x
+    required: true
+    description: The minimum x coordinate of the region to crop.
+  - type: integer
+    name: --max_x
+    required: true
+    description: The maximum x coordinate of the region to crop.
+  - type: integer
+    name: --min_y
+    required: true
+    description: The minimum y coordinate of the region to crop.
+  - type: integer
+    name: --max_y
+    required: true
+    description: The maximum y coordinate of the region to crop.
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi:
+          - spatialdata
+
+runners:
+  - type: executable
+  - type: nextflow

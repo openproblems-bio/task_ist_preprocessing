@@ -2901,10 +2901,28 @@ meta = [
         {
           "type" : "file",
           "name" : "--input_volume",
+          "label" : "Cell Volumes",
+          "summary" : "An obs column of cell volumes calculated from spatial transcriptomics data.",
           "description" : "H5ad with an obs column of cell volumes calculated from spatial transcriptomics data.",
+          "info" : {
+            "format" : {
+              "type" : "h5ad",
+              "obs" : [
+                {
+                  "type" : "string",
+                  "name" : "volume",
+                  "description" : "The volume of the cell.",
+                  "required" : true
+                }
+              ]
+            }
+          },
+          "example" : [
+            "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+          ],
           "must_exist" : true,
           "create_parent" : true,
-          "required" : true,
+          "required" : false,
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
@@ -3024,6 +3042,14 @@ meta = [
       "is_executable" : true
     }
   ],
+  "info" : {
+    "type" : "normalisation",
+    "type_info" : {
+      "label" : "Normalisation",
+      "summary" : "Normalising spatial transcriptomics data",
+      "description" : "A normalisation method normalises spatial transcriptomics data to account for technical variations and enable comparisons between samples."
+    }
+  },
   "status" : "enabled",
   "repositories" : [
     {
@@ -3084,8 +3110,8 @@ meta = [
         {
           "type" : "python",
           "user" : false,
-          "pypi" : [
-            "txsim"
+          "github" : [
+            "theislab/txsim@dev"
           ],
           "upgrade" : true
         }
@@ -3102,7 +3128,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/normalisation_methods/normalise_by_volume",
     "viash_version" : "0.9.0",
-    "git_commit" : "495437d607ec8c883151d6d402dea1ec7cca4c09",
+    "git_commit" : "fb875811b08697d595cc0840d98bb061fdfcd1da",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3217,6 +3243,8 @@ dep = {
 
 ## VIASH END
 
+# Optional parameter check: For this specific normalisation method the par['input_volume'] is required
+assert par['input_volume'] is not None, 'Volume input is required for this normalisation method.'
 
 # Read input
 print('Reading input files', flush=True)

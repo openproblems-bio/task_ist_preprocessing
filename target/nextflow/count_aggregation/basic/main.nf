@@ -2969,6 +2969,14 @@ meta = [
       "is_executable" : true
     }
   ],
+  "info" : {
+    "type" : "count_aggregation",
+    "type_info" : {
+      "label" : "Count Aggregation",
+      "summary" : "Aggregating counts of transcripts within cells",
+      "description" : "Generate the raw count matrix based on the assignment of transcripts to cells."
+    }
+  },
   "status" : "enabled",
   "repositories" : [
     {
@@ -3030,7 +3038,12 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "spatialdata, txsim, squidpy, rasterio"
+            "spatialdata",
+            "squidpy",
+            "rasterio"
+          ],
+          "github" : [
+            "theislab/txsim@dev"
           ],
           "upgrade" : true
         }
@@ -3047,7 +3060,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/count_aggregation/basic",
     "viash_version" : "0.9.0",
-    "git_commit" : "495437d607ec8c883151d6d402dea1ec7cca4c09",
+    "git_commit" : "fb875811b08697d595cc0840d98bb061fdfcd1da",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

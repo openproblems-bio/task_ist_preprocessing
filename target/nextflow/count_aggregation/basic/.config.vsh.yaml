@@ -108,7 +108,13 @@ resources:
 - type: "python_script"
   path: "script.py"
   is_executable: true
-info: null
+info:
+  type: "count_aggregation"
+  type_info:
+    label: "Count Aggregation"
+    summary: "Aggregating counts of transcripts within cells"
+    description: "Generate the raw count matrix based on the assignment of transcripts\
+      \ to cells."
 status: "enabled"
 repositories:
 - type: "github"
@@ -155,7 +161,11 @@ engines:
   - type: "python"
     user: false
     pypi:
-    - "spatialdata, txsim, squidpy, rasterio"
+    - "spatialdata"
+    - "squidpy"
+    - "rasterio"
+    github:
+    - "theislab/txsim@dev"
     upgrade: true
   entrypoint: []
   cmd: null
@@ -168,7 +178,7 @@ build_info:
   output: "target/nextflow/count_aggregation/basic"
   executable: "target/nextflow/count_aggregation/basic/main.nf"
   viash_version: "0.9.0"
-  git_commit: "495437d607ec8c883151d6d402dea1ec7cca4c09"
+  git_commit: "fb875811b08697d595cc0840d98bb061fdfcd1da"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

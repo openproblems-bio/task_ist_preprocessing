@@ -182,15 +182,11 @@ function ViashHelp {
   echo "        data and cell type annotations."
   echo ""
   echo "    --input_sc"
-  echo "        type: file, required parameter, file must exist"
+  echo "        type: file, file must exist"
   echo "        example:"
   echo "resources_test/preprocessing_imagingbased_st/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
   echo "        This dataset contains preprocessed counts and metadata for single-cell"
   echo "        RNA-seq data."
-  echo ""
-  echo "    --celltype_key"
-  echo "        type: string"
-  echo "        default: cell_type"
   echo ""
   echo "    --output"
   echo "        type: file, required parameter, output, file must exist"
@@ -198,6 +194,10 @@ function ViashHelp {
   echo "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
   echo "        This file contains the corrected counts of the spatial transcriptomics"
   echo "        data and cell type annotations."
+  echo ""
+  echo "    --celltype_key"
+  echo "        type: string"
+  echo "        default: cell_type"
 }
 
 # initialise variables
@@ -476,12 +476,12 @@ function ViashDockerfile {
 FROM openproblems/base_python:1.0.0
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "txsim"
+  pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component expr_correction_methods gene_efficiency_correction"
-LABEL org.opencontainers.image.created="2024-09-17T12:57:26Z"
+LABEL org.opencontainers.image.created="2024-09-18T08:55:58Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="495437d607ec8c883151d6d402dea1ec7cca4c09"
+LABEL org.opencontainers.image.revision="fb875811b08697d595cc0840d98bb061fdfcd1da"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -643,17 +643,6 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_INPUT_SC=$(ViashRemoveFlags "$1")
             shift 1
             ;;
-        --celltype_key)
-            [ -n "$VIASH_PAR_CELLTYPE_KEY" ] && ViashError Bad arguments for option \'--celltype_key\': \'$VIASH_PAR_CELLTYPE_KEY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_CELLTYPE_KEY="$2"
-            [ $# -lt 2 ] && ViashError Not enough arguments passed to --celltype_key. Use "--help" to get more information on the parameters. && exit 1
-            shift 2
-            ;;
-        --celltype_key=*)
-            [ -n "$VIASH_PAR_CELLTYPE_KEY" ] && ViashError Bad arguments for option \'--celltype_key=*\': \'$VIASH_PAR_CELLTYPE_KEY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_CELLTYPE_KEY=$(ViashRemoveFlags "$1")
-            shift 1
-            ;;
         --output)
             [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_OUTPUT="$2"
@@ -663,6 +652,17 @@ while [[ $# -gt 0 ]]; do
         --output=*)
             [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output=*\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_OUTPUT=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --celltype_key)
+            [ -n "$VIASH_PAR_CELLTYPE_KEY" ] && ViashError Bad arguments for option \'--celltype_key\': \'$VIASH_PAR_CELLTYPE_KEY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CELLTYPE_KEY="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --celltype_key. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --celltype_key=*)
+            [ -n "$VIASH_PAR_CELLTYPE_KEY" ] && ViashError Bad arguments for option \'--celltype_key=*\': \'$VIASH_PAR_CELLTYPE_KEY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CELLTYPE_KEY=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -839,10 +839,6 @@ fi
 # check whether required parameters exist
 if [ -z ${VIASH_PAR_INPUT+x} ]; then
   ViashError '--input' is a required argument. Use "--help" to get more information on the parameters.
-  exit 1
-fi
-if [ -z ${VIASH_PAR_INPUT_SC+x} ]; then
-  ViashError '--input_sc' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
 if [ -z ${VIASH_PAR_OUTPUT+x} ]; then
@@ -1068,8 +1064,8 @@ import txsim as tx
 par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'input_sc': $( if [ ! -z ${VIASH_PAR_INPUT_SC+x} ]; then echo "r'${VIASH_PAR_INPUT_SC//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'celltype_key': $( if [ ! -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then echo "r'${VIASH_PAR_CELLTYPE_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi )
+  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'celltype_key': $( if [ ! -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then echo "r'${VIASH_PAR_CELLTYPE_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1097,6 +1093,8 @@ dep = {
 
 ## VIASH END
 
+# Optional parameter check: For this specific correction method the par['input_sc'] is required
+assert par['input_sc'] is not None, 'Single cell input is required for this expr correction method.'
     
 # Read input
 print('Reading input files', flush=True)

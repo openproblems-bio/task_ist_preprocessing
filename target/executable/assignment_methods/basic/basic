@@ -181,23 +181,30 @@ function ViashHelp {
   echo "        This dataset contains preprocessed images, labels, points, shapes, and"
   echo "        tables for spatial transcriptomics data."
   echo ""
-  echo "    --transcripts_key"
-  echo "        type: string, required parameter"
-  echo "        The key of the transcripts within the points of the spatial data"
-  echo ""
   echo "    --segmentation_input"
-  echo "        type: file, required parameter, file must exist"
+  echo "        type: file, file must exist"
   echo "        example: ..."
   echo "        ..."
   echo ""
-  echo "    --coordinate_system"
-  echo "        type: string, required parameter"
-  echo "        The key of the pixel space coordinate system within the spatial data"
+  echo "    --input_sc"
+  echo "        type: file, file must exist"
+  echo "        example:"
+  echo "resources_test/preprocessing_imagingbased_st/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+  echo "        This dataset contains preprocessed counts and metadata for single-cell"
+  echo "        RNA-seq data."
   echo ""
   echo "    --output"
   echo "        type: file, required parameter, output, file must exist"
   echo "        example: ..."
   echo "        ..."
+  echo ""
+  echo "    --transcripts_key"
+  echo "        type: string, required parameter"
+  echo "        The key of the transcripts within the points of the spatial data"
+  echo ""
+  echo "    --coordinate_system"
+  echo "        type: string, required parameter"
+  echo "        The key of the pixel space coordinate system within the spatial data"
 }
 
 # initialise variables
@@ -479,9 +486,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component assignment_methods basic"
-LABEL org.opencontainers.image.created="2024-09-17T12:57:27Z"
+LABEL org.opencontainers.image.created="2024-09-18T08:55:59Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="495437d607ec8c883151d6d402dea1ec7cca4c09"
+LABEL org.opencontainers.image.revision="fb875811b08697d595cc0840d98bb061fdfcd1da"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -632,17 +639,6 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_INPUT=$(ViashRemoveFlags "$1")
             shift 1
             ;;
-        --transcripts_key)
-            [ -n "$VIASH_PAR_TRANSCRIPTS_KEY" ] && ViashError Bad arguments for option \'--transcripts_key\': \'$VIASH_PAR_TRANSCRIPTS_KEY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_TRANSCRIPTS_KEY="$2"
-            [ $# -lt 2 ] && ViashError Not enough arguments passed to --transcripts_key. Use "--help" to get more information on the parameters. && exit 1
-            shift 2
-            ;;
-        --transcripts_key=*)
-            [ -n "$VIASH_PAR_TRANSCRIPTS_KEY" ] && ViashError Bad arguments for option \'--transcripts_key=*\': \'$VIASH_PAR_TRANSCRIPTS_KEY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_TRANSCRIPTS_KEY=$(ViashRemoveFlags "$1")
-            shift 1
-            ;;
         --segmentation_input)
             [ -n "$VIASH_PAR_SEGMENTATION_INPUT" ] && ViashError Bad arguments for option \'--segmentation_input\': \'$VIASH_PAR_SEGMENTATION_INPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_SEGMENTATION_INPUT="$2"
@@ -654,15 +650,15 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_SEGMENTATION_INPUT=$(ViashRemoveFlags "$1")
             shift 1
             ;;
-        --coordinate_system)
-            [ -n "$VIASH_PAR_COORDINATE_SYSTEM" ] && ViashError Bad arguments for option \'--coordinate_system\': \'$VIASH_PAR_COORDINATE_SYSTEM\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_COORDINATE_SYSTEM="$2"
-            [ $# -lt 2 ] && ViashError Not enough arguments passed to --coordinate_system. Use "--help" to get more information on the parameters. && exit 1
+        --input_sc)
+            [ -n "$VIASH_PAR_INPUT_SC" ] && ViashError Bad arguments for option \'--input_sc\': \'$VIASH_PAR_INPUT_SC\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_INPUT_SC="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --input_sc. Use "--help" to get more information on the parameters. && exit 1
             shift 2
             ;;
-        --coordinate_system=*)
-            [ -n "$VIASH_PAR_COORDINATE_SYSTEM" ] && ViashError Bad arguments for option \'--coordinate_system=*\': \'$VIASH_PAR_COORDINATE_SYSTEM\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_COORDINATE_SYSTEM=$(ViashRemoveFlags "$1")
+        --input_sc=*)
+            [ -n "$VIASH_PAR_INPUT_SC" ] && ViashError Bad arguments for option \'--input_sc=*\': \'$VIASH_PAR_INPUT_SC\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_INPUT_SC=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         --output)
@@ -674,6 +670,28 @@ while [[ $# -gt 0 ]]; do
         --output=*)
             [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output=*\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_OUTPUT=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --transcripts_key)
+            [ -n "$VIASH_PAR_TRANSCRIPTS_KEY" ] && ViashError Bad arguments for option \'--transcripts_key\': \'$VIASH_PAR_TRANSCRIPTS_KEY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_TRANSCRIPTS_KEY="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --transcripts_key. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --transcripts_key=*)
+            [ -n "$VIASH_PAR_TRANSCRIPTS_KEY" ] && ViashError Bad arguments for option \'--transcripts_key=*\': \'$VIASH_PAR_TRANSCRIPTS_KEY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_TRANSCRIPTS_KEY=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --coordinate_system)
+            [ -n "$VIASH_PAR_COORDINATE_SYSTEM" ] && ViashError Bad arguments for option \'--coordinate_system\': \'$VIASH_PAR_COORDINATE_SYSTEM\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_COORDINATE_SYSTEM="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --coordinate_system. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --coordinate_system=*)
+            [ -n "$VIASH_PAR_COORDINATE_SYSTEM" ] && ViashError Bad arguments for option \'--coordinate_system=*\': \'$VIASH_PAR_COORDINATE_SYSTEM\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_COORDINATE_SYSTEM=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -852,20 +870,16 @@ if [ -z ${VIASH_PAR_INPUT+x} ]; then
   ViashError '--input' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
+if [ -z ${VIASH_PAR_OUTPUT+x} ]; then
+  ViashError '--output' is a required argument. Use "--help" to get more information on the parameters.
+  exit 1
+fi
 if [ -z ${VIASH_PAR_TRANSCRIPTS_KEY+x} ]; then
   ViashError '--transcripts_key' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
-if [ -z ${VIASH_PAR_SEGMENTATION_INPUT+x} ]; then
-  ViashError '--segmentation_input' is a required argument. Use "--help" to get more information on the parameters.
-  exit 1
-fi
 if [ -z ${VIASH_PAR_COORDINATE_SYSTEM+x} ]; then
   ViashError '--coordinate_system' is a required argument. Use "--help" to get more information on the parameters.
-  exit 1
-fi
-if [ -z ${VIASH_PAR_OUTPUT+x} ]; then
-  ViashError '--output' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
 if [ -z ${VIASH_META_NAME+x} ]; then
@@ -900,6 +914,10 @@ if [ ! -z "$VIASH_PAR_INPUT" ] && [ ! -e "$VIASH_PAR_INPUT" ]; then
 fi
 if [ ! -z "$VIASH_PAR_SEGMENTATION_INPUT" ] && [ ! -e "$VIASH_PAR_SEGMENTATION_INPUT" ]; then
   ViashError "Input file '$VIASH_PAR_SEGMENTATION_INPUT' does not exist."
+  exit 1
+fi
+if [ ! -z "$VIASH_PAR_INPUT_SC" ] && [ ! -e "$VIASH_PAR_INPUT_SC" ]; then
+  ViashError "Input file '$VIASH_PAR_INPUT_SC' does not exist."
   exit 1
 fi
 
@@ -1002,6 +1020,10 @@ if [ ! -z "$VIASH_PAR_SEGMENTATION_INPUT" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_SEGMENTATION_INPUT")" )
   VIASH_PAR_SEGMENTATION_INPUT=$(ViashDockerAutodetectMount "$VIASH_PAR_SEGMENTATION_INPUT")
 fi
+if [ ! -z "$VIASH_PAR_INPUT_SC" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_INPUT_SC")" )
+  VIASH_PAR_INPUT_SC=$(ViashDockerAutodetectMount "$VIASH_PAR_INPUT_SC")
+fi
 if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT")" )
   VIASH_PAR_OUTPUT=$(ViashDockerAutodetectMount "$VIASH_PAR_OUTPUT")
@@ -1082,10 +1104,11 @@ import spatialdata as sd
 # The following code has been auto-generated by Viash.
 par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'transcripts_key': $( if [ ! -z ${VIASH_PAR_TRANSCRIPTS_KEY+x} ]; then echo "r'${VIASH_PAR_TRANSCRIPTS_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'segmentation_input': $( if [ ! -z ${VIASH_PAR_SEGMENTATION_INPUT+x} ]; then echo "r'${VIASH_PAR_SEGMENTATION_INPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'coordinate_system': $( if [ ! -z ${VIASH_PAR_COORDINATE_SYSTEM+x} ]; then echo "r'${VIASH_PAR_COORDINATE_SYSTEM//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi )
+  'input_sc': $( if [ ! -z ${VIASH_PAR_INPUT_SC+x} ]; then echo "r'${VIASH_PAR_INPUT_SC//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'transcripts_key': $( if [ ! -z ${VIASH_PAR_TRANSCRIPTS_KEY+x} ]; then echo "r'${VIASH_PAR_TRANSCRIPTS_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'coordinate_system': $( if [ ! -z ${VIASH_PAR_COORDINATE_SYSTEM+x} ]; then echo "r'${VIASH_PAR_COORDINATE_SYSTEM//\'/\'\"\'\"r\'}'"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1116,6 +1139,10 @@ dep = {
 # # Set coordinate system to default if not given
 # if par['coordinate_system'] == None:
 #    par['coordinate_system'] = 'global'
+
+# Optional parameter check: For this specific assignment method the par['segmentation_input'] is required
+assert par['segmentation_input'] is not None, 'Segmentation input is required for this assignment method.'
+
 
 # Read input
 print('Reading input files', flush=True)
@@ -1179,6 +1206,9 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   fi
   if [ ! -z "$VIASH_PAR_SEGMENTATION_INPUT" ]; then
     VIASH_PAR_SEGMENTATION_INPUT=$(ViashDockerStripAutomount "$VIASH_PAR_SEGMENTATION_INPUT")
+  fi
+  if [ ! -z "$VIASH_PAR_INPUT_SC" ]; then
+    VIASH_PAR_INPUT_SC=$(ViashDockerStripAutomount "$VIASH_PAR_INPUT_SC")
   fi
   if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
     VIASH_PAR_OUTPUT=$(ViashDockerStripAutomount "$VIASH_PAR_OUTPUT")

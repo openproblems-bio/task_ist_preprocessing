@@ -3194,17 +3194,6 @@ meta = [
           ],
           "must_exist" : true,
           "create_parent" : true,
-          "required" : true,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "string",
-          "name" : "--celltype_key",
-          "default" : [
-            "cell_type"
-          ],
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3326,6 +3315,17 @@ meta = [
           "direction" : "output",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--celltype_key",
+          "default" : [
+            "cell_type"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -3337,6 +3337,14 @@ meta = [
       "is_executable" : true
     }
   ],
+  "info" : {
+    "type" : "expr_correction",
+    "type_info" : {
+      "label" : "Expression correction",
+      "summary" : "Correcting expression levels in spatial data",
+      "description" : "An expression correction method corrects expression levels in spatial data."
+    }
+  },
   "status" : "enabled",
   "repositories" : [
     {
@@ -3397,8 +3405,8 @@ meta = [
         {
           "type" : "python",
           "user" : false,
-          "pypi" : [
-            "txsim"
+          "github" : [
+            "theislab/txsim@dev"
           ],
           "upgrade" : true
         }
@@ -3415,7 +3423,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/expr_correction_methods/gene_efficiency_correction",
     "viash_version" : "0.9.0",
-    "git_commit" : "495437d607ec8c883151d6d402dea1ec7cca4c09",
+    "git_commit" : "fb875811b08697d595cc0840d98bb061fdfcd1da",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3502,8 +3510,8 @@ import txsim as tx
 par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'input_sc': $( if [ ! -z ${VIASH_PAR_INPUT_SC+x} ]; then echo "r'${VIASH_PAR_INPUT_SC//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'celltype_key': $( if [ ! -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then echo "r'${VIASH_PAR_CELLTYPE_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
+  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'celltype_key': $( if [ ! -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then echo "r'${VIASH_PAR_CELLTYPE_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -3531,6 +3539,8 @@ dep = {
 
 ## VIASH END
 
+# Optional parameter check: For this specific correction method the par['input_sc'] is required
+assert par['input_sc'] is not None, 'Single cell input is required for this expr correction method.'
     
 # Read input
 print('Reading input files', flush=True)

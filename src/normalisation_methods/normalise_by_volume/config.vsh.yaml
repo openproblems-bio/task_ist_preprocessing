@@ -1,19 +1,7 @@
 name: normalise_by_volume
 namespace: normalisation_methods
 
-arguments:
-  - name: --input
-    required: true
-    direction: input
-    __merge__: /src/api/file_spatial_raw_counts.yaml
-  - name: --input_volume
-    type: file
-    description: H5ad with an obs column of cell volumes calculated from spatial transcriptomics data.
-    required: true
-  - name: --output
-    required: true
-    direction: output
-    __merge__: /src/api/file_spatial_norm_counts.yaml
+__merge__: /src/api/comp_normalisation_method.yaml
 
 resources:
   - type: python_script
@@ -24,7 +12,7 @@ engines:
     image: openproblems/base_python:1.0.0
     setup:
       - type: python
-        pypi: txsim
+        github: [theislab/txsim@dev]
   - type: native
 
 runners:

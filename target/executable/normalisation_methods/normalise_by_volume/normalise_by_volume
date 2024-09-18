@@ -182,7 +182,9 @@ function ViashHelp {
   echo "        cells."
   echo ""
   echo "    --input_volume"
-  echo "        type: file, required parameter, file must exist"
+  echo "        type: file, file must exist"
+  echo "        example:"
+  echo "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
   echo "        H5ad with an obs column of cell volumes calculated from spatial"
   echo "        transcriptomics data."
   echo ""
@@ -470,12 +472,12 @@ function ViashDockerfile {
 FROM openproblems/base_python:1.0.0
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "txsim"
+  pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component normalisation_methods normalise_by_volume"
-LABEL org.opencontainers.image.created="2024-09-17T12:57:26Z"
+LABEL org.opencontainers.image.created="2024-09-18T08:55:58Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="495437d607ec8c883151d6d402dea1ec7cca4c09"
+LABEL org.opencontainers.image.revision="fb875811b08697d595cc0840d98bb061fdfcd1da"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -824,10 +826,6 @@ if [ -z ${VIASH_PAR_INPUT+x} ]; then
   ViashError '--input' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
-if [ -z ${VIASH_PAR_INPUT_VOLUME+x} ]; then
-  ViashError '--input_volume' is a required argument. Use "--help" to get more information on the parameters.
-  exit 1
-fi
 if [ -z ${VIASH_PAR_OUTPUT+x} ]; then
   ViashError '--output' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
@@ -1074,6 +1072,8 @@ dep = {
 
 ## VIASH END
 
+# Optional parameter check: For this specific normalisation method the par['input_volume'] is required
+assert par['input_volume'] is not None, 'Volume input is required for this normalisation method.'
 
 # Read input
 print('Reading input files', flush=True)

@@ -175,20 +175,22 @@ function ViashHelp {
   echo ""
   echo "Arguments:"
   echo "    --input"
-  echo "        type: file, required parameter, file must exist"
+  echo "        type: file, required parameter, output, file must exist"
   echo "        example: ..."
   echo "        ..."
+  echo ""
+  echo "    --output"
+  echo "        type: file, required parameter, output, file must exist"
+  echo "        example:"
+  echo "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+  echo "        An obs column of cell volumes calculated from spatial transcriptomics"
+  echo "        data."
   echo ""
   echo "    --alpha"
   echo "        type: double"
   echo "        default: 0.0"
   echo "        Alpha parameter for calculating the alpha shape (0.0 refers to the"
   echo "        convex hull)"
-  echo ""
-  echo "    --output"
-  echo "        type: file, required parameter, output, file must exist"
-  echo "        example: ..."
-  echo "        ..."
 }
 
 # initialise variables
@@ -467,12 +469,13 @@ function ViashDockerfile {
 FROM openproblems/base_python:1.0.0
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata, txsim, alphashape, descartes"
+  pip install --upgrade --no-cache-dir "spatialdata" "alphashape" "descartes" && \
+  pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component cell_volume_methods alpha_shapes"
-LABEL org.opencontainers.image.created="2024-09-17T12:57:26Z"
+LABEL org.opencontainers.image.created="2024-09-18T08:55:56Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="495437d607ec8c883151d6d402dea1ec7cca4c09"
+LABEL org.opencontainers.image.revision="fb875811b08697d595cc0840d98bb061fdfcd1da"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -623,17 +626,6 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_INPUT=$(ViashRemoveFlags "$1")
             shift 1
             ;;
-        --alpha)
-            [ -n "$VIASH_PAR_ALPHA" ] && ViashError Bad arguments for option \'--alpha\': \'$VIASH_PAR_ALPHA\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_ALPHA="$2"
-            [ $# -lt 2 ] && ViashError Not enough arguments passed to --alpha. Use "--help" to get more information on the parameters. && exit 1
-            shift 2
-            ;;
-        --alpha=*)
-            [ -n "$VIASH_PAR_ALPHA" ] && ViashError Bad arguments for option \'--alpha=*\': \'$VIASH_PAR_ALPHA\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_ALPHA=$(ViashRemoveFlags "$1")
-            shift 1
-            ;;
         --output)
             [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_OUTPUT="$2"
@@ -643,6 +635,17 @@ while [[ $# -gt 0 ]]; do
         --output=*)
             [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output=*\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_OUTPUT=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --alpha)
+            [ -n "$VIASH_PAR_ALPHA" ] && ViashError Bad arguments for option \'--alpha\': \'$VIASH_PAR_ALPHA\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_ALPHA="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --alpha. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --alpha=*)
+            [ -n "$VIASH_PAR_ALPHA" ] && ViashError Bad arguments for option \'--alpha=*\': \'$VIASH_PAR_ALPHA\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_ALPHA=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -855,12 +858,6 @@ if [ -z ${VIASH_PAR_ALPHA+x} ]; then
   VIASH_PAR_ALPHA="0.0"
 fi
 
-# check whether required files exist
-if [ ! -z "$VIASH_PAR_INPUT" ] && [ ! -e "$VIASH_PAR_INPUT" ]; then
-  ViashError "Input file '$VIASH_PAR_INPUT' does not exist."
-  exit 1
-fi
-
 # check whether parameters values are of the right type
 if [[ -n "$VIASH_PAR_ALPHA" ]]; then
   if ! [[ "$VIASH_PAR_ALPHA" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
@@ -942,6 +939,9 @@ if [[ -n "$VIASH_META_MEMORY_PIB" ]]; then
 fi
 
 # create parent directories of output files, if so desired
+if [ ! -z "$VIASH_PAR_INPUT" ] && [ ! -d "$(dirname "$VIASH_PAR_INPUT")" ]; then
+  mkdir -p "$(dirname "$VIASH_PAR_INPUT")"
+fi
 if [ ! -z "$VIASH_PAR_OUTPUT" ] && [ ! -d "$(dirname "$VIASH_PAR_OUTPUT")" ]; then
   mkdir -p "$(dirname "$VIASH_PAR_OUTPUT")"
 fi
@@ -961,6 +961,7 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
 if [ ! -z "$VIASH_PAR_INPUT" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_INPUT")" )
   VIASH_PAR_INPUT=$(ViashDockerAutodetectMount "$VIASH_PAR_INPUT")
+  VIASH_CHOWN_VARS+=( "$VIASH_PAR_INPUT" )
 fi
 if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT")" )
@@ -1045,8 +1046,8 @@ import txsim as tx
 # The following code has been auto-generated by Viash.
 par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'alpha': $( if [ ! -z ${VIASH_PAR_ALPHA+x} ]; then echo "float(r'${VIASH_PAR_ALPHA//\'/\'\"\'\"r\'}')"; else echo None; fi ),
-  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi )
+  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'alpha': $( if [ ! -z ${VIASH_PAR_ALPHA+x} ]; then echo "float(r'${VIASH_PAR_ALPHA//\'/\'\"\'\"r\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1135,6 +1136,10 @@ fi
 
 
 # check whether required files exist
+if [ ! -z "$VIASH_PAR_INPUT" ] && [ ! -e "$VIASH_PAR_INPUT" ]; then
+  ViashError "Output file '$VIASH_PAR_INPUT' does not exist."
+  exit 1
+fi
 if [ ! -z "$VIASH_PAR_OUTPUT" ] && [ ! -e "$VIASH_PAR_OUTPUT" ]; then
   ViashError "Output file '$VIASH_PAR_OUTPUT' does not exist."
   exit 1
