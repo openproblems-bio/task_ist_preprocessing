@@ -2820,119 +2820,94 @@ meta = [
           "info" : {
             "format" : {
               "type" : "spatialdata_zarr",
-              "variables" : [
+              "images" : [
                 {
-                  "name" : "replicate_id",
-                  "type" : "string",
-                  "description" : "The replicate identifier",
+                  "type" : "object",
+                  "name" : "image",
+                  "description" : "The raw image data",
                   "required" : true
                 },
                 {
-                  "name" : "segmentation_id",
-                  "type" : "string",
-                  "description" : "Custom segmentation identifier",
-                  "required" : false
-                }
-              ],
-              "images" : [
-                {
-                  "type" : "datatree",
-                  "name" : "{rep}_image",
-                  "description" : "The raw image data",
-                  "required" : true,
-                  "coordinates" : [
-                    {
-                      "type" : "integer",
-                      "name" : "c",
-                      "required" : true
-                    },
-                    {
-                      "type" : "double",
-                      "name" : "y",
-                      "required" : true
-                    },
-                    {
-                      "type" : "double",
-                      "name" : "x",
-                      "required" : true
-                    }
-                  ]
-                },
-                {
-                  "type" : "datatree",
-                  "name" : "{rep}_image_3D",
+                  "type" : "object",
+                  "name" : "image_3D",
                   "description" : "The raw 3D image data",
                   "required" : false
                 },
                 {
-                  "type" : "datatree",
-                  "name" : "{rep}_he_image",
+                  "type" : "object",
+                  "name" : "he_image",
                   "description" : "H&E image data",
                   "required" : false
                 }
               ],
               "labels" : [
                 {
-                  "type" : "datatree",
-                  "dtype" : "int",
-                  "name" : "{rep}_{segm}",
-                  "description" : "Custom segmentation of the data",
+                  "type" : "object",
+                  "name" : "cell_labels",
+                  "description" : "Cell segmentation labels",
                   "required" : false
                 },
                 {
-                  "type" : "datatree",
-                  "dtype" : "int",
-                  "name" : "{rep}_{segm}_3D",
-                  "description" : "Custom segmentation of the 3D data",
+                  "type" : "object",
+                  "name" : "nucleus_labels",
+                  "description" : "Cell segmentation labels",
                   "required" : false
                 }
               ],
               "points" : [
                 {
                   "type" : "dataframe",
-                  "name" : "{rep}_transcripts",
+                  "name" : "transcripts",
                   "description" : "Point cloud data of transcripts",
                   "required" : true,
                   "columns" : [
                     {
                       "type" : "float",
                       "name" : "x",
-                      "required" : true
+                      "required" : true,
+                      "description" : "x-coordinate of the point"
                     },
                     {
                       "type" : "float",
                       "name" : "y",
-                      "required" : true
+                      "required" : true,
+                      "description" : "y-coordinate of the point"
                     },
                     {
                       "type" : "float",
                       "name" : "z",
-                      "required" : true
+                      "required" : true,
+                      "description" : "z-coordinate of the point"
                     },
                     {
                       "type" : "categorical",
                       "name" : "feature_name",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Name of the feature"
                     },
                     {
                       "type" : "integer",
                       "name" : "cell_id",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Unique identifier of the cell"
                     },
                     {
                       "type" : "float",
                       "name" : "qv",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Quality value of the point"
                     },
                     {
                       "type" : "long",
                       "name" : "transcript_id",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Unique identifier of the transcript"
                     },
                     {
                       "type" : "boolean",
                       "name" : "overlaps_nucleus",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Whether the point overlaps with a nucleus"
                     }
                   ]
                 }
@@ -2940,14 +2915,29 @@ meta = [
               "shapes" : [
                 {
                   "type" : "dataframe",
-                  "name" : "{rep}_{segm}_boundaries",
-                  "description" : "Cell polygons referring to \\"{rep}_{segm}\\"",
+                  "name" : "cell_boundaries",
+                  "description" : "Cell boundaries",
                   "required" : false,
                   "columns" : [
                     {
                       "type" : "object",
                       "name" : "geometry",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Geometry of the cell boundary"
+                    }
+                  ]
+                },
+                {
+                  "type" : "dataframe",
+                  "name" : "nucleus_boundaries",
+                  "description" : "Nucleus boundaries",
+                  "required" : false,
+                  "columns" : [
+                    {
+                      "type" : "object",
+                      "name" : "geometry",
+                      "required" : true,
+                      "description" : "Geometry of the nucleus boundary"
                     }
                   ]
                 }
@@ -2962,96 +2952,95 @@ meta = [
                     {
                       "type" : "string",
                       "name" : "dataset_id",
-                      "required" : true
+                      "required" : true,
+                      "description" : "A unique identifier for the dataset"
                     },
                     {
                       "type" : "string",
                       "name" : "dataset_name",
-                      "required" : true
+                      "required" : true,
+                      "description" : "A human-readable name for the dataset"
                     },
                     {
                       "type" : "string",
                       "name" : "dataset_url",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Link to the original source of the dataset"
                     },
                     {
                       "type" : "string",
                       "name" : "dataset_reference",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Bibtex reference of the paper in which the dataset was published"
                     },
                     {
                       "type" : "string",
                       "name" : "dataset_summary",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Short description of the dataset"
                     },
                     {
                       "type" : "string",
                       "name" : "dataset_description",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Long description of the dataset"
                     },
                     {
                       "type" : "string",
                       "name" : "dataset_organism",
-                      "required" : true
+                      "required" : true,
+                      "description" : "The organism of the sample in the dataset"
                     },
                     {
-                      "type" : "dictionary",
-                      "name" : "variables",
+                      "type" : "string",
+                      "name" : "replicate_id",
                       "required" : true,
-                      "contents" : [
-                        {
-                          "type" : "string",
-                          "name" : "replicate_id",
-                          "required" : true,
-                          "multiple" : true
-                        },
-                        {
-                          "type" : "string",
-                          "name" : "segmentation_id",
-                          "required" : true,
-                          "multiple" : true
-                        }
-                      ]
+                      "description" : "A unique identifier for the replicate"
+                    },
+                    {
+                      "type" : "string",
+                      "name" : "segmentation_id",
+                      "required" : true,
+                      "multiple" : true,
+                      "description" : "A unique identifier for the segmentation"
                     }
-                  ]
-                },
-                {
-                  "type" : "anndata",
-                  "name" : "{rep}_{segm}_table",
-                  "description" : "Count data referring to \\"{rep}_{segm}\\"",
-                  "required" : false,
+                  ],
                   "obs" : [
                     {
                       "type" : "string",
                       "name" : "cell_id",
-                      "required" : true
+                      "required" : true,
+                      "description" : "A unique identifier for the cell"
                     }
                   ],
                   "var" : [
                     {
                       "type" : "string",
                       "name" : "gene_ids",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Unique identifier for the gene"
                     },
                     {
                       "type" : "string",
                       "name" : "feature_types",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Type of the feature"
                     }
                   ],
                   "obsm" : [
                     {
-                      "type" : "float",
+                      "type" : "double",
                       "name" : "spatial",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Spatial coordinates of the cell"
                     }
                   ]
                 }
               ],
               "coordinate_systems" : [
                 {
-                  "type" : "string",
-                  "name" : "{rep}_global",
+                  "type" : "object",
+                  "name" : "global",
                   "description" : "Coordinate system of the replicate",
                   "required" : true
                 }
@@ -3182,7 +3171,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/segmentation_methods/example",
     "viash_version" : "0.9.0",
-    "git_commit" : "fb0eb0c20b553424c4a48fa48d032f57223509af",
+    "git_commit" : "579ac5177d46b4d758edb59717999e1269f55302",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

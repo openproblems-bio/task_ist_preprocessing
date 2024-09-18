@@ -16,3 +16,5 @@ singularity_container/
 /resources_test
 /resources
 /.vscode
+/.nextflow*
+/work

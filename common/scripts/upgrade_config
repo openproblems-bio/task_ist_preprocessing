@@ -2,7 +2,7 @@
 
 repository="openproblems-bio/core"
 version="ebe1ecdf2fe01f5a5eb918e05b8d62087aa1e893"
-component="project/create_component"
+component="project/upgrade_config"
 
 cache_dir="$HOME/.cache/openproblems/repos/$repository"
 executable_path="viash/core/target/executable/${component}/$(basename ${component})"
