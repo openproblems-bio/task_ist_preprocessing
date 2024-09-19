@@ -1,4 +1,5 @@
 name: process_dataset
+namespace: data_processors
 
 __merge__: /src/api/comp_data_preprocessor.yaml
 
