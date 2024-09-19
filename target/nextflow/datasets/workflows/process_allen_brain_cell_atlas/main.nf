@@ -3005,7 +3005,7 @@ meta = [
       "arguments" : [
         {
           "type" : "file",
-          "name" : "--output",
+          "name" : "--output_dataset",
           "label" : "Common SC Dataset",
           "summary" : "An unprocessed dataset as output by a dataset loader.",
           "description" : "This dataset contains raw counts and metadata as output by a dataset loader.\n\nThe format of this file is mainly derived from the [CELLxGENE schema v4.0.0](https://github.com/chanzuckerberg/single-cell-curation/blob/main/schema/4.0.0/schema.md).\n",
@@ -3255,9 +3255,26 @@ meta = [
           "example" : [
             "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
           ],
+          "default" : [
+            "$id/dataset.h5ad"
+          ],
           "must_exist" : true,
           "create_parent" : true,
           "required" : true,
+          "direction" : "output",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--output_meta",
+          "description" : "Dataset metadata",
+          "default" : [
+            "$id/dataset_meta.yaml"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
           "direction" : "output",
           "multiple" : false,
           "multiple_sep" : ";"
@@ -3360,6 +3377,11 @@ meta = [
       "type" : "nextflow",
       "id" : "nextflow",
       "directives" : {
+        "label" : [
+          "midcpu",
+          "midmem",
+          "hightime"
+        ],
         "tag" : "$id"
       },
       "auto" : {
@@ -3398,7 +3420,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "cb472a6ebfdcb0ba6b7e14bbb78d184c91370ecc",
+    "git_commit" : "cb7c5ddbadd445c5ac82687e21e389e22e8f5dd4",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3591,7 +3613,8 @@ workflow run_wf {
     )
 
     | setState([
-      "output": "output_normalized"
+      "output_dataset": "output_dataset",
+      "output_meta": "output_meta"
     ])
 
   emit:
@@ -3613,6 +3636,11 @@ meta["defaults"] = [
 
   // default directives
   directives: readJsonBlob('''{
+  "label" : [
+    "midcpu",
+    "midmem",
+    "hightime"
+  ],
   "tag" : "$id"
 }'''),
 

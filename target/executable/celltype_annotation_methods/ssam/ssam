@@ -189,7 +189,7 @@ function ViashHelp {
   echo "    --input_sc"
   echo "        type: file, file must exist"
   echo "        example:"
-  echo "resources_test/preprocessing_imagingbased_st/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+  echo "resources_test/task_ist_preprocessing/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
   echo "        This dataset contains preprocessed counts and metadata for single-cell"
   echo "        RNA-seq data."
   echo ""
@@ -489,9 +489,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component celltype_annotation_methods ssam"
-LABEL org.opencontainers.image.created="2024-09-18T20:43:06Z"
+LABEL org.opencontainers.image.created="2024-09-19T03:29:12Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="cb472a6ebfdcb0ba6b7e14bbb78d184c91370ecc"
+LABEL org.opencontainers.image.revision="cb7c5ddbadd445c5ac82687e21e389e22e8f5dd4"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

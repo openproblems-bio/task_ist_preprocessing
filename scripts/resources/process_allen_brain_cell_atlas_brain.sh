@@ -8,10 +8,21 @@ cd "$REPO_ROOT"
 
 set -e
 
+publish_dir="s3://openproblems-data/resource/datasets"
+
 cat > /tmp/params.yaml << HERE
 param_list:
-  - id: 2023_yao_mouse_brain_scrnaseq_10xv2
+
+  - id: allen_brain_cell_atlas/2023_yao_mouse_brain_scrnaseq_10xv2
     regions:
+      - CTXsp
+      - HPF
+      - HY
+      - Isocortex-1
+      - Isocortex-2
+      - Isocortex-3
+      - Isocortex-4
+      - MB
       - OLF
       - TH
     dataset_name: ABCA Mouse Brain scRNAseq
@@ -21,23 +32,19 @@ param_list:
     dataset_description: See dataset_reference for more information. Note that we only took the 10xv2 data from the dataset.
     dataset_organism: mus_musculus
 
-do_subsample: true
-n_obs: 1200
-n_vars: 500
-
 output_dataset: "\$id/dataset.h5ad"
 output_meta: "\$id/dataset_meta.yaml"
 output_state: "\$id/state.yaml"
-publish_dir: resources_test/common
+publish_dir: "$publish_dir"
 HERE
 
-nextflow run . \
-  -main-script target/nextflow/datasets/workflows/process_allen_brain_cell_atlas/main.nf \
-  -profile docker \
-  -resume \
-  -params-file /tmp/params.yaml
-
-aws s3 sync --profile op \
-  "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2" \
-  "s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2" \
-  --delete --dryrun
+tw launch openproblems-bio/task_ist_preprocessing \
+  --revision build/main \
+  --pull-latest \
+  --main-script target/nextflow/datasets/workflows/process_allen_brain_cell_atlas/main.nf \
+  --workspace 53907369739130 \
+  --compute-env 6TeIFgV5OY4pJCk8I0bfOh \
+  --params-file /tmp/params.yaml \
+  --entry-name auto \
+  --config common/nextflow_helpers/labels_tw.config \
+  --labels datasets,allen_brain_cell_atlas

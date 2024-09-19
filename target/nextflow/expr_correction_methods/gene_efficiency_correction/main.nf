@@ -3190,7 +3190,7 @@ meta = [
             }
           },
           "example" : [
-            "resources_test/preprocessing_imagingbased_st/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+            "resources_test/task_ist_preprocessing/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
           ],
           "must_exist" : true,
           "create_parent" : true,
@@ -3430,7 +3430,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/expr_correction_methods/gene_efficiency_correction",
     "viash_version" : "0.9.0",
-    "git_commit" : "cb472a6ebfdcb0ba6b7e14bbb78d184c91370ecc",
+    "git_commit" : "cb7c5ddbadd445c5ac82687e21e389e22e8f5dd4",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

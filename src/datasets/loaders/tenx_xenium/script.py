@@ -8,7 +8,7 @@ import tempfile
 
 ## VIASH START
 par = {
-    "input": "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs",
+    "input": "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs",
     "replicate_id": "rep1",
     "segmentation_id": [
         "cell",
@@ -22,7 +22,7 @@ par = {
     "dataset_summary": "value",
     "dataset_description": "value",
     "dataset_organism": "value",
-    "output": "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zarr"
+    "output": "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zarr"
 }
 ## VIASH END
 

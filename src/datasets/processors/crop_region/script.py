@@ -4,7 +4,7 @@ import os
 
 ## VIASH START
 par = {
-    "input": "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zarr",
+    "input": "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zarr",
     "output": "resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr",
     "min_x": 10000,
     "max_x": 12000,

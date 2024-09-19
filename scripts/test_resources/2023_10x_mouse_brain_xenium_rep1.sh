@@ -11,15 +11,15 @@ set -e
 if [ ! -d temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium ]; then
   mkdir -p temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium
 fi
-if [ ! -f temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip ]; then
-  wget -O temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip \
+if [ ! -f temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip ]; then
+  wget -O temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip \
     https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
 fi
 
 cat > /tmp/params.yaml << HERE
 param_list:
   - id: 2023_10x_mouse_brain_xenium_rep1
-    input: temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
+    input: temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
     replicate_id: rep1
     segmentation_id:
       - cell
@@ -35,7 +35,7 @@ param_list:
     crop_region_max_y: 12000
 
 publish_dir: resources_test/common
-output: '\$id/dataset.h5ad'
+output_dataset: '\$id/dataset.zarr'
 output_state: '\$id/state.yaml'
 HERE
 

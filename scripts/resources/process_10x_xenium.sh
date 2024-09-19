@@ -8,12 +8,12 @@ cd "$REPO_ROOT"
 
 set -e
 
-publish_dir="s3://openproblems-data/resource/task_ist_preprocessing/datasets"
+publish_dir="s3://openproblems-data/resource/datasets"
 
 cat > /tmp/params.yaml << HERE
 param_list:
 
-  - id: "process_10x_xenium/2023_10x_mouse_brain_xenium_rep1"
+  - id: "process_10x_xenium/2023_10x_mouse_brain_xenium/rep1"
     input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
     replicate_id: rep1
     dataset_name: "Xenium V1 Fresh Frozen Mouse Brain replicate 1"
@@ -23,7 +23,7 @@ param_list:
     dataset_organism: "mus_musculus"
     segmentation_id: [cell, nucleus]
 
-  - id: "process_10x_xenium/2023_10x_mouse_brain_xenium_rep2"
+  - id: "process_10x_xenium/2023_10x_mouse_brain_xenium/rep2"
     input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs.zip
     replicate_id: rep2
     dataset_name: "Xenium V1 Fresh Frozen Mouse Brain replicate 2"
@@ -33,7 +33,7 @@ param_list:
     dataset_organism: "mus_musculus"
     segmentation_id: [cell, nucleus]
 
-  - id: "process_10x_xenium/2023_10x_mouse_brain_xenium_rep3"
+  - id: "process_10x_xenium/2023_10x_mouse_brain_xenium/rep3"
     input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs.zip
     replicate_id: rep3
     dataset_name: "Xenium V1 Fresh Frozen Mouse Brain replicate 3"
@@ -43,7 +43,7 @@ param_list:
     dataset_organism: "mus_musculus"
     segmentation_id: [cell, nucleus]
 
-output: "\$id/dataset.h5ad"
+output_dataset: "\$id/dataset.zarr"
 output_state: "\$id/state.yaml"
 publish_dir: "$publish_dir"
 HERE
@@ -51,10 +51,10 @@ HERE
 tw launch openproblems-bio/task_ist_preprocessing \
   --revision build/main \
   --pull-latest \
-  --main-script target/nextflow/workflows/process_datasets/main.nf \
+  --main-script target/nextflow/datasets/workflows/process_tenx_xenium/main.nf \
   --workspace 53907369739130 \
   --compute-env 6TeIFgV5OY4pJCk8I0bfOh \
   --params-file /tmp/params.yaml \
   --entry-name auto \
   --config common/nextflow_helpers/labels_tw.config \
-  --labels task_template,process_datasets
+  --labels datasets,10x_xenium

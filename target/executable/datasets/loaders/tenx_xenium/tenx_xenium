@@ -218,7 +218,8 @@ function ViashHelp {
   echo "Outputs:"
   echo "    --output"
   echo "        type: file, required parameter, output, file must exist"
-  echo "        example: resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr"
+  echo "        example:"
+  echo "resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr"
   echo "        This dataset contains raw images, labels, points, shapes, and tables as"
   echo "        output by a dataset loader."
 }
@@ -502,9 +503,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders tenx_xenium"
-LABEL org.opencontainers.image.created="2024-09-18T20:43:06Z"
+LABEL org.opencontainers.image.created="2024-09-19T03:29:13Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="cb472a6ebfdcb0ba6b7e14bbb78d184c91370ecc"
+LABEL org.opencontainers.image.revision="cb7c5ddbadd445c5ac82687e21e389e22e8f5dd4"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

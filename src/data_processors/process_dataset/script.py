@@ -6,9 +6,9 @@ import txsim as tx
 ### VIASH START
 par = {
   "input_sc": "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad",
-  "input_sp": "resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr",
+  "input_sp": "resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr",
   "output_sc": "resources_test/task_ist_preprocessing/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad",
-  "output_sp": "resources_test/task_ist_preprocessing/2023_10x_mouse_brain_xenium/dataset.zarr"
+  "output_sp": "resources_test/task_ist_preprocessing/2023_10x_mouse_brain_xenium_rep1/dataset.zarr"
 }
 ### VIASH END
 
