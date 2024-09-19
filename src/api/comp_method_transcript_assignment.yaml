@@ -1,0 +1,31 @@
+info:
+  type: method
+  subtype: method_transcript_assignment
+  type_info:
+    label: Assignment
+    summary: Assigning transcripts to cells
+    description: An assignment method assigns transcripts to cells based on the spatial data and the cell segmentation.
+arguments:
+  - name: "--input_ist"
+    required: true
+    direction: input
+    __merge__: file_raw_ist.yaml
+  - name: "--input_segmentation"
+    required: false
+    direction: input
+    __merge__: file_segmentation.yaml
+  - name: "--input_scrnaseq"
+    required: false
+    direction: input
+    __merge__: file_scrnaseq_reference.yaml
+  - name: "--output"
+    __merge__: file_transcript_assignments.yaml
+    direction: output
+    required: true
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py

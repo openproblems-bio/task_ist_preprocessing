@@ -13,9 +13,8 @@ publish_dir="s3://openproblems-data/resource/datasets"
 cat > /tmp/params.yaml << HERE
 param_list:
 
-  - id: "process_10x_xenium/2023_10x_mouse_brain_xenium/rep1"
+  - id: "10x_xenium/2023_10x_mouse_brain_xenium/rep1"
     input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
-    replicate_id: rep1
     dataset_name: "Xenium V1 Fresh Frozen Mouse Brain replicate 1"
     dataset_url: "https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard"
     dataset_summary: "Demonstration of gene expression profiling for fresh frozen mouse brain on the Xenium platform using the pre-designed Mouse Brain Gene Expression Panel (v1)."
@@ -23,9 +22,8 @@ param_list:
     dataset_organism: "mus_musculus"
     segmentation_id: [cell, nucleus]
 
-  - id: "process_10x_xenium/2023_10x_mouse_brain_xenium/rep2"
+  - id: "10x_xenium/2023_10x_mouse_brain_xenium/rep2"
     input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs.zip
-    replicate_id: rep2
     dataset_name: "Xenium V1 Fresh Frozen Mouse Brain replicate 2"
     dataset_url: "https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard"
     dataset_summary: "Demonstration of gene expression profiling for fresh frozen mouse brain on the Xenium platform using the pre-designed Mouse Brain Gene Expression Panel (v1)."
@@ -33,9 +31,8 @@ param_list:
     dataset_organism: "mus_musculus"
     segmentation_id: [cell, nucleus]
 
-  - id: "process_10x_xenium/2023_10x_mouse_brain_xenium/rep3"
+  - id: "10x_xenium/2023_10x_mouse_brain_xenium/rep3"
     input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs.zip
-    replicate_id: rep3
     dataset_name: "Xenium V1 Fresh Frozen Mouse Brain replicate 3"
     dataset_url: "https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard"
     dataset_summary: "Demonstration of gene expression profiling for fresh frozen mouse brain on the Xenium platform using the pre-designed Mouse Brain Gene Expression Panel (v1)."

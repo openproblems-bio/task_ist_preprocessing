@@ -2814,7 +2814,7 @@ meta = [
         {
           "type" : "file",
           "name" : "--input_sc",
-          "label" : "SC Dataset",
+          "label" : "scRNA-seq Reference",
           "summary" : "A single-cell reference dataset, preprocessed for this benchmark.",
           "description" : "This dataset contains preprocessed counts and metadata for single-cell RNA-seq data.\n",
           "info" : {
@@ -2829,20 +2829,8 @@ meta = [
                 },
                 {
                   "type" : "integer",
-                  "name" : "raw",
-                  "description" : "Raw counts",
-                  "required" : true
-                },
-                {
-                  "type" : "integer",
-                  "name" : "norm",
-                  "description" : "Normalised counts",
-                  "required" : true
-                },
-                {
-                  "type" : "integer",
-                  "name" : "lognorm",
-                  "description" : "Log normalised counts",
+                  "name" : "normalized",
+                  "description" : "Normalized expression values",
                   "required" : true
                 }
               ],
@@ -3028,6 +3016,48 @@ meta = [
                   "name" : "soma_joinid",
                   "description" : "If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the feature.",
                   "required" : false
+                },
+                {
+                  "type" : "boolean",
+                  "name" : "hvg",
+                  "description" : "Whether or not the feature is considered to be a 'highly variable gene'",
+                  "required" : true
+                },
+                {
+                  "type" : "double",
+                  "name" : "hvg_score",
+                  "description" : "A score for the feature indicating how highly variable it is.",
+                  "required" : true
+                }
+              ],
+              "obsp" : [
+                {
+                  "type" : "double",
+                  "name" : "knn_distances",
+                  "description" : "K nearest neighbors distance matrix.",
+                  "required" : true
+                },
+                {
+                  "type" : "double",
+                  "name" : "knn_connectivities",
+                  "description" : "K nearest neighbors connectivities matrix.",
+                  "required" : true
+                }
+              ],
+              "obsm" : [
+                {
+                  "type" : "double",
+                  "name" : "X_pca",
+                  "description" : "The resulting PCA embedding.",
+                  "required" : true
+                }
+              ],
+              "varm" : [
+                {
+                  "type" : "double",
+                  "name" : "pca_loadings",
+                  "description" : "The PCA loadings matrix.",
+                  "required" : true
                 }
               ],
               "uns" : [
@@ -3079,7 +3109,7 @@ meta = [
             }
           },
           "example" : [
-            "resources_test/task_ist_preprocessing/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+            "resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad"
           ],
           "must_exist" : true,
           "create_parent" : true,
@@ -3091,7 +3121,7 @@ meta = [
         {
           "type" : "file",
           "name" : "--input_sp",
-          "label" : "iST Dataset",
+          "label" : "Raw iST Dataset",
           "summary" : "A spatial transcriptomics dataset, preprocessed for this benchmark.",
           "description" : "This dataset contains preprocessed images, labels, points, shapes, and tables for spatial transcriptomics data.\n",
           "info" : {
@@ -3282,12 +3312,6 @@ meta = [
                     },
                     {
                       "type" : "string",
-                      "name" : "replicate_id",
-                      "required" : true,
-                      "description" : "A unique identifier for the replicate"
-                    },
-                    {
-                      "type" : "string",
                       "name" : "segmentation_id",
                       "required" : true,
                       "multiple" : true,
@@ -3337,7 +3361,7 @@ meta = [
             }
           },
           "example" : [
-            "resources_test/task_ist_preprocessing/2023_10x_mouse_brain_xenium_rep1/dataset.zarr"
+            "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr"
           ],
           "must_exist" : true,
           "create_parent" : true,
@@ -3510,7 +3534,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.0",
-    "git_commit" : "71b1f7ce6e9e7a2c77a74683d786871b3b3d5cb3",
+    "git_commit" : "4aa8dd15c0bca6fd7f1c2ed640b698d0ec9ee973",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3524,8 +3548,18 @@ meta = [
       "test_resources" : [
         {
           "type" : "s3",
-          "path" : "s3://openproblems-data/resources_test/common/",
-          "dest" : "resources_test/common"
+          "path" : "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium_rep1/",
+          "dest" : "resources_test/common/2023_10x_mouse_brain_xenium_rep1/"
+        },
+        {
+          "type" : "s3",
+          "path" : "s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/",
+          "dest" : "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/"
+        },
+        {
+          "type" : "s3",
+          "path" : "s3://openproblems-data/resources_test/task_ist_preprocessing/",
+          "dest" : "resources_test/task_ist_preprocessing"
         }
       ]
     },
@@ -3552,32 +3586,54 @@ meta = [
     ],
     "authors" : [
       {
-        "name" : "John Doe",
+        "name" : "Louis Kümmerle",
         "roles" : [
           "author",
           "maintainer"
         ],
         "info" : {
-          "github" : "johndoe",
-          "orcid" : "0000-0000-0000-0000",
-          "email" : "john@doe.me",
-          "twitter" : "johndoe",
-          "linkedin" : "johndoe"
+          "github" : "LouisK92",
+          "orcid" : "0000-0002-9193-1243"
+        }
+      },
+      {
+        "name" : "Malte D. Luecken",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "LuckyMD",
+          "orcid" : "0000-0001-7464-7921"
+        }
+      },
+      {
+        "name" : "Daniel Strobl",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "danielStrobl",
+          "orcid" : "0000-0002-5516-7057"
+        }
+      },
+      {
+        "name" : "Robrecht Cannoodt",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "rcannood",
+          "orcid" : "0000-0003-3641-729X"
         }
       }
     ],
     "keywords" : [
-      "single-cell",
-      "openproblems",
-      "benchmark"
+      "spatial transcriptomics",
+      "imaging-based spatial transcriptomics",
+      "preprocessing"
     ],
     "license" : "MIT",
     "organization" : "openproblems-bio",
-    "references" : {
-      "doi" : [
-        "10.21203/rs.3.rs-4181617/v1"
-      ]
-    },
     "links" : {
       "repository" : "https://github.com/openproblems-bio/task_ist_preprocessing",
       "docker_registry" : "ghcr.io",
@@ -3644,11 +3700,11 @@ workflow run_wf {
     | runEach(
       components: methods,
 
-      // use the 'filter' argument to only run a method on the normalisation the component is asking for
+      // use the 'filter' argument to only run a method on the normalization the component is asking for
       filter: { id, state, comp ->
         def norm = state.dataset_uns.normalization_id
         def pref = comp.config.info.preferred_normalization
-        // if the preferred normalisation is none at all,
+        // if the preferred normalization is none at all,
         // we can pass whichever dataset we want
         def norm_check = (norm == "log_cp10k" && pref == "counts") || norm == pref
         def method_check = !state.method_ids || state.method_ids.contains(comp.config.name)

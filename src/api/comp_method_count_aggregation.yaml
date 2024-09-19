@@ -1,0 +1,23 @@
+info:
+  type: method
+  subtype: method_count_aggregation
+  type_info:
+    label: Count Aggregation
+    summary: Aggregating counts of transcripts within cells
+    description: Generate the raw count matrix based on the assignment of transcripts to cells.
+arguments:
+  - name: "--input"
+    __merge__: file_transcript_assignments.yaml
+    direction: input
+    required: true
+  - name: "--output"
+    __merge__: file_spatial_aggregated_counts.yaml
+    direction: output
+    required: true
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py

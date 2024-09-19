@@ -1,0 +1,27 @@
+name: alpha_shapes
+
+__merge__: /src/api/comp_method_calculate_cell_volume.yaml
+
+arguments:
+  - name: --alpha
+    type: double
+    description: Alpha parameter for calculating the alpha shape (0.0 refers to the convex hull)
+    required: false
+    default: 0.0
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: [spatialdata, alphashape, descartes, squidpy, rasterio]
+        github: [theislab/txsim@dev]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow

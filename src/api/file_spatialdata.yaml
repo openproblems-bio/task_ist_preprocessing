@@ -1,7 +1,0 @@
-type: file
-example: "resources_test/task_ist_preprocessing/2023_10x_mouse_brain_xenium_rep1/dataset.zarr"
-label: "iST Dataset"
-summary: A spatial transcriptomics dataset, preprocessed for this benchmark.
-description: |
-  This dataset contains preprocessed images, labels, points, shapes, and tables for spatial transcriptomics data.
-__merge__: file_common_spatialdata.yaml

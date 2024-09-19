@@ -176,13 +176,15 @@ function ViashHelp {
   echo "Arguments:"
   echo "    --input"
   echo "        type: file, required parameter, file must exist"
-  echo "        example: ..."
-  echo "        ..."
+  echo "        example:"
+  echo "resources_test/task_ist_preprocessing/mouse_brain_combined/transcript_assignments.zarr"
+  echo "        This dataset contains the spatial transcriptomics data with assigned"
+  echo "        transcripts."
   echo ""
   echo "    --output"
   echo "        type: file, required parameter, output, file must exist"
   echo "        example:"
-  echo "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+  echo "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad"
   echo "        This file contains the raw counts after aggregating transcripts to"
   echo "        cells."
 }
@@ -467,9 +469,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component count_aggregation basic"
-LABEL org.opencontainers.image.created="2024-09-19T03:44:58Z"
+LABEL org.opencontainers.image.created="2024-09-19T15:01:06Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="71b1f7ce6e9e7a2c77a74683d786871b3b3d5cb3"
+LABEL org.opencontainers.image.revision="4aa8dd15c0bca6fd7f1c2ed640b698d0ec9ee973"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1053,7 +1055,7 @@ adata = tx.preprocessing.generate_adata(df, cell_id_col='cell_id', gene_col='fea
 del adata.uns['spots']
 del adata.uns['pct_noise']
 
-adata.write(par['output'])
+adata.write_h5ad(par['output'], compression="gzip")
 VIASHMAIN
 python -B "\$tempscript" &
 wait "\$!"

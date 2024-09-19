@@ -1,0 +1,30 @@
+name: ssam
+
+__merge__: /src/api/comp_method_cell_type_annotation.yaml
+
+arguments:
+  - name: --um_per_pixel # TODO: Should be able to infer this from transcripts
+    required: false
+    direction: input
+    type: double
+    default: 0.5
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        github: [theislab/txsim@dev]
+      - type: python
+        pypi: [squidpy, rasterio]
+      - type: python
+        pypi: [planktonspace]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow

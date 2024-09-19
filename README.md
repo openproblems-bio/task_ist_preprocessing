@@ -28,130 +28,83 @@ should convince readers of the significance and relevance of your task.
 
 ## Authors & contributors
 
-| name     | roles              |
-|:---------|:-------------------|
-| John Doe | author, maintainer |
+| name              | roles              |
+|:------------------|:-------------------|
+| Louis Kümmerle    | author, maintainer |
+| Malte D. Luecken  | author             |
+| Daniel Strobl     | author             |
+| Robrecht Cannoodt | author             |
 
 ## API
 
 ``` mermaid
 flowchart LR
-  file_common_singlecell("Common SC Dataset")
+  file_common_ist("Common iST Dataset")
   comp_data_preprocessor[/"Data preprocessor"/]
-  file_singlecell("SC Dataset")
-  file_spatialdata("iST Dataset")
-  comp_assignment_method[/"Assignment"/]
-  comp_celltype_annotation_method[/"Cell type annotation"/]
-  comp_expr_correction_method[/"Expression correction"/]
-  comp_segmentation_method[/"Segmentation"/]
-  file_spatialdata_assigned("Assigned Transcripts")
-  file_spatial_with_celltypes("Spatial Normalised Counts with Cell Type Annotations")
-  file_spatial_corrected("Spatial Corrected Counts with Cell Type Annotations")
-  file_spatialdata_segmented("Segmented iST")
-  comp_count_aggregation[/"Count Aggregation"/]
-  file_spatial_raw_counts("Spatial Raw Counts")
-  comp_normalisation_method[/"Normalisation"/]
-  file_spatial_norm_counts("Spatial Normalised Counts")
+  file_raw_ist("Raw iST Dataset")
+  file_scrnaseq_reference("scRNA-seq Reference")
+  comp_method_segmentation[/"Segmentation"/]
+  comp_method_transcript_assignment[/"Assignment"/]
+  comp_method_cell_type_annotation[/"Cell Type Annotation"/]
+  comp_method_expression_correction[/"Expression correction"/]
+  file_segmentation("Segmentation")
+  file_transcript_assignments("Transcript Assignment")
+  file_spatial_with_cell_types("Spatial with Cell Types")
+  file_spatial_corrected_counts("Spatial Corrected")
+  comp_method_calculate_cell_volume[/"Calculate Cell Volume"/]
+  comp_method_count_aggregation[/"Count Aggregation"/]
   file_cell_volumes("Cell Volumes")
-  file_common_spatialdata("Common iST Dataset")
-  comp_cell_volume_method[/"Cell Volume Calculation"/]
-  file_common_singlecell---comp_data_preprocessor
-  comp_data_preprocessor-->file_singlecell
-  comp_data_preprocessor-->file_spatialdata
-  file_singlecell---comp_assignment_method
-  file_singlecell---comp_celltype_annotation_method
-  file_singlecell---comp_expr_correction_method
-  file_spatialdata---comp_assignment_method
-  file_spatialdata---comp_segmentation_method
-  comp_assignment_method-->file_spatialdata_assigned
-  comp_celltype_annotation_method-->file_spatial_with_celltypes
-  comp_expr_correction_method-->file_spatial_corrected
-  comp_segmentation_method-->file_spatialdata_segmented
-  file_spatialdata_assigned---comp_celltype_annotation_method
-  file_spatialdata_assigned---comp_count_aggregation
-  file_spatial_with_celltypes---comp_expr_correction_method
-  file_spatialdata_segmented---comp_assignment_method
-  comp_count_aggregation-->file_spatial_raw_counts
-  file_spatial_raw_counts---comp_normalisation_method
-  comp_normalisation_method-->file_spatial_norm_counts
-  file_spatial_norm_counts---comp_celltype_annotation_method
-  file_cell_volumes---comp_normalisation_method
-  file_common_spatialdata---comp_data_preprocessor
-  comp_cell_volume_method-->file_spatialdata_assigned
-  comp_cell_volume_method-->file_cell_volumes
+  file_spatial_aggregated_counts("Aggregated Counts")
+  comp_method_normalization[/"Normalization"/]
+  file_spatial_normalized_counts("Spatial Normalized")
+  file_common_scrnaseq("Common SC Dataset")
+  file_common_ist---comp_data_preprocessor
+  comp_data_preprocessor-->file_raw_ist
+  comp_data_preprocessor-->file_scrnaseq_reference
+  file_raw_ist---comp_method_segmentation
+  file_raw_ist---comp_method_transcript_assignment
+  file_scrnaseq_reference-.-comp_method_transcript_assignment
+  file_scrnaseq_reference-.-comp_method_cell_type_annotation
+  file_scrnaseq_reference-.-comp_method_expression_correction
+  comp_method_segmentation-->file_segmentation
+  comp_method_transcript_assignment-->file_transcript_assignments
+  comp_method_cell_type_annotation-->file_spatial_with_cell_types
+  comp_method_expression_correction-->file_spatial_corrected_counts
+  file_segmentation-.-comp_method_transcript_assignment
+  file_transcript_assignments-.-comp_method_cell_type_annotation
+  file_transcript_assignments---comp_method_calculate_cell_volume
+  file_transcript_assignments---comp_method_count_aggregation
+  file_spatial_with_cell_types---comp_method_expression_correction
+  comp_method_calculate_cell_volume-->file_cell_volumes
+  comp_method_count_aggregation-->file_spatial_aggregated_counts
+  file_cell_volumes-.-comp_method_normalization
+  file_spatial_aggregated_counts---comp_method_normalization
+  comp_method_normalization-->file_spatial_normalized_counts
+  file_spatial_normalized_counts---comp_method_cell_type_annotation
+  file_common_scrnaseq---comp_data_preprocessor
 ```
 
-## File format: Common SC Dataset
+## File format: Common iST Dataset
 
-An unprocessed dataset as output by a dataset loader.
+An unprocessed spatial imaging dataset stored as a zarr file.
 
 Example file:
-`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
+`resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr`
 
 Description:
 
-This dataset contains raw counts and metadata as output by a dataset
-loader.
-
-The format of this file is mainly derived from the [CELLxGENE schema
-v4.0.0](https://github.com/chanzuckerberg/single-cell-curation/blob/main/schema/4.0.0/schema.md).
+This dataset contains raw images, labels, points, shapes, and tables as
+output by a dataset loader.
 
 Format:
 
 <div class="small">
-
-    AnnData object
-     obs: 'cell_type', 'cell_type_level2', 'cell_type_level3', 'cell_type_level4', 'dataset_id', 'assay', 'assay_ontology_term_id', 'cell_type_ontology_term_id', 'development_stage', 'development_stage_ontology_term_id', 'disease', 'disease_ontology_term_id', 'donor_id', 'is_primary_data', 'organism', 'organism_ontology_term_id', 'self_reported_ethnicity', 'self_reported_ethnicity_ontology_term_id', 'sex', 'sex_ontology_term_id', 'suspension_type', 'tissue', 'tissue_ontology_term_id', 'tissue_general', 'tissue_general_ontology_term_id', 'batch', 'soma_joinid'
-     var: 'feature_id', 'feature_name', 'soma_joinid'
-     layers: 'counts'
-     uns: 'dataset_id', 'dataset_name', 'dataset_url', 'dataset_reference', 'dataset_summary', 'dataset_description', 'dataset_organism'
 
 </div>
 
 Data structure:
 
 <div class="small">
-
-| Slot | Type | Description |
-|:---|:---|:---|
-| `obs["cell_type"]` | `string` | Classification of the cell type based on its characteristics and function within the tissue or organism. |
-| `obs["cell_type_level2"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
-| `obs["cell_type_level3"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
-| `obs["cell_type_level4"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
-| `obs["dataset_id"]` | `string` | (*Optional*) Identifier for the dataset from which the cell data is derived, useful for tracking and referencing purposes. |
-| `obs["assay"]` | `string` | (*Optional*) Type of assay used to generate the cell data, indicating the methodology or technique employed. |
-| `obs["assay_ontology_term_id"]` | `string` | (*Optional*) Experimental Factor Ontology (`EFO:`) term identifier for the assay, providing a standardized reference to the assay type. |
-| `obs["cell_type_ontology_term_id"]` | `string` | (*Optional*) Cell Ontology (`CL:`) term identifier for the cell type, offering a standardized reference to the specific cell classification. |
-| `obs["development_stage"]` | `string` | (*Optional*) Stage of development of the organism or tissue from which the cell is derived, indicating its maturity or developmental phase. |
-| `obs["development_stage_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the developmental stage, providing a standardized reference to the organism’s developmental phase. If the organism is human (`organism_ontology_term_id == 'NCBITaxon:9606'`), then the Human Developmental Stages (`HsapDv:`) ontology is used. If the organism is mouse (`organism_ontology_term_id == 'NCBITaxon:10090'`), then the Mouse Developmental Stages (`MmusDv:`) ontology is used. Otherwise, the Uberon (`UBERON:`) ontology is used. |
-| `obs["disease"]` | `string` | (*Optional*) Information on any disease or pathological condition associated with the cell or donor. |
-| `obs["disease_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the disease, enabling standardized disease classification and referencing. Must be a term from the Mondo Disease Ontology (`MONDO:`) ontology term, or `PATO:0000461` from the Phenotype And Trait Ontology (`PATO:`). |
-| `obs["donor_id"]` | `string` | (*Optional*) Identifier for the donor from whom the cell sample is obtained. |
-| `obs["is_primary_data"]` | `boolean` | (*Optional*) Indicates whether the data is primary (directly obtained from experiments) or has been computationally derived from other primary data. |
-| `obs["organism"]` | `string` | (*Optional*) Organism from which the cell sample is obtained. |
-| `obs["organism_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the organism, providing a standardized reference for the organism. Must be a term from the NCBI Taxonomy Ontology (`NCBITaxon:`) which is a child of `NCBITaxon:33208`. |
-| `obs["self_reported_ethnicity"]` | `string` | (*Optional*) Ethnicity of the donor as self-reported, relevant for studies considering genetic diversity and population-specific traits. |
-| `obs["self_reported_ethnicity_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the self-reported ethnicity, providing a standardized reference for ethnic classifications. If the organism is human (`organism_ontology_term_id == 'NCBITaxon:9606'`), then the Human Ancestry Ontology (`HANCESTRO:`) is used. |
-| `obs["sex"]` | `string` | (*Optional*) Biological sex of the donor or source organism, crucial for studies involving sex-specific traits or conditions. |
-| `obs["sex_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the biological sex, ensuring standardized classification of sex. Only `PATO:0000383`, `PATO:0000384` and `PATO:0001340` are allowed. |
-| `obs["suspension_type"]` | `string` | (*Optional*) Type of suspension or medium in which the cells were stored or processed, important for understanding cell handling and conditions. |
-| `obs["tissue"]` | `string` | (*Optional*) Specific tissue from which the cells were derived, key for context and specificity in cell studies. |
-| `obs["tissue_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the tissue, providing a standardized reference for the tissue type. For organoid or tissue samples, the Uber-anatomy ontology (`UBERON:`) is used. The term ids must be a child term of `UBERON:0001062` (anatomical entity). For cell cultures, the Cell Ontology (`CL:`) is used. The term ids cannot be `CL:0000255`, `CL:0000257` or `CL:0000548`. |
-| `obs["tissue_general"]` | `string` | (*Optional*) General category or classification of the tissue, useful for broader grouping and comparison of cell data. |
-| `obs["tissue_general_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the general tissue category, aiding in standardizing and grouping tissue types. For organoid or tissue samples, the Uber-anatomy ontology (`UBERON:`) is used. The term ids must be a child term of `UBERON:0001062` (anatomical entity). For cell cultures, the Cell Ontology (`CL:`) is used. The term ids cannot be `CL:0000255`, `CL:0000257` or `CL:0000548`. |
-| `obs["batch"]` | `string` | (*Optional*) A batch identifier. This label is very context-dependent and may be a combination of the tissue, assay, donor, etc. |
-| `obs["soma_joinid"]` | `integer` | (*Optional*) If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the cell. |
-| `var["feature_id"]` | `string` | (*Optional*) Unique identifier for the feature, usually a ENSEMBL gene id. |
-| `var["feature_name"]` | `string` | A human-readable name for the feature, usually a gene symbol. |
-| `var["soma_joinid"]` | `integer` | (*Optional*) If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the feature. |
-| `layers["counts"]` | `integer` | Raw counts. |
-| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived. |
-| `uns["dataset_name"]` | `string` | A human-readable name for the dataset. |
-| `uns["dataset_url"]` | `string` | (*Optional*) Link to the original source of the dataset. |
-| `uns["dataset_reference"]` | `string` | (*Optional*) Bibtex reference of the paper in which the dataset was published. |
-| `uns["dataset_summary"]` | `string` | Short description of the dataset. |
-| `uns["dataset_description"]` | `string` | Long description of the dataset. |
-| `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
 
 </div>
 
@@ -165,93 +118,19 @@ Arguments:
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `--input_sp` | `file` | An unprocessed spatial imaging dataset stored as a zarr file. |
-| `--input_sc` | `file` | An unprocessed dataset as output by a dataset loader. |
-| `--output_sp` | `file` | (*Output*) A spatial transcriptomics dataset, preprocessed for this benchmark. |
-| `--output_sc` | `file` | (*Output*) A single-cell reference dataset, preprocessed for this benchmark. |
+| `--input_ist` | `file` | An unprocessed spatial imaging dataset stored as a zarr file. |
+| `--input_scrnaseq` | `file` | An unprocessed dataset as output by a dataset loader. |
+| `--output_ist` | `file` | (*Output*) A spatial transcriptomics dataset, preprocessed for this benchmark. |
+| `--output_scrnaseq` | `file` | (*Output*) A single-cell reference dataset, preprocessed for this benchmark. |
 
 </div>
 
-## File format: SC Dataset
-
-A single-cell reference dataset, preprocessed for this benchmark.
-
-Example file:
-`resources_test/preprocessing_imagingbased_st/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
-
-Description:
-
-This dataset contains preprocessed counts and metadata for single-cell
-RNA-seq data.
-
-Format:
-
-<div class="small">
-
-    AnnData object
-     obs: 'cell_type', 'cell_type_level2', 'cell_type_level3', 'cell_type_level4', 'dataset_id', 'assay', 'assay_ontology_term_id', 'cell_type_ontology_term_id', 'development_stage', 'development_stage_ontology_term_id', 'disease', 'disease_ontology_term_id', 'donor_id', 'is_primary_data', 'organism', 'organism_ontology_term_id', 'self_reported_ethnicity', 'self_reported_ethnicity_ontology_term_id', 'sex', 'sex_ontology_term_id', 'suspension_type', 'tissue', 'tissue_ontology_term_id', 'tissue_general', 'tissue_general_ontology_term_id', 'batch', 'soma_joinid'
-     var: 'feature_id', 'feature_name', 'soma_joinid'
-     layers: 'counts', 'raw', 'norm', 'lognorm'
-     uns: 'dataset_id', 'dataset_name', 'dataset_url', 'dataset_reference', 'dataset_summary', 'dataset_description', 'dataset_organism'
-
-</div>
-
-Data structure:
-
-<div class="small">
-
-| Slot | Type | Description |
-|:---|:---|:---|
-| `obs["cell_type"]` | `string` | Classification of the cell type based on its characteristics and function within the tissue or organism. |
-| `obs["cell_type_level2"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
-| `obs["cell_type_level3"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
-| `obs["cell_type_level4"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
-| `obs["dataset_id"]` | `string` | (*Optional*) Identifier for the dataset from which the cell data is derived, useful for tracking and referencing purposes. |
-| `obs["assay"]` | `string` | (*Optional*) Type of assay used to generate the cell data, indicating the methodology or technique employed. |
-| `obs["assay_ontology_term_id"]` | `string` | (*Optional*) Experimental Factor Ontology (`EFO:`) term identifier for the assay, providing a standardized reference to the assay type. |
-| `obs["cell_type_ontology_term_id"]` | `string` | (*Optional*) Cell Ontology (`CL:`) term identifier for the cell type, offering a standardized reference to the specific cell classification. |
-| `obs["development_stage"]` | `string` | (*Optional*) Stage of development of the organism or tissue from which the cell is derived, indicating its maturity or developmental phase. |
-| `obs["development_stage_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the developmental stage, providing a standardized reference to the organism’s developmental phase. If the organism is human (`organism_ontology_term_id == 'NCBITaxon:9606'`), then the Human Developmental Stages (`HsapDv:`) ontology is used. If the organism is mouse (`organism_ontology_term_id == 'NCBITaxon:10090'`), then the Mouse Developmental Stages (`MmusDv:`) ontology is used. Otherwise, the Uberon (`UBERON:`) ontology is used. |
-| `obs["disease"]` | `string` | (*Optional*) Information on any disease or pathological condition associated with the cell or donor. |
-| `obs["disease_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the disease, enabling standardized disease classification and referencing. Must be a term from the Mondo Disease Ontology (`MONDO:`) ontology term, or `PATO:0000461` from the Phenotype And Trait Ontology (`PATO:`). |
-| `obs["donor_id"]` | `string` | (*Optional*) Identifier for the donor from whom the cell sample is obtained. |
-| `obs["is_primary_data"]` | `boolean` | (*Optional*) Indicates whether the data is primary (directly obtained from experiments) or has been computationally derived from other primary data. |
-| `obs["organism"]` | `string` | (*Optional*) Organism from which the cell sample is obtained. |
-| `obs["organism_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the organism, providing a standardized reference for the organism. Must be a term from the NCBI Taxonomy Ontology (`NCBITaxon:`) which is a child of `NCBITaxon:33208`. |
-| `obs["self_reported_ethnicity"]` | `string` | (*Optional*) Ethnicity of the donor as self-reported, relevant for studies considering genetic diversity and population-specific traits. |
-| `obs["self_reported_ethnicity_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the self-reported ethnicity, providing a standardized reference for ethnic classifications. If the organism is human (`organism_ontology_term_id == 'NCBITaxon:9606'`), then the Human Ancestry Ontology (`HANCESTRO:`) is used. |
-| `obs["sex"]` | `string` | (*Optional*) Biological sex of the donor or source organism, crucial for studies involving sex-specific traits or conditions. |
-| `obs["sex_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the biological sex, ensuring standardized classification of sex. Only `PATO:0000383`, `PATO:0000384` and `PATO:0001340` are allowed. |
-| `obs["suspension_type"]` | `string` | (*Optional*) Type of suspension or medium in which the cells were stored or processed, important for understanding cell handling and conditions. |
-| `obs["tissue"]` | `string` | (*Optional*) Specific tissue from which the cells were derived, key for context and specificity in cell studies. |
-| `obs["tissue_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the tissue, providing a standardized reference for the tissue type. For organoid or tissue samples, the Uber-anatomy ontology (`UBERON:`) is used. The term ids must be a child term of `UBERON:0001062` (anatomical entity). For cell cultures, the Cell Ontology (`CL:`) is used. The term ids cannot be `CL:0000255`, `CL:0000257` or `CL:0000548`. |
-| `obs["tissue_general"]` | `string` | (*Optional*) General category or classification of the tissue, useful for broader grouping and comparison of cell data. |
-| `obs["tissue_general_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the general tissue category, aiding in standardizing and grouping tissue types. For organoid or tissue samples, the Uber-anatomy ontology (`UBERON:`) is used. The term ids must be a child term of `UBERON:0001062` (anatomical entity). For cell cultures, the Cell Ontology (`CL:`) is used. The term ids cannot be `CL:0000255`, `CL:0000257` or `CL:0000548`. |
-| `obs["batch"]` | `string` | (*Optional*) A batch identifier. This label is very context-dependent and may be a combination of the tissue, assay, donor, etc. |
-| `obs["soma_joinid"]` | `integer` | (*Optional*) If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the cell. |
-| `var["feature_id"]` | `string` | (*Optional*) Unique identifier for the feature, usually a ENSEMBL gene id. |
-| `var["feature_name"]` | `string` | A human-readable name for the feature, usually a gene symbol. |
-| `var["soma_joinid"]` | `integer` | (*Optional*) If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the feature. |
-| `layers["counts"]` | `integer` | Raw counts. |
-| `layers["raw"]` | `integer` | Raw counts. |
-| `layers["norm"]` | `integer` | Normalised counts. |
-| `layers["lognorm"]` | `integer` | Log normalised counts. |
-| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived. |
-| `uns["dataset_name"]` | `string` | A human-readable name for the dataset. |
-| `uns["dataset_url"]` | `string` | (*Optional*) Link to the original source of the dataset. |
-| `uns["dataset_reference"]` | `string` | (*Optional*) Bibtex reference of the paper in which the dataset was published. |
-| `uns["dataset_summary"]` | `string` | Short description of the dataset. |
-| `uns["dataset_description"]` | `string` | Long description of the dataset. |
-| `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
-
-</div>
-
-## File format: iST Dataset
+## File format: Raw iST Dataset
 
 A spatial transcriptomics dataset, preprocessed for this benchmark.
 
 Example file:
-`resources_test/preprocessing_imagingbased_st/2023_10x_mouse_brain_xenium/dataset.zarr`
+`resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr`
 
 Description:
 
@@ -270,54 +149,84 @@ Data structure:
 
 </div>
 
-## Component type: Assignment
+## File format: scRNA-seq Reference
 
-Assigning transcripts to cells
+A single-cell reference dataset, preprocessed for this benchmark.
 
-Arguments:
+Example file:
+`resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad`
+
+Description:
+
+This dataset contains preprocessed counts and metadata for single-cell
+RNA-seq data.
+
+Format:
 
 <div class="small">
 
-| Name | Type | Description |
-|:---|:---|:---|
-| `--input` | `file` | A spatial transcriptomics dataset, preprocessed for this benchmark. |
-| `--segmentation_input` | `file` | (*Optional*) … |
-| `--input_sc` | `file` | (*Optional*) A single-cell reference dataset, preprocessed for this benchmark. |
-| `--output` | `file` | (*Output*) A spatial transcriptomics dataset with assigned transcripts. |
+    AnnData object
+     obs: 'cell_type', 'cell_type_level2', 'cell_type_level3', 'cell_type_level4', 'dataset_id', 'assay', 'assay_ontology_term_id', 'cell_type_ontology_term_id', 'development_stage', 'development_stage_ontology_term_id', 'disease', 'disease_ontology_term_id', 'donor_id', 'is_primary_data', 'organism', 'organism_ontology_term_id', 'self_reported_ethnicity', 'self_reported_ethnicity_ontology_term_id', 'sex', 'sex_ontology_term_id', 'suspension_type', 'tissue', 'tissue_ontology_term_id', 'tissue_general', 'tissue_general_ontology_term_id', 'batch', 'soma_joinid'
+     var: 'feature_id', 'feature_name', 'soma_joinid', 'hvg', 'hvg_score'
+     obsm: 'X_pca'
+     obsp: 'knn_distances', 'knn_connectivities'
+     varm: 'pca_loadings'
+     layers: 'counts', 'normalized'
+     uns: 'dataset_id', 'dataset_name', 'dataset_url', 'dataset_reference', 'dataset_summary', 'dataset_description', 'dataset_organism'
 
 </div>
 
-## Component type: Cell type annotation
-
-Annotating cell types in spatial data
-
-Arguments:
+Data structure:
 
 <div class="small">
 
-| Name | Type | Description |
+| Slot | Type | Description |
 |:---|:---|:---|
-| `--input` | `file` | Normalised counts. |
-| `--input_transcripts` | `file` | (*Optional*) A spatial transcriptomics dataset with assigned transcripts. |
-| `--input_sc` | `file` | (*Optional*) A single-cell reference dataset, preprocessed for this benchmark. |
-| `--celltype_key` | `string` | (*Optional*) NA. Default: `cell_type`. |
-| `--output` | `file` | (*Output*) Normalised counts with cell type annotations. |
-
-</div>
-
-## Component type: Expression correction
-
-Correcting expression levels in spatial data
-
-Arguments:
-
-<div class="small">
-
-| Name | Type | Description |
-|:---|:---|:---|
-| `--input` | `file` | Normalised counts with cell type annotations. |
-| `--input_sc` | `file` | (*Optional*) A single-cell reference dataset, preprocessed for this benchmark. |
-| `--output` | `file` | (*Output*) Corrected counts with cell type annotations. |
+| `obs["cell_type"]` | `string` | Classification of the cell type based on its characteristics and function within the tissue or organism. |
+| `obs["cell_type_level2"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
+| `obs["cell_type_level3"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
+| `obs["cell_type_level4"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
+| `obs["dataset_id"]` | `string` | (*Optional*) Identifier for the dataset from which the cell data is derived, useful for tracking and referencing purposes. |
+| `obs["assay"]` | `string` | (*Optional*) Type of assay used to generate the cell data, indicating the methodology or technique employed. |
+| `obs["assay_ontology_term_id"]` | `string` | (*Optional*) Experimental Factor Ontology (`EFO:`) term identifier for the assay, providing a standardized reference to the assay type. |
+| `obs["cell_type_ontology_term_id"]` | `string` | (*Optional*) Cell Ontology (`CL:`) term identifier for the cell type, offering a standardized reference to the specific cell classification. |
+| `obs["development_stage"]` | `string` | (*Optional*) Stage of development of the organism or tissue from which the cell is derived, indicating its maturity or developmental phase. |
+| `obs["development_stage_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the developmental stage, providing a standardized reference to the organism’s developmental phase. If the organism is human (`organism_ontology_term_id == 'NCBITaxon:9606'`), then the Human Developmental Stages (`HsapDv:`) ontology is used. If the organism is mouse (`organism_ontology_term_id == 'NCBITaxon:10090'`), then the Mouse Developmental Stages (`MmusDv:`) ontology is used. Otherwise, the Uberon (`UBERON:`) ontology is used. |
+| `obs["disease"]` | `string` | (*Optional*) Information on any disease or pathological condition associated with the cell or donor. |
+| `obs["disease_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the disease, enabling standardized disease classification and referencing. Must be a term from the Mondo Disease Ontology (`MONDO:`) ontology term, or `PATO:0000461` from the Phenotype And Trait Ontology (`PATO:`). |
+| `obs["donor_id"]` | `string` | (*Optional*) Identifier for the donor from whom the cell sample is obtained. |
+| `obs["is_primary_data"]` | `boolean` | (*Optional*) Indicates whether the data is primary (directly obtained from experiments) or has been computationally derived from other primary data. |
+| `obs["organism"]` | `string` | (*Optional*) Organism from which the cell sample is obtained. |
+| `obs["organism_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the organism, providing a standardized reference for the organism. Must be a term from the NCBI Taxonomy Ontology (`NCBITaxon:`) which is a child of `NCBITaxon:33208`. |
+| `obs["self_reported_ethnicity"]` | `string` | (*Optional*) Ethnicity of the donor as self-reported, relevant for studies considering genetic diversity and population-specific traits. |
+| `obs["self_reported_ethnicity_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the self-reported ethnicity, providing a standardized reference for ethnic classifications. If the organism is human (`organism_ontology_term_id == 'NCBITaxon:9606'`), then the Human Ancestry Ontology (`HANCESTRO:`) is used. |
+| `obs["sex"]` | `string` | (*Optional*) Biological sex of the donor or source organism, crucial for studies involving sex-specific traits or conditions. |
+| `obs["sex_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the biological sex, ensuring standardized classification of sex. Only `PATO:0000383`, `PATO:0000384` and `PATO:0001340` are allowed. |
+| `obs["suspension_type"]` | `string` | (*Optional*) Type of suspension or medium in which the cells were stored or processed, important for understanding cell handling and conditions. |
+| `obs["tissue"]` | `string` | (*Optional*) Specific tissue from which the cells were derived, key for context and specificity in cell studies. |
+| `obs["tissue_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the tissue, providing a standardized reference for the tissue type. For organoid or tissue samples, the Uber-anatomy ontology (`UBERON:`) is used. The term ids must be a child term of `UBERON:0001062` (anatomical entity). For cell cultures, the Cell Ontology (`CL:`) is used. The term ids cannot be `CL:0000255`, `CL:0000257` or `CL:0000548`. |
+| `obs["tissue_general"]` | `string` | (*Optional*) General category or classification of the tissue, useful for broader grouping and comparison of cell data. |
+| `obs["tissue_general_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the general tissue category, aiding in standardizing and grouping tissue types. For organoid or tissue samples, the Uber-anatomy ontology (`UBERON:`) is used. The term ids must be a child term of `UBERON:0001062` (anatomical entity). For cell cultures, the Cell Ontology (`CL:`) is used. The term ids cannot be `CL:0000255`, `CL:0000257` or `CL:0000548`. |
+| `obs["batch"]` | `string` | (*Optional*) A batch identifier. This label is very context-dependent and may be a combination of the tissue, assay, donor, etc. |
+| `obs["soma_joinid"]` | `integer` | (*Optional*) If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the cell. |
+| `var["feature_id"]` | `string` | (*Optional*) Unique identifier for the feature, usually a ENSEMBL gene id. |
+| `var["feature_name"]` | `string` | A human-readable name for the feature, usually a gene symbol. |
+| `var["soma_joinid"]` | `integer` | (*Optional*) If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the feature. |
+| `var["hvg"]` | `boolean` | Whether or not the feature is considered to be a ‘highly variable gene’. |
+| `var["hvg_score"]` | `double` | A score for the feature indicating how highly variable it is. |
+| `obsm["X_pca"]` | `double` | The resulting PCA embedding. |
+| `obsp["knn_distances"]` | `double` | K nearest neighbors distance matrix. |
+| `obsp["knn_connectivities"]` | `double` | K nearest neighbors connectivities matrix. |
+| `varm["pca_loadings"]` | `double` | The PCA loadings matrix. |
+| `layers["counts"]` | `integer` | Raw counts. |
+| `layers["normalized"]` | `integer` | Normalized expression values. |
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived. |
+| `uns["dataset_name"]` | `string` | A human-readable name for the dataset. |
+| `uns["dataset_url"]` | `string` | (*Optional*) Link to the original source of the dataset. |
+| `uns["dataset_reference"]` | `string` | (*Optional*) Bibtex reference of the paper in which the dataset was published. |
+| `uns["dataset_summary"]` | `string` | Short description of the dataset. |
+| `uns["dataset_description"]` | `string` | Long description of the dataset. |
+| `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
 
 </div>
 
@@ -332,19 +241,72 @@ Arguments:
 | Name | Type | Description |
 |:---|:---|:---|
 | `--input` | `file` | A spatial transcriptomics dataset, preprocessed for this benchmark. |
-| `--output` | `file` | (*Output*) … |
+| `--output` | `file` | (*Output*) A segmentation of a spatial transcriptomics dataset. |
 
 </div>
 
-## File format: Assigned Transcripts
+## Component type: Assignment
 
-A spatial transcriptomics dataset with assigned transcripts
+Assigning transcripts to cells
 
-Example file: `...`
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input_ist` | `file` | A spatial transcriptomics dataset, preprocessed for this benchmark. |
+| `--input_segmentation` | `file` | (*Optional*) A segmentation of a spatial transcriptomics dataset. |
+| `--input_scrnaseq` | `file` | (*Optional*) A single-cell reference dataset, preprocessed for this benchmark. |
+| `--output` | `file` | (*Output*) A spatial transcriptomics dataset with assigned transcripts. |
+
+</div>
+
+## Component type: Cell Type Annotation
+
+Annotating cell types in spatial data
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input_spatial_normalized_counts` | `file` | Normalized counts. |
+| `--input_transcript_assignments` | `file` | (*Optional*) A spatial transcriptomics dataset with assigned transcripts. |
+| `--input_scrnaseq_reference` | `file` | (*Optional*) A single-cell reference dataset, preprocessed for this benchmark. |
+| `--celltype_key` | `string` | (*Optional*) NA. Default: `cell_type`. |
+| `--output` | `file` | (*Output*) Normalized counts with cell type annotations. |
+
+</div>
+
+## Component type: Expression correction
+
+Correcting expression levels in spatial data
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input_spatial_with_cell_types` | `file` | Normalized counts with cell type annotations. |
+| `--input_scrnaseq_reference` | `file` | (*Optional*) A single-cell reference dataset, preprocessed for this benchmark. |
+| `--output` | `file` | (*Output*) Corrected spatial data counts with cell type annotations. |
+
+</div>
+
+## File format: Segmentation
+
+A segmentation of a spatial transcriptomics dataset
+
+Example file:
+`resources_test/task_ist_preprocessing/mouse_brain_combined/segmentation.zarr`
 
 Description:
 
-…
+This dataset contains a segmentation of the spatial transcriptomics
+data.
 
 Format:
 
@@ -358,16 +320,40 @@ Data structure:
 
 </div>
 
-## File format: Spatial Normalised Counts with Cell Type Annotations
+## File format: Transcript Assignment
 
-Normalised counts with cell type annotations
+A spatial transcriptomics dataset with assigned transcripts
 
 Example file:
-`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
+`resources_test/task_ist_preprocessing/mouse_brain_combined/transcript_assignments.zarr`
 
 Description:
 
-This file contains the normalised counts of the spatial transcriptomics
+This dataset contains the spatial transcriptomics data with assigned
+transcripts.
+
+Format:
+
+<div class="small">
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+</div>
+
+## File format: Spatial with Cell Types
+
+Normalized counts with cell type annotations
+
+Example file:
+`resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_with_cell_types.h5ad`
+
+Description:
+
+This file contains the normalized counts of the spatial transcriptomics
 data and cell type annotations.
 
 Format:
@@ -377,7 +363,7 @@ Format:
     AnnData object
      obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes', 'volume', 'cell_type'
      var: 'gene_name', 'n_counts', 'n_cells'
-     layers: 'raw', 'norm', 'lognorm'
+     layers: 'counts', 'normalized', 'lognorm'
 
 </div>
 
@@ -398,18 +384,18 @@ Data structure:
 | `var["gene_name"]` | `string` | Name of the gene. |
 | `var["n_counts"]` | `string` | Number of counts of the gene. |
 | `var["n_cells"]` | `string` | Number of cells expressing the gene. |
-| `layers["raw"]` | `integer` | Raw counts. |
-| `layers["norm"]` | `integer` | Normalised counts. |
-| `layers["lognorm"]` | `integer` | Log normalised counts. |
+| `layers["counts"]` | `integer` | Raw counts. |
+| `layers["normalized"]` | `integer` | Normalized counts. |
+| `layers["lognorm"]` | `integer` | Log normalized counts. |
 
 </div>
 
-## File format: Spatial Corrected Counts with Cell Type Annotations
+## File format: Spatial Corrected
 
-Corrected counts with cell type annotations
+Corrected spatial data counts with cell type annotations
 
 Example file:
-`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
+`resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_corrected_counts.h5ad`
 
 Description:
 
@@ -423,7 +409,7 @@ Format:
     AnnData object
      obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes', 'volume', 'cell_type'
      var: 'gene_name', 'n_counts', 'n_cells'
-     layers: 'raw', 'norm', 'lognorm', 'lognorm_uncorrected'
+     layers: 'counts', 'normalized', 'lognorm', 'normalized_corrected'
 
 </div>
 
@@ -444,32 +430,25 @@ Data structure:
 | `var["gene_name"]` | `string` | Name of the gene. |
 | `var["n_counts"]` | `string` | Number of counts of the gene. |
 | `var["n_cells"]` | `string` | Number of cells expressing the gene. |
-| `layers["raw"]` | `integer` | Raw counts. |
-| `layers["norm"]` | `integer` | Normalised counts. |
-| `layers["lognorm"]` | `integer` | Log normalised counts. |
-| `layers["lognorm_uncorrected"]` | `integer` | (*Optional*) Log normalised counts. |
+| `layers["counts"]` | `integer` | Raw counts. |
+| `layers["normalized"]` | `integer` | Normalized counts. |
+| `layers["lognorm"]` | `integer` | Log normalized counts. |
+| `layers["normalized_corrected"]` | `integer` | (*Optional*) Corrected normalized expression. |
 
 </div>
 
-## File format: Segmented iST
+## Component type: Calculate Cell Volume
 
-…
+Calculate the volume of cells
 
-Example file: `...`
-
-Description:
-
-…
-
-Format:
+Arguments:
 
 <div class="small">
 
-</div>
-
-Data structure:
-
-<div class="small">
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input` | `file` | A spatial transcriptomics dataset with assigned transcripts. |
+| `--output` | `file` | (*Output*) An obs column of cell volumes calculated from spatial transcriptomics data. |
 
 </div>
 
@@ -488,116 +467,13 @@ Arguments:
 
 </div>
 
-## File format: Spatial Raw Counts
-
-Unprocessed raw counts after aggregation of transcripts to cells
-
-Example file:
-`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
-
-Description:
-
-This file contains the raw counts after aggregating transcripts to
-cells.
-
-Format:
-
-<div class="small">
-
-    AnnData object
-     obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes'
-     var: 'gene_name', 'n_counts', 'n_cells'
-     layers: 'raw'
-
-</div>
-
-Data structure:
-
-<div class="small">
-
-| Slot | Type | Description |
-|:---|:---|:---|
-| `obs["cell_id"]` | `string` | Unique identifier for the cell (from assignment step). |
-| `obs["centroid_x"]` | `string` | X coordinate of the cell. |
-| `obs["centroid_y"]` | `string` | Y coordinate of the cell. |
-| `obs["centroid_z"]` | `string` | (*Optional*) Z coordinate of the cell. |
-| `obs["n_counts"]` | `string` | Number of counts in the cell. |
-| `obs["n_genes"]` | `string` | Number of genes in the cell. |
-| `var["gene_name"]` | `string` | Name of the gene. |
-| `var["n_counts"]` | `string` | Number of counts of the gene. |
-| `var["n_cells"]` | `string` | Number of cells expressing the gene. |
-| `layers["raw"]` | `integer` | Raw counts. |
-
-</div>
-
-## Component type: Normalisation
-
-Normalising spatial transcriptomics data
-
-Arguments:
-
-<div class="small">
-
-| Name | Type | Description |
-|:---|:---|:---|
-| `--input` | `file` | Unprocessed raw counts after aggregation of transcripts to cells. |
-| `--input_volume` | `file` | (*Optional*) An obs column of cell volumes calculated from spatial transcriptomics data. |
-| `--output` | `file` | (*Output*) Normalised counts. |
-
-</div>
-
-## File format: Spatial Normalised Counts
-
-Normalised counts
-
-Example file:
-`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
-
-Description:
-
-This file contains the normalised counts of the spatial transcriptomics
-data.
-
-Format:
-
-<div class="small">
-
-    AnnData object
-     obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes', 'volume'
-     var: 'gene_name', 'n_counts', 'n_cells'
-     layers: 'raw', 'norm', 'lognorm'
-
-</div>
-
-Data structure:
-
-<div class="small">
-
-| Slot | Type | Description |
-|:---|:---|:---|
-| `obs["cell_id"]` | `string` | Unique identifier for the cell (from assignment step). |
-| `obs["centroid_x"]` | `string` | X coordinate of the cell. |
-| `obs["centroid_y"]` | `string` | Y coordinate of the cell. |
-| `obs["centroid_z"]` | `string` | (*Optional*) Z coordinate of the cell. |
-| `obs["n_counts"]` | `string` | Number of counts in the cell. |
-| `obs["n_genes"]` | `string` | Number of genes in the cell. |
-| `obs["volume"]` | `string` | Volume of the cell. |
-| `var["gene_name"]` | `string` | Name of the gene. |
-| `var["n_counts"]` | `string` | Number of counts of the gene. |
-| `var["n_cells"]` | `string` | Number of cells expressing the gene. |
-| `layers["raw"]` | `integer` | Raw counts. |
-| `layers["norm"]` | `integer` | Normalised counts. |
-| `layers["lognorm"]` | `integer` | Log normalised counts. |
-
-</div>
-
 ## File format: Cell Volumes
 
 An obs column of cell volumes calculated from spatial transcriptomics
 data.
 
 Example file:
-`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
+`resources_test/task_ist_preprocessing/mouse_brain_combined/cell_volumes.h5ad`
 
 Description:
 
@@ -623,21 +499,27 @@ Data structure:
 
 </div>
 
-## File format: Common iST Dataset
+## File format: Aggregated Counts
 
-An unprocessed spatial imaging dataset stored as a zarr file.
+Unprocessed raw counts after aggregation of transcripts to cells
 
 Example file:
-`resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr`
+`resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad`
 
 Description:
 
-This dataset contains raw images, labels, points, shapes, and tables as
-output by a dataset loader.
+This file contains the raw counts after aggregating transcripts to
+cells.
 
 Format:
 
 <div class="small">
+
+    AnnData object
+     obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes'
+     var: 'gene_name', 'n_counts', 'n_cells'
+     layers: 'counts'
+     uns: 'dataset_id'
 
 </div>
 
@@ -645,11 +527,25 @@ Data structure:
 
 <div class="small">
 
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_id"]` | `string` | Unique identifier for the cell (from assignment step). |
+| `obs["centroid_x"]` | `string` | X coordinate of the cell. |
+| `obs["centroid_y"]` | `string` | Y coordinate of the cell. |
+| `obs["centroid_z"]` | `string` | (*Optional*) Z coordinate of the cell. |
+| `obs["n_counts"]` | `string` | Number of counts in the cell. |
+| `obs["n_genes"]` | `string` | Number of genes in the cell. |
+| `var["gene_name"]` | `string` | Name of the gene. |
+| `var["n_counts"]` | `string` | Number of counts of the gene. |
+| `var["n_cells"]` | `string` | Number of cells expressing the gene. |
+| `layers["counts"]` | `integer` | Raw aggregated counts. |
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived. |
+
 </div>
 
-## Component type: Cell Volume Calculation
+## Component type: Normalization
 
-Calculate the volume of cells
+Normalizing spatial transcriptomics data
 
 Arguments:
 
@@ -657,8 +553,138 @@ Arguments:
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `--input` | `file` | (*Output*) A spatial transcriptomics dataset with assigned transcripts. |
-| `--output` | `file` | (*Output*) An obs column of cell volumes calculated from spatial transcriptomics data. |
+| `--input_spatial_aggregated_counts` | `file` | Unprocessed raw counts after aggregation of transcripts to cells. |
+| `--input_cell_volumes` | `file` | (*Optional*) An obs column of cell volumes calculated from spatial transcriptomics data. |
+| `--output` | `file` | (*Output*) Normalized counts. |
+
+</div>
+
+## File format: Spatial Normalized
+
+Normalized counts
+
+Example file:
+`resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_normalized_counts.h5ad`
+
+Description:
+
+This file contains the normalized counts of the spatial transcriptomics
+data.
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes'
+     var: 'gene_name', 'n_counts', 'n_cells'
+     layers: 'counts', 'normalized'
+     uns: 'dataset_id'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_id"]` | `string` | Unique identifier for the cell (from assignment step). |
+| `obs["centroid_x"]` | `string` | X coordinate of the cell. |
+| `obs["centroid_y"]` | `string` | Y coordinate of the cell. |
+| `obs["centroid_z"]` | `string` | (*Optional*) Z coordinate of the cell. |
+| `obs["n_counts"]` | `string` | Number of counts in the cell. |
+| `obs["n_genes"]` | `string` | Number of genes in the cell. |
+| `var["gene_name"]` | `string` | Name of the gene. |
+| `var["n_counts"]` | `string` | Number of counts of the gene. |
+| `var["n_cells"]` | `string` | Number of cells expressing the gene. |
+| `layers["counts"]` | `integer` | Raw aggregated counts. |
+| `layers["normalized"]` | `integer` | Normalized expression values. |
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived. |
+
+</div>
+
+## File format: Common SC Dataset
+
+An unprocessed dataset as output by a dataset loader.
+
+Example file:
+`resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad`
+
+Description:
+
+This dataset contains raw counts and metadata as output by a dataset
+loader.
+
+The format of this file is mainly derived from the [CELLxGENE schema
+v4.0.0](https://github.com/chanzuckerberg/single-cell-curation/blob/main/schema/4.0.0/schema.md).
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_type', 'cell_type_level2', 'cell_type_level3', 'cell_type_level4', 'dataset_id', 'assay', 'assay_ontology_term_id', 'cell_type_ontology_term_id', 'development_stage', 'development_stage_ontology_term_id', 'disease', 'disease_ontology_term_id', 'donor_id', 'is_primary_data', 'organism', 'organism_ontology_term_id', 'self_reported_ethnicity', 'self_reported_ethnicity_ontology_term_id', 'sex', 'sex_ontology_term_id', 'suspension_type', 'tissue', 'tissue_ontology_term_id', 'tissue_general', 'tissue_general_ontology_term_id', 'batch', 'soma_joinid'
+     var: 'feature_id', 'feature_name', 'soma_joinid', 'hvg', 'hvg_score'
+     obsm: 'X_pca'
+     obsp: 'knn_distances', 'knn_connectivities'
+     varm: 'pca_loadings'
+     layers: 'counts', 'normalized'
+     uns: 'dataset_id', 'dataset_name', 'dataset_url', 'dataset_reference', 'dataset_summary', 'dataset_description', 'dataset_organism'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_type"]` | `string` | Classification of the cell type based on its characteristics and function within the tissue or organism. |
+| `obs["cell_type_level2"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
+| `obs["cell_type_level3"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
+| `obs["cell_type_level4"]` | `string` | (*Optional*) Classification of the cell type based on its characteristics and function within the tissue or organism. |
+| `obs["dataset_id"]` | `string` | (*Optional*) Identifier for the dataset from which the cell data is derived, useful for tracking and referencing purposes. |
+| `obs["assay"]` | `string` | (*Optional*) Type of assay used to generate the cell data, indicating the methodology or technique employed. |
+| `obs["assay_ontology_term_id"]` | `string` | (*Optional*) Experimental Factor Ontology (`EFO:`) term identifier for the assay, providing a standardized reference to the assay type. |
+| `obs["cell_type_ontology_term_id"]` | `string` | (*Optional*) Cell Ontology (`CL:`) term identifier for the cell type, offering a standardized reference to the specific cell classification. |
+| `obs["development_stage"]` | `string` | (*Optional*) Stage of development of the organism or tissue from which the cell is derived, indicating its maturity or developmental phase. |
+| `obs["development_stage_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the developmental stage, providing a standardized reference to the organism’s developmental phase. If the organism is human (`organism_ontology_term_id == 'NCBITaxon:9606'`), then the Human Developmental Stages (`HsapDv:`) ontology is used. If the organism is mouse (`organism_ontology_term_id == 'NCBITaxon:10090'`), then the Mouse Developmental Stages (`MmusDv:`) ontology is used. Otherwise, the Uberon (`UBERON:`) ontology is used. |
+| `obs["disease"]` | `string` | (*Optional*) Information on any disease or pathological condition associated with the cell or donor. |
+| `obs["disease_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the disease, enabling standardized disease classification and referencing. Must be a term from the Mondo Disease Ontology (`MONDO:`) ontology term, or `PATO:0000461` from the Phenotype And Trait Ontology (`PATO:`). |
+| `obs["donor_id"]` | `string` | (*Optional*) Identifier for the donor from whom the cell sample is obtained. |
+| `obs["is_primary_data"]` | `boolean` | (*Optional*) Indicates whether the data is primary (directly obtained from experiments) or has been computationally derived from other primary data. |
+| `obs["organism"]` | `string` | (*Optional*) Organism from which the cell sample is obtained. |
+| `obs["organism_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the organism, providing a standardized reference for the organism. Must be a term from the NCBI Taxonomy Ontology (`NCBITaxon:`) which is a child of `NCBITaxon:33208`. |
+| `obs["self_reported_ethnicity"]` | `string` | (*Optional*) Ethnicity of the donor as self-reported, relevant for studies considering genetic diversity and population-specific traits. |
+| `obs["self_reported_ethnicity_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the self-reported ethnicity, providing a standardized reference for ethnic classifications. If the organism is human (`organism_ontology_term_id == 'NCBITaxon:9606'`), then the Human Ancestry Ontology (`HANCESTRO:`) is used. |
+| `obs["sex"]` | `string` | (*Optional*) Biological sex of the donor or source organism, crucial for studies involving sex-specific traits or conditions. |
+| `obs["sex_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the biological sex, ensuring standardized classification of sex. Only `PATO:0000383`, `PATO:0000384` and `PATO:0001340` are allowed. |
+| `obs["suspension_type"]` | `string` | (*Optional*) Type of suspension or medium in which the cells were stored or processed, important for understanding cell handling and conditions. |
+| `obs["tissue"]` | `string` | (*Optional*) Specific tissue from which the cells were derived, key for context and specificity in cell studies. |
+| `obs["tissue_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the tissue, providing a standardized reference for the tissue type. For organoid or tissue samples, the Uber-anatomy ontology (`UBERON:`) is used. The term ids must be a child term of `UBERON:0001062` (anatomical entity). For cell cultures, the Cell Ontology (`CL:`) is used. The term ids cannot be `CL:0000255`, `CL:0000257` or `CL:0000548`. |
+| `obs["tissue_general"]` | `string` | (*Optional*) General category or classification of the tissue, useful for broader grouping and comparison of cell data. |
+| `obs["tissue_general_ontology_term_id"]` | `string` | (*Optional*) Ontology term identifier for the general tissue category, aiding in standardizing and grouping tissue types. For organoid or tissue samples, the Uber-anatomy ontology (`UBERON:`) is used. The term ids must be a child term of `UBERON:0001062` (anatomical entity). For cell cultures, the Cell Ontology (`CL:`) is used. The term ids cannot be `CL:0000255`, `CL:0000257` or `CL:0000548`. |
+| `obs["batch"]` | `string` | (*Optional*) A batch identifier. This label is very context-dependent and may be a combination of the tissue, assay, donor, etc. |
+| `obs["soma_joinid"]` | `integer` | (*Optional*) If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the cell. |
+| `var["feature_id"]` | `string` | (*Optional*) Unique identifier for the feature, usually a ENSEMBL gene id. |
+| `var["feature_name"]` | `string` | A human-readable name for the feature, usually a gene symbol. |
+| `var["soma_joinid"]` | `integer` | (*Optional*) If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the feature. |
+| `var["hvg"]` | `boolean` | Whether or not the feature is considered to be a ‘highly variable gene’. |
+| `var["hvg_score"]` | `double` | A score for the feature indicating how highly variable it is. |
+| `obsm["X_pca"]` | `double` | The resulting PCA embedding. |
+| `obsp["knn_distances"]` | `double` | K nearest neighbors distance matrix. |
+| `obsp["knn_connectivities"]` | `double` | K nearest neighbors connectivities matrix. |
+| `varm["pca_loadings"]` | `double` | The PCA loadings matrix. |
+| `layers["counts"]` | `integer` | Raw counts. |
+| `layers["normalized"]` | `integer` | Normalized expression values. |
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived. |
+| `uns["dataset_name"]` | `string` | A human-readable name for the dataset. |
+| `uns["dataset_url"]` | `string` | (*Optional*) Link to the original source of the dataset. |
+| `uns["dataset_reference"]` | `string` | (*Optional*) Bibtex reference of the paper in which the dataset was published. |
+| `uns["dataset_summary"]` | `string` | Short description of the dataset. |
+| `uns["dataset_description"]` | `string` | Long description of the dataset. |
+| `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
 
 </div>
 

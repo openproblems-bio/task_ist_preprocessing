@@ -50,11 +50,11 @@ workflow run_wf {
     | runEach(
       components: methods,
 
-      // use the 'filter' argument to only run a method on the normalisation the component is asking for
+      // use the 'filter' argument to only run a method on the normalization the component is asking for
       filter: { id, state, comp ->
         def norm = state.dataset_uns.normalization_id
         def pref = comp.config.info.preferred_normalization
-        // if the preferred normalisation is none at all,
+        // if the preferred normalization is none at all,
         // we can pass whichever dataset we want
         def norm_check = (norm == "log_cp10k" && pref == "counts") || norm == pref
         def method_check = !state.method_ids || state.method_ids.contains(comp.config.name)

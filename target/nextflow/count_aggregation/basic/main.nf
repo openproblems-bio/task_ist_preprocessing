@@ -2814,9 +2814,9 @@ meta = [
         {
           "type" : "file",
           "name" : "--input",
-          "label" : "Assigned Transcripts",
+          "label" : "Transcript Assignment",
           "summary" : "A spatial transcriptomics dataset with assigned transcripts",
-          "description" : "...",
+          "description" : "This dataset contains the spatial transcriptomics data with assigned transcripts.",
           "info" : {
             "format" : {
               "type" : "spatialdata_zarr",
@@ -2830,31 +2830,59 @@ meta = [
                     {
                       "type" : "float",
                       "name" : "x",
-                      "required" : true
+                      "required" : true,
+                      "description" : "x-coordinate of the point"
                     },
                     {
                       "type" : "float",
                       "name" : "y",
-                      "required" : true
+                      "required" : true,
+                      "description" : "y-coordinate of the point"
                     },
                     {
                       "type" : "float",
                       "name" : "z",
-                      "required" : true
+                      "required" : false,
+                      "description" : "z-coordinate of the point"
                     },
                     {
                       "type" : "categorical",
                       "name" : "feature_name",
-                      "required" : true
+                      "required" : true,
+                      "description" : "Name of the feature"
                     },
                     {
                       "type" : "integer",
                       "name" : "cell_id",
-                      "required" : true
+                      "required" : false,
+                      "description" : "Unique identifier of the cell"
                     },
                     {
                       "type" : "long",
                       "name" : "transcript_id",
+                      "required" : true,
+                      "description" : "Unique identifier of the transcript"
+                    }
+                  ]
+                }
+              ],
+              "tables" : [
+                {
+                  "type" : "anndata",
+                  "name" : "table",
+                  "description" : "AnnData table",
+                  "required" : true,
+                  "obs" : [
+                    {
+                      "type" : "string",
+                      "name" : "cell_id",
+                      "description" : "Cell ID",
+                      "required" : true
+                    },
+                    {
+                      "type" : "string",
+                      "name" : "region",
+                      "description" : "Region",
                       "required" : true
                     }
                   ]
@@ -2863,7 +2891,7 @@ meta = [
             }
           },
           "example" : [
-            "..."
+            "resources_test/task_ist_preprocessing/mouse_brain_combined/transcript_assignments.zarr"
           ],
           "must_exist" : true,
           "create_parent" : true,
@@ -2875,7 +2903,7 @@ meta = [
         {
           "type" : "file",
           "name" : "--output",
-          "label" : "Spatial Raw Counts",
+          "label" : "Aggregated Counts",
           "summary" : "Unprocessed raw counts after aggregation of transcripts to cells",
           "description" : "This file contains the raw counts after aggregating transcripts to cells.\n",
           "info" : {
@@ -2884,8 +2912,8 @@ meta = [
               "layers" : [
                 {
                   "type" : "integer",
-                  "name" : "raw",
-                  "description" : "Raw counts",
+                  "name" : "counts",
+                  "description" : "Raw aggregated counts",
                   "required" : true
                 }
               ],
@@ -2946,11 +2974,19 @@ meta = [
                   "description" : "Number of cells expressing the gene",
                   "required" : true
                 }
+              ],
+              "uns" : [
+                {
+                  "type" : "string",
+                  "name" : "dataset_id",
+                  "description" : "A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived.",
+                  "required" : true
+                }
               ]
             }
           },
           "example" : [
-            "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+            "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad"
           ],
           "must_exist" : true,
           "create_parent" : true,
@@ -2969,8 +3005,26 @@ meta = [
       "is_executable" : true
     }
   ],
+  "test_resources" : [
+    {
+      "type" : "file",
+      "path" : "/resources_test/task_ist_preprocessing/mouse_brain_combined",
+      "dest" : "resources_test/task_ist_preprocessing/mouse_brain_combined"
+    },
+    {
+      "type" : "python_script",
+      "path" : "/common/component_tests/run_and_check_output.py",
+      "is_executable" : true
+    },
+    {
+      "type" : "python_script",
+      "path" : "/common/component_tests/check_config.py",
+      "is_executable" : true
+    }
+  ],
   "info" : {
-    "type" : "count_aggregation",
+    "type" : "method",
+    "subtype" : "method_count_aggregation",
     "type_info" : {
       "label" : "Count Aggregation",
       "summary" : "Aggregating counts of transcripts within cells",
@@ -3062,12 +3116,12 @@ meta = [
     }
   ],
   "build_info" : {
-    "config" : "/home/runner/work/task_ist_preprocessing/task_ist_preprocessing/src/count_aggregation/basic/config.vsh.yaml",
+    "config" : "/home/runner/work/task_ist_preprocessing/task_ist_preprocessing/src/methods_count_aggregation/basic/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "docker|native",
     "output" : "target/nextflow/count_aggregation/basic",
     "viash_version" : "0.9.0",
-    "git_commit" : "71b1f7ce6e9e7a2c77a74683d786871b3b3d5cb3",
+    "git_commit" : "4aa8dd15c0bca6fd7f1c2ed640b698d0ec9ee973",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3081,8 +3135,18 @@ meta = [
       "test_resources" : [
         {
           "type" : "s3",
-          "path" : "s3://openproblems-data/resources_test/common/",
-          "dest" : "resources_test/common"
+          "path" : "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium_rep1/",
+          "dest" : "resources_test/common/2023_10x_mouse_brain_xenium_rep1/"
+        },
+        {
+          "type" : "s3",
+          "path" : "s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/",
+          "dest" : "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/"
+        },
+        {
+          "type" : "s3",
+          "path" : "s3://openproblems-data/resources_test/task_ist_preprocessing/",
+          "dest" : "resources_test/task_ist_preprocessing"
         }
       ]
     },
@@ -3109,32 +3173,54 @@ meta = [
     ],
     "authors" : [
       {
-        "name" : "John Doe",
+        "name" : "Louis Kümmerle",
         "roles" : [
           "author",
           "maintainer"
         ],
         "info" : {
-          "github" : "johndoe",
-          "orcid" : "0000-0000-0000-0000",
-          "email" : "john@doe.me",
-          "twitter" : "johndoe",
-          "linkedin" : "johndoe"
+          "github" : "LouisK92",
+          "orcid" : "0000-0002-9193-1243"
+        }
+      },
+      {
+        "name" : "Malte D. Luecken",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "LuckyMD",
+          "orcid" : "0000-0001-7464-7921"
+        }
+      },
+      {
+        "name" : "Daniel Strobl",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "danielStrobl",
+          "orcid" : "0000-0002-5516-7057"
+        }
+      },
+      {
+        "name" : "Robrecht Cannoodt",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "rcannood",
+          "orcid" : "0000-0003-3641-729X"
         }
       }
     ],
     "keywords" : [
-      "single-cell",
-      "openproblems",
-      "benchmark"
+      "spatial transcriptomics",
+      "imaging-based spatial transcriptomics",
+      "preprocessing"
     ],
     "license" : "MIT",
     "organization" : "openproblems-bio",
-    "references" : {
-      "doi" : [
-        "10.21203/rs.3.rs-4181617/v1"
-      ]
-    },
     "links" : {
       "repository" : "https://github.com/openproblems-bio/task_ist_preprocessing",
       "docker_registry" : "ghcr.io",
@@ -3197,7 +3283,7 @@ adata = tx.preprocessing.generate_adata(df, cell_id_col='cell_id', gene_col='fea
 del adata.uns['spots']
 del adata.uns['pct_noise']
 
-adata.write(par['output'])
+adata.write_h5ad(par['output'], compression="gzip")
 VIASHMAIN
 python -B "$tempscript"
 '''

@@ -2955,6 +2955,12 @@ meta = [
                   "name" : "counts",
                   "description" : "Raw counts",
                   "required" : true
+                },
+                {
+                  "type" : "integer",
+                  "name" : "normalized",
+                  "description" : "Normalized expression values",
+                  "required" : true
                 }
               ],
               "obs" : [
@@ -3139,6 +3145,48 @@ meta = [
                   "name" : "soma_joinid",
                   "description" : "If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the feature.",
                   "required" : false
+                },
+                {
+                  "type" : "boolean",
+                  "name" : "hvg",
+                  "description" : "Whether or not the feature is considered to be a 'highly variable gene'",
+                  "required" : true
+                },
+                {
+                  "type" : "double",
+                  "name" : "hvg_score",
+                  "description" : "A score for the feature indicating how highly variable it is.",
+                  "required" : true
+                }
+              ],
+              "obsp" : [
+                {
+                  "type" : "double",
+                  "name" : "knn_distances",
+                  "description" : "K nearest neighbors distance matrix.",
+                  "required" : true
+                },
+                {
+                  "type" : "double",
+                  "name" : "knn_connectivities",
+                  "description" : "K nearest neighbors connectivities matrix.",
+                  "required" : true
+                }
+              ],
+              "obsm" : [
+                {
+                  "type" : "double",
+                  "name" : "X_pca",
+                  "description" : "The resulting PCA embedding.",
+                  "required" : true
+                }
+              ],
+              "varm" : [
+                {
+                  "type" : "double",
+                  "name" : "pca_loadings",
+                  "description" : "The PCA loadings matrix.",
+                  "required" : true
                 }
               ],
               "uns" : [
@@ -3299,7 +3347,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "71b1f7ce6e9e7a2c77a74683d786871b3b3d5cb3",
+    "git_commit" : "4aa8dd15c0bca6fd7f1c2ed640b698d0ec9ee973",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3313,8 +3361,18 @@ meta = [
       "test_resources" : [
         {
           "type" : "s3",
-          "path" : "s3://openproblems-data/resources_test/common/",
-          "dest" : "resources_test/common"
+          "path" : "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium_rep1/",
+          "dest" : "resources_test/common/2023_10x_mouse_brain_xenium_rep1/"
+        },
+        {
+          "type" : "s3",
+          "path" : "s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/",
+          "dest" : "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/"
+        },
+        {
+          "type" : "s3",
+          "path" : "s3://openproblems-data/resources_test/task_ist_preprocessing/",
+          "dest" : "resources_test/task_ist_preprocessing"
         }
       ]
     },
@@ -3341,32 +3399,54 @@ meta = [
     ],
     "authors" : [
       {
-        "name" : "John Doe",
+        "name" : "Louis Kümmerle",
         "roles" : [
           "author",
           "maintainer"
         ],
         "info" : {
-          "github" : "johndoe",
-          "orcid" : "0000-0000-0000-0000",
-          "email" : "john@doe.me",
-          "twitter" : "johndoe",
-          "linkedin" : "johndoe"
+          "github" : "LouisK92",
+          "orcid" : "0000-0002-9193-1243"
+        }
+      },
+      {
+        "name" : "Malte D. Luecken",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "LuckyMD",
+          "orcid" : "0000-0001-7464-7921"
+        }
+      },
+      {
+        "name" : "Daniel Strobl",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "danielStrobl",
+          "orcid" : "0000-0002-5516-7057"
+        }
+      },
+      {
+        "name" : "Robrecht Cannoodt",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "rcannood",
+          "orcid" : "0000-0003-3641-729X"
         }
       }
     ],
     "keywords" : [
-      "single-cell",
-      "openproblems",
-      "benchmark"
+      "spatial transcriptomics",
+      "imaging-based spatial transcriptomics",
+      "preprocessing"
     ],
     "license" : "MIT",
     "organization" : "openproblems-bio",
-    "references" : {
-      "doi" : [
-        "10.21203/rs.3.rs-4181617/v1"
-      ]
-    },
     "links" : {
       "repository" : "https://github.com/openproblems-bio/task_ist_preprocessing",
       "docker_registry" : "ghcr.io",

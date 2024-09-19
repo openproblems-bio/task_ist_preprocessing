@@ -5,12 +5,12 @@ argument_groups:
   - name: Inputs
     arguments:
       - name: "--input_sc"
-        __merge__: /src/api/file_singlecell.yaml
+        __merge__: /src/api/file_scrnaseq_reference.yaml
         type: file
         direction: input
         required: true
       - name: "--input_sp"
-        __merge__: /src/api/file_spatialdata.yaml
+        __merge__: /src/api/file_raw_ist.yaml
         type: file
         direction: input
         required: true

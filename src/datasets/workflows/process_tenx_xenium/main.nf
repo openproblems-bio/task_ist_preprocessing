@@ -21,7 +21,6 @@ workflow run_wf {
     | tenx_xenium.run(
       fromState: [
         "input",
-        "replicate_id",
         "segmentation_id",
         "dataset_id",
         "dataset_name",

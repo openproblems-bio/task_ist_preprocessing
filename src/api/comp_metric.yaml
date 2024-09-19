@@ -1,0 +1,30 @@
+namespace: metrics
+info:
+  type: metric
+  type_info:
+    label: Metric
+    summary: A metric for evaluating iST preprocessing methods
+    description: |
+      This metric evaluates the quality of the iST preprocessing.
+arguments:
+  # todo: update
+  # - name: "--solution"
+  #   __merge__: file_solution.yaml
+  #   direction: input
+  #   required: true
+  # - name: "--prediction"
+  #   __merge__: file_prediction.yaml
+  #   direction: input
+  #   required: true
+  - name: "--score"
+    __merge__: file_score.yaml
+    direction: output
+    required: true
+
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py

@@ -1,0 +1,29 @@
+name: basic
+
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    description: The key of the transcripts within the points of the spatial data
+    required: true
+  - name: --coordinate_system
+    type: string
+    description: The key of the pixel space coordinate system within the spatial data
+    required: true
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: spatialdata
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow

@@ -2960,7 +2960,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/datasets/processors/crop_region",
     "viash_version" : "0.9.0",
-    "git_commit" : "71b1f7ce6e9e7a2c77a74683d786871b3b3d5cb3",
+    "git_commit" : "4aa8dd15c0bca6fd7f1c2ed640b698d0ec9ee973",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -2974,8 +2974,18 @@ meta = [
       "test_resources" : [
         {
           "type" : "s3",
-          "path" : "s3://openproblems-data/resources_test/common/",
-          "dest" : "resources_test/common"
+          "path" : "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium_rep1/",
+          "dest" : "resources_test/common/2023_10x_mouse_brain_xenium_rep1/"
+        },
+        {
+          "type" : "s3",
+          "path" : "s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/",
+          "dest" : "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/"
+        },
+        {
+          "type" : "s3",
+          "path" : "s3://openproblems-data/resources_test/task_ist_preprocessing/",
+          "dest" : "resources_test/task_ist_preprocessing"
         }
       ]
     },
@@ -3002,32 +3012,54 @@ meta = [
     ],
     "authors" : [
       {
-        "name" : "John Doe",
+        "name" : "Louis Kümmerle",
         "roles" : [
           "author",
           "maintainer"
         ],
         "info" : {
-          "github" : "johndoe",
-          "orcid" : "0000-0000-0000-0000",
-          "email" : "john@doe.me",
-          "twitter" : "johndoe",
-          "linkedin" : "johndoe"
+          "github" : "LouisK92",
+          "orcid" : "0000-0002-9193-1243"
+        }
+      },
+      {
+        "name" : "Malte D. Luecken",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "LuckyMD",
+          "orcid" : "0000-0001-7464-7921"
+        }
+      },
+      {
+        "name" : "Daniel Strobl",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "danielStrobl",
+          "orcid" : "0000-0002-5516-7057"
+        }
+      },
+      {
+        "name" : "Robrecht Cannoodt",
+        "roles" : [
+          "author"
+        ],
+        "info" : {
+          "github" : "rcannood",
+          "orcid" : "0000-0003-3641-729X"
         }
       }
     ],
     "keywords" : [
-      "single-cell",
-      "openproblems",
-      "benchmark"
+      "spatial transcriptomics",
+      "imaging-based spatial transcriptomics",
+      "preprocessing"
     ],
     "license" : "MIT",
     "organization" : "openproblems-bio",
-    "references" : {
-      "doi" : [
-        "10.21203/rs.3.rs-4181617/v1"
-      ]
-    },
     "links" : {
       "repository" : "https://github.com/openproblems-bio/task_ist_preprocessing",
       "docker_registry" : "ghcr.io",

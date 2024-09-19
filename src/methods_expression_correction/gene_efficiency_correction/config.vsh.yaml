@@ -1,0 +1,26 @@
+name: gene_efficiency_correction
+
+__merge__: /src/api/comp_method_expression_correction.yaml
+
+arguments:
+  - name: --celltype_key
+    required: false
+    direction: input
+    type: string
+    default: cell_type
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        github: [theislab/txsim@dev]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
