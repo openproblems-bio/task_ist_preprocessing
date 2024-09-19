@@ -57,7 +57,7 @@ info:
             description: y-coordinate of the point
           - type: float
             name: "z"
-            required: true
+            required: false
             description: z-coordinate of the point
           - type: categorical
             name: feature_name
@@ -65,11 +65,19 @@ info:
             description: Name of the feature
           - type: integer
             name: "cell_id"
-            required: true
+            required: false
             description: Unique identifier of the cell
+          - type: integer
+            name: "nucleus_id"
+            required: false
+            description: Unique identifier of the nucleus
+          - type: string
+            name: "cell_type"
+            required: false
+            description: Cell type of the cell
           - type: float
             name: qv
-            required: true
+            required: false
             description: Quality value of the point
           - type: long
             name: transcript_id
@@ -77,7 +85,7 @@ info:
             description: Unique identifier of the transcript
           - type: boolean
             name: overlaps_nucleus
-            required: true
+            required: false
             description: Whether the point overlaps with a nucleus
     shapes:
       - type: dataframe
