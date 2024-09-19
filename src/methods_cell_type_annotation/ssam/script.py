@@ -4,9 +4,9 @@ import txsim as tx
 
 ## VIASH START
 par = {
-  'input': 'spatial_norm_counts.h5ad',
-  'input_transcripts': 'spatial_assigned.zarr',
-  'input_sc': 'sc_norm_counts.h5ad',
+  'input_spatial_normalized_counts': 'spatial_norm_counts.h5ad',
+  'input_transcript_assignments': 'spatial_assigned.zarr',
+  'input_scrnaseq_reference': 'sc_norm_counts.h5ad',
   'um_per_pixel': 0.5,
   'output': 'spatial_with_celltypes.h5ad',
   'celltype_key': 'celltype',
@@ -16,14 +16,14 @@ meta = {
 }
 ## VIASH END
 
-# Optional parameter check: For this specific annotation method the par['input_transcripts'] and par['input_sc'] are required
-assert par['input_transcripts'] is not None, 'Transcripts input is required for this annotation method.'
-assert par['input_sc'] is not None, 'Single cell input is required for this annotation method.'
+# Optional parameter check: For this specific annotation method the par['input_transcript_assignments'] and par['input_sc'] are required
+assert par['input_transcript_assignments'] is not None, 'Transcripts input is required for this annotation method.'
+assert par['input_scrnaseq_reference'] is not None, 'Single cell input is required for this annotation method.'
 
 # Read input
 print('Reading input files', flush=True)
 adata_sp = ad.read_h5ad(par['input_spatial_normalized_counts'])
-transcripts = sd.SpatialData.read(par['input_transcripts'])['transcripts']
+transcripts = sd.SpatialData.read(par['input_transcript_assignments'])['transcripts']
 adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
 adata_sp = adata_sp[:,adata_sc.var_names] #TODO: do we want to do this earlier? Maybe not, thinking about transcripts related quality metrics
 

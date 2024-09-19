@@ -12,6 +12,8 @@ engines:
     setup:
       - type: python
         github: [theislab/txsim@dev]
+      - type: python
+        pypi: [squidpy, rasterio]
   - type: native
 
 runners:

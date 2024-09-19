@@ -18,8 +18,11 @@ engines:
     image: openproblems/base_python:1.0.0
     setup:
       - type: python
-        pypi: [planktonspace]
         github: [theislab/txsim@dev]
+      - type: python
+        pypi: [squidpy, rasterio]
+      - type: python
+        pypi: [planktonspace]
   - type: native
 
 runners:

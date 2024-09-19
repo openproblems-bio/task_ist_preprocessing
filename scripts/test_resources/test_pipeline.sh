@@ -44,7 +44,7 @@ viash run src/methods_normalization/normalize_by_volume/config.vsh.yaml -- \
 # run a cell type annotation method
 viash run src/methods_cell_type_annotation/ssam/config.vsh.yaml -- \
   --input_spatial_normalized_counts $OUT_DIR/spatial_normalized_counts.h5ad \
-  --input_transcripts $OUT_DIR/transcript_assignments.zarr \
+  --input_transcript_assignments $OUT_DIR/transcript_assignments.zarr \
   --input_scrnaseq_reference $OUT_DIR/scrnaseq_reference.h5ad \
   --output $OUT_DIR/spatial_with_cell_types.h5ad
 
@@ -53,3 +53,9 @@ viash run src/methods_expression_correction/gene_efficiency_correction/config.vs
   --input_spatial_with_cell_types $OUT_DIR/spatial_with_cell_types.h5ad \
   --input_scrnaseq_reference $OUT_DIR/scrnaseq_reference.h5ad \
   --output $OUT_DIR/spatial_corrected_counts.h5ad
+
+# sync test resources
+aws s3 sync --profile op \
+  "resources_test/task_ist_preprocessing/mouse_brain_combined" \
+  "s3://openproblems-data/resources_test/task_ist_preprocessing/mouse_brain_combined" \
+  --delete --dryrun
