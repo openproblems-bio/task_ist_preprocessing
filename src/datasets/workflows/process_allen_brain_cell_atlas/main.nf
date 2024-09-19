@@ -102,7 +102,8 @@ workflow run_wf {
     )
 
     | setState([
-      "output": "output_normalized"
+      "output_dataset": "output_dataset",
+      "output_meta": "output_meta"
     ])
 
   emit:
