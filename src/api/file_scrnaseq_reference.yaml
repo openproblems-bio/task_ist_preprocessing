@@ -1,0 +1,7 @@
+type: file
+example: "resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad"
+label: "scRNA-seq Reference"
+summary: A single-cell reference dataset, preprocessed for this benchmark.
+description: |
+  This dataset contains preprocessed counts and metadata for single-cell RNA-seq data.
+__merge__: file_common_scrnaseq.yaml

@@ -1,25 +1,20 @@
 viash_version: 0.9.0
 
-# Step 1: Change the name of the task.
-# example: task_name_of_this_task
 name: task_ist_preprocessing
 organization: openproblems-bio
 version: dev
 
 license: MIT
-# Step 2: Add keywords to describe the task.
-keywords: [single-cell, openproblems, benchmark]
-# Step 3: Update the `task_template` to the name of the task from step 1.
+keywords: [spatial transcriptomics, imaging-based spatial transcriptomics, preprocessing]
 links:
   issue_tracker: https://github.com/openproblems-bio/task_ist_preprocessing/issues
   repository: https://github.com/openproblems-bio/task_ist_preprocessing
   docker_registry: ghcr.io
 
-
-# Step 4: Update the label, summary and description.
-# A unique, human-readable, short label. Used for creating summary tables and visualisations.
 label: iST Preprocessing
 summary: Benchmarking approaches for preprocessing imaging-based spatial transcriptomics
+
+# TODO: Add a description.
 description: |
   Provide a clear and concise description of your task, detailing the specific problem it aims
   to solve. Outline the input data types, the expected output, and any assumptions or constraints.
@@ -30,52 +25,44 @@ description: |
   this area and any gaps or challenges that your task could help address. This section 
   should convince readers of the significance and relevance of your task.
 
-# A list of references to relevant literature. Each reference should be a DOI or a bibtex entry
-references:
-  doi:
-    - 10.21203/rs.3.rs-4181617/v1
-  # bibtex:
-  #   - |
-  #     @article{doe_2021_template,
-  #       doi = {10.21203/rs.3.rs-4181617/v1},
-  #       url = {https://doi.org/10.21203/rs.3.rs-4181617/v1},
-  #       author = {Doe, John},
-  #       title = {A template for creating new tasks},
-  #       publisher = {Research Square},
-  #       year = {2021},
-  #     }
+# references:
+#   doi:
+#     - 10.21203/rs.3.rs-4181617/v1
   
 info:
   image: The name of the image file to use for the component on the website.
-  # Step 5: Replace the task_template to the name of the task.
   test_resources:
-    # - type: s3
-    #   path: s3://openproblems-data/resources_test/task_imagingbased_st_preprocessing/
-    #   dest: resources_test/task_imagingbased_st_preprocessing
     - type: s3
-      path: s3://openproblems-data/resources_test/common/
-      dest: resources_test/common
+      path: s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium_rep1
+      dest: resources_test/common/2023_10x_mouse_brain_xenium_rep1
+    - type: s3
+      path: s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2
+      dest: resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2
+    - type: s3
+      path: s3://openproblems-data/resources_test/task_ist_preprocessing/
+      dest: resources_test/task_ist_preprocessing
 
-# Step 6: Update the authors of the task.
 authors: 
-  # Full name of the author, usually in the name of FirstName MiddleName LastName.
-  - name: John Doe
-    # Role of the author. Possible values:
-    # 
-    # * `"author"`: Authors who have made substantial contributions to the component.
-    # * `"maintainer"`: The maintainer of the component.
-    # * `"contributor"`: Authors who have made smaller contributions (such as code patches etc.).
-    roles: [ "author", "maintainer" ]
-    # Additional information on the author
+  - name: Louis Kümmerle
+    roles: [ author, maintainer ]
     info: 
-      github: johndoe
-      orcid: 0000-0000-0000-0000
-      email: john@doe.me
-      twitter: johndoe
-      linkedin: johndoe
-
-# Step 7: Remove all of the comments of the steps you completed
-# Step 8: High five yourself!
+      github: LouisK92
+      orcid: 0000-0002-9193-1243
+  - name: Malte D. Luecken
+    roles: [ author ]
+    info:
+      github: LuckyMD
+      orcid: 0000-0001-7464-7921
+  - name: Daniel Strobl
+    roles: [ author ]
+    info:
+      github: danielStrobl
+      orcid: 0000-0002-5516-7057
+  - name: Robrecht Cannoodt
+    roles: [ author ]
+    info:
+      github: rcannood
+      orcid: "0000-0003-3641-729X"
 
 config_mods: |
   .runners[.type == "nextflow"].config.labels := { lowmem : "memory = 20.Gb", midmem : "memory = 50.Gb", highmem : "memory = 100.Gb", lowcpu : "cpus = 5", midcpu : "cpus = 15", highcpu : "cpus = 30", lowtime : "time = 1.h", midtime : "time = 4.h", hightime : "time = 8.h", veryhightime : "time = 24.h" }

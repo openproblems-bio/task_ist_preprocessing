@@ -1,24 +1,16 @@
 type: file
-example: "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad" #TODO: add correct example
-label: "Spatial Normalised Counts"
-summary: Normalised counts
+example: "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad"
+label: Aggregated Counts
+summary: Unprocessed raw counts after aggregation of transcripts to cells
 description: |
-  This file contains the normalised counts of the spatial transcriptomics data.
+  This file contains the raw counts after aggregating transcripts to cells.
 info:
   format:
     type: h5ad
     layers: 
       - type: integer
-        name: raw
-        description: Raw counts
-        required: true
-      - type: integer
-        name: norm
-        description: Normalised counts
-        required: true
-      - type: integer
-        name: lognorm
-        description: Log normalised counts
+        name: counts
+        description: Raw aggregated counts
         required: true
     obs:
       - type: string
@@ -45,10 +37,6 @@ info:
         name: n_genes
         description: Number of genes in the cell
         required: true
-      - type: string
-        name: volume
-        description: Volume of the cell
-        required: true
     var:
       - type: string
         name: gene_name
@@ -61,4 +49,9 @@ info:
       - type: string
         name: n_cells
         description: Number of cells expressing the gene
+        required: true
+    uns:
+      - type: string
+        name: dataset_id
+        description: A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived.
         required: true

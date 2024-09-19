@@ -9,10 +9,14 @@ description: |
 info:
   format:
     type: h5ad
-    layers: 
+    layers:
       - type: integer
         name: counts
         description: Raw counts
+        required: true
+      - type: integer
+        name: normalized
+        description: Normalized expression values
         required: true
     obs:
       - type: string
@@ -188,6 +192,40 @@ info:
         name: soma_joinid
         description: If the dataset was retrieved from CELLxGENE census, this is a unique identifier for the feature.
         required: false
+
+      - type: boolean
+        name: hvg
+        description: Whether or not the feature is considered to be a 'highly variable gene'
+        required: true
+
+      - type: double
+        name: hvg_score
+        description: A score for the feature indicating how highly variable it is.
+        required: true
+
+    obsp:
+      - type: double
+        name: knn_distances
+        description: K nearest neighbors distance matrix.
+        required: true
+
+      - type: double
+        name: knn_connectivities
+        description: K nearest neighbors connectivities matrix.
+        required: true
+
+    obsm:
+      - type: double
+        name: X_pca
+        description: The resulting PCA embedding.
+        required: true
+
+    varm:
+      - type: double
+        name: pca_loadings
+        description: The PCA loadings matrix.
+        required: true
+
     uns:
       - type: string
         name: dataset_id

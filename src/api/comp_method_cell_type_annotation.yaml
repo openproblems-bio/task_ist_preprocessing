@@ -1,22 +1,23 @@
 info:
-  type: celltype_annotation
+  type: method
+  subtype: method_cell_type_annotation
   type_info:
-    label: Cell type annotation
+    label: Cell Type Annotation
     summary: Annotating cell types in spatial data
     description: A cell type annotation method annotates cell types in spatial data.
 arguments:
-  - name: --input
+  - name: --input_spatial_normalized_counts
+    __merge__: file_spatial_normalized_counts.yaml
     required: true
     direction: input
-    __merge__: file_spatial_norm_counts.yaml
-  - name: --input_transcripts
-    __merge__: file_spatialdata_assigned.yaml
+  - name: --input_transcript_assignments
+    __merge__: file_transcript_assignments.yaml
     direction: input
     required: false
-  - name: --input_sc
+  - name: --input_scrnaseq_reference
     required: false
     direction: input
-    __merge__: file_singlecell.yaml
+    __merge__: file_scrnaseq_reference.yaml
   - name: --celltype_key
     required: false
     direction: input
@@ -25,7 +26,7 @@ arguments:
   - name: --output
     required: true
     direction: output
-    __merge__: file_spatial_with_celltypes.yaml
+    __merge__: file_spatial_with_cell_types.yaml
 # test_resources:
 #   - path: /resources_test/common/pancreas
 #     dest: resources_test/common/pancreas

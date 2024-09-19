@@ -1,0 +1,15 @@
+type: file
+example: "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_corrected_counts.h5ad"
+label: Spatial Corrected
+summary: Corrected spatial data counts with cell type annotations
+description: |
+  This file contains the corrected counts of the spatial transcriptomics data and cell type annotations.
+__merge__: file_spatial_with_cell_types.yaml
+info:
+  format:
+    type: h5ad
+    layers: 
+      - type: integer
+        name: normalized_corrected
+        description: Corrected normalized expression
+        required: false

@@ -1,16 +1,24 @@
 type: file
-example: "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad" #TODO: add correct example
-label: "Spatial Raw Counts"
-summary: Unprocessed raw counts after aggregation of transcripts to cells
+example: "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_with_cell_types.h5ad"
+label: "Spatial with Cell Types"
+summary: Normalized counts with cell type annotations
 description: |
-  This file contains the raw counts after aggregating transcripts to cells.
+  This file contains the normalized counts of the spatial transcriptomics data and cell type annotations.
 info:
   format:
     type: h5ad
     layers: 
       - type: integer
-        name: raw
+        name: counts
         description: Raw counts
+        required: true
+      - type: integer
+        name: normalized
+        description: Normalized counts
+        required: true
+      - type: integer
+        name: lognorm
+        description: Log normalized counts
         required: true
     obs:
       - type: string
@@ -36,6 +44,14 @@ info:
       - type: string
         name: n_genes
         description: Number of genes in the cell
+        required: true
+      - type: string
+        name: volume
+        description: Volume of the cell
+        required: true
+      - type: string
+        name: cell_type
+        description: Cell type of the cell
         required: true
     var:
       - type: string

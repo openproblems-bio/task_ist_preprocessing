@@ -1,0 +1,14 @@
+type: file
+example: "resources_test/task_ist_preprocessing/mouse_brain_combined/segmentation.zarr"
+label: Segmentation
+summary: A segmentation of a spatial transcriptomics dataset
+description: |
+  This dataset contains a segmentation of the spatial transcriptomics data.
+info:
+  format:
+    type: spatialdata_zarr
+    labels:
+      - type: object
+        name: "segmentation"
+        description: Segmentation of the data
+        required: true

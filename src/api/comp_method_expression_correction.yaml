@@ -1,5 +1,6 @@
 info:
-  type: expr_correction
+  type: method
+  subtype: method_expression_correction
   type_info:
     label: Expression correction
     summary: Correcting expression levels in spatial data
@@ -8,15 +9,15 @@ arguments:
   - name: --input
     required: true
     direction: input
-    __merge__: /src/api/file_spatial_with_celltypes.yaml
+    __merge__: /src/api/file_spatial_with_cell_types.yaml
   - name: --input_sc
     required: false
     direction: input
-    __merge__: /src/api/file_singlecell.yaml
+    __merge__: /src/api/file_scrnaseq_reference.yaml
   - name: --output
     required: true
     direction: output
-    __merge__: /src/api/file_spatial_corrected.yaml
+    __merge__: /src/api/file_spatial_corrected_counts.yaml
 # test_resources:
 #   - path: /resources_test/common/pancreas
 #     dest: resources_test/common/pancreas

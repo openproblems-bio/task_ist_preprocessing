@@ -1,5 +1,6 @@
 info:
-  type: assignment
+  type: method
+  subtype: method_transcript_assignment
   type_info:
     label: Assignment
     summary: Assigning transcripts to cells
@@ -8,17 +9,17 @@ arguments:
   - name: "--input"
     required: true
     direction: input
-    __merge__: file_spatialdata.yaml
+    __merge__: file_raw_ist.yaml
   - name: "--segmentation_input"
     required: false
     direction: input
-    __merge__: file_spatialdata_segmented.yaml
+    __merge__: file_segmentation.yaml
   - name: "--input_sc"
     required: false
     direction: input
-    __merge__: file_singlecell.yaml
+    __merge__: file_scrnaseq_reference.yaml
   - name: "--output"
-    __merge__: file_spatialdata_assigned.yaml
+    __merge__: file_transcript_assignments.yaml
     direction: output
     required: true
 # test_resources:
@@ -26,6 +27,3 @@ arguments:
 #     dest: resources_test/common/pancreas
 #   - type: python_script
 #     path: /common/component_tests/run_and_check_output.py
-
-
-  

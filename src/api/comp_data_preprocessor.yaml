@@ -8,19 +8,19 @@ info:
       dataset for the benchmark.
 arguments:
   - name: "--input_sp"
-    __merge__: file_common_spatialdata.yaml
+    __merge__: file_common_ist.yaml
     direction: input
     required: true
   - name: "--input_sc"
-    __merge__: file_common_singlecell.yaml
+    __merge__: file_common_scrnaseq.yaml
     direction: input
     required: true
   - name: "--output_sp"
-    __merge__: file_spatialdata.yaml
+    __merge__: file_raw_ist.yaml
     direction: output
     required: true
   - name: "--output_sc"
-    __merge__: file_singlecell.yaml
+    __merge__: file_scrnaseq_reference.yaml
     direction: output
     required: true
 # test_resources:

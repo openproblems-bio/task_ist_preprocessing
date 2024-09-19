@@ -1,0 +1,15 @@
+type: file
+example: "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_normalized_counts.h5ad"
+label: Spatial Normalized
+summary: Normalized counts
+description: |
+  This file contains the normalized counts of the spatial transcriptomics data.
+__merge__: file_spatial_aggregated_counts.yaml
+info:
+  format:
+    type: h5ad
+    layers: 
+      - type: integer
+        name: normalized
+        description: Normalized expression values
+        required: true
