@@ -14,3 +14,10 @@ arguments:
     __merge__: file_cell_volumes.yaml
     direction: output
     required: true
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py

@@ -27,11 +27,10 @@ arguments:
     required: true
     direction: output
     __merge__: file_spatial_with_cell_types.yaml
-# test_resources:
-#   - path: /resources_test/common/pancreas
-#     dest: resources_test/common/pancreas
-#   - type: python_script
-#     path: /common/component_tests/run_and_check_output.py
-
-
-
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py

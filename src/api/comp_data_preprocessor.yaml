@@ -23,8 +23,8 @@ arguments:
     __merge__: file_scrnaseq_reference.yaml
     direction: output
     required: true
-# test_resources:
-#   - path: /resources_test/common/pancreas
-#     dest: resources_test/common/pancreas
-#   - type: python_script
-#     path: /common/component_tests/run_and_check_output.py
+test_resources:
+  - path: /resources_test/common
+    dest: resources_test/common
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
