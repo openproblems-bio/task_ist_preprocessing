@@ -12,3 +12,26 @@ info:
         name: "segmentation"
         description: Segmentation of the data
         required: true
+    tables:
+      - type: anndata
+        name: table
+        description: AnnData table
+        required: true
+        obs:
+          - type: string
+            name: cell_id
+            description: Cell ID
+            required: true
+          - type: string
+            name: region
+            description: Region
+            required: true
+        uns:
+          - type: string
+            name: dataset_id
+            description: Dataset ID
+            required: true
+          - type: string
+            name: method_id_segmentation
+            description: Method ID for segmentation
+            required: true

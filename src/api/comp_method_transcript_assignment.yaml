@@ -6,15 +6,15 @@ info:
     summary: Assigning transcripts to cells
     description: An assignment method assigns transcripts to cells based on the spatial data and the cell segmentation.
 arguments:
-  - name: "--input"
+  - name: "--input_ist"
     required: true
     direction: input
     __merge__: file_raw_ist.yaml
-  - name: "--segmentation_input"
+  - name: "--input_segmentation"
     required: false
     direction: input
     __merge__: file_segmentation.yaml
-  - name: "--input_sc"
+  - name: "--input_scrnaseq"
     required: false
     direction: input
     __merge__: file_scrnaseq_reference.yaml

@@ -141,10 +141,6 @@ info:
             required: true
             description: The organism of the sample in the dataset
           - type: string
-            name: replicate_id
-            required: true
-            description: A unique identifier for the replicate
-          - type: string
             name: segmentation_id
             required: true
             multiple: true

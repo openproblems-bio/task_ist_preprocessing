@@ -9,7 +9,6 @@ import tempfile
 ## VIASH START
 par = {
     "input": "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs",
-    "replicate_id": "rep1",
     "segmentation_id": [
         "cell",
         "nucleus",
@@ -58,7 +57,6 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         "dataset_summary": par["dataset_summary"],
         "dataset_description": par["dataset_description"],
         "dataset_organism": par["dataset_organism"],
-        "replicate_id": par["replicate_id"],
         "segmentation_id": par["segmentation_id"],
     }
     for key, value in new_uns.items():
