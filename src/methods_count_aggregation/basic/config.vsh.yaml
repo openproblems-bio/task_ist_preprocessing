@@ -3,6 +3,21 @@ namespace: count_aggregation
 
 __merge__: /src/api/comp_method_count_aggregation.yaml
 
+label: Basic
+summary: Compute the count aggregation of the input data.
+description: >
+  This method computes the count aggregation of the input data.
+
+links:
+  documentation: ...
+  repository: ...
+
+references:
+  doi: ...
+
+info:
+  preferred_normalization: counts
+
 resources:
   - type: python_script
     path: script.py

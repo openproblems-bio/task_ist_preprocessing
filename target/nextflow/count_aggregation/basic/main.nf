@@ -3005,6 +3005,9 @@ meta = [
       "is_executable" : true
     }
   ],
+  "label" : "Basic",
+  "summary" : "Compute the count aggregation of the input data.",
+  "description" : "This method computes the count aggregation of the input data.\n",
   "test_resources" : [
     {
       "type" : "file",
@@ -3023,6 +3026,7 @@ meta = [
     }
   ],
   "info" : {
+    "preferred_normalization" : "counts",
     "type" : "method",
     "subtype" : "method_count_aggregation",
     "type_info" : {
@@ -3048,9 +3052,15 @@ meta = [
     }
   ],
   "license" : "MIT",
+  "references" : {
+    "doi" : [
+      "..."
+    ]
+  },
   "links" : {
-    "repository" : "https://github.com/openproblems-bio/task_ist_preprocessing",
-    "docker_registry" : "ghcr.io"
+    "repository" : "...",
+    "docker_registry" : "ghcr.io",
+    "documentation" : "..."
   },
   "runners" : [
     {
@@ -3121,7 +3131,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/count_aggregation/basic",
     "viash_version" : "0.9.0",
-    "git_commit" : "4aa8dd15c0bca6fd7f1c2ed640b698d0ec9ee973",
+    "git_commit" : "5a0be2c4cc5102e958660f53df7036edd038bdd9",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

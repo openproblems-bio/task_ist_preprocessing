@@ -136,6 +136,9 @@ resources:
 - type: "python_script"
   path: "script.py"
   is_executable: true
+label: "Basic"
+summary: "Compute the count aggregation of the input data."
+description: "This method computes the count aggregation of the input data.\n"
 test_resources:
 - type: "file"
   path: "resources_test/task_ist_preprocessing/mouse_brain_combined"
@@ -147,6 +150,7 @@ test_resources:
   path: "check_config.py"
   is_executable: true
 info:
+  preferred_normalization: "counts"
   type: "method"
   subtype: "method_count_aggregation"
   type_info:
@@ -166,9 +170,13 @@ repositories:
   tag: "build/main"
   path: "viash/core"
 license: "MIT"
+references:
+  doi:
+  - "..."
 links:
-  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "..."
   docker_registry: "ghcr.io"
+  documentation: "..."
 runners:
 - type: "executable"
   id: "executable"
@@ -222,7 +230,7 @@ build_info:
   output: "target/nextflow/count_aggregation/basic"
   executable: "target/nextflow/count_aggregation/basic/main.nf"
   viash_version: "0.9.0"
-  git_commit: "4aa8dd15c0bca6fd7f1c2ed640b698d0ec9ee973"
+  git_commit: "5a0be2c4cc5102e958660f53df7036edd038bdd9"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"
