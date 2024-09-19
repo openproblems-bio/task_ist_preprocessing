@@ -1,7 +1,6 @@
 name: ssam
-namespace: celltype_annotation_methods
 
-__merge__: /src/api/comp_celltype_annotation_method.yaml
+__merge__: /src/api/comp_method_cell_type_annotation.yaml
 
 arguments:
   - name: --um_per_pixel # TODO: Should be able to infer this from transcripts

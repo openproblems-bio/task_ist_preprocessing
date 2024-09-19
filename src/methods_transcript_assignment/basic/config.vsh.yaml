@@ -1,7 +1,6 @@
 name: basic
-namespace: assignment_methods
 
-__merge__: /src/api/comp_assignment_method.yaml
+__merge__: /src/api/comp_method_transcript_assignment.yaml
 
 arguments:
   - name: --transcripts_key

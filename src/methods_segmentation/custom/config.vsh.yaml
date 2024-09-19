@@ -1,14 +1,12 @@
-name: gene_efficiency_correction
-namespace: expr_correction_methods
+name: custom
 
-__merge__: /src/api/comp_expr_correction_method.yaml
+__merge__: /src/api/comp_method_segmentation.yaml
 
 arguments:
-  - name: --celltype_key
-    required: false
-    direction: input
+  - name: --labels_key
     type: string
-    default: cell_type
+    description: The key of the segmentation within the labels of the spatial data
+    required: true
 
 resources:
   - type: python_script
@@ -19,7 +17,7 @@ engines:
     image: openproblems/base_python:1.0.0
     setup:
       - type: python
-        github: [theislab/txsim@dev]
+        pypi: spatialdata
   - type: native
 
 runners:

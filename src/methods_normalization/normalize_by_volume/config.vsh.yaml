@@ -1,7 +1,6 @@
-name: basic
-namespace: count_aggregation
+name: normalize_by_volume
 
-__merge__: /src/api/comp_count_aggregation.yaml
+__merge__: /src/api/comp_method_normalization.yaml
 
 resources:
   - type: python_script
@@ -12,7 +11,6 @@ engines:
     image: openproblems/base_python:1.0.0
     setup:
       - type: python
-        pypi: [spatialdata, squidpy, rasterio]
         github: [theislab/txsim@dev]
   - type: native
 

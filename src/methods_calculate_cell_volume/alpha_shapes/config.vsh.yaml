@@ -1,7 +1,6 @@
 name: alpha_shapes
-namespace: cell_volume_methods
 
-__merge__: /src/api/comp_cell_volume_method.yaml
+__merge__: /src/api/comp_method_calculate_cell_volume.yaml
 
 arguments:
   - name: --alpha
@@ -19,7 +18,7 @@ engines:
     image: openproblems/base_python:1.0.0
     setup:
       - type: python
-        pypi: [spatialdata, alphashape, descartes]
+        pypi: [spatialdata, alphashape, descartes, squidpy, rasterio]
         github: [theislab/txsim@dev]
   - type: native
 

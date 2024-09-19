@@ -20,8 +20,8 @@ assert par['input_sc'] is not None, 'Single cell input is required for this expr
     
 # Read input
 print('Reading input files', flush=True)
-adata_sp = ad.read_h5ad(par['input'])
-adata_sc = ad.read_h5ad(par['input_sc'])
+adata_sp = ad.read_h5ad(par['input_spatial_with_cell_types'])
+adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
 adata_sp.layers["lognorm_uncorrected"] = adata_sp.layers["lognorm"]
 adata_sp_reduced = adata_sp[:,adata_sc.var_names].copy()
 obs_sp = adata_sp.obs.copy()
