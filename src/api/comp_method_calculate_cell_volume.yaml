@@ -7,7 +7,7 @@ info:
     description: Calculate the volume of cells based on the transcripts that are assigned to them.
 arguments:
   - name: "--input"
-    __merge__: file_segmentation.yaml
+    __merge__: file_transcript_assignments.yaml
     direction: input
     required: true
   - name: "--output"

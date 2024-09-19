@@ -37,3 +37,17 @@ info:
             name: transcript_id
             required: true
             description: Unique identifier of the transcript
+    tables:
+      - type: anndata
+        name: table
+        description: AnnData table
+        required: true
+        obs:
+          - type: string
+            name: cell_id
+            description: Cell ID
+            required: true
+          - type: string
+            name: region
+            description: Region
+            required: true

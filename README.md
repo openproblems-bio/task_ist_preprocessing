@@ -71,8 +71,8 @@ flowchart LR
   comp_method_cell_type_annotation-->file_spatial_with_cell_types
   comp_method_expression_correction-->file_spatial_corrected_counts
   file_segmentation---comp_method_transcript_assignment
-  file_segmentation---comp_method_calculate_cell_volume
   file_transcript_assignments---comp_method_cell_type_annotation
+  file_transcript_assignments---comp_method_calculate_cell_volume
   file_transcript_assignments---comp_method_count_aggregation
   file_spatial_with_cell_types---comp_method_expression_correction
   comp_method_calculate_cell_volume-->file_cell_volumes
@@ -118,10 +118,10 @@ Arguments:
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `--input_sp` | `file` | An unprocessed spatial imaging dataset stored as a zarr file. |
-| `--input_sc` | `file` | An unprocessed dataset as output by a dataset loader. |
-| `--output_sp` | `file` | (*Output*) A spatial transcriptomics dataset, preprocessed for this benchmark. |
-| `--output_sc` | `file` | (*Output*) A single-cell reference dataset, preprocessed for this benchmark. |
+| `--input_ist` | `file` | An unprocessed spatial imaging dataset stored as a zarr file. |
+| `--input_scrnaseq` | `file` | An unprocessed dataset as output by a dataset loader. |
+| `--output_ist` | `file` | (*Output*) A spatial transcriptomics dataset, preprocessed for this benchmark. |
+| `--output_scrnaseq` | `file` | (*Output*) A single-cell reference dataset, preprocessed for this benchmark. |
 
 </div>
 
@@ -255,9 +255,9 @@ Arguments:
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `--input` | `file` | A spatial transcriptomics dataset, preprocessed for this benchmark. |
-| `--segmentation_input` | `file` | (*Optional*) A segmentation of a spatial transcriptomics dataset. |
-| `--input_sc` | `file` | (*Optional*) A single-cell reference dataset, preprocessed for this benchmark. |
+| `--input_ist` | `file` | A spatial transcriptomics dataset, preprocessed for this benchmark. |
+| `--input_segmentation` | `file` | (*Optional*) A segmentation of a spatial transcriptomics dataset. |
+| `--input_scrnaseq` | `file` | (*Optional*) A single-cell reference dataset, preprocessed for this benchmark. |
 | `--output` | `file` | (*Output*) A spatial transcriptomics dataset with assigned transcripts. |
 
 </div>
@@ -290,8 +290,8 @@ Arguments:
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `--input` | `file` | Normalized counts with cell type annotations. |
-| `--input_sc` | `file` | (*Optional*) A single-cell reference dataset, preprocessed for this benchmark. |
+| `--input_spatial_with_cell_types` | `file` | Normalized counts with cell type annotations. |
+| `--input_scrnaseq_reference` | `file` | (*Optional*) A single-cell reference dataset, preprocessed for this benchmark. |
 | `--output` | `file` | (*Output*) Corrected spatial data counts with cell type annotations. |
 
 </div>
@@ -447,7 +447,7 @@ Arguments:
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `--input` | `file` | A segmentation of a spatial transcriptomics dataset. |
+| `--input` | `file` | A spatial transcriptomics dataset with assigned transcripts. |
 | `--output` | `file` | (*Output*) An obs column of cell volumes calculated from spatial transcriptomics data. |
 
 </div>

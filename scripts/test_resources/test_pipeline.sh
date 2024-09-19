@@ -1,56 +1,55 @@
 #!/bin/bash
 
-SP_DIR=resources_test/common/2023_10x_mouse_brain_xenium_rep1
-SC_DIR=resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2
+set -e
+
 OUT_DIR="resources_test/task_ist_preprocessing/mouse_brain_combined"
 
+# run dataset preprocessor
 viash run src/data_processors/process_dataset/config.vsh.yaml -- \
-  --input_sc resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad \
-  --input_sp resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr \
-  --output_sc $OUT_DIR/sc_normalised.h5ad \
-  --output_sp $OUT_DIR/spatial_processed.zarr
+  --input_scrnaseq resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad \
+  --input_ist resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr \
+  --output_scrnaseq $OUT_DIR/scrnaseq_reference.h5ad \
+  --output_ist $OUT_DIR/raw_ist.zarr
 
-viash run src/segmentation_methods/custom/config.vsh.yaml -- \
-  --input $OUT_DIR/spatial_processed.zarr \
-  --labels_key rep1_cell \
-  --output $OUT_DIR/label_image.zarr
+# run a segmentation method
+viash run src/methods_segmentation/custom/config.vsh.yaml -- \
+  --input $OUT_DIR/raw_ist.zarr \
+  --labels_key cell_labels \
+  --output $OUT_DIR/segmentation.zarr
 
-viash run src/assignment_methods/basic/config.vsh.yaml -- \
-  --input $OUT_DIR/spatial_processed.zarr \
-  --transcripts_key rep1_transcripts \
-  --segmentation_input $OUT_DIR/label_image.zarr \
-  --coordinate_system rep1_global \
-  --output $OUT_DIR/assigned_transcripts.zarr
+# run an assignment method
+viash run src/methods_transcript_assignment/basic/config.vsh.yaml -- \
+  --input_ist $OUT_DIR/raw_ist.zarr \
+  --input_segmentation $OUT_DIR/segmentation.zarr \
+  --transcripts_key transcripts \
+  --coordinate_system global \
+  --output $OUT_DIR/transcript_assignments.zarr
 
-viash run src/cell_volume_methods/alpha_shapes/config.vsh.yaml -- \
-  --input $OUT_DIR/assigned_transcripts.zarr \
+# run a count aggregation method
+viash run src/methods_count_aggregation/basic/config.vsh.yaml -- \
+  --input $OUT_DIR/transcript_assignments.zarr \
+  --output $OUT_DIR/spatial_aggregated_counts.h5ad
+
+# run a cell volume method
+viash run src/methods_calculate_cell_volume/alpha_shapes/config.vsh.yaml -- \
+  --input $OUT_DIR/transcript_assignments.zarr \
   --output $OUT_DIR/cell_volumes.h5ad
 
-viash run src/count_aggregation/basic/config.vsh.yaml -- \
-  --input $OUT_DIR/assigned_transcripts.zarr \
-  --output $OUT_DIR/raw_counts.h5ad
+# run a normalization method
+viash run src/methods_normalization/normalize_by_volume/config.vsh.yaml -- \
+  --input_spatial_aggregated_counts $OUT_DIR/spatial_aggregated_counts.h5ad \
+  --input_cell_volumes $OUT_DIR/cell_volumes.h5ad \
+  --output $OUT_DIR/spatial_normalized_counts.h5ad
 
-viash run src/normalisation_methods/normalise_by_volume/config.vsh.yaml -- \
-  --input $OUT_DIR/raw_counts.h5ad \
-  --input_volume $OUT_DIR/cell_volumes.h5ad \
-  --output $OUT_DIR/norm_counts.h5ad
+# run a cell type annotation method
+viash run src/methods_cell_type_annotation/ssam/config.vsh.yaml -- \
+  --input_spatial_normalized_counts $OUT_DIR/spatial_normalized_counts.h5ad \
+  --input_transcripts $OUT_DIR/transcript_assignments.zarr \
+  --input_scrnaseq_reference $OUT_DIR/scrnaseq_reference.h5ad \
+  --output $OUT_DIR/spatial_with_cell_types.h5ad
 
-viash run src/celltype_annotation_methods/ssam/config.vsh.yaml -- \ 
-    --input $OUT_DIR/norm_counts.h5ad \ 
-    --input_transcripts $OUT_DIR/assigned_transcripts.zarr \ 
-    --input_sc $OUT_DIR/sc_normalised.h5ad \ 
-    --output $OUT_DIR/spatial_with_celltypes.h5ad
-
-viash run src/expr_correction_methods/gene_efficiency_correction/config.vsh.yaml -- \ 
-    --input $OUT_DIR/spatial_with_celltypes.h5ad \ 
-    --input_sc $OUT_DIRsc_normalised.h5ad \ 
-    --output $OUT_DIR/spatial_corrected.h5ad
-
-# target/executable/segmentation_methods/custom/custom ---engine native --input resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr --labels_key rep1_cell --output $OUT_DIR/label_image.zarr
-# target/executable/assignment_methods/basic/basic ---engine native --input resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr --transcripts_key rep1_transcripts --segmentation_input $OUT_DIR/label_image.zarr --coordinate_system rep1_global --output $OUT_DIR/assigned_transcripts.zarr
-# target/executable/cell_volume_methods/alpha_shapes/alpha_shapes ---engine native --input $OUT_DIR/assigned_transcripts.zarr --output $OUT_DIR/cell_volumes.h5ad
-# target/executable/count_aggregation/basic/basic ---engine native --input $OUT_DIR/assigned_transcripts.zarr --output $OUT_DIR/raw_counts.h5ad
-# target/executable/normalisation_methods/normalise_by_volume/normalise_by_volume ---engine native --input $OUT_DIR/raw_counts.h5ad --input_volume $OUT_DIR/cell_volumes.h5ad --output $OUT_DIR/norm_counts.h5ad
-# target/executable/data_processors/process_dataset/process_dataset ---engine native --input_sc resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad --input_sp resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr --output_sc $OUT_DIR/sc_normalised.h5ad --output_sp $OUT_DIR/spatial_processed.zarr
-# target/executable/celltype_annotation_methods/ssam/ssam ---engine native --input $OUT_DIR/norm_counts.h5ad --input_transcripts $OUT_DIR/assigned_transcripts.zarr --input_sc $OUT_DIR/sc_normalised.h5ad --output $OUT_DIR/spatial_with_celltypes.h5ad
-# target/executable/expr_correction_methods/gene_efficiency_correction/gene_efficiency_correction ---engine native --input $OUT_DIR/spatial_with_celltypes.h5ad --input_sc $OUT_DIR/sc_normalised.h5ad --output $OUT_DIR/spatial_corrected.h5ad
+# run a gene efficiency correction method
+viash run src/methods_expression_correction/gene_efficiency_correction/config.vsh.yaml -- \
+  --input_spatial_with_cell_types $OUT_DIR/spatial_with_cell_types.h5ad \
+  --input_scrnaseq_reference $OUT_DIR/scrnaseq_reference.h5ad \
+  --output $OUT_DIR/spatial_corrected_counts.h5ad

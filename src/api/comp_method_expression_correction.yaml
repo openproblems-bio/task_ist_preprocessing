@@ -6,11 +6,11 @@ info:
     summary: Correcting expression levels in spatial data
     description: An expression correction method corrects expression levels in spatial data.
 arguments:
-  - name: --input
+  - name: --input_spatial_with_cell_types
     required: true
     direction: input
     __merge__: /src/api/file_spatial_with_cell_types.yaml
-  - name: --input_sc
+  - name: --input_scrnaseq_reference
     required: false
     direction: input
     __merge__: /src/api/file_scrnaseq_reference.yaml
