@@ -33,11 +33,11 @@ info:
   image: The name of the image file to use for the component on the website.
   test_resources:
     - type: s3
-      path: s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium_rep1
-      dest: resources_test/common/2023_10x_mouse_brain_xenium_rep1
+      path: s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium_rep1/
+      dest: resources_test/common/2023_10x_mouse_brain_xenium_rep1/
     - type: s3
-      path: s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2
-      dest: resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2
+      path: s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/
+      dest: resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/
     - type: s3
       path: s3://openproblems-data/resources_test/task_ist_preprocessing/
       dest: resources_test/task_ist_preprocessing
