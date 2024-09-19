@@ -63,21 +63,21 @@ flowchart LR
   comp_data_preprocessor-->file_scrnaseq_reference
   file_raw_ist---comp_method_segmentation
   file_raw_ist---comp_method_transcript_assignment
-  file_scrnaseq_reference---comp_method_transcript_assignment
-  file_scrnaseq_reference---comp_method_cell_type_annotation
-  file_scrnaseq_reference---comp_method_expression_correction
+  file_scrnaseq_reference-.-comp_method_transcript_assignment
+  file_scrnaseq_reference-.-comp_method_cell_type_annotation
+  file_scrnaseq_reference-.-comp_method_expression_correction
   comp_method_segmentation-->file_segmentation
   comp_method_transcript_assignment-->file_transcript_assignments
   comp_method_cell_type_annotation-->file_spatial_with_cell_types
   comp_method_expression_correction-->file_spatial_corrected_counts
-  file_segmentation---comp_method_transcript_assignment
-  file_transcript_assignments---comp_method_cell_type_annotation
+  file_segmentation-.-comp_method_transcript_assignment
+  file_transcript_assignments-.-comp_method_cell_type_annotation
   file_transcript_assignments---comp_method_calculate_cell_volume
   file_transcript_assignments---comp_method_count_aggregation
   file_spatial_with_cell_types---comp_method_expression_correction
   comp_method_calculate_cell_volume-->file_cell_volumes
   comp_method_count_aggregation-->file_spatial_aggregated_counts
-  file_cell_volumes---comp_method_normalization
+  file_cell_volumes-.-comp_method_normalization
   file_spatial_aggregated_counts---comp_method_normalization
   comp_method_normalization-->file_spatial_normalized_counts
   file_spatial_normalized_counts---comp_method_cell_type_annotation
