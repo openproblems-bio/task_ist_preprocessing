@@ -29,7 +29,6 @@ engines:
     setup:
       - type: python
         pypi: [spatialdata]
-        github: [theislab/txsim@dev]
   - type: native
 
 runners:

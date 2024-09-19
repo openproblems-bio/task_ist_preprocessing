@@ -39,14 +39,15 @@ output_dataset: '\$id/dataset.zarr'
 output_state: '\$id/state.yaml'
 HERE
 
-# convert to zarr and concatenate
+# convert to zarr
 nextflow run . \
   -main-script target/nextflow/datasets/workflows/process_tenx_xenium/main.nf \
   -profile docker \
   -resume \
   -params-file /tmp/params.yaml
 
+# sync to s3
 aws s3 sync --profile op \
-  "resources_test/common/2023_10x_mouse_brain_xenium" \
-  "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium" \
+  "resources_test/common/2023_10x_mouse_brain_xenium_rep1" \
+  "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium_rep1" \
   --delete --dryrun
