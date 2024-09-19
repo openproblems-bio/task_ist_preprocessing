@@ -4,9 +4,9 @@ import txsim as tx
 
 ## VIASH START
 par = {
-  'input_spatial_normalized_counts': 'spatial_norm_counts.h5ad',
-  'input_transcript_assignments': 'spatial_assigned.zarr',
-  'input_scrnaseq_reference': 'sc_norm_counts.h5ad',
+  'input_spatial_normalized_counts': 'resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_normalized_counts.h5ad',
+  'input_transcript_assignments': 'resources_test/task_ist_preprocessing/mouse_brain_combined/transcript_assignments.zarr',
+  'input_scrnaseq_reference': 'resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad',
   'um_per_pixel': 0.5,
   'output': 'spatial_with_celltypes.h5ad',
   'celltype_key': 'celltype',
@@ -25,6 +25,7 @@ print('Reading input files', flush=True)
 adata_sp = ad.read_h5ad(par['input_spatial_normalized_counts'])
 transcripts = sd.SpatialData.read(par['input_transcript_assignments'])['transcripts']
 adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
+adata_sc.X = adata_sc.layers["normalized"]
 adata_sp = adata_sp[:,adata_sc.var_names] #TODO: do we want to do this earlier? Maybe not, thinking about transcripts related quality metrics
 
 # Annotate cell types
