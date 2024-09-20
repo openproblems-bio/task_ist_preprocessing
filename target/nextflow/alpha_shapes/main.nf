@@ -3044,14 +3044,28 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "spatialdata",
-            "alphashape",
-            "descartes",
             "squidpy",
             "rasterio"
           ],
           "github" : [
             "theislab/txsim@dev"
+          ],
+          "upgrade" : true
+        },
+        {
+          "type" : "python",
+          "user" : false,
+          "pypi" : [
+            "spatialdata"
+          ],
+          "upgrade" : true
+        },
+        {
+          "type" : "python",
+          "user" : false,
+          "pypi" : [
+            "alphashape",
+            "descartes"
           ],
           "upgrade" : true
         }
@@ -3068,7 +3082,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/alpha_shapes",
     "viash_version" : "0.9.0",
-    "git_commit" : "5a0be2c4cc5102e958660f53df7036edd038bdd9",
+    "git_commit" : "9974e3fe8efd23d11b166f7d68e5a82b6a551fcb",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

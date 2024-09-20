@@ -467,13 +467,16 @@ function ViashDockerfile {
 FROM openproblems/base_python:1.0.0
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata" "squidpy" "rasterio" && \
+  pip install --upgrade --no-cache-dir "squidpy" "rasterio" && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
+RUN pip install --upgrade pip && \
+  pip install --upgrade --no-cache-dir "spatialdata"
+
 LABEL org.opencontainers.image.description="Companion container for running component count_aggregation basic"
-LABEL org.opencontainers.image.created="2024-09-19T21:03:36Z"
+LABEL org.opencontainers.image.created="2024-09-20T12:12:31Z"
 LABEL org.opencontainers.image.source="..."
-LABEL org.opencontainers.image.revision="5a0be2c4cc5102e958660f53df7036edd038bdd9"
+LABEL org.opencontainers.image.revision="9974e3fe8efd23d11b166f7d68e5a82b6a551fcb"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

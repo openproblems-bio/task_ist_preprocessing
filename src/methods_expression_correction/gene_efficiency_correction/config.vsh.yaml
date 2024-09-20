@@ -16,9 +16,8 @@ resources:
 engines:
   - type: docker
     image: openproblems/base_python:1.0.0
-    setup:
-      - type: python
-        github: [theislab/txsim@dev]
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
   - type: native
 
 runners:

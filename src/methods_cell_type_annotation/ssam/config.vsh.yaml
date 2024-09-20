@@ -16,11 +16,9 @@ resources:
 engines:
   - type: docker
     image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
     setup:
-      - type: python
-        github: [theislab/txsim@dev]
-      - type: python
-        pypi: [squidpy, rasterio]
       - type: python
         pypi: [planktonspace]
   - type: native
