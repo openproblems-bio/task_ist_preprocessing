@@ -1,0 +1,23 @@
+info:
+  type: method
+  subtype: method_qc_filter
+  type_info:
+    label: QC Filter
+    summary: Filtering cells based on QC metrics
+    description: A QC filter method filters cells based on QC metrics.
+arguments:
+  - name: --input
+    required: true
+    direction: input
+    __merge__: file_spatial_aggregated_counts.yaml
+  - name: --output
+    required: true
+    direction: output
+    __merge__: /src/api/file_spatial_qc_col.yaml
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py
