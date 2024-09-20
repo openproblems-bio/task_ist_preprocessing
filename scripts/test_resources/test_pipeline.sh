@@ -4,6 +4,10 @@ set -e
 
 OUT_DIR="resources_test/task_ist_preprocessing/mouse_brain_combined"
 
+rm -rf $OUT_DIR
+mkdir -p $OUT_DIR
+
+
 # run dataset preprocessor
 viash run src/data_processors/process_dataset/config.vsh.yaml -- \
   --input_scrnaseq resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad \
