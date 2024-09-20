@@ -16,10 +16,12 @@ resources:
 engines:
   - type: docker
     image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+      - /src/base/setup_spatialdata_partial.yaml
     setup:
       - type: python
-        pypi: [spatialdata, alphashape, descartes, squidpy, rasterio]
-        github: [theislab/txsim@dev]
+        pypi: [alphashape, descartes]
   - type: native
 
 runners:

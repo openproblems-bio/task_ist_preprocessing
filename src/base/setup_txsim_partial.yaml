@@ -1,0 +1,4 @@
+setup:
+  - type: python
+    pypi: [squidpy, rasterio]
+    github: [theislab/txsim@dev]
