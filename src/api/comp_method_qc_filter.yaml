@@ -6,7 +6,7 @@ info:
     summary: Filtering cells based on QC metrics
     description: A QC filter method filters cells based on QC metrics.
 arguments:
-  - name: --input_spatial_raw
+  - name: --input
     required: true
     direction: input
     __merge__: file_spatial_aggregated_counts.yaml

@@ -6,7 +6,7 @@ arguments:
   - name: --min_counts
     required: false
     direction: input
-    type: int
+    type: integer
     default: 10
   - name: --min_cell_percentage
     required: false

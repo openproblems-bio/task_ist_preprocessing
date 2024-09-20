@@ -14,9 +14,6 @@ meta = {
   'name': 'basic_qc_filter',
 }
 ## VIASH END
-
-# Optional parameter check: For this specific correction method the par['input_sc'] is required
-assert par['input_sc'] is not None, 'Single cell input is required for this expr correction method.'
     
 # Read input
 print('Reading input files', flush=True)
