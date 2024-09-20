@@ -1,0 +1,69 @@
+# The API specifies which type of component this is.
+# It contains specifications for:
+#   - The input/output files
+#   - Common parameters
+#   - A unit test
+
+__merge__: ../../api/comp_metric_similarity.yaml
+
+
+# A unique identifier for your component (required).
+# Can contain only lowercase letters or underscores.
+name: similarity_metrics
+
+# Metadata for your component
+info:
+  metrics:
+    # A unique identifier for your metric (required).
+    # Can contain only lowercase letters or underscores.
+    - name: negative_marker_purity_reads
+      # A relatively short label, used when rendering visualisarions (required)
+      label: Negative Marker Purity (Reads)
+      # A one sentence summary of how this metric works (required). Used when 
+      # rendering summary tables.
+      summary: "The percentage of negative marker reads assigned to the correct cell types."
+      # A multi-line description of how this component works (required). Used
+      # when rendering reference documentation.
+      description: |
+        The percentage of negative marker reads assigned to the correct cell types.
+      # A reference key from the bibtex library at src/common/library.bib (required).
+      references:
+        doi: None
+      # The minimum possible value for this metric (required)
+      min: 0
+      # The maximum possible value for this metric (required)
+      max: 1
+      # Whether a higher value represents a 'better' solution (required)
+      maximize: true
+
+# Component-specific parameters (optional)
+# arguments:
+#   - name: "--n_neighbors"
+#     type: "integer"
+#     default: 5
+#     description: Number of neighbors to use.
+
+# Resources required to run the component
+resources:
+  # The script of your component (required)
+  - type: python_script
+    path: script.py
+  # Additional resources your script needs (optional)
+  # - type: file
+  #   path: weights.pt
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+      - /src/base/setup_spatialdata_partial.yaml
+  - type: native
+
+runners:
+  # This platform allows running the component natively
+  - type: executable
+  # Allows turning the component into a Nextflow module / pipeline.
+  - type: nextflow
+    directives:
+      label: [midtime, midmem, midcpu]
