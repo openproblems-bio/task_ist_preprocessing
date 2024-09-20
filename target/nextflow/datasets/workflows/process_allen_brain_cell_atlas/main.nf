@@ -3468,7 +3468,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "5e430a00f7c30579a2941607ec1fc7bc31cd281a",
+    "git_commit" : "df4a6bc3caedad0540f942e99f78453efb43e940",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

@@ -38,7 +38,7 @@ should convince readers of the significance and relevance of your task.
 ## API
 
 ``` mermaid
-flowchart LR
+flowchart TB
   file_common_ist("Common iST Dataset")
   comp_data_preprocessor[/"Data preprocessor"/]
   file_raw_ist("Raw iST Dataset")
@@ -56,8 +56,12 @@ flowchart LR
   file_cell_volumes("Cell Volumes")
   file_spatial_aggregated_counts("Aggregated Counts")
   comp_method_normalization[/"Normalization"/]
+  comp_method_qc_filter[/"QC Filter"/]
   file_spatial_normalized_counts("Spatial Normalized")
+  file_spatial_qc_col("QC Columns")
   file_common_scrnaseq("Common SC Dataset")
+  file_score("Score")
+  comp_metric[/"Metric"/]
   file_common_ist---comp_data_preprocessor
   comp_data_preprocessor-->file_raw_ist
   comp_data_preprocessor-->file_scrnaseq_reference
@@ -79,9 +83,12 @@ flowchart LR
   comp_method_count_aggregation-->file_spatial_aggregated_counts
   file_cell_volumes-.-comp_method_normalization
   file_spatial_aggregated_counts---comp_method_normalization
+  file_spatial_aggregated_counts---comp_method_qc_filter
   comp_method_normalization-->file_spatial_normalized_counts
+  comp_method_qc_filter-->file_spatial_qc_col
   file_spatial_normalized_counts---comp_method_cell_type_annotation
   file_common_scrnaseq---comp_data_preprocessor
+  comp_metric-->file_score
 ```
 
 ## File format: Common iST Dataset
@@ -559,6 +566,21 @@ Arguments:
 
 </div>
 
+## Component type: QC Filter
+
+Filtering cells based on QC metrics
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input` | `file` | Unprocessed raw counts after aggregation of transcripts to cells. |
+| `--output` | `file` | (*Output*) QC columns for spatial data. |
+
+</div>
+
 ## File format: Spatial Normalized
 
 Normalized counts
@@ -601,6 +623,36 @@ Data structure:
 | `layers["counts"]` | `integer` | Raw aggregated counts. |
 | `layers["normalized"]` | `integer` | Normalized expression values. |
 | `uns["dataset_id"]` | `string` | A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived. |
+
+</div>
+
+## File format: QC Columns
+
+QC columns for spatial data
+
+Example file:
+`resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_qc_col.h5ad`
+
+Description:
+
+This file contains the QC-filter column for spatial data.
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'passed_QC'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot               | Type     | Description                                  |
+|:-------------------|:---------|:---------------------------------------------|
+| `obs["passed_QC"]` | `string` | Whether the cell passed the quality control. |
 
 </div>
 
@@ -685,6 +737,49 @@ Data structure:
 | `uns["dataset_summary"]` | `string` | Short description of the dataset. |
 | `uns["dataset_description"]` | `string` | Long description of the dataset. |
 | `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
+
+</div>
+
+## File format: Score
+
+Metric score file
+
+Example file:
+`resources_test/task_ist_preprocessing/mouse_brain_combined/score.h5ad`
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     uns: 'dataset_id', 'method_id', 'metric_ids', 'metric_values'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
+| `uns["method_id"]` | `string` | A unique identifier for the method. |
+| `uns["metric_ids"]` | `string` | One or more unique metric identifiers. |
+| `uns["metric_values"]` | `double` | The metric values obtained for the given prediction. Must be of same length as ‘metric_ids’. |
+
+</div>
+
+## Component type: Metric
+
+A metric for evaluating iST preprocessing methods
+
+Arguments:
+
+<div class="small">
+
+| Name      | Type   | Description                   |
+|:----------|:-------|:------------------------------|
+| `--score` | `file` | (*Output*) Metric score file. |
 
 </div>
 
