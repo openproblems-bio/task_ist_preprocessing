@@ -627,7 +627,7 @@ build_info:
   output: "target/nextflow/basic"
   executable: "target/nextflow/basic/main.nf"
   viash_version: "0.9.0"
-  git_commit: "8d23fb82a8c6da53d71d3d552590d08d0ba8bce4"
+  git_commit: "a7332228c8f56a17037caf607c57e4993edbfaf6"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"
