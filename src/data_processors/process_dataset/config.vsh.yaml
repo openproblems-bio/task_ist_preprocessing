@@ -10,9 +10,8 @@ resources:
 engines:
   - type: docker
     image: openproblems/base_python:1.0.0
-    setup:
-      - type: python
-        pypi: [spatialdata]
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
   - type: native
 
 runners:
