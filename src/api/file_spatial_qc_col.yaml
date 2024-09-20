@@ -1,0 +1,14 @@
+type: file
+example: "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_qc_col.h5ad"
+label: QC Columns
+summary: QC columns for spatial data
+description: |
+  This file contains the QC-filter column for spatial data.
+info:
+  format:
+    type: h5ad
+    obs:
+      - type: string
+        name: passed_QC
+        description: Whether the cell passed the quality control
+        required: true

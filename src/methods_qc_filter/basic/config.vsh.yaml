@@ -1,0 +1,33 @@
+name: basic_qc_filter
+
+__merge__: /src/api/comp_method_qc_filter.yaml
+
+arguments:
+  - name: --min_counts
+    required: false
+    direction: input
+    type: int
+    default: 10
+  - name: --min_cell_percentage
+    required: false
+    direction: input
+    type: double
+    default: 0.8
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        github: [theislab/txsim@dev]
+      - type: python
+        pypi: [squidpy, rasterio]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
