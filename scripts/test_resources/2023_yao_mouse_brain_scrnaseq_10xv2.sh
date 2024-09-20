@@ -22,8 +22,8 @@ param_list:
     dataset_organism: mus_musculus
 
 do_subsample: true
-n_obs: 500
-n_vars: 2000
+n_obs: 400
+n_vars: 10000
 
 output_dataset: "\$id/dataset.h5ad"
 output_meta: "\$id/dataset_meta.yaml"
