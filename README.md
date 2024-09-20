@@ -47,10 +47,12 @@ flowchart TB
   comp_method_transcript_assignment[/"Assignment"/]
   comp_method_cell_type_annotation[/"Cell Type Annotation"/]
   comp_method_expression_correction[/"Expression correction"/]
+  comp_metric_similarity[/"Metric"/]
   file_segmentation("Segmentation")
   file_transcript_assignments("Transcript Assignment")
   file_spatial_with_cell_types("Spatial with Cell Types")
   file_spatial_corrected_counts("Spatial Corrected")
+  file_score("Score")
   comp_method_calculate_cell_volume[/"Calculate Cell Volume"/]
   comp_method_count_aggregation[/"Count Aggregation"/]
   file_cell_volumes("Cell Volumes")
@@ -60,33 +62,36 @@ flowchart TB
   file_spatial_normalized_counts("Spatial Normalized")
   file_spatial_qc_col("QC Columns")
   file_common_scrnaseq("Common SC Dataset")
-  file_score("Score")
   comp_metric[/"Metric"/]
   file_common_ist---comp_data_preprocessor
   comp_data_preprocessor-->file_raw_ist
   comp_data_preprocessor-->file_scrnaseq_reference
   file_raw_ist---comp_method_segmentation
   file_raw_ist---comp_method_transcript_assignment
-  file_scrnaseq_reference-.-comp_method_transcript_assignment
-  file_scrnaseq_reference-.-comp_method_cell_type_annotation
-  file_scrnaseq_reference-.-comp_method_expression_correction
+  file_scrnaseq_reference---comp_method_transcript_assignment
+  file_scrnaseq_reference---comp_method_cell_type_annotation
+  file_scrnaseq_reference---comp_method_expression_correction
+  file_scrnaseq_reference---comp_metric_similarity
   comp_method_segmentation-->file_segmentation
   comp_method_transcript_assignment-->file_transcript_assignments
   comp_method_cell_type_annotation-->file_spatial_with_cell_types
   comp_method_expression_correction-->file_spatial_corrected_counts
-  file_segmentation-.-comp_method_transcript_assignment
-  file_transcript_assignments-.-comp_method_cell_type_annotation
+  comp_metric_similarity-->file_score
+  file_segmentation---comp_method_transcript_assignment
+  file_transcript_assignments---comp_method_cell_type_annotation
   file_transcript_assignments---comp_method_calculate_cell_volume
   file_transcript_assignments---comp_method_count_aggregation
   file_spatial_with_cell_types---comp_method_expression_correction
+  file_spatial_corrected_counts---comp_metric_similarity
   comp_method_calculate_cell_volume-->file_cell_volumes
   comp_method_count_aggregation-->file_spatial_aggregated_counts
-  file_cell_volumes-.-comp_method_normalization
+  file_cell_volumes---comp_method_normalization
   file_spatial_aggregated_counts---comp_method_normalization
   file_spatial_aggregated_counts---comp_method_qc_filter
   comp_method_normalization-->file_spatial_normalized_counts
   comp_method_qc_filter-->file_spatial_qc_col
   file_spatial_normalized_counts---comp_method_cell_type_annotation
+  file_spatial_qc_col---comp_metric_similarity
   file_common_scrnaseq---comp_data_preprocessor
   comp_metric-->file_score
 ```
@@ -303,6 +308,23 @@ Arguments:
 
 </div>
 
+## Component type: Metric
+
+A metric for evaluating iST preprocessing methods
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input` | `file` | Corrected spatial data counts with cell type annotations. |
+| `--input_qc_col` | `file` | QC columns for spatial data. |
+| `--input_sc` | `file` | A single-cell reference dataset, preprocessed for this benchmark. |
+| `--output` | `file` | (*Output*) Metric score file. |
+
+</div>
+
 ## File format: Segmentation
 
 A segmentation of a spatial transcriptomics dataset
@@ -441,6 +463,35 @@ Data structure:
 | `layers["normalized"]` | `integer` | Normalized counts. |
 | `layers["lognorm"]` | `integer` | Log normalized counts. |
 | `layers["normalized_corrected"]` | `integer` | (*Optional*) Corrected normalized expression. |
+
+</div>
+
+## File format: Score
+
+Metric score file
+
+Example file:
+`resources_test/task_ist_preprocessing/mouse_brain_combined/score.h5ad`
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     uns: 'dataset_id', 'method_id', 'metric_ids', 'metric_values'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
+| `uns["method_id"]` | `string` | A unique identifier for the method. |
+| `uns["metric_ids"]` | `string` | One or more unique metric identifiers. |
+| `uns["metric_values"]` | `double` | The metric values obtained for the given prediction. Must be of same length as ‘metric_ids’. |
 
 </div>
 
@@ -737,35 +788,6 @@ Data structure:
 | `uns["dataset_summary"]` | `string` | Short description of the dataset. |
 | `uns["dataset_description"]` | `string` | Long description of the dataset. |
 | `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
-
-</div>
-
-## File format: Score
-
-Metric score file
-
-Example file:
-`resources_test/task_ist_preprocessing/mouse_brain_combined/score.h5ad`
-
-Format:
-
-<div class="small">
-
-    AnnData object
-     uns: 'dataset_id', 'method_id', 'metric_ids', 'metric_values'
-
-</div>
-
-Data structure:
-
-<div class="small">
-
-| Slot | Type | Description |
-|:---|:---|:---|
-| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
-| `uns["method_id"]` | `string` | A unique identifier for the method. |
-| `uns["metric_ids"]` | `string` | One or more unique metric identifiers. |
-| `uns["metric_values"]` | `double` | The metric values obtained for the given prediction. Must be of same length as ‘metric_ids’. |
 
 </div>
 
