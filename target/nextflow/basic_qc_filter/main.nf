@@ -2884,14 +2884,6 @@ meta = [
                   "description" : "Number of cells expressing the gene",
                   "required" : true
                 }
-              ],
-              "uns" : [
-                {
-                  "type" : "string",
-                  "name" : "dataset_id",
-                  "description" : "A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived.",
-                  "required" : true
-                }
               ]
             }
           },
@@ -3086,7 +3078,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/basic_qc_filter",
     "viash_version" : "0.9.0",
-    "git_commit" : "7ebeb3a34a6e5fcf25c9d91397d1de655b6de97e",
+    "git_commit" : "1f9841c4189189221deb5b741c856e5184a5b86d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

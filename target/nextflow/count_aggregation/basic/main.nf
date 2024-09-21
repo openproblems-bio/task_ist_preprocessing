@@ -2974,14 +2974,6 @@ meta = [
                   "description" : "Number of cells expressing the gene",
                   "required" : true
                 }
-              ],
-              "uns" : [
-                {
-                  "type" : "string",
-                  "name" : "dataset_id",
-                  "description" : "A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived.",
-                  "required" : true
-                }
               ]
             }
           },
@@ -3026,8 +3018,16 @@ meta = [
     }
   ],
   "info" : {
-    "preferred_normalization" : "counts",
+    "name" : "basic",
     "type" : "method",
+    "label" : "Basic Count Aggregation Method",
+    "summary" : "Aggregate transcripts of the cells to a count matrix.",
+    "description" : "Based on the transcript assignments, aggregate the transcripts of the cells to a count matrix.",
+    "documentation_url" : "https://github.com/openproblems-bio/task_ist_preprocessing",
+    "repository_url" : "https://github.com/openproblems-bio/task_ist_preprocessing",
+    "references" : {
+      "doi" : "10.1101/2023.02.13.528102"
+    },
     "subtype" : "method_count_aggregation",
     "type_info" : {
       "label" : "Count Aggregation",
@@ -3052,15 +3052,9 @@ meta = [
     }
   ],
   "license" : "MIT",
-  "references" : {
-    "doi" : [
-      "..."
-    ]
-  },
   "links" : {
-    "repository" : "...",
-    "docker_registry" : "ghcr.io",
-    "documentation" : "..."
+    "repository" : "https://github.com/openproblems-bio/task_ist_preprocessing",
+    "docker_registry" : "ghcr.io"
   },
   "runners" : [
     {
@@ -3072,6 +3066,11 @@ meta = [
       "type" : "nextflow",
       "id" : "nextflow",
       "directives" : {
+        "label" : [
+          "midtime",
+          "lowcpu",
+          "lowmem"
+        ],
         "tag" : "$id"
       },
       "auto" : {
@@ -3138,7 +3137,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/count_aggregation/basic",
     "viash_version" : "0.9.0",
-    "git_commit" : "7ebeb3a34a6e5fcf25c9d91397d1de655b6de97e",
+    "git_commit" : "1f9841c4189189221deb5b741c856e5184a5b86d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3295,6 +3294,9 @@ sdata = sd.read_zarr(par['input'])
 df = sdata['transcripts'].compute() # TODO: Could optimize tx.preprocessing.generate_adata to work on spatialdata
 
 adata = tx.preprocessing.generate_adata(df, cell_id_col='cell_id', gene_col='feature_name') #TODO: x and y refers to a specific coordinate system. Decide which space we want to use here. (probably should be handled in the previous assignment step)
+adata.layers['counts'] = adata.layers['raw_counts']
+del adata.layers['raw_counts']
+adata.var["gene_name"] = adata.var_names
 
 # currently the function also saves the transcripts in the adata object, but this is not necessary here
 del adata.uns['spots']
@@ -3664,6 +3666,11 @@ meta["defaults"] = [
     "image" : "openproblems-bio/task_ist_preprocessing/count_aggregation/basic",
     "tag" : "build_main"
   },
+  "label" : [
+    "midtime",
+    "lowcpu",
+    "lowmem"
+  ],
   "tag" : "$id"
 }'''),
 

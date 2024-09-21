@@ -474,9 +474,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component count_aggregation basic"
-LABEL org.opencontainers.image.created="2024-09-21T13:24:37Z"
-LABEL org.opencontainers.image.source="..."
-LABEL org.opencontainers.image.revision="7ebeb3a34a6e5fcf25c9d91397d1de655b6de97e"
+LABEL org.opencontainers.image.created="2024-09-21T15:01:19Z"
+LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
+LABEL org.opencontainers.image.revision="1f9841c4189189221deb5b741c856e5184a5b86d"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1055,6 +1055,9 @@ sdata = sd.read_zarr(par['input'])
 df = sdata['transcripts'].compute() # TODO: Could optimize tx.preprocessing.generate_adata to work on spatialdata
 
 adata = tx.preprocessing.generate_adata(df, cell_id_col='cell_id', gene_col='feature_name') #TODO: x and y refers to a specific coordinate system. Decide which space we want to use here. (probably should be handled in the previous assignment step)
+adata.layers['counts'] = adata.layers['raw_counts']
+del adata.layers['raw_counts']
+adata.var["gene_name"] = adata.var_names
 
 # currently the function also saves the transcripts in the adata object, but this is not necessary here
 del adata.uns['spots']
