@@ -24,5 +24,10 @@ print('Normalizing by volume', flush=True)
  # TODO: Add scaling parameter, also as input to the script
 tx.preprocessing.normalize_by_area(adata, area="volume")
 
+adata.layers['normalized'] = adata.layers['lognorm'] #TODO: Check if openproblems "normalized" is understood as log normalized
+del adata.layers['norm']
+del adata.layers['lognorm']
+#del adata.layers['raw'] #TODO: Probably better to add this, otherwise some downstream methods' tests will succeed by chance
+
 print('Writing output', flush=True)
 adata.write(par['output'])
