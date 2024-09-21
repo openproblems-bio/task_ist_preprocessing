@@ -2,6 +2,17 @@ name: alpha_shapes
 
 __merge__: /src/api/comp_method_calculate_cell_volume.yaml
 
+info:
+  name: alpha_shapes
+  type: method
+  label: "Alpha Shapes"
+  summary: "Calculate the cell volume using alpha shapes"
+  description: "Calculate the cell volume using alpha shapes of the 2D projected transcripts point cloud of each cell"
+  documentation_url: "https://github.com/bellockk/alphashape"
+  repository_url: "https://github.com/theislab/txsim"
+  references:
+    doi: "10.1101/2023.02.13.528102"
+
 arguments:
   - name: --alpha
     type: double
@@ -27,3 +38,5 @@ engines:
 runners:
   - type: executable
   - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
