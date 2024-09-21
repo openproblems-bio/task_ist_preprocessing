@@ -50,8 +50,8 @@ info:
         name: n_cells
         description: Number of cells expressing the gene
         required: true
-    uns:
-      - type: string
-        name: dataset_id
-        description: A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived.
-        required: true
+    # uns:
+    #   - type: string
+    #     name: dataset_id
+    #     description: A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived.
+    #     required: true

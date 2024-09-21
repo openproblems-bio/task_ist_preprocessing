@@ -8,15 +8,18 @@ summary: Compute the count aggregation of the input data.
 description: >
   This method computes the count aggregation of the input data.
 
-links:
-  documentation: ...
-  repository: ...
-
-references:
-  doi: ...
-
 info:
-  preferred_normalization: counts
+  name: basic
+  type: method
+  label: "Basic Count Aggregation Method"
+  summary: "Aggregate transcripts of the cells to a count matrix."
+  description: "Based on the transcript assignments, aggregate the transcripts of the cells to a count matrix."
+  documentation_url: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository_url: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  references:
+    doi: "10.1101/2023.02.13.528102"
+#info:
+#  preferred_normalization: counts
 
 resources:
   - type: python_script
@@ -33,3 +36,5 @@ engines:
 runners:
   - type: executable
   - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
