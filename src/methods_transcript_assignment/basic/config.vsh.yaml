@@ -2,15 +2,26 @@ name: basic
 
 __merge__: /src/api/comp_method_transcript_assignment.yaml
 
+info:
+  name: basic
+  type: method
+  label: "Basic Transcript Assignment Method"
+  summary: "Assign transcripts to cells based on a segmentation label image"
+  description: "The transcripts that are positioned in the same pixel as a cell are assigned to that cell."
+  documentation_url: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository_url: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  references:
+    doi: "10.1101/2023.02.13.528102"
+
 arguments:
   - name: --transcripts_key
     type: string
     description: The key of the transcripts within the points of the spatial data
-    required: true
+    default: transcripts
   - name: --coordinate_system
     type: string
     description: The key of the pixel space coordinate system within the spatial data
-    required: true
+    default: global
 
 resources:
   - type: python_script
@@ -26,3 +37,5 @@ engines:
 runners:
   - type: executable
   - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]

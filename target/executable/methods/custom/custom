@@ -189,7 +189,8 @@ function ViashHelp {
   echo "        data."
   echo ""
   echo "    --labels_key"
-  echo "        type: string, required parameter"
+  echo "        type: string"
+  echo "        default: cell_labels"
   echo "        The key of the segmentation within the labels of the spatial data"
 }
 
@@ -471,10 +472,10 @@ ENTRYPOINT []
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
-LABEL org.opencontainers.image.description="Companion container for running component custom"
-LABEL org.opencontainers.image.created="2024-09-20T18:45:16Z"
+LABEL org.opencontainers.image.description="Companion container for running component methods custom"
+LABEL org.opencontainers.image.created="2024-09-21T13:24:38Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="a7332228c8f56a17037caf607c57e4993edbfaf6"
+LABEL org.opencontainers.image.revision="7ebeb3a34a6e5fcf25c9d91397d1de655b6de97e"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -735,7 +736,7 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
 
   # determine docker image id
   if [[ "$VIASH_ENGINE_ID" == 'docker' ]]; then
-    VIASH_DOCKER_IMAGE_ID='ghcr.io/openproblems-bio/task_ist_preprocessing/custom:build_main'
+    VIASH_DOCKER_IMAGE_ID='ghcr.io/openproblems-bio/task_ist_preprocessing/methods/custom:build_main'
   fi
 
   # print dockerfile
@@ -827,10 +828,6 @@ if [ -z ${VIASH_PAR_OUTPUT+x} ]; then
   ViashError '--output' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
-if [ -z ${VIASH_PAR_LABELS_KEY+x} ]; then
-  ViashError '--labels_key' is a required argument. Use "--help" to get more information on the parameters.
-  exit 1
-fi
 if [ -z ${VIASH_META_NAME+x} ]; then
   ViashError 'name' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
@@ -854,6 +851,11 @@ fi
 if [ -z ${VIASH_META_TEMP_DIR+x} ]; then
   ViashError 'temp_dir' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
+fi
+
+# filling in defaults
+if [ -z ${VIASH_PAR_LABELS_KEY+x} ]; then
+  VIASH_PAR_LABELS_KEY="cell_labels"
 fi
 
 # check whether required files exist
