@@ -2,11 +2,22 @@ name: custom
 
 __merge__: /src/api/comp_method_segmentation.yaml
 
+info:
+  name: custom
+  type: method
+  label: "Custom Segmentation Method"
+  summary: "Copy and output a previous custom segmentation that's already in the sdata.zarr"
+  description: "Copy and output a previous custom segmentation that's already in the sdata.zarr"
+  documentation_url: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository_url: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  references:
+    doi: "10.1101/2023.02.13.528102"
+
 arguments:
   - name: --labels_key
     type: string
     description: The key of the segmentation within the labels of the spatial data
-    required: true
+    default: cell_labels
 
 resources:
   - type: python_script
@@ -22,3 +33,5 @@ engines:
 runners:
   - type: executable
   - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
