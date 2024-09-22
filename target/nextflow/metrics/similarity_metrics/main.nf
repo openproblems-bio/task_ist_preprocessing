@@ -2834,9 +2834,15 @@ meta = [
                   "required" : true
                 },
                 {
-                  "type" : "integer",
-                  "name" : "normalized_corrected",
+                  "type" : "double",
+                  "name" : "normalized",
                   "description" : "Corrected normalized expression",
+                  "required" : false
+                },
+                {
+                  "type" : "double",
+                  "name" : "normalized_uncorrected",
+                  "description" : "Uncorrected normalized expression",
                   "required" : false
                 }
               ],
@@ -3441,7 +3447,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/metrics/similarity_metrics",
     "viash_version" : "0.9.0",
-    "git_commit" : "ee02a9c0dfc7c74f7e163c81df0cdb7d29bf25fa",
+    "git_commit" : "306b9266aae9bb52759c4fc385222457ce0759ce",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

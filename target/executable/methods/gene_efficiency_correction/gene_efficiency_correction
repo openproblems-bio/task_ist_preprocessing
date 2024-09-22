@@ -479,10 +479,10 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "squidpy" "rasterio" && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
-LABEL org.opencontainers.image.description="Companion container for running component gene_efficiency_correction"
-LABEL org.opencontainers.image.created="2024-09-22T15:41:31Z"
+LABEL org.opencontainers.image.description="Companion container for running component methods gene_efficiency_correction"
+LABEL org.opencontainers.image.created="2024-09-22T16:11:10Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="ee02a9c0dfc7c74f7e163c81df0cdb7d29bf25fa"
+LABEL org.opencontainers.image.revision="306b9266aae9bb52759c4fc385222457ce0759ce"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -754,7 +754,7 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
 
   # determine docker image id
   if [[ "$VIASH_ENGINE_ID" == 'docker' ]]; then
-    VIASH_DOCKER_IMAGE_ID='ghcr.io/openproblems-bio/task_ist_preprocessing/gene_efficiency_correction:build_main'
+    VIASH_DOCKER_IMAGE_ID='ghcr.io/openproblems-bio/task_ist_preprocessing/methods/gene_efficiency_correction:build_main'
   fi
 
   # print dockerfile
@@ -1095,20 +1095,20 @@ dep = {
 ## VIASH END
 
 # Optional parameter check: For this specific correction method the par['input_sc'] is required
-assert par['input_sc'] is not None, 'Single cell input is required for this expr correction method.'
+assert par['input_scrnaseq_reference'] is not None, 'Single cell input is required for this expr correction method.'
     
 # Read input
 print('Reading input files', flush=True)
 adata_sp = ad.read_h5ad(par['input_spatial_with_cell_types'])
 adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
-adata_sp.layers["lognorm_uncorrected"] = adata_sp.layers["lognorm"]
+adata_sp.layers["normalized_uncorrected"] = adata_sp.layers["normalized"]
 adata_sp_reduced = adata_sp[:,adata_sc.var_names].copy()
 obs_sp = adata_sp.obs.copy()
 
 # Apply gene efficiency correction
 print('Annotating cell types', flush=True)
 adata_sp_reduced = tx.preprocessing.gene_efficiency_correction(
-    adata_sp_reduced, adata_sc, layer_key='lognorm', ct_key=par['celltype_key']
+    adata_sp_reduced, adata_sc, layer_key='normalized', ct_key=par['celltype_key']
 )
 
 # Concatenate and reorder #TODO with the assumption that spatial and sc have the same genes things simplify

@@ -1,4 +1,5 @@
 name: "gene_efficiency_correction"
+namespace: "methods"
 version: "build_main"
 argument_groups:
 - name: "Arguments"
@@ -350,9 +351,13 @@ argument_groups:
           name: "normalized"
           description: "Normalized counts"
           required: true
-        - type: "integer"
-          name: "normalized_corrected"
+        - type: "double"
+          name: "normalized"
           description: "Corrected normalized expression"
+          required: false
+        - type: "double"
+          name: "normalized_uncorrected"
+          description: "Uncorrected normalized expression"
           required: false
         obs:
         - type: "string"
@@ -432,7 +437,19 @@ test_resources:
   path: "check_config.py"
   is_executable: true
 info:
+  name: "gene_efficiency_correction"
   type: "method"
+  label: "Gene Efficiency Correction"
+  summary: "Corrects the expression of genes based on a multiplicative gene efficiency\
+    \ factor"
+  description: "Corrects the expression of genes based on a multiplicative gene efficiency\
+    \ factor. The factors are calculated based on the ratio between mean expressions\
+    \ in the scRNA-seq reference. Factors are calculated per cell type. The mean over\
+    \ cell types is taken as final factor for each gene."
+  documentation_url: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository_url: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  references:
+    doi: "10.1101/2023.02.13.528102"
   subtype: "method_expression_correction"
   type_info:
     label: "Expression correction"
@@ -461,6 +478,10 @@ runners:
 - type: "nextflow"
   id: "nextflow"
   directives:
+    label:
+    - "midtime"
+    - "lowcpu"
+    - "lowmem"
     tag: "$id"
   auto:
     simplifyInput: true
@@ -501,12 +522,12 @@ engines:
   id: "native"
 build_info:
   config: "src/methods_expression_correction/gene_efficiency_correction/config.vsh.yaml"
-  runner: "nextflow"
+  runner: "executable"
   engine: "docker|native"
-  output: "target/nextflow/gene_efficiency_correction"
-  executable: "target/nextflow/gene_efficiency_correction/main.nf"
+  output: "target/executable/methods/gene_efficiency_correction"
+  executable: "target/executable/methods/gene_efficiency_correction/gene_efficiency_correction"
   viash_version: "0.9.0"
-  git_commit: "ee02a9c0dfc7c74f7e163c81df0cdb7d29bf25fa"
+  git_commit: "306b9266aae9bb52759c4fc385222457ce0759ce"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

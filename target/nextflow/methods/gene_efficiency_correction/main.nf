@@ -2805,6 +2805,7 @@ meta = [
   "resources_dir": moduleDir.toRealPath().normalize(),
   "config": processConfig(readJsonBlob('''{
   "name" : "gene_efficiency_correction",
+  "namespace" : "methods",
   "version" : "build_main",
   "argument_groups" : [
     {
@@ -3245,9 +3246,15 @@ meta = [
                   "required" : true
                 },
                 {
-                  "type" : "integer",
-                  "name" : "normalized_corrected",
+                  "type" : "double",
+                  "name" : "normalized",
                   "description" : "Corrected normalized expression",
+                  "required" : false
+                },
+                {
+                  "type" : "double",
+                  "name" : "normalized_uncorrected",
+                  "description" : "Uncorrected normalized expression",
                   "required" : false
                 }
               ],
@@ -3372,7 +3379,16 @@ meta = [
     }
   ],
   "info" : {
+    "name" : "gene_efficiency_correction",
     "type" : "method",
+    "label" : "Gene Efficiency Correction",
+    "summary" : "Corrects the expression of genes based on a multiplicative gene efficiency factor",
+    "description" : "Corrects the expression of genes based on a multiplicative gene efficiency factor. The factors are calculated based on the ratio between mean expressions in the scRNA-seq reference. Factors are calculated per cell type. The mean over cell types is taken as final factor for each gene.",
+    "documentation_url" : "https://github.com/openproblems-bio/task_ist_preprocessing",
+    "repository_url" : "https://github.com/openproblems-bio/task_ist_preprocessing",
+    "references" : {
+      "doi" : "10.1101/2023.02.13.528102"
+    },
     "subtype" : "method_expression_correction",
     "type_info" : {
       "label" : "Expression correction",
@@ -3411,6 +3427,11 @@ meta = [
       "type" : "nextflow",
       "id" : "nextflow",
       "directives" : {
+        "label" : [
+          "midtime",
+          "lowcpu",
+          "lowmem"
+        ],
         "tag" : "$id"
       },
       "auto" : {
@@ -3467,9 +3488,9 @@ meta = [
     "config" : "/home/runner/work/task_ist_preprocessing/task_ist_preprocessing/src/methods_expression_correction/gene_efficiency_correction/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "docker|native",
-    "output" : "target/nextflow/gene_efficiency_correction",
+    "output" : "target/nextflow/methods/gene_efficiency_correction",
     "viash_version" : "0.9.0",
-    "git_commit" : "ee02a9c0dfc7c74f7e163c81df0cdb7d29bf25fa",
+    "git_commit" : "306b9266aae9bb52759c4fc385222457ce0759ce",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3625,20 +3646,20 @@ dep = {
 ## VIASH END
 
 # Optional parameter check: For this specific correction method the par['input_sc'] is required
-assert par['input_sc'] is not None, 'Single cell input is required for this expr correction method.'
+assert par['input_scrnaseq_reference'] is not None, 'Single cell input is required for this expr correction method.'
     
 # Read input
 print('Reading input files', flush=True)
 adata_sp = ad.read_h5ad(par['input_spatial_with_cell_types'])
 adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
-adata_sp.layers["lognorm_uncorrected"] = adata_sp.layers["lognorm"]
+adata_sp.layers["normalized_uncorrected"] = adata_sp.layers["normalized"]
 adata_sp_reduced = adata_sp[:,adata_sc.var_names].copy()
 obs_sp = adata_sp.obs.copy()
 
 # Apply gene efficiency correction
 print('Annotating cell types', flush=True)
 adata_sp_reduced = tx.preprocessing.gene_efficiency_correction(
-    adata_sp_reduced, adata_sc, layer_key='lognorm', ct_key=par['celltype_key']
+    adata_sp_reduced, adata_sc, layer_key='normalized', ct_key=par['celltype_key']
 )
 
 # Concatenate and reorder #TODO with the assumption that spatial and sc have the same genes things simplify
@@ -4012,9 +4033,14 @@ meta["defaults"] = [
   directives: readJsonBlob('''{
   "container" : {
     "registry" : "ghcr.io",
-    "image" : "openproblems-bio/task_ist_preprocessing/gene_efficiency_correction",
+    "image" : "openproblems-bio/task_ist_preprocessing/methods/gene_efficiency_correction",
     "tag" : "build_main"
   },
+  "label" : [
+    "midtime",
+    "lowcpu",
+    "lowmem"
+  ],
   "tag" : "$id"
 }'''),
 
