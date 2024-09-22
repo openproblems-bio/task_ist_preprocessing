@@ -16,10 +16,6 @@ info:
         name: normalized
         description: Normalized counts
         required: true
-      - type: integer
-        name: lognorm
-        description: Log normalized counts
-        required: true
     obs:
       - type: string
         name: cell_id
