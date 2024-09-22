@@ -9,7 +9,11 @@ info:
   format:
     type: h5ad
     layers: 
-      - type: integer
-        name: normalized_corrected
+      - type: double
+        name: normalized
         description: Corrected normalized expression
+        required: false
+      - type: double
+        name: normalized_uncorrected
+        description: Uncorrected normalized expression
         required: false

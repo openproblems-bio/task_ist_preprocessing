@@ -1,3 +1,4 @@
+namespace: methods
 info:
   type: method
   subtype: method_expression_correction
