@@ -57,6 +57,11 @@ viash run src/methods_expression_correction/gene_efficiency_correction/config.vs
   --input_spatial_with_cell_types $OUT_DIR/spatial_with_cell_types.h5ad \
   --input_scrnaseq_reference $OUT_DIR/scrnaseq_reference.h5ad \
   --output $OUT_DIR/spatial_corrected_counts.h5ad
+  
+# run a QC filter method
+viash run src/methods_QC_filter/basic/config.vsh.yaml -- \
+  --input $OUT_DIR/spatial_corrected_counts.h5ad \
+  --output $OUT_DIR/spatial_qc_col.h5ad
 
 # sync test resources
 aws s3 sync --profile op \
