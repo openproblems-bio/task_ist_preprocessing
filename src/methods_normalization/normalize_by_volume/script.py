@@ -3,8 +3,8 @@ import txsim as tx
 
 ## VIASH START
 par = {
-  'input_spatial_aggregated_counts': 'spatial_raw_counts.h5ad',
-  'input_cell_volumes': 'cell_volumes.h5ad',
+  'input_spatial_aggregated_counts': 'resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad',
+  'input_cell_volumes': 'resources_test/task_ist_preprocessing/mouse_brain_combined/cell_volumes.h5ad',
   'output': 'spatial_norm_counts.h5ad',
 }
 meta = {
