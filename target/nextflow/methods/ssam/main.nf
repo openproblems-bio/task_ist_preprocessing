@@ -2805,6 +2805,7 @@ meta = [
   "resources_dir": moduleDir.toRealPath().normalize(),
   "config": processConfig(readJsonBlob('''{
   "name" : "ssam",
+  "namespace" : "methods",
   "version" : "build_main",
   "argument_groups" : [
     {
@@ -3331,12 +3332,6 @@ meta = [
                   "name" : "normalized",
                   "description" : "Normalized counts",
                   "required" : true
-                },
-                {
-                  "type" : "integer",
-                  "name" : "lognorm",
-                  "description" : "Log normalized counts",
-                  "required" : true
                 }
               ],
               "obs" : [
@@ -3460,7 +3455,16 @@ meta = [
     }
   ],
   "info" : {
+    "name" : "ssam",
     "type" : "method",
+    "label" : "SSAM",
+    "summary" : "Annotate cell types using SSAM",
+    "description" : "Annotate cell types using SSAM",
+    "documentation_url" : "https://ssam.readthedocs.io",
+    "repository_url" : "https://github.com/HiDiHlabs/ssam",
+    "references" : {
+      "doi" : "10.1038/s41467-021-23807-4"
+    },
     "subtype" : "method_cell_type_annotation",
     "type_info" : {
       "label" : "Cell Type Annotation",
@@ -3499,6 +3503,11 @@ meta = [
       "type" : "nextflow",
       "id" : "nextflow",
       "directives" : {
+        "label" : [
+          "midtime",
+          "lowcpu",
+          "lowmem"
+        ],
         "tag" : "$id"
       },
       "auto" : {
@@ -3563,9 +3572,9 @@ meta = [
     "config" : "/home/runner/work/task_ist_preprocessing/task_ist_preprocessing/src/methods_cell_type_annotation/ssam/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "docker|native",
-    "output" : "target/nextflow/ssam",
+    "output" : "target/nextflow/methods/ssam",
     "viash_version" : "0.9.0",
-    "git_commit" : "1f9841c4189189221deb5b741c856e5184a5b86d",
+    "git_commit" : "ee02a9c0dfc7c74f7e163c81df0cdb7d29bf25fa",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4109,9 +4118,14 @@ meta["defaults"] = [
   directives: readJsonBlob('''{
   "container" : {
     "registry" : "ghcr.io",
-    "image" : "openproblems-bio/task_ist_preprocessing/ssam",
+    "image" : "openproblems-bio/task_ist_preprocessing/methods/ssam",
     "tag" : "build_main"
   },
+  "label" : [
+    "midtime",
+    "lowcpu",
+    "lowmem"
+  ],
   "tag" : "$id"
 }'''),
 
