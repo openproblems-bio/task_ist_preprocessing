@@ -1,42 +1,90 @@
+import txsim as tx
+#from pathlib import Path
+#import tifffile
+#import squidpy as sq
+#from scipy import ndimage
+#import skimage.io
+#import skimage.measure
+#import skimage.segmentation
+import numpy as np
+import txsim as tx 
+#import argparse
+import os
+import yaml
 import spatialdata as sd
 import anndata as ad
-import os
 import shutil
+import numpy as np
+from spatialdata.models import Labels2DModel
+import xarray as xr
+import datatree as dt
+
+
+def convert_to_lower_dtype(arr):
+    max_val = arr.max()
+    if max_val <= np.iinfo(np.uint8).max:
+        new_dtype = np.uint8
+    elif max_val <= np.iinfo(np.uint16).max:
+        new_dtype = np.uint16
+    elif max_val <= np.iinfo(np.uint32).max:
+        new_dtype = np.uint32
+    else:
+        new_dtype = np.uint64
+
+    return arr.astype(new_dtype)
 
 ## VIASH START
 par = {
-  "input": "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
-  "labels_key": "cell_labels",
+  "input": "../task_ist_preprocessing/resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr",
   "output": "segmentation.zarr",
+  'hyperparams': [] ##############################how to take from viash
 }
-meta = {
-  "name": "segmentation"
-}
+
 ## VIASH END
 
-print("Reading input files", flush=True)
 sdata = sd.read_zarr(par["input"])
+image = sdata['rep1_image']['scale0'].image.compute().to_numpy()
+transformation = image.transform.copy()
+transformation['global'] = transformation.pop('rep1_global')
+image = convert_to_lower_dtype(image)
 
-assert par["labels_key"] in sdata.labels, f"Key '{par['labels_key']}' not found in input data."
+sd_output = sd.SpatialData()
+scales = [2000, 1000, 500, 250, 125]
+downsampled_arrays = {}
+for idx, scale in enumerate(scales):
+    img_arr = tx.preprocessing.segment_cellpose(image, hyperparams)  
+    data_array = xr.DataArray(img_arr, name=f'segmentation_scale{scale}', dims=('y', 'x'))
+    parsed_data = Labels2DModel.parse(data_array, transformations=transformation)
+    downsampled_arrays[f'scale{idx}'] = parsed_data
+tree = dt.DataTree()
+for scale_key, parsed_data in downsampled_arrays.items():
+    tree[scale_key] = dt.DataTree(parsed_data)
 
-print(f"Copy segmentation from '{par['labels_key']}'", flush=True)
-sdata_segmentation_only = sd.SpatialData(
-  labels={
-    "segmentation": sdata[par["labels_key"]]
-  },
-  tables={
-    "table": ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
-      var=sdata.tables["table"].var[[]]
-    )
-  }
-)
+sd_output.labels['segmentation'] = tree
+
 
 print("Writing output", flush=True)
 if os.path.exists(par["output"]):
   shutil.rmtree(par["output"])
-sdata_segmentation_only.write(par["output"])
+sd_output.write(par["output"])
 
+_____________________________________________
+
+
+
+
+
+
+args -> put into par dict
+
+
+
+
+
+
+(with tiffle) line   - we don't write in tiff file anymore, we convert the output to the spatialdata: coodinates with transformation, we have a crop image (I want to keep the transformation of the crop)
+don;t do save area (at the bottom) (edited) 
+_______________________________________________
 import txsim as tx
 from pathlib import Path
 import tifffile
@@ -93,24 +141,8 @@ if __name__ == '__main__':
     segmentation_method = args.segment
     id_code = args.id_code
     
-    hparams_defaults_csv = Path(__file__).parent.parent / "configs" / "defaults.yaml"
-    with open(hparams_defaults_csv, 'r') as file:
-        defaults = yaml.safe_load(file)
-        hparams_defaults = defaults[segmentation_method]
-        gparams_defaults = defaults["segmentation_params"]
+  
     
-    print("################## ", args.groupparams)
-    hyperparams = eval(args.hyperparams)
-    hyperparams.update({k:v for k,v in hparams_defaults.items() if k not in hyperparams})
-    hyperparams = {k:(v if v != "None" else None) for k,v in hyperparams.items()}
-    groupparams = eval(args.groupparams)
-    groupparams.update({k:v for k,v in gparams_defaults.items() if k not in groupparams})
-    groupparams = {k:(v if v != "None" else None) for k,v in groupparams.items()}
-    expand_nuclear_area = groupparams.get('expand') #If None, it will not expand after segmenting
-    
-    #Create output folder if needed
-    if not os.path.exists(output):
-        os.makedirs(output)
 
     #If unsegmented, segment image
     if(not binary):
@@ -169,3 +201,49 @@ if __name__ == '__main__':
     (unique, counts) = np.unique(img_arr, return_counts=True)
     areas = np.asarray((unique, counts)).T
     np.savetxt(f'{output}/areas_{segmentation_method}-{id_code}.csv', areas, delimiter=",")
+
+
+
+
+
+
+
+___________________________________________________________________________
+import spatialdata as sd
+import anndata as ad
+import os
+import shutil
+
+## VIASH START
+par = {
+  "input": "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
+  "labels_key": "cell_labels",
+  "output": "segmentation.zarr",
+}
+meta = {
+  "name": "segmentation"
+}
+## VIASH END
+
+print("Reading input files", flush=True)
+sdata = sd.read_zarr(par["input"])
+
+assert par["labels_key"] in sdata.labels, f"Key '{par['labels_key']}' not found in input data."
+
+print(f"Copy segmentation from '{par['labels_key']}'", flush=True)
+sdata_segmentation_only = sd.SpatialData(
+  labels={
+    "segmentation": sdata[par["labels_key"]]
+  },
+  tables={
+    "table": ad.AnnData(
+      obs=sdata.tables["table"].obs[["cell_id", "region"]],
+      var=sdata.tables["table"].var[[]]
+    )
+  }
+)
+
+print("Writing output", flush=True)
+if os.path.exists(par["output"]):
+  shutil.rmtree(par["output"])
+sdata_segmentation_only.write(par["output"])
