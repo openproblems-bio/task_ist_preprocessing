@@ -14,34 +14,78 @@ name: similarity_metrics
 # Metadata for your component
 info:
   metrics:
-    # A unique identifier for your metric (required).
-    # Can contain only lowercase letters or underscores.
     - name: negative_marker_purity_reads
-      # A relatively short label, used when rendering visualisarions (required)
       label: Negative Marker Purity (Reads)
-      # A one sentence summary of how this metric works (required). Used when 
-      # rendering summary tables.
       summary: "The percentage of negative marker reads assigned to the correct cell types."
-      # A multi-line description of how this component works (required). Used
-      # when rendering reference documentation.
       description: |
         The percentage of negative marker reads assigned to the correct cell types.
       # A reference key from the bibtex library at src/common/library.bib (required).
       references:
-        doi: None
-      # The minimum possible value for this metric (required)
+        doi: "10.1101/2023.02.13.528102"
       min: 0
-      # The maximum possible value for this metric (required)
       max: 1
-      # Whether a higher value represents a 'better' solution (required)
       maximize: true
+    - name: negative_marker_purity_cells
+      label: Negative Marker Purity (Cells)
+      summary: "The percentage of cells that do not contain counts of negative markers of their specific cell type."
+      description: |
+        The percentage of cells that do not contain counts of negative markers of their specific cell type.
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+      maximize: true
+    - name: coexpr_similarity
+      label: Co-expression Similarity
+      summary: "The similarity between the co-expression patterns of spatial and scRNA-seq data."
+      description: |
+        The similarity is calculated as the absolute difference between the correlation matrices of spatial and 
+        scRNA-seq data. The correlation matrices contain pair-wise correlations between all genes in the dataset.
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+      maximize: true
+    - name: coexpr_similarity_celltype
+      label: Co-expression Similarity (Cell Type)
+      summary: "The similarity between the within cell type co-expression patterns of spatial and scRNA-seq data."
+      description: |
+        The similarity is calculated as the absolute difference between the correlation matrices of spatial and 
+        scRNA-seq data for each cell type. The final score is the mean over cell types. The correlation matrices contain
+        pair-wise correlations between all genes in the dataset.
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+    - name: rel_pairwise_ct_expr_sim
+      label: Relative Pairwise Cell Type Expression Similarity
+      summary: "Similarity of the mean expression difference between cell type pairs between spatial and scRNA-seq data."
+      description: |
+        todo
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+    - name: rel_pairwise_gene_expr_sim
+      label: Relative Pairwise Gene Expression Similarity
+      summary: "Similarity of the mean expression difference between gene pairs between spatial and scRNA-seq data."
+      description: |
+        todo
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+    - name: knn_mixing
+      label: KNN Mixing
+      summary: "Measure of the modality mixing within the joint knn graph of spatial and scRNA-seq data."
+      description: |
+        todo
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+      
 
-# Component-specific parameters (optional)
-# arguments:
-#   - name: "--n_neighbors"
-#     type: "integer"
-#     default: 5
-#     description: Number of neighbors to use.
 
 # Resources required to run the component
 resources:

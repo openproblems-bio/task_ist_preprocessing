@@ -8,8 +8,8 @@ import txsim as tx
 # in config.vsh.yaml and then run `viash config inject config.vsh.yaml`.
 par = {
     'input': "resources_test/task_ist_preprocessing/mouse_brain_combined/corrected_counts.h5ad",
-    'input_sc': "resources_test/task_ist_preprocessing/mouse_brain_combined/normalised_counts.h5ad",
-    'input_qc_col': "resources_test/task_ist_preprocessing/mouse_brain_combined/qc_col.h5ad",
+    'input_sc': "resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad",
+    'input_qc_col': "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_qc_col.h5ad",
     'output': "metrics.h5ad",
 }
 meta = {
@@ -22,6 +22,8 @@ adata_sp = ad.read_h5ad(par['input'])
 adata_sp_QC_obs_col = ad.read_h5ad(par['input_qc_col'])
 adata_sp.obs['passed_QC'] = adata_sp_QC_obs_col.obs['passed_QC']
 adata_sc = ad.read_h5ad(par['input_sc'])
+adata_sp.X = adata_sp.layers['normalized'] # TODO: ideally we don't do this, but some txsim functions seem to still expect .X (e.g. coexpression_similarity), fix this within txsim. 
+adata_sc.X = adata_sc.layers['normalized'] # TODO: same for scRNAseq data
 
 # There should be at least two cell types overlapping between scRNAseq and spatial data
 cts_sc = adata_sc.obs['cell_type'].dtype.categories
@@ -36,8 +38,10 @@ assert (adata_sc.obs['cell_type'] != "None").all(), "There are None values in th
 
 
 print('Compute metrics', flush=True)
-df_filtered = tx.metrics.all_metrics(adata_sp[adata_sp.obs['passed_QC']], adata_sc, key="cell_type")
-df = tx.metrics.all_metrics(adata_sp, adata_sc, key="cell_type")
+df_filtered = tx.metrics.all_metrics(
+    adata_sp[adata_sp.obs['passed_QC']], adata_sc, key="cell_type", raw_layer="counts", lognorm_layer="normalized"
+)
+df = tx.metrics.all_metrics(adata_sp, adata_sc, key="cell_type", raw_layer="counts", lognorm_layer="normalized")
 
 uns_metric_ids = df.index.to_list() + [f"{metric}_qc_filtered" for metric in df_filtered.index]
 uns_metric_values = np.concatenate([df.values, df_filtered.values])
