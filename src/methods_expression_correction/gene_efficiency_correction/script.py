@@ -26,9 +26,6 @@ adata_sp.layers["normalized_uncorrected"] = adata_sp.layers["normalized"]
 adata_sp_reduced = adata_sp[:,adata_sc.var_names].copy()
 obs_sp = adata_sp.obs.copy()
 
-print(adata_sp_reduced, flush=True)
-print(adata_sc, flush=True)
-
 # Apply gene efficiency correction
 print('Annotating cell types', flush=True)
 adata_sp_reduced = tx.preprocessing.gene_efficiency_correction(
