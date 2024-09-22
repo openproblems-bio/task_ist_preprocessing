@@ -55,6 +55,7 @@ flowchart TB
   file_score("Score")
   comp_method_calculate_cell_volume[/"Calculate Cell Volume"/]
   comp_method_count_aggregation[/"Count Aggregation"/]
+  comp_metric_quality[/"Quality Metric"/]
   file_cell_volumes("Cell Volumes")
   file_spatial_aggregated_counts("Aggregated Counts")
   comp_method_normalization[/"Normalization"/]
@@ -62,7 +63,6 @@ flowchart TB
   file_spatial_normalized_counts("Spatial Normalized")
   file_spatial_qc_col("QC Columns")
   file_common_scrnaseq("Common SC Dataset")
-  comp_metric[/"Metric"/]
   file_common_ist---comp_data_preprocessor
   comp_data_preprocessor-->file_raw_ist
   comp_data_preprocessor-->file_scrnaseq_reference
@@ -81,10 +81,13 @@ flowchart TB
   file_transcript_assignments---comp_method_cell_type_annotation
   file_transcript_assignments---comp_method_calculate_cell_volume
   file_transcript_assignments---comp_method_count_aggregation
+  file_transcript_assignments---comp_metric_quality
   file_spatial_with_cell_types---comp_method_expression_correction
   file_spatial_corrected_counts---comp_metric_similarity
+  file_spatial_corrected_counts---comp_metric_quality
   comp_method_calculate_cell_volume-->file_cell_volumes
   comp_method_count_aggregation-->file_spatial_aggregated_counts
+  comp_metric_quality-->file_score
   file_cell_volumes---comp_method_normalization
   file_spatial_aggregated_counts---comp_method_normalization
   file_spatial_aggregated_counts---comp_method_qc_filter
@@ -92,8 +95,8 @@ flowchart TB
   comp_method_qc_filter-->file_spatial_qc_col
   file_spatial_normalized_counts---comp_method_cell_type_annotation
   file_spatial_qc_col---comp_metric_similarity
+  file_spatial_qc_col---comp_metric_quality
   file_common_scrnaseq---comp_data_preprocessor
-  comp_metric-->file_score
 ```
 
 ## File format: Common iST Dataset
@@ -392,7 +395,7 @@ Format:
     AnnData object
      obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes', 'volume', 'cell_type'
      var: 'gene_name', 'n_counts', 'n_cells'
-     layers: 'counts', 'normalized', 'lognorm'
+     layers: 'counts', 'normalized'
 
 </div>
 
@@ -415,7 +418,6 @@ Data structure:
 | `var["n_cells"]` | `string` | Number of cells expressing the gene. |
 | `layers["counts"]` | `integer` | Raw counts. |
 | `layers["normalized"]` | `integer` | Normalized counts. |
-| `layers["lognorm"]` | `integer` | Log normalized counts. |
 
 </div>
 
@@ -438,7 +440,7 @@ Format:
     AnnData object
      obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes', 'volume', 'cell_type'
      var: 'gene_name', 'n_counts', 'n_cells'
-     layers: 'counts', 'normalized', 'lognorm', 'normalized_corrected'
+     layers: 'counts', 'normalized', 'normalized', 'normalized_uncorrected'
 
 </div>
 
@@ -461,8 +463,8 @@ Data structure:
 | `var["n_cells"]` | `string` | Number of cells expressing the gene. |
 | `layers["counts"]` | `integer` | Raw counts. |
 | `layers["normalized"]` | `integer` | Normalized counts. |
-| `layers["lognorm"]` | `integer` | Log normalized counts. |
-| `layers["normalized_corrected"]` | `integer` | (*Optional*) Corrected normalized expression. |
+| `layers["normalized"]` | `double` | (*Optional*) Corrected normalized expression. |
+| `layers["normalized_uncorrected"]` | `double` | (*Optional*) Uncorrected normalized expression. |
 
 </div>
 
@@ -478,7 +480,7 @@ Format:
 <div class="small">
 
     AnnData object
-     uns: 'dataset_id', 'method_id', 'metric_ids', 'metric_values'
+     uns: 'metric_ids', 'metric_values'
 
 </div>
 
@@ -488,8 +490,6 @@ Data structure:
 
 | Slot | Type | Description |
 |:---|:---|:---|
-| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
-| `uns["method_id"]` | `string` | A unique identifier for the method. |
 | `uns["metric_ids"]` | `string` | One or more unique metric identifiers. |
 | `uns["metric_values"]` | `double` | The metric values obtained for the given prediction. Must be of same length as ‘metric_ids’. |
 
@@ -522,6 +522,23 @@ Arguments:
 |:---|:---|:---|
 | `--input` | `file` | A spatial transcriptomics dataset with assigned transcripts. |
 | `--output` | `file` | (*Output*) Unprocessed raw counts after aggregation of transcripts to cells. |
+
+</div>
+
+## Component type: Quality Metric
+
+A metric for evaluating the quality of the processed iST data
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--input` | `file` | Corrected spatial data counts with cell type annotations. |
+| `--input_qc_col` | `file` | QC columns for spatial data. |
+| `--input_transcript_assignments` | `file` | A spatial transcriptomics dataset with assigned transcripts. |
+| `--score` | `file` | (*Output*) Metric score file. |
 
 </div>
 
@@ -577,7 +594,6 @@ Format:
      obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes'
      var: 'gene_name', 'n_counts', 'n_cells'
      layers: 'counts'
-     uns: 'dataset_id'
 
 </div>
 
@@ -597,7 +613,6 @@ Data structure:
 | `var["n_counts"]` | `string` | Number of counts of the gene. |
 | `var["n_cells"]` | `string` | Number of cells expressing the gene. |
 | `layers["counts"]` | `integer` | Raw aggregated counts. |
-| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived. |
 
 </div>
 
@@ -652,7 +667,6 @@ Format:
      obs: 'cell_id', 'centroid_x', 'centroid_y', 'centroid_z', 'n_counts', 'n_genes'
      var: 'gene_name', 'n_counts', 'n_cells'
      layers: 'counts', 'normalized'
-     uns: 'dataset_id'
 
 </div>
 
@@ -673,7 +687,6 @@ Data structure:
 | `var["n_cells"]` | `string` | Number of cells expressing the gene. |
 | `layers["counts"]` | `integer` | Raw aggregated counts. |
 | `layers["normalized"]` | `integer` | Normalized expression values. |
-| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived. |
 
 </div>
 
@@ -788,20 +801,6 @@ Data structure:
 | `uns["dataset_summary"]` | `string` | Short description of the dataset. |
 | `uns["dataset_description"]` | `string` | Long description of the dataset. |
 | `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
-
-</div>
-
-## Component type: Metric
-
-A metric for evaluating iST preprocessing methods
-
-Arguments:
-
-<div class="small">
-
-| Name      | Type   | Description                   |
-|:----------|:-------|:------------------------------|
-| `--score` | `file` | (*Output*) Metric score file. |
 
 </div>
 

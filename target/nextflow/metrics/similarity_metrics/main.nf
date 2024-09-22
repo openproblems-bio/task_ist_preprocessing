@@ -3275,18 +3275,6 @@ meta = [
               "uns" : [
                 {
                   "type" : "string",
-                  "name" : "dataset_id",
-                  "description" : "A unique identifier for the dataset",
-                  "required" : true
-                },
-                {
-                  "type" : "string",
-                  "name" : "method_id",
-                  "description" : "A unique identifier for the method",
-                  "required" : true
-                },
-                {
-                  "type" : "string",
                   "name" : "metric_ids",
                   "description" : "One or more unique metric identifiers",
                   "multiple" : true,
@@ -3322,6 +3310,23 @@ meta = [
       "is_executable" : true
     }
   ],
+  "test_resources" : [
+    {
+      "type" : "file",
+      "path" : "/resources_test/task_ist_preprocessing/mouse_brain_combined",
+      "dest" : "resources_test/task_ist_preprocessing/mouse_brain_combined"
+    },
+    {
+      "type" : "python_script",
+      "path" : "/common/component_tests/run_and_check_output.py",
+      "is_executable" : true
+    },
+    {
+      "type" : "python_script",
+      "path" : "/common/component_tests/check_config.py",
+      "is_executable" : true
+    }
+  ],
   "info" : {
     "metrics" : [
       {
@@ -3330,11 +3335,79 @@ meta = [
         "summary" : "The percentage of negative marker reads assigned to the correct cell types.",
         "description" : "The percentage of negative marker reads assigned to the correct cell types.\n",
         "references" : {
-          "doi" : "None"
+          "doi" : "10.1101/2023.02.13.528102"
         },
         "min" : 0,
         "max" : 1,
         "maximize" : true
+      },
+      {
+        "name" : "negative_marker_purity_cells",
+        "label" : "Negative Marker Purity (Cells)",
+        "summary" : "The percentage of cells that do not contain counts of negative markers of their specific cell type.",
+        "description" : "The percentage of cells that do not contain counts of negative markers of their specific cell type.\n",
+        "references" : {
+          "doi" : "10.1101/2023.02.13.528102"
+        },
+        "min" : 0,
+        "max" : 1,
+        "maximize" : true
+      },
+      {
+        "name" : "coexpr_similarity",
+        "label" : "Co-expression Similarity",
+        "summary" : "The similarity between the co-expression patterns of spatial and scRNA-seq data.",
+        "description" : "The similarity is calculated as the absolute difference between the correlation matrices of spatial and \nscRNA-seq data. The correlation matrices contain pair-wise correlations between all genes in the dataset.\n",
+        "references" : {
+          "doi" : "10.1101/2023.02.13.528102"
+        },
+        "min" : 0,
+        "max" : 1,
+        "maximize" : true
+      },
+      {
+        "name" : "coexpr_similarity_celltype",
+        "label" : "Co-expression Similarity (Cell Type)",
+        "summary" : "The similarity between the within cell type co-expression patterns of spatial and scRNA-seq data.",
+        "description" : "The similarity is calculated as the absolute difference between the correlation matrices of spatial and \nscRNA-seq data for each cell type. The final score is the mean over cell types. The correlation matrices contain\npair-wise correlations between all genes in the dataset.\n",
+        "references" : {
+          "doi" : "10.1101/2023.02.13.528102"
+        },
+        "min" : 0,
+        "max" : 1
+      },
+      {
+        "name" : "rel_pairwise_ct_expr_sim",
+        "label" : "Relative Pairwise Cell Type Expression Similarity",
+        "summary" : "Similarity of the mean expression difference between cell type pairs between spatial and scRNA-seq data.",
+        "description" : "todo\n",
+        "references" : {
+          "doi" : "10.1101/2023.02.13.528102"
+        },
+        "min" : 0,
+        "max" : 1
+      },
+      {
+        "name" : "rel_pairwise_gene_expr_sim",
+        "label" : "Relative Pairwise Gene Expression Similarity",
+        "summary" : "Similarity of the mean expression difference between gene pairs between spatial and scRNA-seq data.",
+        "description" : "todo\n",
+        "references" : {
+          "doi" : "10.1101/2023.02.13.528102"
+        },
+        "min" : 0,
+        "max" : 1
+      },
+      {
+        "name" : "knn_mixing",
+        "label" : "KNN Mixing",
+        "summary" : "Measure of the modality mixing within the joint knn graph of spatial and scRNA-seq data.",
+        "description" : "todo\n",
+        "references" : {
+          "doi" : "10.1101/2023.02.13.528102"
+        },
+        "min" : 0,
+        "max" : 1
       }
     ],
     "type" : "metric",
@@ -3447,7 +3520,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/metrics/similarity_metrics",
     "viash_version" : "0.9.0",
-    "git_commit" : "306b9266aae9bb52759c4fc385222457ce0759ce",
+    "git_commit" : "ea144db257b4a09977e0c3277d1f14a9fc9193c7",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3609,6 +3682,8 @@ adata_sp = ad.read_h5ad(par['input'])
 adata_sp_QC_obs_col = ad.read_h5ad(par['input_qc_col'])
 adata_sp.obs['passed_QC'] = adata_sp_QC_obs_col.obs['passed_QC']
 adata_sc = ad.read_h5ad(par['input_sc'])
+adata_sp.X = adata_sp.layers['normalized'] # TODO: ideally we don't do this, but some txsim functions seem to still expect .X (e.g. coexpression_similarity), fix this within txsim. 
+adata_sc.X = adata_sc.layers['normalized'] # TODO: same for scRNAseq data
 
 # There should be at least two cell types overlapping between scRNAseq and spatial data
 cts_sc = adata_sc.obs['cell_type'].dtype.categories
@@ -3623,8 +3698,10 @@ assert (adata_sc.obs['cell_type'] != "None").all(), "There are None values in th
 
 
 print('Compute metrics', flush=True)
-df_filtered = tx.metrics.all_metrics(adata_sp[adata_sp.obs['passed_QC']], adata_sc, key="cell_type")
-df = tx.metrics.all_metrics(adata_sp, adata_sc, key="cell_type")
+df_filtered = tx.metrics.all_metrics(
+    adata_sp[adata_sp.obs['passed_QC']], adata_sc, key="cell_type", raw_layer="counts", lognorm_layer="normalized"
+)
+df = tx.metrics.all_metrics(adata_sp, adata_sc, key="cell_type", raw_layer="counts", lognorm_layer="normalized")
 
 uns_metric_ids = df.index.to_list() + [f"{metric}_qc_filtered" for metric in df_filtered.index]
 uns_metric_values = np.concatenate([df.values, df_filtered.values])

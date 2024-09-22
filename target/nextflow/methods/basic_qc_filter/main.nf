@@ -2805,6 +2805,7 @@ meta = [
   "resources_dir": moduleDir.toRealPath().normalize(),
   "config": processConfig(readJsonBlob('''{
   "name" : "basic_qc_filter",
+  "namespace" : "methods",
   "version" : "build_main",
   "argument_groups" : [
     {
@@ -2976,7 +2977,16 @@ meta = [
     }
   ],
   "info" : {
+    "name" : "basic_qc_filter",
     "type" : "method",
+    "label" : "Basic QC Filter",
+    "summary" : "Get cell filter based on counts per cell.",
+    "description" : "Get cell filter based on counts per cell. A fixed percentage of cells is beeing kept even if they don't pass the QC.",
+    "documentation_url" : "https://github.com/openproblems-bio/task_ist_preprocessing",
+    "repository_url" : "https://github.com/openproblems-bio/task_ist_preprocessing",
+    "references" : {
+      "doi" : "10.1101/2023.02.13.528102"
+    },
     "subtype" : "method_qc_filter",
     "type_info" : {
       "label" : "QC Filter",
@@ -3015,6 +3025,11 @@ meta = [
       "type" : "nextflow",
       "id" : "nextflow",
       "directives" : {
+        "label" : [
+          "midtime",
+          "lowcpu",
+          "lowmem"
+        ],
         "tag" : "$id"
       },
       "auto" : {
@@ -3051,17 +3066,12 @@ meta = [
         {
           "type" : "python",
           "user" : false,
-          "github" : [
-            "theislab/txsim@dev"
-          ],
-          "upgrade" : true
-        },
-        {
-          "type" : "python",
-          "user" : false,
           "pypi" : [
             "squidpy",
             "rasterio"
+          ],
+          "github" : [
+            "theislab/txsim@dev"
           ],
           "upgrade" : true
         }
@@ -3076,9 +3086,9 @@ meta = [
     "config" : "/home/runner/work/task_ist_preprocessing/task_ist_preprocessing/src/methods_qc_filter/basic/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "docker|native",
-    "output" : "target/nextflow/basic_qc_filter",
+    "output" : "target/nextflow/methods/basic_qc_filter",
     "viash_version" : "0.9.0",
-    "git_commit" : "306b9266aae9bb52759c4fc385222457ce0759ce",
+    "git_commit" : "ea144db257b4a09977e0c3277d1f14a9fc9193c7",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3609,9 +3619,14 @@ meta["defaults"] = [
   directives: readJsonBlob('''{
   "container" : {
     "registry" : "ghcr.io",
-    "image" : "openproblems-bio/task_ist_preprocessing/basic_qc_filter",
+    "image" : "openproblems-bio/task_ist_preprocessing/methods/basic_qc_filter",
     "tag" : "build_main"
   },
+  "label" : [
+    "midtime",
+    "lowcpu",
+    "lowmem"
+  ],
   "tag" : "$id"
 }'''),
 

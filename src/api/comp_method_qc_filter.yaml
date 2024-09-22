@@ -1,3 +1,4 @@
+namespace: methods
 info:
   type: method
   subtype: method_qc_filter
