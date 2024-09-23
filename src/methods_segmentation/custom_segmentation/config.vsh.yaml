@@ -1,7 +1,7 @@
 __merge__: /src/api/comp_method_segmentation.yaml
 
-name: custom
-label: "Custom Segmentation Method"
+name: custom_segmentation
+label: "Custom Segmentation"
 summary: "Copy and output a previous custom segmentation that's already in the sdata.zarr"
 description: "Copy and output a previous custom segmentation that's already in the sdata.zarr"
 links:

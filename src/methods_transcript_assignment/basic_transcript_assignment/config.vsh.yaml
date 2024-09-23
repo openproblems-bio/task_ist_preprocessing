@@ -1,7 +1,7 @@
 __merge__: /src/api/comp_method_transcript_assignment.yaml
 
-name: basic
-label: "Basic Transcript Assignment Method"
+name: basic_transcript_assignment
+label: "Basic Transcript Assignment"
 summary: "Assign transcripts to cells based on a segmentation label image"
 description: "The transcripts that are positioned in the same pixel as a cell are assigned to that cell."
 links:

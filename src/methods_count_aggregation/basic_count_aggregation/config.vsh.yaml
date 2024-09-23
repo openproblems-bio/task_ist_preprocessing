@@ -1,7 +1,7 @@
 __merge__: /src/api/comp_method_count_aggregation.yaml
 
-name: basic
-label: "Basic Count Aggregation Method"
+name: basic_count_aggregation
+label: "Basic Count Aggregation"
 summary: "Aggregate transcripts of the cells to a count matrix."
 description: "Based on the transcript assignments, aggregate the transcripts of the cells to a count matrix."
 
