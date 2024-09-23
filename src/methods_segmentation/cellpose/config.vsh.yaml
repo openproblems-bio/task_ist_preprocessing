@@ -1,6 +1,6 @@
 name: cellpose
 
-__merge__: /src/api/comp_method_segmentation.yaml
+__merge__: /src/api/comp_method_segmentation.yaml #???
 
 arguments:
   - name: --batch_size

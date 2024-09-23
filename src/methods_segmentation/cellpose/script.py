@@ -36,17 +36,20 @@ def convert_to_lower_dtype(arr):
 ## VIASH START
 par = {
   "input": "../task_ist_preprocessing/resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr",
-  "output": "segmentation.zarr",
-  'hyperparams': [] ##############################how to take from viash
+  "output": "segmentation.zarr"
 }
 
 ## VIASH END
+
+hyperparameters = par.copy()
+del hyperparameters['input']
+del hyperparameters['output']
 
 sdata = sd.read_zarr(par["input"])
 image = sdata['rep1_image']['scale0'].image.compute().to_numpy()
 transformation = image.transform.copy()
 transformation['global'] = transformation.pop('rep1_global')
-image = convert_to_lower_dtype(image)
+#image = convert_to_lower_dtype(image) #output!
 
 sd_output = sd.SpatialData()
 scales = [2000, 1000, 500, 250, 125]
@@ -60,7 +63,7 @@ tree = dt.DataTree()
 for scale_key, parsed_data in downsampled_arrays.items():
     tree[scale_key] = dt.DataTree(parsed_data)
 
-sd_output.labels['segmentation'] = tree
+sd_output.labels['segmentation'] = tree  #dataarray and one scale 
 
 
 print("Writing output", flush=True)
