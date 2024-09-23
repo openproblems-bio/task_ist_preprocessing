@@ -1,15 +1,12 @@
-name: ssam
-
 __merge__: /src/api/comp_method_cell_type_annotation.yaml
 
-info:
-  name: ssam
-  type: method
-  label: "SSAM"
-  summary: "Annotate cell types using SSAM"
-  description: "Annotate cell types using SSAM"
-  documentation_url: "https://ssam.readthedocs.io"
-  repository_url: "https://github.com/HiDiHlabs/ssam"
+name: ssam
+label: "SSAM"
+summary: "Annotate cell types using SSAM"
+description: "Annotate cell types using SSAM"
+links:
+  documentation: "https://ssam.readthedocs.io"
+  repository: "https://github.com/HiDiHlabs/ssam"
   references:
     doi: "10.1038/s41467-021-23807-4"
 
