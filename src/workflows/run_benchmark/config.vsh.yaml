@@ -42,12 +42,6 @@ argument_groups:
         required: true
         direction: output
         default: task_info.yaml
-  - name: Methods
-    arguments:
-      - name: "--method_ids"
-        type: string
-        multiple: true
-        description: A list of method ids to run. If not specified, all methods will be run.
 
 resources:
   - type: nextflow_script
@@ -57,13 +51,17 @@ resources:
     path: /_viash.yaml
 
 dependencies:
-  # - name: common/check_dataset_schema
-  #   repository: openproblems-v2
-  # - name: common/extract_metadata
-  #   repository: openproblems-v2
-  # - name: control_methods/true_labels
-  # - name: methods/logistic_regression
-  # - name: metrics/accuracy
+  - name: h5ad/extract_uns_metadata
+    repository: core
+  - name: methods_segmentation/custom_segmentation
+  - name: methods_transcript_assignment/basic_transcript_assignment
+  - name: methods_count_aggregation/basic_count_aggregation
+  - name: methods_qc_filter/basic_qc_filter
+  - name: methods_calculate_cell_volume/alpha_shapes
+  - name: methods_normalization/normalize_by_volume
+  - name: methods_cell_type_annotation/ssam
+  - name: methods_expression_correction/gene_efficiency_correction
+  - name: metrics/similarity
 
 runners:
   - type: nextflow
