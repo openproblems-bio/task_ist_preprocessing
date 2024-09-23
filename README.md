@@ -39,46 +39,46 @@ should convince readers of the significance and relevance of your task.
 
 ``` mermaid
 flowchart TB
-  file_common_ist("Common iST Dataset")
-  comp_data_preprocessor[/"Data preprocessor"/]
-  file_raw_ist("Raw iST Dataset")
-  file_scrnaseq_reference("scRNA-seq Reference")
-  comp_method_segmentation[/"Segmentation"/]
-  comp_method_transcript_assignment[/"Assignment"/]
-  comp_method_cell_type_annotation[/"Cell Type Annotation"/]
-  comp_method_expression_correction[/"Expression correction"/]
-  comp_metric_similarity[/"Metric"/]
-  file_segmentation("Segmentation")
-  file_transcript_assignments("Transcript Assignment")
-  file_spatial_with_cell_types("Spatial with Cell Types")
-  file_spatial_corrected_counts("Spatial Corrected")
-  file_score("Score")
-  comp_method_calculate_cell_volume[/"Calculate Cell Volume"/]
-  comp_method_count_aggregation[/"Count Aggregation"/]
-  comp_metric_quality[/"Quality Metric"/]
-  file_cell_volumes("Cell Volumes")
-  file_spatial_aggregated_counts("Aggregated Counts")
-  comp_method_normalization[/"Normalization"/]
-  comp_method_qc_filter[/"QC Filter"/]
-  file_spatial_normalized_counts("Spatial Normalized")
-  file_spatial_qc_col("QC Columns")
-  file_common_scrnaseq("Common SC Dataset")
+  file_common_ist("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-common-ist-dataset'>Common iST Dataset</a>")
+  comp_data_preprocessor[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-data-preprocessor'>Data preprocessor</a>"/]
+  file_raw_ist("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-raw-ist-dataset'>Raw iST Dataset</a>")
+  file_scrnaseq_reference("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-scrna-seq-reference'>scRNA-seq Reference</a>")
+  comp_method_segmentation[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-segmentation'>Segmentation</a>"/]
+  comp_method_transcript_assignment[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-assignment'>Assignment</a>"/]
+  comp_method_cell_type_annotation[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-cell-type-annotation'>Cell Type Annotation</a>"/]
+  comp_method_expression_correction[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-expression-correction'>Expression correction</a>"/]
+  comp_metric_similarity[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-metric'>Metric</a>"/]
+  file_segmentation("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-segmentation'>Segmentation</a>")
+  file_transcript_assignments("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-transcript-assignment'>Transcript Assignment</a>")
+  file_spatial_with_cell_types("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-spatial-with-cell-types'>Spatial with Cell Types</a>")
+  file_spatial_corrected_counts("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-spatial-corrected'>Spatial Corrected</a>")
+  file_score("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-score'>Score</a>")
+  comp_method_calculate_cell_volume[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-calculate-cell-volume'>Calculate Cell Volume</a>"/]
+  comp_method_count_aggregation[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-count-aggregation'>Count Aggregation</a>"/]
+  comp_metric_quality[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-quality-metric'>Quality Metric</a>"/]
+  file_cell_volumes("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-cell-volumes'>Cell Volumes</a>")
+  file_spatial_aggregated_counts("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-aggregated-counts'>Aggregated Counts</a>")
+  comp_method_normalization[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-normalization'>Normalization</a>"/]
+  comp_method_qc_filter[/"<a href='https://github.com/openproblems-bio/task_ist_preprocessing#component-type-qc-filter'>QC Filter</a>"/]
+  file_spatial_normalized_counts("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-spatial-normalized'>Spatial Normalized</a>")
+  file_spatial_qc_col("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-qc-columns'>QC Columns</a>")
+  file_common_scrnaseq("<a href='https://github.com/openproblems-bio/task_ist_preprocessing#file-format-common-sc-dataset'>Common SC Dataset</a>")
   file_common_ist---comp_data_preprocessor
   comp_data_preprocessor-->file_raw_ist
   comp_data_preprocessor-->file_scrnaseq_reference
   file_raw_ist---comp_method_segmentation
   file_raw_ist---comp_method_transcript_assignment
-  file_scrnaseq_reference---comp_method_transcript_assignment
-  file_scrnaseq_reference---comp_method_cell_type_annotation
-  file_scrnaseq_reference---comp_method_expression_correction
+  file_scrnaseq_reference-.-comp_method_transcript_assignment
+  file_scrnaseq_reference-.-comp_method_cell_type_annotation
+  file_scrnaseq_reference-.-comp_method_expression_correction
   file_scrnaseq_reference---comp_metric_similarity
   comp_method_segmentation-->file_segmentation
   comp_method_transcript_assignment-->file_transcript_assignments
   comp_method_cell_type_annotation-->file_spatial_with_cell_types
   comp_method_expression_correction-->file_spatial_corrected_counts
   comp_metric_similarity-->file_score
-  file_segmentation---comp_method_transcript_assignment
-  file_transcript_assignments---comp_method_cell_type_annotation
+  file_segmentation-.-comp_method_transcript_assignment
+  file_transcript_assignments-.-comp_method_cell_type_annotation
   file_transcript_assignments---comp_method_calculate_cell_volume
   file_transcript_assignments---comp_method_count_aggregation
   file_transcript_assignments---comp_metric_quality
@@ -88,7 +88,7 @@ flowchart TB
   comp_method_calculate_cell_volume-->file_cell_volumes
   comp_method_count_aggregation-->file_spatial_aggregated_counts
   comp_metric_quality-->file_score
-  file_cell_volumes---comp_method_normalization
+  file_cell_volumes-.-comp_method_normalization
   file_spatial_aggregated_counts---comp_method_normalization
   file_spatial_aggregated_counts---comp_method_qc_filter
   comp_method_normalization-->file_spatial_normalized_counts
