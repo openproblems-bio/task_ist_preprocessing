@@ -538,7 +538,7 @@ Arguments:
 | `--input` | `file` | Corrected spatial data counts with cell type annotations. |
 | `--input_qc_col` | `file` | QC columns for spatial data. |
 | `--input_transcript_assignments` | `file` | A spatial transcriptomics dataset with assigned transcripts. |
-| `--score` | `file` | (*Output*) Metric score file. |
+| `--output` | `file` | (*Output*) Metric score file. |
 
 </div>
 

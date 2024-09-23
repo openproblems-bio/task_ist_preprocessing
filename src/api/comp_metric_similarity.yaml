@@ -1,4 +1,4 @@
-namespace: metrics
+namespace: metrics_similarity
 info:
   type: metric
   subtype: similarity metric

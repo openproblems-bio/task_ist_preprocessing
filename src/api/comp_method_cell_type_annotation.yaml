@@ -1,4 +1,4 @@
-namespace: methods
+namespace: methods_cell_type_annotation
 info:
   type: method
   subtype: method_cell_type_annotation

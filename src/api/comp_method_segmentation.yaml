@@ -1,4 +1,4 @@
-namespace: methods
+namespace: methods_segmentation
 info:
   type: method
   subtype: method_segmentation

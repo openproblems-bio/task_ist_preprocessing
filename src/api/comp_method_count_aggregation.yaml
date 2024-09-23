@@ -1,4 +1,4 @@
-namespace: methods
+namespace: methods_count_aggregation
 info:
   type: method
   subtype: method_count_aggregation
