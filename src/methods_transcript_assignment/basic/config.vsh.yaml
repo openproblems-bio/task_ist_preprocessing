@@ -1,17 +1,14 @@
-name: basic
-
 __merge__: /src/api/comp_method_transcript_assignment.yaml
 
-info:
-  name: basic
-  type: method
-  label: "Basic Transcript Assignment Method"
-  summary: "Assign transcripts to cells based on a segmentation label image"
-  description: "The transcripts that are positioned in the same pixel as a cell are assigned to that cell."
-  documentation_url: "https://github.com/openproblems-bio/task_ist_preprocessing"
-  repository_url: "https://github.com/openproblems-bio/task_ist_preprocessing"
-  references:
-    doi: "10.1101/2023.02.13.528102"
+name: basic
+label: "Basic Transcript Assignment Method"
+summary: "Assign transcripts to cells based on a segmentation label image"
+description: "The transcripts that are positioned in the same pixel as a cell are assigned to that cell."
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1101/2023.02.13.528102"
 
 arguments:
   - name: --transcripts_key

@@ -1,4 +1,4 @@
-namespace: methods
+namespace: methods_normalization
 info:
   type: method
   subtype: method_normalization

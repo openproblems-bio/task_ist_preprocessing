@@ -2,6 +2,8 @@
 
 set -e
 
+SP_DIR=resources_test/common/2023_10x_mouse_brain_xenium_rep1
+SC_DIR=resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2
 OUT_DIR="resources_test/task_ist_preprocessing/mouse_brain_combined"
 
 rm -rf $OUT_DIR
@@ -10,8 +12,8 @@ mkdir -p $OUT_DIR
 
 # run dataset preprocessor
 viash run src/data_processors/process_dataset/config.vsh.yaml -- \
-  --input_scrnaseq resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad \
-  --input_ist resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr \
+  --input_scrnaseq $SC_DIR/dataset.h5ad \
+  --input_ist $SP_DIR/dataset.zarr \
   --output_scrnaseq $OUT_DIR/scrnaseq_reference.h5ad \
   --output_ist $OUT_DIR/raw_ist.zarr
 
@@ -59,7 +61,7 @@ viash run src/methods_expression_correction/gene_efficiency_correction/config.vs
   --output $OUT_DIR/spatial_corrected_counts.h5ad
   
 # run a QC filter method
-viash run src/methods_QC_filter/basic/config.vsh.yaml -- \
+viash run src/methods_qc_filter/basic/config.vsh.yaml -- \
   --input $OUT_DIR/spatial_corrected_counts.h5ad \
   --output $OUT_DIR/spatial_qc_col.h5ad
 

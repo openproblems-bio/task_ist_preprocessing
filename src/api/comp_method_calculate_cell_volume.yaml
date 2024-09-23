@@ -1,4 +1,4 @@
-namespace: methods
+namespace: methods_calculate_cell_volume
 info:
   type: method
   subtype: method_calculate_cell_volume

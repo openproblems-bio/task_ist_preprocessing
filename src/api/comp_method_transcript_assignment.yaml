@@ -1,4 +1,4 @@
-namespace: methods
+namespace: methods_transcript_assignment
 info:
   type: method
   subtype: method_transcript_assignment
