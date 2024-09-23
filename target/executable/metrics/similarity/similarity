@@ -490,9 +490,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component metrics similarity"
-LABEL org.opencontainers.image.created="2024-09-23T21:09:30Z"
+LABEL org.opencontainers.image.created="2024-09-23T22:04:41Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="d4e30fec1b8e72846692a41ae29fe54fa7dc51e1"
+LABEL org.opencontainers.image.revision="5fbbf3ee7d7a38772edf742c2c4ba7b2b092dcd7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1168,7 +1168,7 @@ df_filtered = tx.metrics.all_metrics(
 df = tx.metrics.all_metrics(adata_sp, adata_sc, key="cell_type", raw_layer="counts", lognorm_layer="normalized")
 
 uns_metric_ids = df.index.to_list() + [f"{metric}_qc_filtered" for metric in df_filtered.index]
-uns_metric_values = np.concatenate([df.values, df_filtered.values])
+uns_metric_values = df.iloc[:,0].to_list() + df_filtered.iloc[:,0].to_list()
 
 print("Write output AnnData to file", flush=True)
 output = ad.AnnData(

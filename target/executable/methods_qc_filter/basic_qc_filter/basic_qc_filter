@@ -479,9 +479,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_qc_filter basic_qc_filter"
-LABEL org.opencontainers.image.created="2024-09-23T21:09:31Z"
+LABEL org.opencontainers.image.created="2024-09-23T22:04:41Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="d4e30fec1b8e72846692a41ae29fe54fa7dc51e1"
+LABEL org.opencontainers.image.revision="5fbbf3ee7d7a38772edf742c2c4ba7b2b092dcd7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

@@ -3608,7 +3608,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/metrics/similarity",
     "viash_version" : "0.9.0",
-    "git_commit" : "d4e30fec1b8e72846692a41ae29fe54fa7dc51e1",
+    "git_commit" : "5fbbf3ee7d7a38772edf742c2c4ba7b2b092dcd7",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3793,7 +3793,7 @@ df_filtered = tx.metrics.all_metrics(
 df = tx.metrics.all_metrics(adata_sp, adata_sc, key="cell_type", raw_layer="counts", lognorm_layer="normalized")
 
 uns_metric_ids = df.index.to_list() + [f"{metric}_qc_filtered" for metric in df_filtered.index]
-uns_metric_values = np.concatenate([df.values, df_filtered.values])
+uns_metric_values = df.iloc[:,0].to_list() + df_filtered.iloc[:,0].to_list()
 
 print("Write output AnnData to file", flush=True)
 output = ad.AnnData(

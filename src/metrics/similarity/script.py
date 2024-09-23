@@ -44,7 +44,7 @@ df_filtered = tx.metrics.all_metrics(
 df = tx.metrics.all_metrics(adata_sp, adata_sc, key="cell_type", raw_layer="counts", lognorm_layer="normalized")
 
 uns_metric_ids = df.index.to_list() + [f"{metric}_qc_filtered" for metric in df_filtered.index]
-uns_metric_values = np.concatenate([df.values, df_filtered.values])
+uns_metric_values = df.iloc[:,0].to_list() + df_filtered.iloc[:,0].to_list()
 
 print("Write output AnnData to file", flush=True)
 output = ad.AnnData(
