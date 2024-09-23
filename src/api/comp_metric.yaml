@@ -1,12 +1,11 @@
-namespace: metrics_quality
+namespace: metrics
 info:
   type: metric
-  subtype: quality metric
   type_info:
-    label: Quality Metric
-    summary: A metric for evaluating the quality of the processed iST data
+    label: Metric
+    summary: A metric for evaluating iST preprocessing methods
     description: |
-      This metric assesses the quality of the processed iST data.
+      This metric evaluates the quality of the iST preprocessing based on similarity to the scRNAseq reference.
 arguments:
   - name: --input
     __merge__: file_spatial_corrected_counts.yaml
@@ -16,14 +15,18 @@ arguments:
     __merge__: file_spatial_qc_col.yaml
     direction: input
     required: true
+  - name: --input_sc
+    required: true
+    direction: input
+    __merge__: file_scrnaseq_reference.yaml
   - name: --input_transcript_assignments
     __merge__: file_transcript_assignments.yaml
     direction: input
     required: true
-  - name: "--output"
-    __merge__: file_score.yaml
-    direction: output
+  - name: --output
     required: true
+    direction: output
+    __merge__: file_score.yaml
 
 test_resources:
   - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
@@ -32,3 +35,5 @@ test_resources:
     path: /common/component_tests/run_and_check_output.py
   - type: python_script
     path: /common/component_tests/check_config.py
+
+
