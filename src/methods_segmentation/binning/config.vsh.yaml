@@ -1,0 +1,25 @@
+name: binning
+
+__merge__: /src/api/comp_method_segmentation.yaml 
+
+arguments:
+  - name: --bin_size
+    type: integer
+    default: 30
+
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: spatialdata
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
