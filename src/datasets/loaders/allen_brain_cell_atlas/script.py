@@ -128,5 +128,7 @@ adata.var = adata.var.rename(columns={"gene_symbol":"feature_name"})
 for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism"]:
     adata.uns[key] = par[key]
 
+print(f"Output: {adata}")
+
 # Write data
 adata.write_h5ad(par["output"])

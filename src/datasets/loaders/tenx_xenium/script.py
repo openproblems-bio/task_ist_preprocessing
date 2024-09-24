@@ -68,4 +68,6 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     if os.path.exists(par["output"]):
         shutil.rmtree(par["output"])
 
+    print(f"Output: {sdata}")
+
     sdata.write(par["output"])
