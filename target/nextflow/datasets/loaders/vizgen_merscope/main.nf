@@ -3183,7 +3183,8 @@ meta = [
     },
     {
       "type" : "file",
-      "path" : "download.sh"
+      "path" : "download.sh",
+      "is_executable" : true
     }
   ],
   "status" : "enabled",
@@ -3284,7 +3285,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/vizgen_merscope",
     "viash_version" : "0.9.0",
-    "git_commit" : "80d8246924db6e043daa3e64f3ffd4b71b50ca1c",
+    "git_commit" : "aa0a15ab226c1deabe557b5a90b5fab540640f26",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3465,9 +3466,6 @@ BUCKET_NAME = par['gcloud_bucket']
 DATASET = par["dataset_bucket_name"]
 OUT_DIR = meta["temp_dir"]
 DRY_RUN = "false"
-
-# Change permissions of the download script to make it executable
-os.chmod(download_script, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)  # Grant read, write, and execute permissions to the user
 
 # Run the download script
 out = subprocess.run([download_script, BUCKET_NAME, DATASET, OUT_DIR, DRY_RUN], check=True, capture_output=True, text=True)
