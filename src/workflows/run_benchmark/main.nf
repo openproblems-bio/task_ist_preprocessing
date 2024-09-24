@@ -361,6 +361,9 @@ workflow run_wf {
     | extract_uns_metadata.run(
       key: "extract_uns_scores",
       fromState: [input: "output_metric"],
+      args: [
+        uns_length_cutoff: 100
+      ],
       toState: { id, output, state ->
         state + [
           score_uns: readYaml(output.output).uns
