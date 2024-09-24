@@ -10,7 +10,7 @@ set -e
 
 # export TOWER_WORKSPACE_ID=53907369739130
 
-DATASETS_DIR="resources_test/task_template"
+DATASETS_DIR="resources_test/task_ist_preprocessing"
 OUTPUT_DIR="output/temp"
 
 if [ ! -d "$OUTPUT_DIR" ]; then

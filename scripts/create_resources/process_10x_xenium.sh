@@ -23,7 +23,7 @@ param_list:
     segmentation_id: [cell, nucleus]
 
   - id: "10x_xenium/2023_10x_mouse_brain_xenium/rep2"
-    input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs.zip
+    input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_2/Xenium_V1_FF_Mouse_Brain_MultiSection_2_outs.zip
     dataset_name: "Xenium V1 Fresh Frozen Mouse Brain replicate 2"
     dataset_url: "https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard"
     dataset_summary: "Demonstration of gene expression profiling for fresh frozen mouse brain on the Xenium platform using the pre-designed Mouse Brain Gene Expression Panel (v1)."
@@ -32,7 +32,7 @@ param_list:
     segmentation_id: [cell, nucleus]
 
   - id: "10x_xenium/2023_10x_mouse_brain_xenium/rep3"
-    input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs.zip
+    input: https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_3/Xenium_V1_FF_Mouse_Brain_MultiSection_3_outs.zip
     dataset_name: "Xenium V1 Fresh Frozen Mouse Brain replicate 3"
     dataset_url: "https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard"
     dataset_summary: "Demonstration of gene expression profiling for fresh frozen mouse brain on the Xenium platform using the pre-designed Mouse Brain Gene Expression Panel (v1)."
@@ -45,13 +45,12 @@ output_state: "\$id/state.yaml"
 publish_dir: "$publish_dir"
 HERE
 
-tw launch openproblems-bio/task_ist_preprocessing \
+tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --revision build/main \
   --pull-latest \
   --main-script target/nextflow/datasets/workflows/process_tenx_xenium/main.nf \
   --workspace 53907369739130 \
   --compute-env 6TeIFgV5OY4pJCk8I0bfOh \
   --params-file /tmp/params.yaml \
-  --entry-name auto \
   --config common/nextflow_helpers/labels_tw.config \
   --labels datasets,10x_xenium

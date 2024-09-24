@@ -38,13 +38,12 @@ output_state: "\$id/state.yaml"
 publish_dir: "$publish_dir"
 HERE
 
-tw launch openproblems-bio/task_ist_preprocessing \
+tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --revision build/main \
   --pull-latest \
   --main-script target/nextflow/datasets/workflows/process_allen_brain_cell_atlas/main.nf \
   --workspace 53907369739130 \
   --compute-env 6TeIFgV5OY4pJCk8I0bfOh \
   --params-file /tmp/params.yaml \
-  --entry-name auto \
   --config common/nextflow_helpers/labels_tw.config \
   --labels datasets,allen_brain_cell_atlas

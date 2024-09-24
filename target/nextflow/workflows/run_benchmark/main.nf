@@ -3585,7 +3585,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.0",
-    "git_commit" : "21faea1f66436094ad0c35fd2112dcd646f36c8d",
+    "git_commit" : "38f6a76339c308dcd1481b719aa702ad2950ffd2",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4072,6 +4072,9 @@ workflow run_wf {
     | extract_uns_metadata.run(
       key: "extract_uns_scores",
       fromState: [input: "output_metric"],
+      args: [
+        uns_length_cutoff: 100
+      ],
       toState: { id, output, state ->
         state + [
           score_uns: readYaml(output.output).uns
