@@ -55,7 +55,7 @@ from shapely import MultiPolygon
 import os
 
 def read_boundary_hdf5(folder):
-    print("Convert boundary hdf5 to parquet", flush=True)
+    print(datetime.now() - t0, "Convert boundary hdf5 to parquet", flush=True)
     all_boundaries = {}
     boundaries = None
     hdf5_files = os.listdir(folder + '/cell_boundaries/')
@@ -63,7 +63,7 @@ def read_boundary_hdf5(folder):
     incr = n_files // 15
     for _,i in enumerate(hdf5_files):
         if (_ % incr) == 0:
-            print(f"\tProcessed {_}/{n_files}", flush=True)
+            print(datetime.now() - t0, f"\tProcessed {_}/{n_files}", flush=True)
         with h5py.File(folder + '/cell_boundaries/' + i, "r") as f:
             for key in f['featuredata'].keys():
                 if boundaries is not None:

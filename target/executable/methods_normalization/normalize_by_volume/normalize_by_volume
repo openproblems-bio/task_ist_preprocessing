@@ -478,9 +478,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_normalization normalize_by_volume"
-LABEL org.opencontainers.image.created="2024-09-24T19:06:10Z"
+LABEL org.opencontainers.image.created="2024-09-24T19:28:18Z"
 LABEL org.opencontainers.image.source="https://github.com/theislab/txsim"
-LABEL org.opencontainers.image.revision="aa0a15ab226c1deabe557b5a90b5fab540640f26"
+LABEL org.opencontainers.image.revision="6dde37c05d16b34429ba1329ec6b12c617cd9b2d"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

@@ -31,6 +31,7 @@ FILES=(
     "cell_boundaries/"  # This is a directory
     "cell_boundaries.parquet"
     "images/mosaic_DAPI_z3.tif" # If you want all images, change this to "images/"
+    "images/micron_to_mosaic_pixel_transform.csv"
 )
 
 # Check if gsutil is installed

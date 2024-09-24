@@ -3285,7 +3285,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/vizgen_merscope",
     "viash_version" : "0.9.0",
-    "git_commit" : "aa0a15ab226c1deabe557b5a90b5fab540640f26",
+    "git_commit" : "6dde37c05d16b34429ba1329ec6b12c617cd9b2d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3482,7 +3482,7 @@ from shapely import MultiPolygon
 import os
 
 def read_boundary_hdf5(folder):
-    print("Convert boundary hdf5 to parquet", flush=True)
+    print(datetime.now() - t0, "Convert boundary hdf5 to parquet", flush=True)
     all_boundaries = {}
     boundaries = None
     hdf5_files = os.listdir(folder + '/cell_boundaries/')
@@ -3490,7 +3490,7 @@ def read_boundary_hdf5(folder):
     incr = n_files // 15
     for _,i in enumerate(hdf5_files):
         if (_ % incr) == 0:
-            print(f"\\\\tProcessed {_}/{n_files}", flush=True)
+            print(datetime.now() - t0, f"\\\\tProcessed {_}/{n_files}", flush=True)
         with h5py.File(folder + '/cell_boundaries/' + i, "r") as f:
             for key in f['featuredata'].keys():
                 if boundaries is not None:
