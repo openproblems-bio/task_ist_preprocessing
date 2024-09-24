@@ -40,9 +40,6 @@ DATASET = par["dataset_bucket_name"]
 OUT_DIR = meta["temp_dir"]
 DRY_RUN = "false"
 
-# Change permissions of the download script to make it executable
-os.chmod(download_script, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)  # Grant read, write, and execute permissions to the user
-
 # Run the download script
 out = subprocess.run([download_script, BUCKET_NAME, DATASET, OUT_DIR, DRY_RUN], check=True, capture_output=True, text=True)
 print(out.stdout, flush=True)

@@ -58,6 +58,7 @@ resources:
   - type: python_script
     path: script.py
   - path: download.sh
+    is_executable: true
 
 engines:
   - type: docker
