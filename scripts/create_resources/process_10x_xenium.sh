@@ -8,7 +8,7 @@ cd "$REPO_ROOT"
 
 set -e
 
-publish_dir="s3://openproblems-data/resource/datasets"
+publish_dir="s3://openproblems-data/resources/datasets"
 
 cat > /tmp/params.yaml << HERE
 param_list:

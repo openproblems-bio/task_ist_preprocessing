@@ -3953,6 +3953,7 @@ meta = [
   "dependencies" : [
     {
       "name" : "data_processors/process_dataset",
+      "alias" : "process_dataset_comp",
       "repository" : {
         "type" : "local"
       }
@@ -4021,7 +4022,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/process_datasets",
     "viash_version" : "0.9.0",
-    "git_commit" : "5fbbf3ee7d7a38772edf742c2c4ba7b2b092dcd7",
+    "git_commit" : "21faea1f66436094ad0c35fd2112dcd646f36c8d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4132,14 +4133,15 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { process_dataset } from "${meta.resources_dir}/../../../nextflow/data_processors/process_dataset/main.nf"
+include { process_dataset as process_dataset_comp_viashalias } from "${meta.resources_dir}/../../../nextflow/data_processors/process_dataset/main.nf"
+process_dataset_comp = process_dataset_comp_viashalias.run(key: "process_dataset_comp")
 
 // inner workflow
 // user-provided Nextflow code
 include { findArgumentSchema } from "${meta.resources_dir}/helper.nf"
 
 workflow auto {
-  findStatesTemp(params, meta.config)
+  findStates(params, meta.config)
     | meta.workflow.run(
       auto: [publish: "state"]
     )
@@ -4153,11 +4155,19 @@ workflow run_wf {
   output_ch = input_ch
 
     // example of channel event: 
-    //   ["my_id", ["input_sc": file("..."), "input_sp": file("...")]]
+    //   ["mouse_brain_combined", [
+    //      "input_sc": file("resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"),
+    //      "input_sp": file("resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr")]]
 
-    | process_datasets.run(
-      fromState: ["input_sc", "input_sp"],
-      toState: ["output_sc", "output_sp"]
+    | process_dataset_comp.run(
+      fromState: [
+        input_ist: "input_sp",
+        input_scrnaseq: "input_sc"
+      ],
+      toState: [
+        output_sc: "output_scrnaseq",
+        output_sp: "output_ist"
+      ]
     )
 
     // example of channel event at this point:

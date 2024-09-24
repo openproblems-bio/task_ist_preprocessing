@@ -18,13 +18,13 @@ viash run src/data_processors/process_dataset/config.vsh.yaml -- \
   --output_ist $OUT_DIR/raw_ist.zarr
 
 # run a segmentation method
-viash run src/methods_segmentation/custom/config.vsh.yaml -- \
+viash run src/methods_segmentation/custom_segmentation/config.vsh.yaml -- \
   --input $OUT_DIR/raw_ist.zarr \
   --labels_key cell_labels \
   --output $OUT_DIR/segmentation.zarr
 
 # run an assignment method
-viash run src/methods_transcript_assignment/basic/config.vsh.yaml -- \
+viash run src/methods_transcript_assignment/basic_transcript_assignment/config.vsh.yaml -- \
   --input_ist $OUT_DIR/raw_ist.zarr \
   --input_segmentation $OUT_DIR/segmentation.zarr \
   --transcripts_key transcripts \
@@ -32,7 +32,7 @@ viash run src/methods_transcript_assignment/basic/config.vsh.yaml -- \
   --output $OUT_DIR/transcript_assignments.zarr
 
 # run a count aggregation method
-viash run src/methods_count_aggregation/basic/config.vsh.yaml -- \
+viash run src/methods_count_aggregation/basic_count_aggregation/config.vsh.yaml -- \
   --input $OUT_DIR/transcript_assignments.zarr \
   --output $OUT_DIR/spatial_aggregated_counts.h5ad
 
@@ -59,11 +59,34 @@ viash run src/methods_expression_correction/gene_efficiency_correction/config.vs
   --input_spatial_with_cell_types $OUT_DIR/spatial_with_cell_types.h5ad \
   --input_scrnaseq_reference $OUT_DIR/scrnaseq_reference.h5ad \
   --output $OUT_DIR/spatial_corrected_counts.h5ad
-  
+
 # run a QC filter method
-viash run src/methods_qc_filter/basic/config.vsh.yaml -- \
+viash run src/methods_qc_filter/basic_qc_filter/config.vsh.yaml -- \
   --input $OUT_DIR/spatial_corrected_counts.h5ad \
   --output $OUT_DIR/spatial_qc_col.h5ad
+
+# run a metric
+viash run src/metrics/similarity/config.vsh.yaml -- \
+  --input $OUT_DIR/spatial_corrected_counts.h5ad \
+  --input_qc_col $OUT_DIR/spatial_qc_col.h5ad \
+  --input_sc $OUT_DIR/scrnaseq_reference.h5ad \
+  --input_transcript_assignments $OUT_DIR/transcript_assignments.zarr \
+  --output $OUT_DIR/score.h5ad
+
+# create a state file
+cat >> $OUT_DIR/state.yaml <<EOL
+output_sp: $OUT_DIR/raw_ist.zarr
+output_sc: $OUT_DIR/scrnaseq_reference.h5ad
+output_segmentation: $OUT_DIR/segmentation.zarr
+output_transcript_assignments: $OUT_DIR/transcript_assignments.zarr
+output_spatial_aggregated_counts: $OUT_DIR/spatial_aggregated_counts.h5ad
+output_cell_volumes: $OUT_DIR/cell_volumes.h5ad
+output_spatial_normalized_counts: $OUT_DIR/spatial_normalized_counts.h5ad
+output_spatial_with_cell_types: $OUT_DIR/spatial_with_cell_types.h5ad
+output_spatial_corrected_counts: $OUT_DIR/spatial_corrected_counts.h5ad
+output_spatial_qc_col: $OUT_DIR/spatial_qc_col.h5ad
+output_score: $OUT_DIR/score.h5ad
+EOL
 
 # sync test resources
 aws s3 sync --profile op \
