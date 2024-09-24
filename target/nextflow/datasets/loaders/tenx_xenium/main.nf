@@ -3256,7 +3256,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/tenx_xenium",
     "viash_version" : "0.9.0",
-    "git_commit" : "4d677760a91d16ce7510b3891b82abfd96596350",
+    "git_commit" : "f40aab3b7aa260479b201b227eea65caf763bf1b",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3464,6 +3464,8 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     print(f"Writing to '{par['output']}'", flush=True)
     if os.path.exists(par["output"]):
         shutil.rmtree(par["output"])
+
+    print(f"Output: {sdata}")
 
     sdata.write(par["output"])
 VIASHMAIN

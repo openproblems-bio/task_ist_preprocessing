@@ -3585,7 +3585,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.0",
-    "git_commit" : "4d677760a91d16ce7510b3891b82abfd96596350",
+    "git_commit" : "f40aab3b7aa260479b201b227eea65caf763bf1b",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3728,6 +3728,7 @@ workflow run_wf {
   init_ch = input_ch
     | map { id, state ->
       def new_state = state + [
+        orig_id: id,
         steps: [
           [type: "dataset", dataset_id: id]
         ]
@@ -3738,14 +3739,14 @@ workflow run_wf {
   /****************************************
    *       RUN SEGMENTATION METHODS       *
    ****************************************/
-  segmentation_methods = [
+  segm_methods = [
     custom_segmentation.run(
       args: [labels_key: "cell_labels"]
     )
   ]
   segm_ch = init_ch
     | runEach(
-      components: segmentation_methods,
+      components: segm_methods,
       id: { id, state, comp ->
         id + "/segm_" + comp.name
       },
@@ -4086,7 +4087,21 @@ workflow run_wf {
       // TODO: determine what to store in the score_uns file
 
       // store the scores in a file
-      def score_uns = states.collect{it.score_uns + [steps: it.steps]}
+      def score_uns = states.collect{state ->
+        def method_ids = 
+          state.steps.collectMany{step ->
+            step.type in ["dataset", "metric"] ? [] : [step.component_id]
+          }
+        def new_metadata = [
+          dataset_id: state.orig_id,
+          // dataset_sc_id: ..., // todo: extract this from the dataset
+          // dataset_sp_id: ..., // todo: extract this from the dataset
+          method_ids: method_ids,
+          metric_id: metric_id,
+          steps: state.steps
+        ]
+        new_metadata + state.score_uns
+      }
       def score_uns_yaml_blob = toYamlBlob(score_uns)
       def score_uns_file = tempFile("score_uns.yaml")
       score_uns_file.write(score_uns_yaml_blob)
@@ -4112,10 +4127,6 @@ workflow run_wf {
 
       def dataset_uns_file = tempFile("dataset_uns.yaml")
       dataset_uns_file.write("")
-      def method_configs_file = tempFile("method_configs.yaml")
-      method_configs_file.write("")
-      def metric_configs_file = tempFile("metric_configs.yaml")
-      metric_configs_file.write("")
 
       // // store the dataset metadata in a file
       // def dataset_uns = states.collect{state ->
@@ -4127,17 +4138,21 @@ workflow run_wf {
       // def dataset_uns_file = tempFile("dataset_uns.yaml")
       // dataset_uns_file.write(dataset_uns_yaml_blob)
 
-      // // store the method configs in a file
-      // def method_configs = methods.collect{it.config}
-      // def method_configs_yaml_blob = toYamlBlob(method_configs)
-      // def method_configs_file = tempFile("method_configs.yaml")
-      // method_configs_file.write(method_configs_yaml_blob)
+      // store the method configs in a file
+      def methods =
+        segm_methods + segm_ass_methods + direct_ass_methods + count_aggr_methods +
+        qc_filter_methods + cell_vol_methods + vol_norm_methods + direct_norm_methods +
+        cta_methods + expr_corr_methods
+      def method_configs = methods.collect{it.config}
+      def method_configs_yaml_blob = toYamlBlob(method_configs)
+      def method_configs_file = tempFile("method_configs.yaml")
+      method_configs_file.write(method_configs_yaml_blob)
 
-      // // store the metric configs in a file
-      // def metric_configs = metrics.collect{it.config}
-      // def metric_configs_yaml_blob = toYamlBlob(metric_configs)
-      // def metric_configs_file = tempFile("metric_configs.yaml")
-      // metric_configs_file.write(metric_configs_yaml_blob)
+      // store the metric configs in a file
+      def metric_configs = metrics.collect{it.config}
+      def metric_configs_yaml_blob = toYamlBlob(metric_configs)
+      def metric_configs_file = tempFile("metric_configs.yaml")
+      metric_configs_file.write(metric_configs_yaml_blob)
 
       // retrieve task info
       def viash_file = meta.resources_dir.resolve("_viash.yaml")
