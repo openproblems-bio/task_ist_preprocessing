@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 import anndata as ad
 from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
+import scipy as sp
 
 ## VIASH START
 par = {
@@ -40,9 +41,10 @@ for file in metadata_files:
 
 print("Downloading expression matrices", flush=True)
 # From abc_cache.list_data_files('WMB-10Xv2') # TODO: potentially also load other chemistries (currently only 10Xv2)
-count_matrix_files = [f'WMB-10Xv2-{region}/raw' for region in REGIONS]
 
-for file in count_matrix_files:
+for region in REGIONS:
+    print(f"Downloading h5ad file for region {region}", flush=True)
+    file = f"WMB-10Xv2-{region}/raw"
     abc_cache.get_data_path(directory='WMB-10Xv2', file_name=file)
 
 print("Reading obs", flush=True)
@@ -54,19 +56,26 @@ obs = pd.read_csv(
 print("Reading expression matrices", flush=True)
 adatas = []
 for region in REGIONS:
+    print(f"Reading h5ad for region {region}", flush=True)
     adata = ad.read_h5ad(
         TMP_DIR / f"expression_matrices/WMB-10Xv2/{VERSION}/WMB-10Xv2-{region}-raw.h5ad"
     )
     adata = adata[adata.obs_names.isin(obs.index)]
     adata.obs["region"] = region
+    counts = adata.X
+    del adata.X
+
+    # make sure counts is sparse
+    if not isinstance(counts, sp.sparse.csr_matrix):
+        counts = sp.sparse.csr_matrix(counts)
+    adata.layers["counts"] = counts
+    
+    # add anndata to list
     adatas.append(adata)
 
 print("Concatenating data", flush=True)
 adata = ad.concat(adatas, merge="first")
-
-print("Processing .layers")
-adata.layers["counts"] = adata.X
-del adata.X
+del adatas
 
 print("Processing .obs")
 adata.obs = obs.loc[adata.obs.index]
