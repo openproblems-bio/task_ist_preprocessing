@@ -5,11 +5,12 @@ import pandas as pd
 import anndata as ad
 from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 import scipy as sp
+import scanpy as sc
 
 ## VIASH START
 par = {
     "abca_version": "20230630",
-    "regions": ["OLF", "TH"],
+    "regions": ["CTXsp", "HPF", "HY", "Isocortex-1", "Isocortex-2", "Isocortex-3", "Isocortex-4", "MB", "OLF", "TF"],
     "output": "tmp_dataset.h5ad",
 }
 meta = {
@@ -30,28 +31,24 @@ abc_cache.load_manifest(
 )
 
 print("Downloading metadata", flush=True)
-# From abc_cache.list_metadata_files('WMB-10Xv2')
 metadata_files = [
-    'cell_metadata_with_cluster_annotation',
-    #'gene',
-    #'region_of_interest_metadata'
+    "cell_metadata_with_cluster_annotation",
 ]
 for file in metadata_files:
-    abc_cache.get_metadata_path(directory='WMB-10X', file_name=file)
-
-print("Downloading expression matrices", flush=True)
-# From abc_cache.list_data_files('WMB-10Xv2') # TODO: potentially also load other chemistries (currently only 10Xv2)
-
-for region in REGIONS:
-    print(f"Downloading h5ad file for region {region}", flush=True)
-    file = f"WMB-10Xv2-{region}/raw"
-    abc_cache.get_data_path(directory='WMB-10Xv2', file_name=file)
+    abc_cache.get_metadata_path(directory="WMB-10X", file_name=file)
 
 print("Reading obs", flush=True)
 obs = pd.read_csv(
     TMP_DIR / f"metadata/WMB-10X/{VERSION}/views/cell_metadata_with_cluster_annotation.csv",
     index_col=0,
 )
+
+print("Downloading expression matrices", flush=True)
+# From abc_cache.list_data_files("WMB-10Xv2") # TODO: potentially also load other chemistries (currently only 10Xv2)
+for region in REGIONS:
+    print(f"Downloading h5ad file for region {region}", flush=True)
+    file = f"WMB-10Xv2-{region}/raw"
+    abc_cache.get_data_path(directory="WMB-10Xv2", file_name=file)
 
 print("Reading expression matrices", flush=True)
 adatas = []
@@ -77,6 +74,10 @@ print("Concatenating data", flush=True)
 adata = ad.concat(adatas, merge="first")
 del adatas
 
+print("Filtering data", flush=True)
+sc.pp.filter_genes(adata, min_cells=1)
+sc.pp.filter_cells(adata, min_genes=1)
+
 print("Processing .obs")
 adata.obs = obs.loc[adata.obs.index]
 
@@ -84,11 +85,11 @@ adata.obs = obs.loc[adata.obs.index]
 rename_obs_keys = {
     "dataset_id": "dataset_label",
     "assay": "library_method",
-    "cell_type": 'class', 
+    "cell_type": "class", 
     "cell_type_level2": "subclass",
     "cell_type_level3": "supertype",
     "cell_type_level4": "cluster",
-    "donor_id":'donor_label',
+    "donor_id": "donor_label",
     "sex": "donor_sex",
     "tissue": "region_of_interest_acronym",
     "batch": "library_label",
@@ -112,7 +113,7 @@ store_info = {
     "development_stage_ontology_term_id": "MmusDv:0000110"
 }
 for key, value in store_info.items():
-    adata.obs[key] = value
+    adata.obs[key] = pd.Categorical(value, categories=[value])
 
 # remove undesired columns
 for key in adata.obs.columns:
@@ -122,7 +123,7 @@ for key in adata.obs.columns:
 
 # Var
 adata.var["feature_id"] = adata.var_names
-adata.var = adata.var.rename(columns={"gene_symbol":"feature_name"})
+adata.var = adata.var.rename(columns={"gene_symbol": "feature_name"})
 
 # Uns
 for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism"]:
