@@ -3289,7 +3289,7 @@ meta = [
       "id" : "nextflow",
       "directives" : {
         "label" : [
-          "highmem",
+          "veryhighmem",
           "midcpu",
           "midtime"
         ],
@@ -3347,7 +3347,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "e9842e5df48b0a917ac87237fabbfd8459926181",
+    "git_commit" : "80d8246924db6e043daa3e64f3ffd4b71b50ca1c",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3995,7 +3995,7 @@ meta["defaults"] = [
     "tag" : "build_main"
   },
   "label" : [
-    "highmem",
+    "veryhighmem",
     "midcpu",
     "midtime"
   ],
