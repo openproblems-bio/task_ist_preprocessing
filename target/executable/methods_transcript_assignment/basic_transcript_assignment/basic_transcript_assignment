@@ -495,9 +495,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment basic_transcript_assignment"
-LABEL org.opencontainers.image.created="2024-09-24T13:15:50Z"
+LABEL org.opencontainers.image.created="2024-09-24T14:09:58Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="38f6a76339c308dcd1481b719aa702ad2950ffd2"
+LABEL org.opencontainers.image.revision="81085e30d482ef9eca4599ce14dbdab3302c6c09"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

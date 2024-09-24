@@ -45,7 +45,7 @@ workflow run_wf {
       toState: ["output"]
     )
 
-    | setState(["output"])
+    | setState([output_dataset: "output"])
 
   emit:
   output_ch
