@@ -3608,7 +3608,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/metrics/similarity",
     "viash_version" : "0.9.0",
-    "git_commit" : "2740ce8197bc8ca3bdd1c3cc719b240df42a870a",
+    "git_commit" : "20c3638e47f169274399f9c4c2e76b9d4969be3a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

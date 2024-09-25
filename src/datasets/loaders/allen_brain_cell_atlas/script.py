@@ -2,10 +2,11 @@
 
 from pathlib import Path
 import pandas as pd
-import anndata as ad
-from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
+from collections import defaultdict
 import scipy as sp
 import scanpy as sc
+import anndata as ad
+from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 
 ## VIASH START
 par = {
@@ -41,6 +42,13 @@ print("Reading obs", flush=True)
 obs = pd.read_csv(
     TMP_DIR / f"metadata/WMB-10X/{VERSION}/views/cell_metadata_with_cluster_annotation.csv",
     index_col=0,
+    dtype=defaultdict(
+        lambda: "category",
+        cluster_label="int",
+        x="float",
+        y="float",
+        region_of_interest_order="int"
+    )
 )
 
 print("Downloading expression matrices", flush=True)
