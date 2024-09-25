@@ -83,8 +83,12 @@ adata = ad.concat(adatas, merge="first")
 del adatas
 
 print("Filtering data", flush=True)
-sc.pp.filter_genes(adata, min_cells=1)
-sc.pp.filter_cells(adata, min_genes=1)
+num_cells_per_gene = adata.layers["counts"].getnnz(axis=0)
+num_genes_per_cell = adata.layers["counts"].getnnz(axis=1)
+adata = adata[
+    num_genes_per_cell >= 1,
+    num_cells_per_gene >= 1
+].copy()
 
 print("Processing .obs")
 adata.obs = obs.loc[adata.obs.index]
