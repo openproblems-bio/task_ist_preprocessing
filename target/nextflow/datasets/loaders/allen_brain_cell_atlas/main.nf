@@ -3347,7 +3347,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "8bd0a33a9874b579843fc09e538cd3808baa78f1",
+    "git_commit" : "f9cb326b8ee0fbbe1a62b199eb63df95f16e6d9d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3563,6 +3563,9 @@ for region in REGIONS:
     adata = ad.read_h5ad(
         TMP_DIR / f"expression_matrices/WMB-10Xv2/{VERSION}/WMB-10Xv2-{region}-raw.h5ad"
     )
+    sc.pp.filter_cells(adata, min_genes=5)
+    sc.pp.filter_cells(adata, min_counts=50)
+
     adata = adata[adata.obs_names.isin(obs.index)]
     adata.obs["region"] = region
     counts = adata.X
@@ -3579,14 +3582,6 @@ for region in REGIONS:
 print("Concatenating data", flush=True)
 adata = ad.concat(adatas, merge="first")
 del adatas
-
-print("Filtering data", flush=True)
-num_cells_per_gene = adata.layers["counts"].getnnz(axis=0)
-num_genes_per_cell = adata.layers["counts"].getnnz(axis=1)
-adata = adata[
-    num_genes_per_cell >= 1,
-    num_cells_per_gene >= 1
-].copy()
 
 print("Processing .obs")
 adata.obs = obs.loc[adata.obs.index]
