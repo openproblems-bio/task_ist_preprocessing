@@ -31,27 +31,14 @@ workflow run_wf {
         "dataset_summary",
         "dataset_description",
         "dataset_organism",
+        "sample_n_obs",
+        "sample_obs_weight",
+        "sample_transform",
+        "sample_seed"
       ],
       toState: [
         "output_raw": "output"
       ]
-    )
-
-    // subsample if so desired
-    | subsample.run(
-      runIf: { id, state -> state.do_subsample },
-      fromState: [
-        "input": "output_raw",
-        "n_obs": "n_obs",
-        "n_vars": "n_vars",
-        "keep_features": "keep_features",
-        "keep_cell_type_categories": "keep_cell_type_categories",
-        "keep_batch_categories": "keep_batch_categories",
-        "even": "even",
-        "seed": "seed"
-      ],
-      args: [output_mod2: null],
-      toState: ["output_raw": "output"]
     )
 
     | log_cp.run(
