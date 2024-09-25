@@ -3378,7 +3378,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "6c850400020a326d035ab05b2e226eca47652ab4",
+    "git_commit" : "751facc5686824b09b5f28ca4b906db476ef8e58",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3581,7 +3581,7 @@ obs = pd.read_csv(
 print("Filtering obs based on regions", flush=True)
 obs = obs[obs["anatomical_division_label"].isin(REGIONS)]
 
-if par["sample_n_obs"]:
+if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
     print("Filtering obs based on n_obs", flush=True)
     col = par["sample_obs_weight"]
 
@@ -3612,14 +3612,11 @@ for region in REGIONS:
 
         adata = ad.read_h5ad(str(adata_path))
 
-        adata_ = adata[adata.obs_names.isin(obs.index)]
+        adata = adata[adata.obs_names.isin(obs.index)]
         adata.obs["region"] = region
         counts = adata.X
         del adata.X
 
-        # make sure counts is sparse
-        if not isinstance(counts, sp.sparse.csr_matrix):
-            counts = sp.sparse.csr_matrix(counts)
         adata.layers["counts"] = counts
         
         # add anndata to list
