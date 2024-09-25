@@ -3347,7 +3347,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "88fc57ddabde0ff1cbdeac5fd2b32d5009df6ae9",
+    "git_commit" : "8bd0a33a9874b579843fc09e538cd3808baa78f1",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3581,8 +3581,12 @@ adata = ad.concat(adatas, merge="first")
 del adatas
 
 print("Filtering data", flush=True)
-sc.pp.filter_genes(adata, min_cells=1)
-sc.pp.filter_cells(adata, min_genes=1)
+num_cells_per_gene = adata.layers["counts"].getnnz(axis=0)
+num_genes_per_cell = adata.layers["counts"].getnnz(axis=1)
+adata = adata[
+    num_genes_per_cell >= 1,
+    num_cells_per_gene >= 1
+].copy()
 
 print("Processing .obs")
 adata.obs = obs.loc[adata.obs.index]

@@ -515,9 +515,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/alleninstitute/abc_atlas_access"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas"
-LABEL org.opencontainers.image.created="2024-09-25T11:51:02Z"
+LABEL org.opencontainers.image.created="2024-09-25T13:00:14Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="88fc57ddabde0ff1cbdeac5fd2b32d5009df6ae9"
+LABEL org.opencontainers.image.revision="8bd0a33a9874b579843fc09e538cd3808baa78f1"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1299,8 +1299,12 @@ adata = ad.concat(adatas, merge="first")
 del adatas
 
 print("Filtering data", flush=True)
-sc.pp.filter_genes(adata, min_cells=1)
-sc.pp.filter_cells(adata, min_genes=1)
+num_cells_per_gene = adata.layers["counts"].getnnz(axis=0)
+num_genes_per_cell = adata.layers["counts"].getnnz(axis=1)
+adata = adata[
+    num_genes_per_cell >= 1,
+    num_cells_per_gene >= 1
+].copy()
 
 print("Processing .obs")
 adata.obs = obs.loc[adata.obs.index]
