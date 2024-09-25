@@ -2960,7 +2960,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/datasets/processors/crop_region",
     "viash_version" : "0.9.0",
-    "git_commit" : "321faa9832bafc25d02e47d898830eb3c55ccd14",
+    "git_commit" : "6c850400020a326d035ab05b2e226eca47652ab4",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

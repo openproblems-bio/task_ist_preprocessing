@@ -3378,7 +3378,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "321faa9832bafc25d02e47d898830eb3c55ccd14",
+    "git_commit" : "6c850400020a326d035ab05b2e226eca47652ab4",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3565,16 +3565,9 @@ abc_cache.load_manifest(
     f"releases/{VERSION}/manifest.json"
 )
 
-print("Downloading metadata", flush=True)
-metadata_files = [
-    "cell_metadata_with_cluster_annotation",
-]
-for file_name in metadata_files:
-    abc_cache.get_metadata_path(directory="WMB-10X", file_name=file_name)
-
 print("Reading obs", flush=True)
 obs = pd.read_csv(
-    TMP_DIR / f"metadata/WMB-10X/{VERSION}/views/cell_metadata_with_cluster_annotation.csv",
+    abc_cache.get_metadata_path(directory="WMB-10X", file_name="cell_metadata_with_cluster_annotation"),
     index_col=0,
     dtype=defaultdict(
         lambda: "category",
@@ -3617,7 +3610,7 @@ for region in REGIONS:
         file_name = f"WMB-10Xv2-{region}/raw"
         adata_path = abc_cache.get_data_path(directory="WMB-10Xv2", file_name=file_name)
 
-        adata = ad.read_h5ad(str(adata_path), backed=True)
+        adata = ad.read_h5ad(str(adata_path))
 
         adata_ = adata[adata.obs_names.isin(obs.index)]
         adata.obs["region"] = region
