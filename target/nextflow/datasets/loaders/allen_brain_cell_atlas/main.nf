@@ -2885,6 +2885,18 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--sample_seed",
+          "description" : "A seed for the subsampling.",
+          "example" : [
+            123
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3366,7 +3378,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "cebecbd5d82ac2db87232f97ac9fff8f6d525a0e",
+    "git_commit" : "321faa9832bafc25d02e47d898830eb3c55ccd14",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3502,6 +3514,7 @@ par = {
   'sample_n_obs': $( if [ ! -z ${VIASH_PAR_SAMPLE_N_OBS+x} ]; then echo "int(r'${VIASH_PAR_SAMPLE_N_OBS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'sample_obs_weight': $( if [ ! -z ${VIASH_PAR_SAMPLE_OBS_WEIGHT+x} ]; then echo "r'${VIASH_PAR_SAMPLE_OBS_WEIGHT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'sample_transform': $( if [ ! -z ${VIASH_PAR_SAMPLE_TRANSFORM+x} ]; then echo "r'${VIASH_PAR_SAMPLE_TRANSFORM//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'sample_seed': $( if [ ! -z ${VIASH_PAR_SAMPLE_SEED+x} ]; then echo "int(r'${VIASH_PAR_SAMPLE_SEED//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'dataset_id': $( if [ ! -z ${VIASH_PAR_DATASET_ID+x} ]; then echo "r'${VIASH_PAR_DATASET_ID//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_name': $( if [ ! -z ${VIASH_PAR_DATASET_NAME+x} ]; then echo "r'${VIASH_PAR_DATASET_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_url': $( if [ ! -z ${VIASH_PAR_DATASET_URL+x} ]; then echo "r'${VIASH_PAR_DATASET_URL//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),

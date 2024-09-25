@@ -202,6 +202,11 @@ function ViashHelp {
   echo "        The transformation to apply to the column used for weighting the"
   echo "        sampling of cells."
   echo ""
+  echo "    --sample_seed"
+  echo "        type: integer"
+  echo "        example: 123"
+  echo "        A seed for the subsampling."
+  echo ""
   echo "Metadata:"
   echo "    --dataset_id"
   echo "        type: string, required parameter"
@@ -522,9 +527,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/alleninstitute/abc_atlas_access"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas"
-LABEL org.opencontainers.image.created="2024-09-25T18:40:36Z"
+LABEL org.opencontainers.image.created="2024-09-25T18:49:28Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="cebecbd5d82ac2db87232f97ac9fff8f6d525a0e"
+LABEL org.opencontainers.image.revision="321faa9832bafc25d02e47d898830eb3c55ccd14"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -723,6 +728,17 @@ while [[ $# -gt 0 ]]; do
         --sample_transform=*)
             [ -n "$VIASH_PAR_SAMPLE_TRANSFORM" ] && ViashError Bad arguments for option \'--sample_transform=*\': \'$VIASH_PAR_SAMPLE_TRANSFORM\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_SAMPLE_TRANSFORM=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --sample_seed)
+            [ -n "$VIASH_PAR_SAMPLE_SEED" ] && ViashError Bad arguments for option \'--sample_seed\': \'$VIASH_PAR_SAMPLE_SEED\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_SAMPLE_SEED="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --sample_seed. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --sample_seed=*)
+            [ -n "$VIASH_PAR_SAMPLE_SEED" ] && ViashError Bad arguments for option \'--sample_seed=*\': \'$VIASH_PAR_SAMPLE_SEED\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_SAMPLE_SEED=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         --dataset_id)
@@ -1045,6 +1061,12 @@ if [[ -n "$VIASH_PAR_SAMPLE_N_OBS" ]]; then
     exit 1
   fi
 fi
+if [[ -n "$VIASH_PAR_SAMPLE_SEED" ]]; then
+  if ! [[ "$VIASH_PAR_SAMPLE_SEED" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--sample_seed' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
 if [[ -n "$VIASH_META_CPUS" ]]; then
   if ! [[ "$VIASH_META_CPUS" =~ ^[-+]?[0-9]+$ ]]; then
     ViashError 'cpus' has to be an integer. Use "--help" to get more information on the parameters.
@@ -1250,6 +1272,7 @@ par = {
   'sample_n_obs': $( if [ ! -z ${VIASH_PAR_SAMPLE_N_OBS+x} ]; then echo "int(r'${VIASH_PAR_SAMPLE_N_OBS//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'sample_obs_weight': $( if [ ! -z ${VIASH_PAR_SAMPLE_OBS_WEIGHT+x} ]; then echo "r'${VIASH_PAR_SAMPLE_OBS_WEIGHT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'sample_transform': $( if [ ! -z ${VIASH_PAR_SAMPLE_TRANSFORM+x} ]; then echo "r'${VIASH_PAR_SAMPLE_TRANSFORM//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'sample_seed': $( if [ ! -z ${VIASH_PAR_SAMPLE_SEED+x} ]; then echo "int(r'${VIASH_PAR_SAMPLE_SEED//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'dataset_id': $( if [ ! -z ${VIASH_PAR_DATASET_ID+x} ]; then echo "r'${VIASH_PAR_DATASET_ID//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'dataset_name': $( if [ ! -z ${VIASH_PAR_DATASET_NAME+x} ]; then echo "r'${VIASH_PAR_DATASET_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'dataset_url': $( if [ ! -z ${VIASH_PAR_DATASET_URL+x} ]; then echo "r'${VIASH_PAR_DATASET_URL//\'/\'\"\'\"r\'}'"; else echo None; fi ),

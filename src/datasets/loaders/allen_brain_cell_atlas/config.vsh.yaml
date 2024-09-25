@@ -47,6 +47,10 @@ argument_groups:
         choices:
           - log
           - sqrt
+      - name: "--sample_seed"
+        type: "integer"
+        description: "A seed for the subsampling."
+        example: 123
   - name: Metadata
     arguments:
       - type: string
