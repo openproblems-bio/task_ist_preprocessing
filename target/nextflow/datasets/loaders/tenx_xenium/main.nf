@@ -3256,7 +3256,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/tenx_xenium",
     "viash_version" : "0.9.0",
-    "git_commit" : "751facc5686824b09b5f28ca4b906db476ef8e58",
+    "git_commit" : "28d7183da03e1d1582d04d3c90b35c85dae55358",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

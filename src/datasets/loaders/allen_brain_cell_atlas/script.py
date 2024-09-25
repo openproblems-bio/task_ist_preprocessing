@@ -78,19 +78,21 @@ print("Downloading and reading expression matrices", flush=True)
 adatas = []
 for region in REGIONS:
     try:
+        print(f"Downloading h5ad file for region {region}", flush=True)
+        adata_path = abc_cache.get_data_path(directory="WMB-10Xv2", file_name=f"WMB-10Xv2-{region}/raw")
+
         print(f"Reading h5ad for region {region}", flush=True)
-
-        file_name = f"WMB-10Xv2-{region}/raw"
-        adata_path = abc_cache.get_data_path(directory="WMB-10Xv2", file_name=file_name)
-
         adata = ad.read_h5ad(str(adata_path))
 
-        adata = adata[adata.obs_names.isin(obs.index)]
-        adata.obs["region"] = region
-        counts = adata.X
-        del adata.X
+        # filter cells
+        adata = adata[adata.obs_names.isin(obs.index)].copy()
 
-        adata.layers["counts"] = counts
+        # add region to obs
+        adata.obs["region"] = region
+
+        # move counts to layer
+        adata.layers["counts"] = adata.X
+        del adata.X
         
         # add anndata to list
         adatas.append(adata)
