@@ -11,8 +11,8 @@ from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 ## VIASH START
 par = {
     "abca_version": "20230630",
-    "regions": ["CTXsp", "HPF", "HY", "Isocortex-1", "Isocortex-2", "Isocortex-3", "Isocortex-4", "MB", "OLF", "TF"],
-    "sample_n_obs": 500000,
+    "regions": ["MB", "TF"],
+    "sample_n_obs": 5000,
     "sample_obs_weight": "subclass",
     "sample_transform": "sqrt",
     "sample_seed": None,
@@ -54,7 +54,7 @@ obs = pd.read_csv(
 print("Filtering obs based on regions", flush=True)
 obs = obs[obs["anatomical_division_label"].isin(REGIONS)]
 
-if par["sample_n_obs"]:
+if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
     print("Filtering obs based on n_obs", flush=True)
     col = par["sample_obs_weight"]
 
@@ -85,14 +85,11 @@ for region in REGIONS:
 
         adata = ad.read_h5ad(str(adata_path))
 
-        adata_ = adata[adata.obs_names.isin(obs.index)]
+        adata = adata[adata.obs_names.isin(obs.index)]
         adata.obs["region"] = region
         counts = adata.X
         del adata.X
 
-        # make sure counts is sparse
-        if not isinstance(counts, sp.sparse.csr_matrix):
-            counts = sp.sparse.csr_matrix(counts)
         adata.layers["counts"] = counts
         
         # add anndata to list
