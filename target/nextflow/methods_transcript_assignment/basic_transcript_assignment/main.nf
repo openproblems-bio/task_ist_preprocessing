@@ -3669,7 +3669,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/basic_transcript_assignment",
     "viash_version" : "0.9.0",
-    "git_commit" : "20c3638e47f169274399f9c4c2e76b9d4969be3a",
+    "git_commit" : "88fc57ddabde0ff1cbdeac5fd2b32d5009df6ae9",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

@@ -3231,7 +3231,7 @@ meta = [
   "status" : "enabled",
   "dependencies" : [
     {
-      "name" : "datasets/loaders/tenx_xenium",
+      "name" : "datasets/loaders/vizgen_merscope",
       "repository" : {
         "type" : "local"
       }
@@ -3311,7 +3311,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_vizgen_merscope",
     "viash_version" : "0.9.0",
-    "git_commit" : "20c3638e47f169274399f9c4c2e76b9d4969be3a",
+    "git_commit" : "88fc57ddabde0ff1cbdeac5fd2b32d5009df6ae9",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3422,7 +3422,7 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { tenx_xenium } from "${meta.resources_dir}/../../../../nextflow/datasets/loaders/tenx_xenium/main.nf"
+include { vizgen_merscope } from "${meta.resources_dir}/../../../../nextflow/datasets/loaders/vizgen_merscope/main.nf"
 include { crop_region } from "${meta.resources_dir}/../../../../nextflow/datasets/processors/crop_region/main.nf"
 
 // inner workflow

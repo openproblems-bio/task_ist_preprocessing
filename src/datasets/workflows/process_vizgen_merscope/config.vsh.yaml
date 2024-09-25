@@ -80,7 +80,7 @@ resources:
     entrypoint: run_wf
 
 dependencies:
-  - name: datasets/loaders/tenx_xenium
+  - name: datasets/loaders/vizgen_merscope
   - name: datasets/processors/crop_region
 
 runners:
