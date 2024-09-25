@@ -2847,12 +2847,12 @@ meta = [
       ]
     },
     {
-      "name" : "Caching",
+      "name" : "Sampling",
       "arguments" : [
         {
-          "type" : "string",
-          "name" : "--cache_dir",
-          "description" : "Directory to cache the downloaded data.",
+          "type" : "integer",
+          "name" : "--sample_n_obs",
+          "description" : "The number of cells to sample.",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -2860,9 +2860,28 @@ meta = [
         },
         {
           "type" : "string",
-          "name" : "--output_cache_dir",
-          "description" : "Output directory of the cached data.",
+          "name" : "--sample_obs_weight",
+          "description" : "The column to use for weighting the sampling of cells.",
           "required" : false,
+          "choices" : [
+            "donor_label",
+            "anatomical_division_label",
+            "class",
+            "subclass"
+          ],
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--sample_transform",
+          "description" : "The transformation to apply to the column used for weighting the sampling of cells.",
+          "required" : false,
+          "choices" : [
+            "log",
+            "sqrt"
+          ],
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
@@ -3347,7 +3366,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "f9cb326b8ee0fbbe1a62b199eb63df95f16e6d9d",
+    "git_commit" : "cebecbd5d82ac2db87232f97ac9fff8f6d525a0e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3469,9 +3488,9 @@ cat > "$tempscript" << VIASHMAIN
 
 from pathlib import Path
 import pandas as pd
+import numpy as np
 from collections import defaultdict
 import scipy as sp
-import scanpy as sc
 import anndata as ad
 from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 
@@ -3480,8 +3499,9 @@ from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 par = {
   'abca_version': $( if [ ! -z ${VIASH_PAR_ABCA_VERSION+x} ]; then echo "r'${VIASH_PAR_ABCA_VERSION//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'regions': $( if [ ! -z ${VIASH_PAR_REGIONS+x} ]; then echo "r'${VIASH_PAR_REGIONS//\\'/\\'\\"\\'\\"r\\'}'.split(';')"; else echo None; fi ),
-  'cache_dir': $( if [ ! -z ${VIASH_PAR_CACHE_DIR+x} ]; then echo "r'${VIASH_PAR_CACHE_DIR//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'output_cache_dir': $( if [ ! -z ${VIASH_PAR_OUTPUT_CACHE_DIR+x} ]; then echo "r'${VIASH_PAR_OUTPUT_CACHE_DIR//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'sample_n_obs': $( if [ ! -z ${VIASH_PAR_SAMPLE_N_OBS+x} ]; then echo "int(r'${VIASH_PAR_SAMPLE_N_OBS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'sample_obs_weight': $( if [ ! -z ${VIASH_PAR_SAMPLE_OBS_WEIGHT+x} ]; then echo "r'${VIASH_PAR_SAMPLE_OBS_WEIGHT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'sample_transform': $( if [ ! -z ${VIASH_PAR_SAMPLE_TRANSFORM+x} ]; then echo "r'${VIASH_PAR_SAMPLE_TRANSFORM//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_id': $( if [ ! -z ${VIASH_PAR_DATASET_ID+x} ]; then echo "r'${VIASH_PAR_DATASET_ID//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_name': $( if [ ! -z ${VIASH_PAR_DATASET_NAME+x} ]; then echo "r'${VIASH_PAR_DATASET_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_url': $( if [ ! -z ${VIASH_PAR_DATASET_URL+x} ]; then echo "r'${VIASH_PAR_DATASET_URL//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -3517,6 +3537,9 @@ dep = {
 
 ## VIASH END
 
+if par["sample_seed"]:
+    np.random.seed(par["sample_seed"])
+
 # helper variables
 VERSION = par["abca_version"]
 REGIONS = par["regions"]
@@ -3533,8 +3556,8 @@ print("Downloading metadata", flush=True)
 metadata_files = [
     "cell_metadata_with_cluster_annotation",
 ]
-for file in metadata_files:
-    abc_cache.get_metadata_path(directory="WMB-10X", file_name=file)
+for file_name in metadata_files:
+    abc_cache.get_metadata_path(directory="WMB-10X", file_name=file_name)
 
 print("Reading obs", flush=True)
 obs = pd.read_csv(
@@ -3549,35 +3572,54 @@ obs = pd.read_csv(
     )
 )
 
-print("Downloading expression matrices", flush=True)
-# From abc_cache.list_data_files("WMB-10Xv2") # TODO: potentially also load other chemistries (currently only 10Xv2)
-for region in REGIONS:
-    print(f"Downloading h5ad file for region {region}", flush=True)
-    file = f"WMB-10Xv2-{region}/raw"
-    abc_cache.get_data_path(directory="WMB-10Xv2", file_name=file)
+print("Filtering obs based on regions", flush=True)
+obs = obs[obs["anatomical_division_label"].isin(REGIONS)]
 
-print("Reading expression matrices", flush=True)
+if par["sample_n_obs"]:
+    print("Filtering obs based on n_obs", flush=True)
+    col = par["sample_obs_weight"]
+
+    if col:
+        weights = obs.groupby(col).size()
+
+        if par["sample_transform"] == "sqrt":
+            weights = weights.apply(lambda x: np.sqrt(x))
+        elif par["sample_transform"] == "log":
+            weights = weights.apply(lambda x: np.log(x))
+
+        obs = obs.sample(n=par["sample_n_obs"], weights=obs[col].map(weights))
+    else:
+        obs = obs.sample(n=par["sample_n_obs"])
+
+
+# From abc_cache.list_data_files("WMB-10Xv2")
+# TODO: potentially also load other chemistries (currently only 10Xv2)
+
+print("Downloading and reading expression matrices", flush=True)
 adatas = []
 for region in REGIONS:
-    print(f"Reading h5ad for region {region}", flush=True)
-    adata = ad.read_h5ad(
-        TMP_DIR / f"expression_matrices/WMB-10Xv2/{VERSION}/WMB-10Xv2-{region}-raw.h5ad"
-    )
-    sc.pp.filter_cells(adata, min_genes=5)
-    sc.pp.filter_cells(adata, min_counts=50)
+    try:
+        print(f"Reading h5ad for region {region}", flush=True)
 
-    adata = adata[adata.obs_names.isin(obs.index)]
-    adata.obs["region"] = region
-    counts = adata.X
-    del adata.X
+        file_name = f"WMB-10Xv2-{region}/raw"
+        adata_path = abc_cache.get_data_path(directory="WMB-10Xv2", file_name=file_name)
 
-    # make sure counts is sparse
-    if not isinstance(counts, sp.sparse.csr_matrix):
-        counts = sp.sparse.csr_matrix(counts)
-    adata.layers["counts"] = counts
-    
-    # add anndata to list
-    adatas.append(adata)
+        adata = ad.read_h5ad(str(adata_path), backed=True)
+
+        adata_ = adata[adata.obs_names.isin(obs.index)]
+        adata.obs["region"] = region
+        counts = adata.X
+        del adata.X
+
+        # make sure counts is sparse
+        if not isinstance(counts, sp.sparse.csr_matrix):
+            counts = sp.sparse.csr_matrix(counts)
+        adata.layers["counts"] = counts
+        
+        # add anndata to list
+        adatas.append(adata)
+    except Exception as e:
+        print(f"Error reading {region}: {e}")
 
 print("Concatenating data", flush=True)
 adata = ad.concat(adatas, merge="first")

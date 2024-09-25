@@ -2918,36 +2918,9 @@ meta = [
       "name" : "Sampling options",
       "arguments" : [
         {
-          "type" : "boolean",
-          "name" : "--do_subsample",
-          "description" : "Whether or not to subsample the dataset",
-          "default" : [
-            false
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
           "type" : "integer",
-          "name" : "--n_obs",
-          "description" : "Maximum number of observations to be kept. It might end up being less because empty cells / genes are removed.",
-          "default" : [
-            500
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "integer",
-          "name" : "--n_vars",
-          "description" : "Maximum number of variables to be kept. It might end up being less because empty cells / genes are removed.",
-          "default" : [
-            500
-          ],
+          "name" : "--sample_n_obs",
+          "description" : "The number of cells to sample.",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -2955,40 +2928,35 @@ meta = [
         },
         {
           "type" : "string",
-          "name" : "--keep_features",
-          "description" : "A list of genes to keep.",
+          "name" : "--sample_obs_weight",
+          "description" : "The column to use for weighting the sampling of cells.",
           "required" : false,
+          "choices" : [
+            "donor_label",
+            "anatomical_division_label",
+            "class",
+            "subclass"
+          ],
           "direction" : "input",
-          "multiple" : true,
+          "multiple" : false,
           "multiple_sep" : ";"
         },
         {
           "type" : "string",
-          "name" : "--keep_cell_type_categories",
-          "description" : "Categories indexes to be selected",
+          "name" : "--sample_transform",
+          "description" : "The transformation to apply to the column used for weighting the sampling of cells.",
           "required" : false,
+          "choices" : [
+            "log",
+            "sqrt"
+          ],
           "direction" : "input",
-          "multiple" : true,
+          "multiple" : false,
           "multiple_sep" : ";"
-        },
-        {
-          "type" : "string",
-          "name" : "--keep_batch_categories",
-          "description" : "Categories indexes to be selected",
-          "required" : false,
-          "direction" : "input",
-          "multiple" : true,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "boolean_true",
-          "name" : "--even",
-          "description" : "Subsample evenly from different batches",
-          "direction" : "input"
         },
         {
           "type" : "integer",
-          "name" : "--seed",
+          "name" : "--sample_seed",
           "description" : "A seed for the subsampling.",
           "example" : [
             123
@@ -3468,7 +3436,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "f9cb326b8ee0fbbe1a62b199eb63df95f16e6d9d",
+    "git_commit" : "cebecbd5d82ac2db87232f97ac9fff8f6d525a0e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3622,27 +3590,14 @@ workflow run_wf {
         "dataset_summary",
         "dataset_description",
         "dataset_organism",
+        "sample_n_obs",
+        "sample_obs_weight",
+        "sample_transform",
+        "sample_seed"
       ],
       toState: [
         "output_raw": "output"
       ]
-    )
-
-    // subsample if so desired
-    | subsample.run(
-      runIf: { id, state -> state.do_subsample },
-      fromState: [
-        "input": "output_raw",
-        "n_obs": "n_obs",
-        "n_vars": "n_vars",
-        "keep_features": "keep_features",
-        "keep_cell_type_categories": "keep_cell_type_categories",
-        "keep_batch_categories": "keep_batch_categories",
-        "even": "even",
-        "seed": "seed"
-      ],
-      args: [output_mod2: null],
-      toState: ["output_raw": "output"]
     )
 
     | log_cp.run(

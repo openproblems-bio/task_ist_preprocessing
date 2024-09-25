@@ -34,21 +34,38 @@ argument_groups:
     direction: "input"
     multiple: true
     multiple_sep: ";"
-- name: "Caching"
+- name: "Sampling"
   arguments:
-  - type: "string"
-    name: "--cache_dir"
-    description: "Directory to cache the downloaded data."
+  - type: "integer"
+    name: "--sample_n_obs"
+    description: "The number of cells to sample."
     info: null
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
   - type: "string"
-    name: "--output_cache_dir"
-    description: "Output directory of the cached data."
+    name: "--sample_obs_weight"
+    description: "The column to use for weighting the sampling of cells."
     info: null
     required: false
+    choices:
+    - "donor_label"
+    - "anatomical_division_label"
+    - "class"
+    - "subclass"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--sample_transform"
+    description: "The transformation to apply to the column used for weighting the\
+      \ sampling of cells."
+    info: null
+    required: false
+    choices:
+    - "log"
+    - "sqrt"
     direction: "input"
     multiple: false
     multiple_sep: ";"
@@ -443,7 +460,7 @@ build_info:
   output: "target/nextflow/datasets/loaders/allen_brain_cell_atlas"
   executable: "target/nextflow/datasets/loaders/allen_brain_cell_atlas/main.nf"
   viash_version: "0.9.0"
-  git_commit: "f9cb326b8ee0fbbe1a62b199eb63df95f16e6d9d"
+  git_commit: "cebecbd5d82ac2db87232f97ac9fff8f6d525a0e"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

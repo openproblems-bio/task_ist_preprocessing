@@ -914,7 +914,7 @@ build_info:
   output: "target/nextflow/workflows/process_datasets"
   executable: "target/nextflow/workflows/process_datasets/main.nf"
   viash_version: "0.9.0"
-  git_commit: "f9cb326b8ee0fbbe1a62b199eb63df95f16e6d9d"
+  git_commit: "cebecbd5d82ac2db87232f97ac9fff8f6d525a0e"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
   dependencies:
   - "target/nextflow/data_processors/process_dataset"

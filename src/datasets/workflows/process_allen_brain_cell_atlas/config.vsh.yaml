@@ -57,36 +57,27 @@ argument_groups:
         required: false
   - name: Sampling options
     arguments:
-      - name: "--do_subsample"
-        type: boolean
-        default: false
-        description: "Whether or not to subsample the dataset"
-      - name: "--n_obs"
-        type: integer
-        description: Maximum number of observations to be kept. It might end up being less because empty cells / genes are removed.
-        default: 500
-      - name: "--n_vars"
-        type: integer
-        description: Maximum number of variables to be kept. It might end up being less because empty cells / genes are removed.
-        default: 500
-      - name: "--keep_features"
-        type: string
-        multiple: true
-        description: A list of genes to keep.
-      - name: "--keep_cell_type_categories"
-        type: "string"
-        multiple: true
-        description: "Categories indexes to be selected"
+      - type: integer
+        name: --sample_n_obs
         required: false
-      - name: "--keep_batch_categories"
-        type: "string"
-        multiple: true
-        description: "Categories indexes to be selected"
+        description: The number of cells to sample.
+      - type: string
+        name: --sample_obs_weight
         required: false
-      - name: "--even"
-        type: "boolean_true"
-        description: Subsample evenly from different batches
-      - name: "--seed"
+        description: The column to use for weighting the sampling of cells.
+        choices:
+          - donor_label
+          - anatomical_division_label
+          - class
+          - subclass
+      - type: string
+        name: --sample_transform
+        required: false
+        description: The transformation to apply to the column used for weighting the sampling of cells.
+        choices:
+          - log
+          - sqrt
+      - name: "--sample_seed"
         type: "integer"
         description: "A seed for the subsampling."
         example: 123

@@ -32,6 +32,11 @@ param_list:
     dataset_description: See dataset_reference for more information. Note that we only took the 10xv2 data from the dataset.
     dataset_organism: mus_musculus
 
+sample_n_obs: 500000
+sample_obs_weight: subclass
+sample_transform: log
+sample_seed: 42
+
 output_dataset: "\$id/dataset.h5ad"
 output_meta: "\$id/dataset_meta.yaml"
 output_state: "\$id/state.yaml"

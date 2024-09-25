@@ -25,16 +25,28 @@ argument_groups:
           - MB
           - OLF
           - TH
-  - name: Caching
+  - name: Sampling
     arguments:
-      - type: string
-        name: --cache_dir
+      - type: integer
+        name: --sample_n_obs
         required: false
-        description: Directory to cache the downloaded data.
+        description: The number of cells to sample.
       - type: string
-        name: --output_cache_dir
+        name: --sample_obs_weight
         required: false
-        description: Output directory of the cached data.
+        description: The column to use for weighting the sampling of cells.
+        choices:
+          - donor_label
+          - anatomical_division_label
+          - class
+          - subclass
+      - type: string
+        name: --sample_transform
+        required: false
+        description: The transformation to apply to the column used for weighting the sampling of cells.
+        choices:
+          - log
+          - sqrt
   - name: Metadata
     arguments:
       - type: string
