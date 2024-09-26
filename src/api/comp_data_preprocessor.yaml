@@ -16,11 +16,11 @@ arguments:
     __merge__: file_common_scrnaseq.yaml
     direction: input
     required: true
-  - name: "--output_ist"
+  - name: "--output_sp"
     __merge__: file_raw_ist.yaml
     direction: output
     required: true
-  - name: "--output_scrnaseq"
+  - name: "--output_sc"
     __merge__: file_scrnaseq_reference.yaml
     direction: output
     required: true

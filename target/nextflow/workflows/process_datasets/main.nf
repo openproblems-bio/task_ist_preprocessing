@@ -4022,7 +4022,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/process_datasets",
     "viash_version" : "0.9.0",
-    "git_commit" : "214f782b1eccd63af01b3682ffca8b1bb76bc267",
+    "git_commit" : "dc39223e3b4cf7159938d4ba979c6a53fed79556",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4154,30 +4154,18 @@ workflow run_wf {
   main:
   output_ch = input_ch
 
-    // example of channel event: 
-    //   ["mouse_brain_combined", [
-    //      "input_sc": file("resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"),
-    //      "input_sp": file("resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr")]]
-
     | process_dataset_comp.run(
       fromState: [
-        input_ist: "input_sp",
-        input_scrnaseq: "input_sc"
+        input_sp: "input_sp",
+        input_sc: "input_sc"
       ],
       toState: [
-        output_sc: "output_scrnaseq",
-        output_sp: "output_ist"
+        output_sc: "output_sc",
+        output_sp: "output_sp"
       ]
     )
 
-    // example of channel event at this point:
-    //   ["my_id", ["input_sc": ..., "input_sp": ..., 
-    //              "output_sc": file("..."), "output_sp": file("...")]]
-
     | setState(["output_sp", "output_sc"])
-
-    // example of channel event at this point:
-    //   ["my_id", ["output_sc": file("..."), "output_sp": file("...")]]
 
   emit:
   output_ch

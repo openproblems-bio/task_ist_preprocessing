@@ -191,14 +191,14 @@ function ViashHelp {
   echo "       "
   echo "v4.0.0](https://github.com/chanzuckerberg/single-cell-curation/blob/main/schema/4.0.0/schema.md)."
   echo ""
-  echo "    --output_ist"
+  echo "    --output_sp"
   echo "        type: file, required parameter, output, file must exist"
   echo "        example:"
   echo "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr"
   echo "        This dataset contains preprocessed images, labels, points, shapes, and"
   echo "        tables for spatial transcriptomics data."
   echo ""
-  echo "    --output_scrnaseq"
+  echo "    --output_sc"
   echo "        type: file, required parameter, output, file must exist"
   echo "        example:"
   echo "resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad"
@@ -485,9 +485,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2024-09-26T04:10:19Z"
+LABEL org.opencontainers.image.created="2024-09-26T04:18:31Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="214f782b1eccd63af01b3682ffca8b1bb76bc267"
+LABEL org.opencontainers.image.revision="dc39223e3b4cf7159938d4ba979c6a53fed79556"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -649,26 +649,26 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_INPUT_SC=$(ViashRemoveFlags "$1")
             shift 1
             ;;
-        --output_ist)
-            [ -n "$VIASH_PAR_OUTPUT_IST" ] && ViashError Bad arguments for option \'--output_ist\': \'$VIASH_PAR_OUTPUT_IST\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_OUTPUT_IST="$2"
-            [ $# -lt 2 ] && ViashError Not enough arguments passed to --output_ist. Use "--help" to get more information on the parameters. && exit 1
+        --output_sp)
+            [ -n "$VIASH_PAR_OUTPUT_SP" ] && ViashError Bad arguments for option \'--output_sp\': \'$VIASH_PAR_OUTPUT_SP\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_OUTPUT_SP="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --output_sp. Use "--help" to get more information on the parameters. && exit 1
             shift 2
             ;;
-        --output_ist=*)
-            [ -n "$VIASH_PAR_OUTPUT_IST" ] && ViashError Bad arguments for option \'--output_ist=*\': \'$VIASH_PAR_OUTPUT_IST\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_OUTPUT_IST=$(ViashRemoveFlags "$1")
+        --output_sp=*)
+            [ -n "$VIASH_PAR_OUTPUT_SP" ] && ViashError Bad arguments for option \'--output_sp=*\': \'$VIASH_PAR_OUTPUT_SP\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_OUTPUT_SP=$(ViashRemoveFlags "$1")
             shift 1
             ;;
-        --output_scrnaseq)
-            [ -n "$VIASH_PAR_OUTPUT_SCRNASEQ" ] && ViashError Bad arguments for option \'--output_scrnaseq\': \'$VIASH_PAR_OUTPUT_SCRNASEQ\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_OUTPUT_SCRNASEQ="$2"
-            [ $# -lt 2 ] && ViashError Not enough arguments passed to --output_scrnaseq. Use "--help" to get more information on the parameters. && exit 1
+        --output_sc)
+            [ -n "$VIASH_PAR_OUTPUT_SC" ] && ViashError Bad arguments for option \'--output_sc\': \'$VIASH_PAR_OUTPUT_SC\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_OUTPUT_SC="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --output_sc. Use "--help" to get more information on the parameters. && exit 1
             shift 2
             ;;
-        --output_scrnaseq=*)
-            [ -n "$VIASH_PAR_OUTPUT_SCRNASEQ" ] && ViashError Bad arguments for option \'--output_scrnaseq=*\': \'$VIASH_PAR_OUTPUT_SCRNASEQ\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_OUTPUT_SCRNASEQ=$(ViashRemoveFlags "$1")
+        --output_sc=*)
+            [ -n "$VIASH_PAR_OUTPUT_SC" ] && ViashError Bad arguments for option \'--output_sc=*\': \'$VIASH_PAR_OUTPUT_SC\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_OUTPUT_SC=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -851,12 +851,12 @@ if [ -z ${VIASH_PAR_INPUT_SC+x} ]; then
   ViashError '--input_sc' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
-if [ -z ${VIASH_PAR_OUTPUT_IST+x} ]; then
-  ViashError '--output_ist' is a required argument. Use "--help" to get more information on the parameters.
+if [ -z ${VIASH_PAR_OUTPUT_SP+x} ]; then
+  ViashError '--output_sp' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
-if [ -z ${VIASH_PAR_OUTPUT_SCRNASEQ+x} ]; then
-  ViashError '--output_scrnaseq' is a required argument. Use "--help" to get more information on the parameters.
+if [ -z ${VIASH_PAR_OUTPUT_SC+x} ]; then
+  ViashError '--output_sc' is a required argument. Use "--help" to get more information on the parameters.
   exit 1
 fi
 if [ -z ${VIASH_META_NAME+x} ]; then
@@ -969,11 +969,11 @@ if [[ -n "$VIASH_META_MEMORY_PIB" ]]; then
 fi
 
 # create parent directories of output files, if so desired
-if [ ! -z "$VIASH_PAR_OUTPUT_IST" ] && [ ! -d "$(dirname "$VIASH_PAR_OUTPUT_IST")" ]; then
-  mkdir -p "$(dirname "$VIASH_PAR_OUTPUT_IST")"
+if [ ! -z "$VIASH_PAR_OUTPUT_SP" ] && [ ! -d "$(dirname "$VIASH_PAR_OUTPUT_SP")" ]; then
+  mkdir -p "$(dirname "$VIASH_PAR_OUTPUT_SP")"
 fi
-if [ ! -z "$VIASH_PAR_OUTPUT_SCRNASEQ" ] && [ ! -d "$(dirname "$VIASH_PAR_OUTPUT_SCRNASEQ")" ]; then
-  mkdir -p "$(dirname "$VIASH_PAR_OUTPUT_SCRNASEQ")"
+if [ ! -z "$VIASH_PAR_OUTPUT_SC" ] && [ ! -d "$(dirname "$VIASH_PAR_OUTPUT_SC")" ]; then
+  mkdir -p "$(dirname "$VIASH_PAR_OUTPUT_SC")"
 fi
 
 if  [ "$VIASH_ENGINE_ID" == "native" ]  ; then
@@ -996,15 +996,15 @@ if [ ! -z "$VIASH_PAR_INPUT_SC" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_INPUT_SC")" )
   VIASH_PAR_INPUT_SC=$(ViashDockerAutodetectMount "$VIASH_PAR_INPUT_SC")
 fi
-if [ ! -z "$VIASH_PAR_OUTPUT_IST" ]; then
-  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT_IST")" )
-  VIASH_PAR_OUTPUT_IST=$(ViashDockerAutodetectMount "$VIASH_PAR_OUTPUT_IST")
-  VIASH_CHOWN_VARS+=( "$VIASH_PAR_OUTPUT_IST" )
+if [ ! -z "$VIASH_PAR_OUTPUT_SP" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT_SP")" )
+  VIASH_PAR_OUTPUT_SP=$(ViashDockerAutodetectMount "$VIASH_PAR_OUTPUT_SP")
+  VIASH_CHOWN_VARS+=( "$VIASH_PAR_OUTPUT_SP" )
 fi
-if [ ! -z "$VIASH_PAR_OUTPUT_SCRNASEQ" ]; then
-  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT_SCRNASEQ")" )
-  VIASH_PAR_OUTPUT_SCRNASEQ=$(ViashDockerAutodetectMount "$VIASH_PAR_OUTPUT_SCRNASEQ")
-  VIASH_CHOWN_VARS+=( "$VIASH_PAR_OUTPUT_SCRNASEQ" )
+if [ ! -z "$VIASH_PAR_OUTPUT_SC" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT_SC")" )
+  VIASH_PAR_OUTPUT_SC=$(ViashDockerAutodetectMount "$VIASH_PAR_OUTPUT_SC")
+  VIASH_CHOWN_VARS+=( "$VIASH_PAR_OUTPUT_SC" )
 fi
 if [ ! -z "$VIASH_META_RESOURCES_DIR" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_META_RESOURCES_DIR")" )
@@ -1084,8 +1084,8 @@ import shutil
 par = {
   'input_sp': $( if [ ! -z ${VIASH_PAR_INPUT_SP+x} ]; then echo "r'${VIASH_PAR_INPUT_SP//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'input_sc': $( if [ ! -z ${VIASH_PAR_INPUT_SC+x} ]; then echo "r'${VIASH_PAR_INPUT_SC//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'output_ist': $( if [ ! -z ${VIASH_PAR_OUTPUT_IST+x} ]; then echo "r'${VIASH_PAR_OUTPUT_IST//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'output_scrnaseq': $( if [ ! -z ${VIASH_PAR_OUTPUT_SCRNASEQ+x} ]; then echo "r'${VIASH_PAR_OUTPUT_SCRNASEQ//\'/\'\"\'\"r\'}'"; else echo None; fi )
+  'output_sp': $( if [ ! -z ${VIASH_PAR_OUTPUT_SP+x} ]; then echo "r'${VIASH_PAR_OUTPUT_SP//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'output_sc': $( if [ ! -z ${VIASH_PAR_OUTPUT_SC+x} ]; then echo "r'${VIASH_PAR_OUTPUT_SC//\'/\'\"\'\"r\'}'"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1166,11 +1166,11 @@ if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   if [ ! -z "$VIASH_PAR_INPUT_SC" ]; then
     VIASH_PAR_INPUT_SC=$(ViashDockerStripAutomount "$VIASH_PAR_INPUT_SC")
   fi
-  if [ ! -z "$VIASH_PAR_OUTPUT_IST" ]; then
-    VIASH_PAR_OUTPUT_IST=$(ViashDockerStripAutomount "$VIASH_PAR_OUTPUT_IST")
+  if [ ! -z "$VIASH_PAR_OUTPUT_SP" ]; then
+    VIASH_PAR_OUTPUT_SP=$(ViashDockerStripAutomount "$VIASH_PAR_OUTPUT_SP")
   fi
-  if [ ! -z "$VIASH_PAR_OUTPUT_SCRNASEQ" ]; then
-    VIASH_PAR_OUTPUT_SCRNASEQ=$(ViashDockerStripAutomount "$VIASH_PAR_OUTPUT_SCRNASEQ")
+  if [ ! -z "$VIASH_PAR_OUTPUT_SC" ]; then
+    VIASH_PAR_OUTPUT_SC=$(ViashDockerStripAutomount "$VIASH_PAR_OUTPUT_SC")
   fi
   if [ ! -z "$VIASH_META_RESOURCES_DIR" ]; then
     VIASH_META_RESOURCES_DIR=$(ViashDockerStripAutomount "$VIASH_META_RESOURCES_DIR")
@@ -1188,12 +1188,12 @@ fi
 
 
 # check whether required files exist
-if [ ! -z "$VIASH_PAR_OUTPUT_IST" ] && [ ! -e "$VIASH_PAR_OUTPUT_IST" ]; then
-  ViashError "Output file '$VIASH_PAR_OUTPUT_IST' does not exist."
+if [ ! -z "$VIASH_PAR_OUTPUT_SP" ] && [ ! -e "$VIASH_PAR_OUTPUT_SP" ]; then
+  ViashError "Output file '$VIASH_PAR_OUTPUT_SP' does not exist."
   exit 1
 fi
-if [ ! -z "$VIASH_PAR_OUTPUT_SCRNASEQ" ] && [ ! -e "$VIASH_PAR_OUTPUT_SCRNASEQ" ]; then
-  ViashError "Output file '$VIASH_PAR_OUTPUT_SCRNASEQ' does not exist."
+if [ ! -z "$VIASH_PAR_OUTPUT_SC" ] && [ ! -e "$VIASH_PAR_OUTPUT_SC" ]; then
+  ViashError "Output file '$VIASH_PAR_OUTPUT_SC' does not exist."
   exit 1
 fi
 

@@ -3372,7 +3372,7 @@ meta = [
         },
         {
           "type" : "file",
-          "name" : "--output_ist",
+          "name" : "--output_sp",
           "label" : "Raw iST Dataset",
           "summary" : "A spatial transcriptomics dataset, preprocessed for this benchmark.",
           "description" : "This dataset contains preprocessed images, labels, points, shapes, and tables for spatial transcriptomics data.\n",
@@ -3624,7 +3624,7 @@ meta = [
         },
         {
           "type" : "file",
-          "name" : "--output_scrnaseq",
+          "name" : "--output_sc",
           "label" : "scRNA-seq Reference",
           "summary" : "A single-cell reference dataset, preprocessed for this benchmark.",
           "description" : "This dataset contains preprocessed counts and metadata for single-cell RNA-seq data.\n",
@@ -4044,7 +4044,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.0",
-    "git_commit" : "214f782b1eccd63af01b3682ffca8b1bb76bc267",
+    "git_commit" : "dc39223e3b4cf7159938d4ba979c6a53fed79556",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4173,8 +4173,8 @@ import shutil
 par = {
   'input_sp': $( if [ ! -z ${VIASH_PAR_INPUT_SP+x} ]; then echo "r'${VIASH_PAR_INPUT_SP//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'input_sc': $( if [ ! -z ${VIASH_PAR_INPUT_SC+x} ]; then echo "r'${VIASH_PAR_INPUT_SC//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'output_ist': $( if [ ! -z ${VIASH_PAR_OUTPUT_IST+x} ]; then echo "r'${VIASH_PAR_OUTPUT_IST//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'output_scrnaseq': $( if [ ! -z ${VIASH_PAR_OUTPUT_SCRNASEQ+x} ]; then echo "r'${VIASH_PAR_OUTPUT_SCRNASEQ//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
+  'output_sp': $( if [ ! -z ${VIASH_PAR_OUTPUT_SP+x} ]; then echo "r'${VIASH_PAR_OUTPUT_SP//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'output_sc': $( if [ ! -z ${VIASH_PAR_OUTPUT_SC+x} ]; then echo "r'${VIASH_PAR_OUTPUT_SC//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
