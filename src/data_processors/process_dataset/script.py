@@ -42,11 +42,11 @@ adata.var_names = adata.var["feature_name"].values.astype(str).tolist()
 # ...filter transcripts tables
 
 # Save the single-cell data
-adata.write_h5ad(par["output_scrnaseq"])
+adata.write_h5ad(par["output_sc"], compression="gzip")
 
 # remove directory if it exists
-if os.path.exists(par["output_ist"]):
-    shutil.rmtree(par["output_ist"])
+if os.path.exists(par["output_sp"]):
+    shutil.rmtree(par["output_sp"])
 
 # Save the spatial data
-sdata.write(par["output_ist"], overwrite=True)
+sdata.write(par["output_sp"], overwrite=True)
