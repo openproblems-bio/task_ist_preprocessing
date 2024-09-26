@@ -3990,6 +3990,11 @@ meta = [
       "type" : "nextflow",
       "id" : "nextflow",
       "directives" : {
+        "label" : [
+          "lowcpu",
+          "highmem",
+          "hightime"
+        ],
         "tag" : "$id"
       },
       "auto" : {
@@ -4044,7 +4049,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.0",
-    "git_commit" : "dc39223e3b4cf7159938d4ba979c6a53fed79556",
+    "git_commit" : "44f61719e2ca2acd756b871a256814e58c8f4589",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4602,6 +4607,11 @@ meta["defaults"] = [
     "image" : "openproblems-bio/task_ist_preprocessing/data_processors/process_dataset",
     "tag" : "build_main"
   },
+  "label" : [
+    "lowcpu",
+    "highmem",
+    "hightime"
+  ],
   "tag" : "$id"
 }'''),
 

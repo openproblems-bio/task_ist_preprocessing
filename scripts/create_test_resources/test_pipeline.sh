@@ -12,10 +12,10 @@ mkdir -p $OUT_DIR
 
 # run dataset preprocessor
 viash run src/data_processors/process_dataset/config.vsh.yaml -- \
-  --input_scrnaseq $SC_DIR/dataset.h5ad \
-  --input_ist $SP_DIR/dataset.zarr \
-  --output_scrnaseq $OUT_DIR/scrnaseq_reference.h5ad \
-  --output_ist $OUT_DIR/raw_ist.zarr
+  --input_sc $SC_DIR/dataset.h5ad \
+  --input_sp $SP_DIR/dataset.zarr \
+  --output_sc $OUT_DIR/scrnaseq_reference.h5ad \
+  --output_sp $OUT_DIR/raw_ist.zarr
 
 # run a segmentation method
 viash run src/methods_segmentation/custom_segmentation/config.vsh.yaml -- \

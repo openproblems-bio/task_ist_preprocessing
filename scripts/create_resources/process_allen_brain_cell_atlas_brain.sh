@@ -8,7 +8,7 @@ cd "$REPO_ROOT"
 
 set -e
 
-publish_dir="s3://openproblems-data/resource/datasets"
+publish_dir="s3://openproblems-data/resources/datasets"
 
 cat > /tmp/params.yaml << HERE
 param_list:
@@ -53,3 +53,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --params-file /tmp/params.yaml \
   --config common/nextflow_helpers/labels_tw.config \
   --labels datasets,allen_brain_cell_atlas
+
+aws s3 sync \
+  s3://openproblems-data/resources/datasets/allen_brain_cell_atlas/2023_yao_mouse_brain_scrnaseq_10xv2 \
+  resources/datasets/allen_brain_cell_atlas/2023_yao_mouse_brain_scrnaseq_10xv2

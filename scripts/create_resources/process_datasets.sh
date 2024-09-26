@@ -37,6 +37,5 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --workspace 53907369739130 \
   --compute-env 6TeIFgV5OY4pJCk8I0bfOh \
   --params-file /tmp/params.yaml \
-  --entry-name auto \
   --config common/nextflow_helpers/labels_tw.config \
   --labels task_ist_preprocessing,process_datasets
