@@ -485,9 +485,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2024-09-26T04:50:17Z"
+LABEL org.opencontainers.image.created="2024-09-26T06:25:47Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="44f61719e2ca2acd756b871a256814e58c8f4589"
+LABEL org.opencontainers.image.revision="d2025c2606f9db169273cdef84d943e88dda8914"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1142,14 +1142,14 @@ adata.var_names = adata.var["feature_name"].values.astype(str).tolist()
 # ...filter transcripts tables
 
 # Save the single-cell data
-adata.write_h5ad(par["output_scrnaseq"])
+adata.write_h5ad(par["output_sc"], compression="gzip")
 
 # remove directory if it exists
-if os.path.exists(par["output_ist"]):
-    shutil.rmtree(par["output_ist"])
+if os.path.exists(par["output_sp"]):
+    shutil.rmtree(par["output_sp"])
 
 # Save the spatial data
-sdata.write(par["output_ist"], overwrite=True)
+sdata.write(par["output_sp"], overwrite=True)
 VIASHMAIN
 python -B "\$tempscript" &
 wait "\$!"

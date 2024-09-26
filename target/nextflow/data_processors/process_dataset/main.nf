@@ -4049,7 +4049,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.0",
-    "git_commit" : "44f61719e2ca2acd756b871a256814e58c8f4589",
+    "git_commit" : "d2025c2606f9db169273cdef84d943e88dda8914",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4236,14 +4236,14 @@ adata.var_names = adata.var["feature_name"].values.astype(str).tolist()
 # ...filter transcripts tables
 
 # Save the single-cell data
-adata.write_h5ad(par["output_scrnaseq"])
+adata.write_h5ad(par["output_sc"], compression="gzip")
 
 # remove directory if it exists
-if os.path.exists(par["output_ist"]):
-    shutil.rmtree(par["output_ist"])
+if os.path.exists(par["output_sp"]):
+    shutil.rmtree(par["output_sp"])
 
 # Save the spatial data
-sdata.write(par["output_ist"], overwrite=True)
+sdata.write(par["output_sp"], overwrite=True)
 VIASHMAIN
 python -B "$tempscript"
 '''
