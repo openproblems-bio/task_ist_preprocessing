@@ -1,10 +1,7 @@
-# https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard
-
 from pathlib import Path
 import pandas as pd
 import numpy as np
 from collections import defaultdict
-import scipy as sp
 import anndata as ad
 from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 
@@ -145,7 +142,7 @@ store_info = {
     "development_stage_ontology_term_id": "MmusDv:0000110"
 }
 for key, value in store_info.items():
-    adata.obs[key] = pd.Categorical(value, categories=[value])
+    adata.obs[key] = pd.Categorical([value] * adata.n_obs, categories=[value])
 
 # remove undesired columns
 for key in adata.obs.columns:

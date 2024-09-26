@@ -3334,7 +3334,7 @@ meta = [
       "id" : "nextflow",
       "directives" : {
         "label" : [
-          "veryhighmem",
+          "highmem",
           "midcpu",
           "midtime"
         ],
@@ -3392,7 +3392,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "2b09255a2cbb41c2acd2de5f1175f2edc700db01",
+    "git_commit" : "6cf4cbbf13c0ff6eef8393e1175f205622f49c05",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3510,13 +3510,10 @@ def innerWorkflowFactory(args) {
   def rawScript = '''set -e
 tempscript=".viash_script.sh"
 cat > "$tempscript" << VIASHMAIN
-# https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard
-
 from pathlib import Path
 import pandas as pd
 import numpy as np
 from collections import defaultdict
-import scipy as sp
 import anndata as ad
 from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
 
@@ -3686,7 +3683,7 @@ store_info = {
     "development_stage_ontology_term_id": "MmusDv:0000110"
 }
 for key, value in store_info.items():
-    adata.obs[key] = pd.Categorical(value, categories=[value])
+    adata.obs[key] = pd.Categorical([value] * adata.n_obs, categories=[value])
 
 # remove undesired columns
 for key in adata.obs.columns:
@@ -4070,7 +4067,7 @@ meta["defaults"] = [
     "tag" : "build_main"
   },
   "label" : [
-    "veryhighmem",
+    "highmem",
     "midcpu",
     "midtime"
   ],
