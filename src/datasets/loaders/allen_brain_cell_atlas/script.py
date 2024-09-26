@@ -161,4 +161,4 @@ for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "d
 print(f"Output: {adata}")
 
 # Write data
-adata.write_h5ad(par["output"])
+adata.write_h5ad(par["output"], compression="gzip")
