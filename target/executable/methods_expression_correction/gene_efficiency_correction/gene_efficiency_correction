@@ -485,9 +485,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_expression_correction gene_efficiency_correction"
-LABEL org.opencontainers.image.created="2024-09-26T01:58:09Z"
+LABEL org.opencontainers.image.created="2024-09-26T02:40:39Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="6cf4cbbf13c0ff6eef8393e1175f205622f49c05"
+LABEL org.opencontainers.image.revision="d11cef7c0ecd0089433107ba79db10e522bacea6"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
