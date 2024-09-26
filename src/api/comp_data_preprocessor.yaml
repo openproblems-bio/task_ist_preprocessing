@@ -8,11 +8,11 @@ info:
       This component processes a common single-cell and a common spatial transcriptomics
       dataset for the benchmark.
 arguments:
-  - name: "--input_ist"
+  - name: "--input_sp"
     __merge__: file_common_ist.yaml
     direction: input
     required: true
-  - name: "--input_scrnaseq"
+  - name: "--input_sc"
     __merge__: file_common_scrnaseq.yaml
     direction: input
     required: true

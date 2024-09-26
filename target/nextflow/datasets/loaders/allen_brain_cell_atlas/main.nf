@@ -3392,7 +3392,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "d11cef7c0ecd0089433107ba79db10e522bacea6",
+    "git_commit" : "214f782b1eccd63af01b3682ffca8b1bb76bc267",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3702,7 +3702,7 @@ for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "d
 print(f"Output: {adata}")
 
 # Write data
-adata.write_h5ad(par["output"])
+adata.write_h5ad(par["output"], compression="gzip")
 VIASHMAIN
 python -B "$tempscript"
 '''

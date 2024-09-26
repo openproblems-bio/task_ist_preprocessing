@@ -6,18 +6,18 @@ import shutil
 
 ### VIASH START
 par = {
-  "input_scrnaseq": "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad",
-  "input_ist": "resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr",
+  "input_sc": "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad",
+  "input_sp": "resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr",
   "output_scrnaseq": "resources_test/task_ist_preprocessing/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad",
   "output_ist": "resources_test/task_ist_preprocessing/2023_10x_mouse_brain_xenium_rep1/dataset.zarr"
 }
 ### VIASH END
 
 # Load the single-cell data
-adata = ad.read_h5ad(par["input_scrnaseq"])
+adata = ad.read_h5ad(par["input_sc"])
 
 # Load the spatial data
-sdata = sd.read_zarr(par["input_ist"])
+sdata = sd.read_zarr(par["input_sp"])
 
 # Subset the single-cell data to spatial genes
 genes_sp = []
