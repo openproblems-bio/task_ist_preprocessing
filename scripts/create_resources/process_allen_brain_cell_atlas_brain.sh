@@ -36,6 +36,7 @@ sample_n_obs: 500000
 sample_obs_weight: subclass
 sample_transform: log
 sample_seed: 42
+keep_files: false # disk isn't large enough
 
 output_dataset: "\$id/dataset.h5ad"
 output_meta: "\$id/dataset_meta.yaml"

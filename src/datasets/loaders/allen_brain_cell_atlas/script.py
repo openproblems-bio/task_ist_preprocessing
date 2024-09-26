@@ -16,6 +16,7 @@ par = {
     "sample_obs_weight": "subclass",
     "sample_transform": "sqrt",
     "sample_seed": None,
+    "keep_files": True,
     "output": "tmp_dataset.h5ad",
 }
 meta = {
@@ -39,8 +40,9 @@ abc_cache.load_manifest(
 )
 
 print("Reading obs", flush=True)
+obs_path = abc_cache.get_metadata_path(directory="WMB-10X", file_name="cell_metadata_with_cluster_annotation")
 obs = pd.read_csv(
-    abc_cache.get_metadata_path(directory="WMB-10X", file_name="cell_metadata_with_cluster_annotation"),
+    obs_path,
     index_col=0,
     dtype=defaultdict(
         lambda: "category",
@@ -50,6 +52,8 @@ obs = pd.read_csv(
         region_of_interest_order="int"
     )
 )
+if not par["keep_files"]:
+    obs_path.unlink()
 
 print("Filtering obs based on regions", flush=True)
 obs = obs[obs["anatomical_division_label"].isin(REGIONS)]
@@ -83,6 +87,9 @@ for region in REGIONS:
 
         print(f"Reading h5ad for region {region}", flush=True)
         adata = ad.read_h5ad(str(adata_path))
+
+        if not par["keep_files"]:
+            adata_path.unlink()
 
         # filter cells
         adata = adata[adata.obs_names.isin(obs.index)].copy()

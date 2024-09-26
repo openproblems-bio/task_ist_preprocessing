@@ -2901,6 +2901,20 @@ meta = [
       ]
     },
     {
+      "name" : "Caching settings",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--keep_files",
+          "description" : "Whether to remove the downloaded files after processing.",
+          "required" : true,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
       "name" : "Metadata",
       "arguments" : [
         {
@@ -3378,7 +3392,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "28d7183da03e1d1582d04d3c90b35c85dae55358",
+    "git_commit" : "2b09255a2cbb41c2acd2de5f1175f2edc700db01",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3515,6 +3529,7 @@ par = {
   'sample_obs_weight': $( if [ ! -z ${VIASH_PAR_SAMPLE_OBS_WEIGHT+x} ]; then echo "r'${VIASH_PAR_SAMPLE_OBS_WEIGHT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'sample_transform': $( if [ ! -z ${VIASH_PAR_SAMPLE_TRANSFORM+x} ]; then echo "r'${VIASH_PAR_SAMPLE_TRANSFORM//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'sample_seed': $( if [ ! -z ${VIASH_PAR_SAMPLE_SEED+x} ]; then echo "int(r'${VIASH_PAR_SAMPLE_SEED//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'keep_files': $( if [ ! -z ${VIASH_PAR_KEEP_FILES+x} ]; then echo "r'${VIASH_PAR_KEEP_FILES//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi ),
   'dataset_id': $( if [ ! -z ${VIASH_PAR_DATASET_ID+x} ]; then echo "r'${VIASH_PAR_DATASET_ID//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_name': $( if [ ! -z ${VIASH_PAR_DATASET_NAME+x} ]; then echo "r'${VIASH_PAR_DATASET_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_url': $( if [ ! -z ${VIASH_PAR_DATASET_URL+x} ]; then echo "r'${VIASH_PAR_DATASET_URL//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -3566,8 +3581,9 @@ abc_cache.load_manifest(
 )
 
 print("Reading obs", flush=True)
+obs_path = abc_cache.get_metadata_path(directory="WMB-10X", file_name="cell_metadata_with_cluster_annotation")
 obs = pd.read_csv(
-    abc_cache.get_metadata_path(directory="WMB-10X", file_name="cell_metadata_with_cluster_annotation"),
+    obs_path,
     index_col=0,
     dtype=defaultdict(
         lambda: "category",
@@ -3577,6 +3593,8 @@ obs = pd.read_csv(
         region_of_interest_order="int"
     )
 )
+if not par["keep_files"]:
+    obs_path.unlink()
 
 print("Filtering obs based on regions", flush=True)
 obs = obs[obs["anatomical_division_label"].isin(REGIONS)]
@@ -3610,6 +3628,9 @@ for region in REGIONS:
 
         print(f"Reading h5ad for region {region}", flush=True)
         adata = ad.read_h5ad(str(adata_path))
+
+        if not par["keep_files"]:
+            adata_path.unlink()
 
         # filter cells
         adata = adata[adata.obs_names.isin(obs.index)].copy()

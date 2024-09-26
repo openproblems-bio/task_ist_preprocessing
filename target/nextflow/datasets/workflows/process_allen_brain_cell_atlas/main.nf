@@ -2847,6 +2847,20 @@ meta = [
       ]
     },
     {
+      "name" : "Caching settings",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--keep_files",
+          "description" : "Whether to remove the downloaded files after processing.",
+          "required" : true,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
       "name" : "Metadata",
       "arguments" : [
         {
@@ -3436,7 +3450,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "28d7183da03e1d1582d04d3c90b35c85dae55358",
+    "git_commit" : "2b09255a2cbb41c2acd2de5f1175f2edc700db01",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3583,6 +3597,7 @@ workflow run_wf {
       fromState: [
         "abca_version",
         "regions",
+        "keep_files",
         "dataset_id",
         "dataset_name",
         "dataset_url",

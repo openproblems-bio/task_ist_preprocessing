@@ -24,6 +24,7 @@ workflow run_wf {
       fromState: [
         "abca_version",
         "regions",
+        "keep_files",
         "dataset_id",
         "dataset_name",
         "dataset_url",
