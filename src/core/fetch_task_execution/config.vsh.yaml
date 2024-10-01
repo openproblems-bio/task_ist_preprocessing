@@ -1,0 +1,26 @@
+name: fetch_task_execution
+namespace: core
+arguments:
+  - type: string
+    name: --input
+    required: true
+    direction: input
+    example: s3://openproblems-nextflow/work/f6/8565066aee4771cc2790b92b4ac660
+    description: The S3 path to the task execution directory to fetch.
+  - type: string
+    name: --aws_profile
+    required: false
+    direction: input
+    description: The AWS profile to use for fetching the task execution directory.
+  - type: file
+    name: --output
+    required: true
+    direction: output
+    description: Output directory containing the fetched task execution files.
+resources:
+  - type: bash_script
+    path: script.sh
+engines:
+  - type: native
+runners:
+  - type: executable

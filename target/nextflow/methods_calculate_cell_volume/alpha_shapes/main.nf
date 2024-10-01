@@ -3097,7 +3097,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_calculate_cell_volume/alpha_shapes",
     "viash_version" : "0.9.0",
-    "git_commit" : "d2025c2606f9db169273cdef84d943e88dda8914",
+    "git_commit" : "ae390d92247240834eb02112139df5fb24188d5a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
