@@ -79,19 +79,19 @@ if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
 print("Downloading and reading expression matrices", flush=True)
 abca_data_subdir="WMB-10Xv2"
 abca_region_files = [
-    [file, region]
+    [re.sub(r"/raw$", "", file), region]
     for file in abc_cache.list_data_files(abca_data_subdir)
     for region in REGIONS
     if re.match(f"WMB-10Xv2-{region}[\\-0-9]*/raw", file)
 ]
 
 adatas = []
-for region, abca_data_file in abca_region_files:
+for region, file_name in abca_region_files:
     try:
-        print(f"Downloading file {abca_data_file} for region {region}", flush=True)
+        print(f"Downloading file {file_name} for region {region}", flush=True)
         adata_path = abc_cache.get_data_path(
             directory=abca_data_subdir,
-            file_name=abca_data_file
+            file_name=file_name
         )
 
         print(f"Reading file {adata_path}", flush=True)
