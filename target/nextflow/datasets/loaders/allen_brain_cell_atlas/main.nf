@@ -2831,10 +2831,7 @@ meta = [
             "CTXsp",
             "HPF",
             "HY",
-            "Isocortex-1",
-            "Isocortex-2",
-            "Isocortex-3",
-            "Isocortex-4",
+            "Isocortex",
             "MB",
             "OLF",
             "TH"
@@ -3392,7 +3389,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "a2605f0a76f7890cb37a8f23c1bf38b85c41bac0",
+    "git_commit" : "06b44c97d2ed20858d758a25e9060e0e167acda5",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3620,19 +3617,19 @@ if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
 print("Downloading and reading expression matrices", flush=True)
 abca_data_subdir="WMB-10Xv2"
 abca_region_files = [
-    [file, region]
+    [re.sub(r"/raw\\$", "", file), region]
     for file in abc_cache.list_data_files(abca_data_subdir)
     for region in REGIONS
     if re.match(f"WMB-10Xv2-{region}[\\\\\\\\-0-9]*/raw", file)
 ]
 
 adatas = []
-for region, abca_data_file in abca_region_files:
+for region, file_name in abca_region_files:
     try:
-        print(f"Downloading file {abca_data_file} for region {region}", flush=True)
+        print(f"Downloading file {file_name} for region {region}", flush=True)
         adata_path = abc_cache.get_data_path(
             directory=abca_data_subdir,
-            file_name=abca_data_file
+            file_name=file_name
         )
 
         print(f"Reading file {adata_path}", flush=True)

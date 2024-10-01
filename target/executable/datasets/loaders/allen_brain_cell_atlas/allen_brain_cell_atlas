@@ -181,8 +181,7 @@ function ViashHelp {
   echo ""
   echo "    --regions"
   echo "        type: string, multiple values allowed"
-  echo "        default:"
-  echo "CTXsp;HPF;HY;Isocortex-1;Isocortex-2;Isocortex-3;Isocortex-4;MB;OLF;TH"
+  echo "        default: CTXsp;HPF;HY;Isocortex;MB;OLF;TH"
   echo "        A list of brain regions to download data for. If not provided, data for"
   echo "        all regions will be downloaded."
   echo ""
@@ -532,9 +531,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/alleninstitute/abc_atlas_access"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas"
-LABEL org.opencontainers.image.created="2024-10-01T13:27:40Z"
+LABEL org.opencontainers.image.created="2024-10-01T13:46:01Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="a2605f0a76f7890cb37a8f23c1bf38b85c41bac0"
+LABEL org.opencontainers.image.revision="06b44c97d2ed20858d758a25e9060e0e167acda5"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1071,7 +1070,7 @@ if [ -z ${VIASH_PAR_ABCA_VERSION+x} ]; then
   VIASH_PAR_ABCA_VERSION="20230630"
 fi
 if [ -z ${VIASH_PAR_REGIONS+x} ]; then
-  VIASH_PAR_REGIONS="CTXsp;HPF;HY;Isocortex-1;Isocortex-2;Isocortex-3;Isocortex-4;MB;OLF;TH"
+  VIASH_PAR_REGIONS="CTXsp;HPF;HY;Isocortex;MB;OLF;TH"
 fi
 
 # check whether parameters values are of the right type
@@ -1390,19 +1389,19 @@ if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
 print("Downloading and reading expression matrices", flush=True)
 abca_data_subdir="WMB-10Xv2"
 abca_region_files = [
-    [file, region]
+    [re.sub(r"/raw\$", "", file), region]
     for file in abc_cache.list_data_files(abca_data_subdir)
     for region in REGIONS
     if re.match(f"WMB-10Xv2-{region}[\\\\-0-9]*/raw", file)
 ]
 
 adatas = []
-for region, abca_data_file in abca_region_files:
+for region, file_name in abca_region_files:
     try:
-        print(f"Downloading file {abca_data_file} for region {region}", flush=True)
+        print(f"Downloading file {file_name} for region {region}", flush=True)
         adata_path = abc_cache.get_data_path(
             directory=abca_data_subdir,
-            file_name=abca_data_file
+            file_name=file_name
         )
 
         print(f"Reading file {adata_path}", flush=True)
