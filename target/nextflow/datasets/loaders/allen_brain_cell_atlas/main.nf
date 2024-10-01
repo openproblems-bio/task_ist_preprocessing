@@ -3389,7 +3389,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "06b44c97d2ed20858d758a25e9060e0e167acda5",
+    "git_commit" : "284fff8eee4ad12014a63d32433bfa421967cb1c",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3624,7 +3624,7 @@ abca_region_files = [
 ]
 
 adatas = []
-for region, file_name in abca_region_files:
+for file_name, region in abca_region_files:
     try:
         print(f"Downloading file {file_name} for region {region}", flush=True)
         adata_path = abc_cache.get_data_path(

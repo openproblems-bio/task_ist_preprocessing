@@ -531,9 +531,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/alleninstitute/abc_atlas_access"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas"
-LABEL org.opencontainers.image.created="2024-10-01T13:46:01Z"
+LABEL org.opencontainers.image.created="2024-10-01T14:05:31Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="06b44c97d2ed20858d758a25e9060e0e167acda5"
+LABEL org.opencontainers.image.revision="284fff8eee4ad12014a63d32433bfa421967cb1c"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1396,7 +1396,7 @@ abca_region_files = [
 ]
 
 adatas = []
-for region, file_name in abca_region_files:
+for file_name, region in abca_region_files:
     try:
         print(f"Downloading file {file_name} for region {region}", flush=True)
         adata_path = abc_cache.get_data_path(

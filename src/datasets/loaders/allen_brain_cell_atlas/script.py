@@ -86,7 +86,7 @@ abca_region_files = [
 ]
 
 adatas = []
-for region, file_name in abca_region_files:
+for file_name, region in abca_region_files:
     try:
         print(f"Downloading file {file_name} for region {region}", flush=True)
         adata_path = abc_cache.get_data_path(
