@@ -3389,7 +3389,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.0",
-    "git_commit" : "284fff8eee4ad12014a63d32433bfa421967cb1c",
+    "git_commit" : "1a4ee1f7387af4addbf42f3549667dcdf100f9a3",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3617,10 +3617,10 @@ if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
 print("Downloading and reading expression matrices", flush=True)
 abca_data_subdir="WMB-10Xv2"
 abca_region_files = [
-    [re.sub(r"/raw\\$", "", file), region]
-    for file in abc_cache.list_data_files(abca_data_subdir)
+    [file_name, region]
+    for file_name in abc_cache.list_data_files(abca_data_subdir)
     for region in REGIONS
-    if re.match(f"WMB-10Xv2-{region}[\\\\\\\\-0-9]*/raw", file)
+    if re.match(f"WMB-10Xv2-{region}[\\\\\\\\-0-9]*/raw", file_name)
 ]
 
 adatas = []

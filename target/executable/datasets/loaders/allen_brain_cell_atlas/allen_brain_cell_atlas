@@ -531,9 +531,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/alleninstitute/abc_atlas_access"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas"
-LABEL org.opencontainers.image.created="2024-10-01T17:46:04Z"
+LABEL org.opencontainers.image.created="2024-10-01T20:51:18Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="284fff8eee4ad12014a63d32433bfa421967cb1c"
+LABEL org.opencontainers.image.revision="1a4ee1f7387af4addbf42f3549667dcdf100f9a3"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1389,10 +1389,10 @@ if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
 print("Downloading and reading expression matrices", flush=True)
 abca_data_subdir="WMB-10Xv2"
 abca_region_files = [
-    [re.sub(r"/raw\$", "", file), region]
-    for file in abc_cache.list_data_files(abca_data_subdir)
+    [file_name, region]
+    for file_name in abc_cache.list_data_files(abca_data_subdir)
     for region in REGIONS
-    if re.match(f"WMB-10Xv2-{region}[\\\\-0-9]*/raw", file)
+    if re.match(f"WMB-10Xv2-{region}[\\\\-0-9]*/raw", file_name)
 ]
 
 adatas = []
