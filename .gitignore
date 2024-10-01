@@ -7,7 +7,7 @@ __pycache__/
 
 logs/*
 !logs/README.txt
-temp/
+temp*/
 dependency.png
 envs/src/
 singularity_container/

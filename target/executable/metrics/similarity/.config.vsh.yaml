@@ -621,7 +621,7 @@ build_info:
   output: "target/executable/metrics/similarity"
   executable: "target/executable/metrics/similarity/similarity"
   viash_version: "0.9.0"
-  git_commit: "4589ee4e2acdeeb411b968980a6a89fc00b8cecd"
+  git_commit: "a2605f0a76f7890cb37a8f23c1bf38b85c41bac0"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"
