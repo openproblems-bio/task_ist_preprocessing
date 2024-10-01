@@ -184,6 +184,11 @@ function ViashHelp {
   echo "        type: string"
   echo "        The AWS profile to use for fetching the task execution directory."
   echo ""
+  echo "    --aws_credentials"
+  echo "        type: file, file must exist"
+  echo "        The AWS credentials file to use for fetching the task execution"
+  echo "        directory."
+  echo ""
   echo "    --output"
   echo "        type: file, required parameter, output, file must exist"
   echo "        Output directory containing the fetched task execution files."
@@ -191,7 +196,396 @@ function ViashHelp {
 
 # initialise variables
 VIASH_MODE='run'
-VIASH_ENGINE_ID='native'
+VIASH_ENGINE_ID='docker'
+
+######## Helper functions for setting up Docker images for viash ########
+# expects: ViashDockerBuild
+
+# ViashDockerInstallationCheck: check whether Docker is installed correctly
+#
+# examples:
+#   ViashDockerInstallationCheck
+function ViashDockerInstallationCheck {
+  ViashDebug "Checking whether Docker is installed"
+  if [ ! command -v docker &> /dev/null ]; then
+    ViashCritical "Docker doesn't seem to be installed. See 'https://docs.docker.com/get-docker/' for instructions."
+    exit 1
+  fi
+
+  ViashDebug "Checking whether the Docker daemon is running"
+  local save=$-; set +e
+  local docker_version=$(docker version --format '{{.Client.APIVersion}}' 2> /dev/null)
+  local out=$?
+  [[ $save =~ e ]] && set -e
+  if [ $out -ne 0 ]; then
+    ViashCritical "Docker daemon does not seem to be running. Try one of the following:"
+    ViashCritical "- Try running 'dockerd' in the command line"
+    ViashCritical "- See https://docs.docker.com/config/daemon/"
+    exit 1
+  fi
+}
+
+# ViashDockerRemoteTagCheck: check whether a Docker image is available 
+# on a remote. Assumes `docker login` has been performed, if relevant.
+#
+# $1                  : image identifier with format `[registry/]image[:tag]`
+# exit code $?        : whether or not the image was found
+# examples:
+#   ViashDockerRemoteTagCheck python:latest
+#   echo $?                                     # returns '0'
+#   ViashDockerRemoteTagCheck sdaizudceahifu
+#   echo $?                                     # returns '1'
+function ViashDockerRemoteTagCheck {
+  docker manifest inspect $1 > /dev/null 2> /dev/null
+}
+
+# ViashDockerLocalTagCheck: check whether a Docker image is available locally
+#
+# $1                  : image identifier with format `[registry/]image[:tag]`
+# exit code $?        : whether or not the image was found
+# examples:
+#   docker pull python:latest
+#   ViashDockerLocalTagCheck python:latest
+#   echo $?                                     # returns '0'
+#   ViashDockerLocalTagCheck sdaizudceahifu
+#   echo $?                                     # returns '1'
+function ViashDockerLocalTagCheck {
+  [ -n "$(docker images -q $1)" ]
+}
+
+# ViashDockerPull: pull a Docker image
+#
+# $1                  : image identifier with format `[registry/]image[:tag]`
+# exit code $?        : whether or not the image was found
+# examples:
+#   ViashDockerPull python:latest
+#   echo $?                                     # returns '0'
+#   ViashDockerPull sdaizudceahifu
+#   echo $?                                     # returns '1'
+function ViashDockerPull {
+  ViashNotice "Checking if Docker image is available at '$1'"
+  if [ $VIASH_VERBOSITY -ge $VIASH_LOGCODE_INFO ]; then
+    docker pull $1 && return 0 || return 1
+  else
+    local save=$-; set +e
+    docker pull $1 2> /dev/null > /dev/null
+    local out=$?
+    [[ $save =~ e ]] && set -e
+    if [ $out -ne 0 ]; then
+      ViashWarning "Could not pull from '$1'. Docker image doesn't exist or is not accessible."
+    fi
+    return $out
+  fi
+}
+
+# ViashDockerPush: push a Docker image
+#
+# $1                  : image identifier with format `[registry/]image[:tag]`
+# exit code $?        : whether or not the image was found
+# examples:
+#   ViashDockerPush python:latest
+#   echo $?                                     # returns '0'
+#   ViashDockerPush sdaizudceahifu
+#   echo $?                                     # returns '1'
+function ViashDockerPush {
+  ViashNotice "Pushing image to '$1'"
+  local save=$-; set +e
+  local out
+  if [ $VIASH_VERBOSITY -ge $VIASH_LOGCODE_INFO ]; then
+    docker push $1
+    out=$?
+  else
+    docker push $1 2> /dev/null > /dev/null
+    out=$?
+  fi
+  [[ $save =~ e ]] && set -e
+  if [ $out -eq 0 ]; then
+    ViashNotice "Container '$1' push succeeded."
+  else
+    ViashError "Container '$1' push errored. You might not be logged in or have the necessary permissions."
+  fi
+  return $out
+}
+
+# ViashDockerPullElseBuild: pull a Docker image, else build it
+#
+# $1                  : image identifier with format `[registry/]image[:tag]`
+# ViashDockerBuild    : a Bash function which builds a docker image, takes image identifier as argument.
+# examples:
+#   ViashDockerPullElseBuild mynewcomponent
+function ViashDockerPullElseBuild {
+  local save=$-; set +e
+  ViashDockerPull $1
+  local out=$?
+  [[ $save =~ e ]] && set -e
+  if [ $out -ne 0 ]; then
+    ViashDockerBuild $@
+  fi
+}
+
+# ViashDockerSetup: create a Docker image, according to specified docker setup strategy
+#
+# $1          : image identifier with format `[registry/]image[:tag]`
+# $2          : docker setup strategy, see DockerSetupStrategy.scala
+# examples:
+#   ViashDockerSetup mynewcomponent alwaysbuild
+function ViashDockerSetup {
+  local image_id="$1"
+  local setup_strategy="$2"
+  if [ "$setup_strategy" == "alwaysbuild" -o "$setup_strategy" == "build" -o "$setup_strategy" == "b" ]; then
+    ViashDockerBuild $image_id --no-cache $(ViashDockerBuildArgs "$engine_id")
+  elif [ "$setup_strategy" == "alwayspull" -o "$setup_strategy" == "pull" -o "$setup_strategy" == "p" ]; then
+    ViashDockerPull $image_id
+  elif [ "$setup_strategy" == "alwayspullelsebuild" -o "$setup_strategy" == "pullelsebuild" ]; then
+    ViashDockerPullElseBuild $image_id --no-cache $(ViashDockerBuildArgs "$engine_id")
+  elif [ "$setup_strategy" == "alwayspullelsecachedbuild" -o "$setup_strategy" == "pullelsecachedbuild" ]; then
+    ViashDockerPullElseBuild $image_id $(ViashDockerBuildArgs "$engine_id")
+  elif [ "$setup_strategy" == "alwayscachedbuild" -o "$setup_strategy" == "cachedbuild" -o "$setup_strategy" == "cb" ]; then
+    ViashDockerBuild $image_id $(ViashDockerBuildArgs "$engine_id")
+  elif [[ "$setup_strategy" =~ ^ifneedbe ]]; then
+    local save=$-; set +e
+    ViashDockerLocalTagCheck $image_id
+    local outCheck=$?
+    [[ $save =~ e ]] && set -e
+    if [ $outCheck -eq 0 ]; then
+      ViashInfo "Image $image_id already exists"
+    elif [ "$setup_strategy" == "ifneedbebuild" ]; then
+      ViashDockerBuild $image_id --no-cache $(ViashDockerBuildArgs "$engine_id")
+    elif [ "$setup_strategy" == "ifneedbecachedbuild" ]; then
+      ViashDockerBuild $image_id $(ViashDockerBuildArgs "$engine_id")
+    elif [ "$setup_strategy" == "ifneedbepull" ]; then
+      ViashDockerPull $image_id
+    elif [ "$setup_strategy" == "ifneedbepullelsebuild" ]; then
+      ViashDockerPullElseBuild $image_id --no-cache $(ViashDockerBuildArgs "$engine_id")
+    elif [ "$setup_strategy" == "ifneedbepullelsecachedbuild" ]; then
+      ViashDockerPullElseBuild $image_id $(ViashDockerBuildArgs "$engine_id")
+    else
+      ViashError "Unrecognised Docker strategy: $setup_strategy"
+      exit 1
+    fi
+  elif [ "$setup_strategy" == "push" -o "$setup_strategy" == "forcepush" -o "$setup_strategy" == "alwayspush" ]; then
+    ViashDockerPush "$image_id"
+  elif [ "$setup_strategy" == "pushifnotpresent" -o "$setup_strategy" == "gentlepush" -o "$setup_strategy" == "maybepush" ]; then
+    local save=$-; set +e
+    ViashDockerRemoteTagCheck $image_id
+    local outCheck=$?
+    [[ $save =~ e ]] && set -e
+    if [ $outCheck -eq 0 ]; then
+      ViashNotice "Container '$image_id' exists, doing nothing."
+    else
+      ViashNotice "Container '$image_id' does not yet exist."
+      ViashDockerPush "$image_id"
+    fi
+  elif [ "$setup_strategy" == "donothing" -o "$setup_strategy" == "meh" ]; then
+    ViashNotice "Skipping setup."
+  else
+    ViashError "Unrecognised Docker strategy: $setup_strategy"
+    exit 1
+  fi
+}
+
+# ViashDockerCheckCommands: Check whether a docker container has the required commands
+#
+# $1                  : image identifier with format `[registry/]image[:tag]`
+# $@                  : commands to verify being present
+# examples:
+#   ViashDockerCheckCommands bash:4.0 bash ps foo
+function ViashDockerCheckCommands {
+  local image_id="$1"
+  shift 1
+  local commands="$@"
+  local save=$-; set +e
+  local missing # mark 'missing' as local in advance, otherwise the exit code of the command will be missing and always be '0'
+  missing=$(docker run --rm --entrypoint=sh "$image_id" -c "for command in $commands; do command -v \$command >/dev/null 2>&1; if [ \$? -ne 0 ]; then echo \$command; exit 1; fi; done")
+  local outCheck=$?
+  [[ $save =~ e ]] && set -e
+  if [ $outCheck -ne 0 ]; then
+  	ViashError "Docker container '$image_id' does not contain command '$missing'."
+  	exit 1
+  fi
+}
+
+# ViashDockerBuild: build a docker image
+# $1                               : image identifier with format `[registry/]image[:tag]`
+# $...                             : additional arguments to pass to docker build
+# $VIASH_META_TEMP_DIR             : temporary directory to store dockerfile & optional resources in
+# $VIASH_META_NAME                 : name of the component
+# $VIASH_META_RESOURCES_DIR        : directory containing the resources
+# $VIASH_VERBOSITY                 : verbosity level
+# exit code $?                     : whether or not the image was built successfully
+function ViashDockerBuild {
+  local image_id="$1"
+  shift 1
+
+  # create temporary directory to store dockerfile & optional resources in
+  local tmpdir=$(mktemp -d "$VIASH_META_TEMP_DIR/dockerbuild-$VIASH_META_NAME-XXXXXX")
+  local dockerfile="$tmpdir/Dockerfile"
+  function clean_up {
+    rm -rf "$tmpdir"
+  }
+  trap clean_up EXIT
+
+  # store dockerfile and resources
+  ViashDockerfile "$VIASH_ENGINE_ID" > "$dockerfile"
+
+  # generate the build command
+  local docker_build_cmd="docker build -t '$image_id' $@ '$VIASH_META_RESOURCES_DIR' -f '$dockerfile'"
+
+  # build the container
+  ViashNotice "Building container '$image_id' with Dockerfile"
+  ViashInfo "$docker_build_cmd"
+  local save=$-; set +e
+  if [ $VIASH_VERBOSITY -ge $VIASH_LOGCODE_INFO ]; then
+    eval $docker_build_cmd
+  else
+    eval $docker_build_cmd &> "$tmpdir/docker_build.log"
+  fi
+
+  # check exit code
+  local out=$?
+  [[ $save =~ e ]] && set -e
+  if [ $out -ne 0 ]; then
+    ViashError "Error occurred while building container '$image_id'"
+    if [ $VIASH_VERBOSITY -lt $VIASH_LOGCODE_INFO ]; then
+      ViashError "Transcript: --------------------------------"
+      cat "$tmpdir/docker_build.log"
+      ViashError "End of transcript --------------------------"
+    fi
+    exit 1
+  fi
+}
+
+######## End of helper functions for setting up Docker images for viash ########
+
+# ViashDockerFile: print the dockerfile to stdout
+# $1    : engine identifier
+# return : dockerfile required to run this component
+# examples:
+#   ViashDockerFile
+function ViashDockerfile {
+  local engine_id="$1"
+
+  if [[ "$engine_id" == "docker" ]]; then
+    cat << 'VIASHDOCKER'
+FROM amazon/aws-cli:latest
+ENTRYPOINT []
+LABEL org.opencontainers.image.description="Companion container for running component core fetch_task_execution"
+LABEL org.opencontainers.image.created="2024-10-01T12:40:08Z"
+LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
+LABEL org.opencontainers.image.revision="d6ca3bebee195eadbd55366e0eb5a7d3213e7fbe"
+LABEL org.opencontainers.image.version="build_main"
+
+VIASHDOCKER
+  fi
+}
+
+# ViashDockerBuildArgs: return the arguments to pass to docker build
+# $1    : engine identifier
+# return : arguments to pass to docker build
+function ViashDockerBuildArgs {
+  local engine_id="$1"
+
+  if [[ "$engine_id" == "docker" ]]; then
+    echo ""
+  fi
+}
+
+# ViashAbsolutePath: generate absolute path from relative path
+# borrowed from https://stackoverflow.com/a/21951256
+# $1     : relative filename
+# return : absolute path
+# examples:
+#   ViashAbsolutePath some_file.txt   # returns /path/to/some_file.txt
+#   ViashAbsolutePath /foo/bar/..     # returns /foo
+function ViashAbsolutePath {
+  local thePath
+  local parr
+  local outp
+  local len
+  if [[ ! "$1" =~ ^/ ]]; then
+    thePath="$PWD/$1"
+  else
+    thePath="$1"
+  fi
+  echo "$thePath" | (
+    IFS=/
+    read -a parr
+    declare -a outp
+    for i in "${parr[@]}"; do
+      case "$i" in
+      ''|.) continue ;;
+      ..)
+        len=${#outp[@]}
+        if ((len==0)); then
+          continue
+        else
+          unset outp[$((len-1))]
+        fi
+        ;;
+      *)
+        len=${#outp[@]}
+        outp[$len]="$i"
+      ;;
+      esac
+    done
+    echo /"${outp[*]}"
+  )
+}
+# ViashDockerAutodetectMount: auto configuring docker mounts from parameters
+# $1                             : The parameter value
+# returns                        : New parameter
+# $VIASH_DIRECTORY_MOUNTS        : Added another parameter to be passed to docker
+# $VIASH_DOCKER_AUTOMOUNT_PREFIX : The prefix to be used for the automounts
+# examples:
+#   ViashDockerAutodetectMount /path/to/bar      # returns '/viash_automount/path/to/bar'
+#   ViashDockerAutodetectMountArg /path/to/bar   # returns '--volume="/path/to:/viash_automount/path/to"'
+function ViashDockerAutodetectMount {
+  local abs_path=$(ViashAbsolutePath "$1")
+  local mount_source
+  local base_name
+  if [ -d "$abs_path" ]; then
+    mount_source="$abs_path"
+    base_name=""
+  else
+    mount_source=`dirname "$abs_path"`
+    base_name=`basename "$abs_path"`
+  fi
+  local mount_target="$VIASH_DOCKER_AUTOMOUNT_PREFIX$mount_source"
+  if [ -z "$base_name" ]; then
+    echo "$mount_target"
+  else
+    echo "$mount_target/$base_name"
+  fi
+}
+function ViashDockerAutodetectMountArg {
+  local abs_path=$(ViashAbsolutePath "$1")
+  local mount_source
+  local base_name
+  if [ -d "$abs_path" ]; then
+    mount_source="$abs_path"
+    base_name=""
+  else
+    mount_source=`dirname "$abs_path"`
+    base_name=`basename "$abs_path"`
+  fi
+  local mount_target="$VIASH_DOCKER_AUTOMOUNT_PREFIX$mount_source"
+  ViashDebug "ViashDockerAutodetectMountArg $1 -> $mount_source -> $mount_target"
+  echo "--volume=\"$mount_source:$mount_target\""
+}
+function ViashDockerStripAutomount {
+  local abs_path=$(ViashAbsolutePath "$1")
+  echo "${abs_path#$VIASH_DOCKER_AUTOMOUNT_PREFIX}"
+}
+# initialise variables
+VIASH_DIRECTORY_MOUNTS=()
+
+# configure default docker automount prefix if it is unset
+if [ -z "${VIASH_DOCKER_AUTOMOUNT_PREFIX+x}" ]; then
+  VIASH_DOCKER_AUTOMOUNT_PREFIX="/viash_automount"
+fi
+
+# initialise docker variables
+VIASH_DOCKER_RUN_ARGS=(-i --rm)
 
 # initialise array
 VIASH_POSITIONAL_ARGS=''
@@ -240,6 +634,17 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_AWS_PROFILE=$(ViashRemoveFlags "$1")
             shift 1
             ;;
+        --aws_credentials)
+            [ -n "$VIASH_PAR_AWS_CREDENTIALS" ] && ViashError Bad arguments for option \'--aws_credentials\': \'$VIASH_PAR_AWS_CREDENTIALS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_AWS_CREDENTIALS="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --aws_credentials. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --aws_credentials=*)
+            [ -n "$VIASH_PAR_AWS_CREDENTIALS" ] && ViashError Bad arguments for option \'--aws_credentials=*\': \'$VIASH_PAR_AWS_CREDENTIALS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_AWS_CREDENTIALS=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
         --output)
             [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_OUTPUT="$2"
@@ -257,6 +662,36 @@ while [[ $# -gt 0 ]]; do
             ;;
         ---engine=*)
             VIASH_ENGINE_ID="$(ViashRemoveFlags "$1")"
+            shift 1
+            ;;
+        ---setup)
+            VIASH_MODE='setup'
+            VIASH_SETUP_STRATEGY="$2"
+            shift 2
+            ;;
+        ---setup=*)
+            VIASH_MODE='setup'
+            VIASH_SETUP_STRATEGY="$(ViashRemoveFlags "$1")"
+            shift 1
+            ;;
+        ---dockerfile)
+            VIASH_MODE='dockerfile'
+            shift 1
+            ;;
+        ---docker_run_args)
+            VIASH_DOCKER_RUN_ARGS+=("$2")
+            shift 2
+            ;;
+        ---docker_run_args=*)
+            VIASH_DOCKER_RUN_ARGS+=("$(ViashRemoveFlags "$1")")
+            shift 1
+            ;;
+        ---docker_image_id)
+            VIASH_MODE='docker_image_id'
+            shift 1
+            ;;
+        ---debug)
+            VIASH_MODE='debug'
             shift 1
             ;;
         ---cpus)
@@ -294,11 +729,48 @@ done
 eval set -- $VIASH_POSITIONAL_ARGS
 
 
-if   [ "$VIASH_ENGINE_ID" == "native" ]  ; then
-  VIASH_ENGINE_TYPE='native'
+if   [ "$VIASH_ENGINE_ID" == "docker" ]  ; then
+  VIASH_ENGINE_TYPE='docker'
 else
-  ViashError "Engine '$VIASH_ENGINE_ID' is not recognized. Options are: native."
+  ViashError "Engine '$VIASH_ENGINE_ID' is not recognized. Options are: docker."
   exit 1
+fi
+
+if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
+  # check if docker is installed properly
+  ViashDockerInstallationCheck
+
+  # determine docker image id
+  if [[ "$VIASH_ENGINE_ID" == 'docker' ]]; then
+    VIASH_DOCKER_IMAGE_ID='ghcr.io/openproblems-bio/task_ist_preprocessing/core/fetch_task_execution:build_main'
+  fi
+
+  # print dockerfile
+  if [ "$VIASH_MODE" == "dockerfile" ]; then
+    ViashDockerfile "$VIASH_ENGINE_ID"
+    exit 0
+
+  elif [ "$VIASH_MODE" == "docker_image_id" ]; then
+    echo "$VIASH_DOCKER_IMAGE_ID"
+    exit 0
+  
+  # enter docker container
+  elif [[ "$VIASH_MODE" == "debug" ]]; then
+    VIASH_CMD="docker run --entrypoint=bash ${VIASH_DOCKER_RUN_ARGS[@]} -v '$(pwd)':/pwd --workdir /pwd -t $VIASH_DOCKER_IMAGE_ID"
+    ViashNotice "+ $VIASH_CMD"
+    eval $VIASH_CMD
+    exit 
+
+  # build docker image
+  elif [ "$VIASH_MODE" == "setup" ]; then
+    ViashDockerSetup "$VIASH_DOCKER_IMAGE_ID" "$VIASH_SETUP_STRATEGY"
+    ViashDockerCheckCommands "$VIASH_DOCKER_IMAGE_ID" 'bash'
+    exit 0
+  fi
+
+  # check if docker image exists
+  ViashDockerSetup "$VIASH_DOCKER_IMAGE_ID" ifneedbepullelsecachedbuild
+  ViashDockerCheckCommands "$VIASH_DOCKER_IMAGE_ID" 'bash'
 fi
 
 # setting computational defaults
@@ -387,6 +859,12 @@ if [ -z ${VIASH_META_TEMP_DIR+x} ]; then
   exit 1
 fi
 
+# check whether required files exist
+if [ ! -z "$VIASH_PAR_AWS_CREDENTIALS" ] && [ ! -e "$VIASH_PAR_AWS_CREDENTIALS" ]; then
+  ViashError "Input file '$VIASH_PAR_AWS_CREDENTIALS' does not exist."
+  exit 1
+fi
+
 # check whether parameters values are of the right type
 if [[ -n "$VIASH_META_CPUS" ]]; then
   if ! [[ "$VIASH_META_CPUS" =~ ^[-+]?[0-9]+$ ]]; then
@@ -466,13 +944,65 @@ if [ ! -z "$VIASH_PAR_OUTPUT" ] && [ ! -d "$(dirname "$VIASH_PAR_OUTPUT")" ]; th
   mkdir -p "$(dirname "$VIASH_PAR_OUTPUT")"
 fi
 
-if  [ "$VIASH_ENGINE_ID" == "native" ]  ; then
-  if [ "$VIASH_MODE" == "run" ]; then
-    VIASH_CMD="bash"
-  else
-    ViashError "Engine '$VIASH_ENGINE_ID' does not support mode '$VIASH_MODE'."
-    exit 1
+if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
+  # detect volumes from file arguments
+  VIASH_CHOWN_VARS=()
+if [ ! -z "$VIASH_PAR_AWS_CREDENTIALS" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_AWS_CREDENTIALS")" )
+  VIASH_PAR_AWS_CREDENTIALS=$(ViashDockerAutodetectMount "$VIASH_PAR_AWS_CREDENTIALS")
+fi
+if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT")" )
+  VIASH_PAR_OUTPUT=$(ViashDockerAutodetectMount "$VIASH_PAR_OUTPUT")
+  VIASH_CHOWN_VARS+=( "$VIASH_PAR_OUTPUT" )
+fi
+if [ ! -z "$VIASH_META_RESOURCES_DIR" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_META_RESOURCES_DIR")" )
+  VIASH_META_RESOURCES_DIR=$(ViashDockerAutodetectMount "$VIASH_META_RESOURCES_DIR")
+fi
+if [ ! -z "$VIASH_META_EXECUTABLE" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_META_EXECUTABLE")" )
+  VIASH_META_EXECUTABLE=$(ViashDockerAutodetectMount "$VIASH_META_EXECUTABLE")
+fi
+if [ ! -z "$VIASH_META_CONFIG" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_META_CONFIG")" )
+  VIASH_META_CONFIG=$(ViashDockerAutodetectMount "$VIASH_META_CONFIG")
+fi
+if [ ! -z "$VIASH_META_TEMP_DIR" ]; then
+  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_META_TEMP_DIR")" )
+  VIASH_META_TEMP_DIR=$(ViashDockerAutodetectMount "$VIASH_META_TEMP_DIR")
+fi
+  
+  # get unique mounts
+  VIASH_UNIQUE_MOUNTS=($(for val in "${VIASH_DIRECTORY_MOUNTS[@]}"; do echo "$val"; done | sort -u))
+fi
+
+if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
+  # change file ownership
+  function ViashPerformChown {
+    if (( ${#VIASH_CHOWN_VARS[@]} )); then
+      set +e
+      VIASH_CMD="docker run --entrypoint=bash --rm ${VIASH_UNIQUE_MOUNTS[@]} $VIASH_DOCKER_IMAGE_ID -c 'chown $(id -u):$(id -g) --silent --recursive ${VIASH_CHOWN_VARS[@]}'"
+      ViashDebug "+ $VIASH_CMD"
+      eval $VIASH_CMD
+      set -e
+    fi
+  }
+  trap ViashPerformChown EXIT
+fi
+
+if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
+  # helper function for filling in extra docker args
+  if [ ! -z "$VIASH_META_MEMORY_B" ]; then
+    VIASH_DOCKER_RUN_ARGS+=("--memory=${VIASH_META_MEMORY_B}")
   fi
+  if [ ! -z "$VIASH_META_CPUS" ]; then
+    VIASH_DOCKER_RUN_ARGS+=("--cpus=${VIASH_META_CPUS}")
+  fi
+fi
+
+if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
+  VIASH_CMD="docker run --entrypoint=bash ${VIASH_DOCKER_RUN_ARGS[@]} ${VIASH_UNIQUE_MOUNTS[@]} $VIASH_DOCKER_IMAGE_ID"
 fi
 
 
@@ -497,6 +1027,7 @@ cat > "\$tempscript" << 'VIASHMAIN'
 # The following code has been auto-generated by Viash.
 $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "${VIASH_PAR_INPUT}" | sed "s#'#'\"'\"'#g;s#.*#par_input='&'#" ; else echo "# par_input="; fi )
 $( if [ ! -z ${VIASH_PAR_AWS_PROFILE+x} ]; then echo "${VIASH_PAR_AWS_PROFILE}" | sed "s#'#'\"'\"'#g;s#.*#par_aws_profile='&'#" ; else echo "# par_aws_profile="; fi )
+$( if [ ! -z ${VIASH_PAR_AWS_CREDENTIALS+x} ]; then echo "${VIASH_PAR_AWS_CREDENTIALS}" | sed "s#'#'\"'\"'#g;s#.*#par_aws_credentials='&'#" ; else echo "# par_aws_credentials="; fi )
 $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "${VIASH_PAR_OUTPUT}" | sed "s#'#'\"'\"'#g;s#.*#par_output='&'#" ; else echo "# par_output="; fi )
 $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "${VIASH_META_NAME}" | sed "s#'#'\"'\"'#g;s#.*#meta_name='&'#" ; else echo "# meta_name="; fi )
 $( if [ ! -z ${VIASH_META_FUNCTIONALITY_NAME+x} ]; then echo "${VIASH_META_FUNCTIONALITY_NAME}" | sed "s#'#'\"'\"'#g;s#.*#meta_functionality_name='&'#" ; else echo "# meta_functionality_name="; fi )
@@ -519,20 +1050,52 @@ $( if [ ! -z ${VIASH_META_MEMORY_PIB+x} ]; then echo "${VIASH_META_MEMORY_PIB}" 
 
 ## VIASH END
 
-aws s3 sync \\
-  \${par_aws_profile:+--profile \$par_aws_profile} \\
-  "\$par_input" "\$par_output"
+if [ -n "\$par_aws_credentials" ]; then
+  export AWS_SHARED_CREDENTIALS_FILE="\$par_aws_credentials"
+fi
+
+if [ -n "\$par_aws_profile" ]; then
+  export AWS_PROFILE="\$par_aws_profile"
+fi
+
+aws s3 sync "\$par_input" "\$par_output"
 
 cd "\$par_output"
 
+# Replace the miniconda aws with the system aws
 sed -i 's#/home/ec2-user/miniconda/bin/aws#aws#g' .command.run
+# sed -i 's# s3 cp # s3 sync #g' .command.run
 
-AWS_DEFAULT_PROFILE=\${par_aws_profile} bash .command.run nxf_stage
+bash .command.run nxf_stage
 VIASHMAIN
 bash "\$tempscript" &
 wait "\$!"
 
 VIASHEOF
+
+
+if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
+  # strip viash automount from file paths
+  
+  if [ ! -z "$VIASH_PAR_AWS_CREDENTIALS" ]; then
+    VIASH_PAR_AWS_CREDENTIALS=$(ViashDockerStripAutomount "$VIASH_PAR_AWS_CREDENTIALS")
+  fi
+  if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
+    VIASH_PAR_OUTPUT=$(ViashDockerStripAutomount "$VIASH_PAR_OUTPUT")
+  fi
+  if [ ! -z "$VIASH_META_RESOURCES_DIR" ]; then
+    VIASH_META_RESOURCES_DIR=$(ViashDockerStripAutomount "$VIASH_META_RESOURCES_DIR")
+  fi
+  if [ ! -z "$VIASH_META_EXECUTABLE" ]; then
+    VIASH_META_EXECUTABLE=$(ViashDockerStripAutomount "$VIASH_META_EXECUTABLE")
+  fi
+  if [ ! -z "$VIASH_META_CONFIG" ]; then
+    VIASH_META_CONFIG=$(ViashDockerStripAutomount "$VIASH_META_CONFIG")
+  fi
+  if [ ! -z "$VIASH_META_TEMP_DIR" ]; then
+    VIASH_META_TEMP_DIR=$(ViashDockerStripAutomount "$VIASH_META_TEMP_DIR")
+  fi
+fi
 
 
 # check whether required files exist
