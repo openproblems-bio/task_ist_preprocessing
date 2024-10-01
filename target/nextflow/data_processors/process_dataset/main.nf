@@ -4049,7 +4049,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.0",
-    "git_commit" : "d6ca3bebee195eadbd55366e0eb5a7d3213e7fbe",
+    "git_commit" : "4589ee4e2acdeeb411b968980a6a89fc00b8cecd",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
