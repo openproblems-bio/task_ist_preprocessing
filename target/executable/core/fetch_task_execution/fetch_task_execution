@@ -470,7 +470,7 @@ function ViashDockerfile {
 FROM amazon/aws-cli:latest
 ENTRYPOINT []
 LABEL org.opencontainers.image.description="Companion container for running component core fetch_task_execution"
-LABEL org.opencontainers.image.created="2024-10-01T14:05:32Z"
+LABEL org.opencontainers.image.created="2024-10-01T17:46:04Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
 LABEL org.opencontainers.image.revision="284fff8eee4ad12014a63d32433bfa421967cb1c"
 LABEL org.opencontainers.image.version="build_main"
