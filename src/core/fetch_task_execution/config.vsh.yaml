@@ -13,6 +13,11 @@ arguments:
     direction: input
     description: The AWS profile to use for fetching the task execution directory.
   - type: file
+    name: --aws_credentials
+    required: false
+    direction: input
+    description: The AWS credentials file to use for fetching the task execution directory.
+  - type: file
     name: --output
     required: true
     direction: output
@@ -21,6 +26,7 @@ resources:
   - type: bash_script
     path: script.sh
 engines:
-  - type: native
+  - type: docker
+    image: amazon/aws-cli:latest
 runners:
   - type: executable
