@@ -18,10 +18,7 @@ param_list:
       - CTXsp
       - HPF
       - HY
-      - Isocortex-1
-      - Isocortex-2
-      - Isocortex-3
-      - Isocortex-4
+      - Isocortex
       - MB
       - OLF
       - TH

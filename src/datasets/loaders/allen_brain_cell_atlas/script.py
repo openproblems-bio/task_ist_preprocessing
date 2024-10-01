@@ -4,11 +4,12 @@ import numpy as np
 from collections import defaultdict
 import anndata as ad
 from abc_atlas_access.abc_atlas_cache.abc_project_cache import AbcProjectCache
+import re
 
 ## VIASH START
 par = {
     "abca_version": "20230630",
-    "regions": ["MB", "TF"],
+    "regions": ["MB", "TH"],
     "sample_n_obs": 5000,
     "sample_obs_weight": "subclass",
     "sample_transform": "sqrt",
@@ -76,13 +77,24 @@ if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
 # TODO: potentially also load other chemistries (currently only 10Xv2)
 
 print("Downloading and reading expression matrices", flush=True)
-adatas = []
-for region in REGIONS:
-    try:
-        print(f"Downloading h5ad file for region {region}", flush=True)
-        adata_path = abc_cache.get_data_path(directory="WMB-10Xv2", file_name=f"WMB-10Xv2-{region}/raw")
+abca_data_subdir="WMB-10Xv2"
+abca_region_files = [
+    [file, region]
+    for file in abc_cache.list_data_files(abca_data_subdir)
+    for region in REGIONS
+    if re.match(f"WMB-10Xv2-{region}[\\-0-9]*/raw", file)
+]
 
-        print(f"Reading h5ad for region {region}", flush=True)
+adatas = []
+for region, abca_data_file in abca_region_files:
+    try:
+        print(f"Downloading file {abca_data_file} for region {region}", flush=True)
+        adata_path = abc_cache.get_data_path(
+            directory=abca_data_subdir,
+            file_name=abca_data_file
+        )
+
+        print(f"Reading file {adata_path}", flush=True)
         adata = ad.read_h5ad(str(adata_path))
 
         if not par["keep_files"]:
@@ -90,9 +102,6 @@ for region in REGIONS:
 
         # filter cells
         adata = adata[adata.obs_names.isin(obs.index)].copy()
-
-        # add region to obs
-        adata.obs["region"] = region
 
         # move counts to layer
         adata.layers["counts"] = adata.X
