@@ -3457,9 +3457,9 @@ meta = [
     "platform" : "nextflow",
     "output" : "/home/runner/work/openproblems/openproblems/target/nextflow/datasets/processors/hvg",
     "viash_version" : "0.8.6",
-    "git_commit" : "bf274d8279e2686df64b75a799c08aa9bf311101",
+    "git_commit" : "a01361f4ce2cac290991756717f49cbe85815b85",
     "git_remote" : "https://github.com/openproblems-bio/openproblems",
-    "git_tag" : "v1.0.0-1414-gbf274d82"
+    "git_tag" : "v1.0.0-1416-ga01361f4"
   }
 }'''))
 ]
