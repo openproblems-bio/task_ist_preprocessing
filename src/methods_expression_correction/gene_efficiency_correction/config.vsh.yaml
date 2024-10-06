@@ -1,0 +1,38 @@
+__merge__: /src/api/comp_method_expression_correction.yaml
+
+name: gene_efficiency_correction
+label: "Gene Efficiency Correction"
+summary: "Corrects the expression of genes based on a multiplicative gene efficiency factor"
+description: >-
+  Corrects the expression of genes based on a multiplicative gene efficiency factor. The factors are
+  calculated based on the ratio between mean expressions in the scRNA-seq reference. Factors are calculated
+  per cell type. The mean over cell types is taken as final factor for each gene.
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1101/2023.02.13.528102"
+
+arguments:
+  - name: --celltype_key
+    required: false
+    direction: input
+    type: string
+    default: cell_type
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]

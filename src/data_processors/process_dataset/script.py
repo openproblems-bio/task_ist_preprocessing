@@ -1,31 +1,36 @@
 import numpy as np
-import scanpy as sc
+import anndata as ad
 import spatialdata as sd
-import txsim as tx
+import os
+import shutil
 
 ### VIASH START
 par = {
   "input_sc": "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad",
-  "input_sp": "resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr",
-  "output_sc": "resources_test/task_ist_preprocessing/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad",
-  "output_sp": "resources_test/task_ist_preprocessing/2023_10x_mouse_brain_xenium/dataset.zarr"
+  "input_sp": "resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr",
+  "output_scrnaseq": "resources_test/task_ist_preprocessing/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad",
+  "output_ist": "resources_test/task_ist_preprocessing/2023_10x_mouse_brain_xenium_rep1/dataset.zarr"
 }
 ### VIASH END
 
 # Load the single-cell data
-adata = sc.read(par["input_sc"])
+adata = ad.read_h5ad(par["input_sc"])
 
 # Load the spatial data
 sdata = sd.read_zarr(par["input_sp"])
 
-# Process single-cell data
-adata = tx.preprocessing.normalize_sc(adata, layer="counts")
+# Subset the single-cell data to spatial genes
 genes_sp = []
-for key in sdata.points.keys():
-    genes_sp = list(np.unique(genes_sp + sdata[key]["feature_name"].drop_duplicates().compute().tolist()))
-adata = adata[:,adata.var["feature_name"].isin(genes_sp)]
-assert len(adata.var["feature_name"]) == len(np.unique(adata.var["feature_name"])), "Gene symbols are not unique after subsetting to spatial genes"
-adata.var_names = adata.var["feature_name"]
+for key in sdata.tables.keys():
+    # todo: var column names need to be updated to match the rest of openproblems
+    genes_sp = genes_sp + sdata.tables[key].var_names.tolist()
+genes_sp = list(np.unique(genes_sp))
+adata = adata[:,adata.var["feature_name"].isin(genes_sp)].copy()
+
+# Use feature names for adata instead of feature ids. convert to str
+adata.var.reset_index(inplace=True, drop=True)
+adata.var_names = adata.var["feature_name"].values.astype(str).tolist()
+
 # # NOTE: Arbitrary columns can lead to issues for anndata in R (specifically in the method script for 
 # #       scrattch.mapping). In the future we'll need more columns (region matching filter) --> TODO
 # # For now, only kept as a comment, should be fixed at the scrattch.mapping level
@@ -37,7 +42,11 @@ adata.var_names = adata.var["feature_name"]
 # ...filter transcripts tables
 
 # Save the single-cell data
-adata.write_h5ad(par["output_sc"])
+adata.write_h5ad(par["output_sc"], compression="gzip")
+
+# remove directory if it exists
+if os.path.exists(par["output_sp"]):
+    shutil.rmtree(par["output_sp"])
 
 # Save the spatial data
 sdata.write(par["output_sp"], overwrite=True)

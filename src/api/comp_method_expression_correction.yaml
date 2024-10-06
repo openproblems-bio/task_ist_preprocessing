@@ -1,0 +1,28 @@
+namespace: methods_expression_correction
+info:
+  type: method
+  subtype: method_expression_correction
+  type_info:
+    label: Expression correction
+    summary: Correcting expression levels in spatial data
+    description: An expression correction method corrects expression levels in spatial data.
+arguments:
+  - name: --input_spatial_with_cell_types
+    required: true
+    direction: input
+    __merge__: /src/api/file_spatial_with_cell_types.yaml
+  - name: --input_scrnaseq_reference
+    required: false
+    direction: input
+    __merge__: /src/api/file_scrnaseq_reference.yaml
+  - name: --output
+    required: true
+    direction: output
+    __merge__: /src/api/file_spatial_corrected_counts.yaml
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py

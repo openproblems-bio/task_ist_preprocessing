@@ -1,0 +1,57 @@
+type: file
+example: "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad"
+label: Aggregated Counts
+summary: Unprocessed raw counts after aggregation of transcripts to cells
+description: |
+  This file contains the raw counts after aggregating transcripts to cells.
+info:
+  format:
+    type: h5ad
+    layers: 
+      - type: integer
+        name: counts
+        description: Raw aggregated counts
+        required: true
+    obs:
+      - type: string
+        name: cell_id
+        description: Unique identifier for the cell (from assignment step)
+        required: true
+      - type: string
+        name: centroid_x
+        description: X coordinate of the cell
+        required: true
+      - type: string
+        name: centroid_y
+        description: Y coordinate of the cell
+        required: true
+      - type: string
+        name: centroid_z
+        description: Z coordinate of the cell
+        required: false
+      - type: string
+        name: n_counts
+        description: Number of counts in the cell
+        required: true
+      - type: string
+        name: n_genes
+        description: Number of genes in the cell
+        required: true
+    var:
+      - type: string
+        name: gene_name
+        description: Name of the gene
+        required: true
+      - type: string
+        name: n_counts
+        description: Number of counts of the gene
+        required: true
+      - type: string
+        name: n_cells
+        description: Number of cells expressing the gene
+        required: true
+    # uns:
+    #   - type: string
+    #     name: dataset_id
+    #     description: A unique identifier for the dataset. This is different from the `obs.dataset_id` field, which is the identifier for the dataset from which the cell data is derived.
+    #     required: true

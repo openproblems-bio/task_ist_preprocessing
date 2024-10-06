@@ -1,0 +1,28 @@
+__merge__: /src/api/comp_method_normalization.yaml
+
+name: normalize_by_volume
+label: "Normalize by Volume"
+summary: "Normalize the spatial transcriptomics data by the cell volumes"
+description: "Normalize the spatial transcriptomics data by the cell volumes"
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/theislab/txsim"
+references:
+  doi: "10.1101/2023.02.13.528102"
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]

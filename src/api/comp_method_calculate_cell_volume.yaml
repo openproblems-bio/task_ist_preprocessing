@@ -1,0 +1,24 @@
+namespace: methods_calculate_cell_volume
+info:
+  type: method
+  subtype: method_calculate_cell_volume
+  type_info:
+    label: Calculate Cell Volume
+    summary: Calculate the volume of cells
+    description: Calculate the volume of cells based on the transcripts that are assigned to them.
+arguments:
+  - name: "--input"
+    __merge__: file_transcript_assignments.yaml
+    direction: input
+    required: true
+  - name: "--output"
+    __merge__: file_cell_volumes.yaml
+    direction: output
+    required: true
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py

@@ -1,7 +1,7 @@
 include { findArgumentSchema } from "${meta.resources_dir}/helper.nf"
 
 workflow auto {
-  findStatesTemp(params, meta.config)
+  findStates(params, meta.config)
     | meta.workflow.run(
       auto: [publish: "state"]
     )
@@ -14,22 +14,18 @@ workflow run_wf {
   main:
   output_ch = input_ch
 
-    // example of channel event: 
-    //   ["my_id", ["input_sc": file("..."), "input_sp": file("...")]]
-
-    | process_datasets.run(
-      fromState: ["input_sc", "input_sp"],
-      toState: ["output_sc", "output_sp"]
+    | process_dataset_comp.run(
+      fromState: [
+        input_sp: "input_sp",
+        input_sc: "input_sc"
+      ],
+      toState: [
+        output_sc: "output_sc",
+        output_sp: "output_sp"
+      ]
     )
 
-    // example of channel event at this point:
-    //   ["my_id", ["input_sc": ..., "input_sp": ..., 
-    //              "output_sc": file("..."), "output_sp": file("...")]]
-
     | setState(["output_sp", "output_sc"])
-
-    // example of channel event at this point:
-    //   ["my_id", ["output_sc": file("..."), "output_sp": file("...")]]
 
   emit:
   output_ch

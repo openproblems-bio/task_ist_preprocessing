@@ -1,0 +1,104 @@
+__merge__: ../../api/comp_metric.yaml
+
+name: similarity
+
+# Metadata for your component
+info:
+  metrics:
+    - name: negative_marker_purity_reads
+      label: Negative Marker Purity (Reads)
+      summary: "The percentage of negative marker reads assigned to the correct cell types."
+      description: |
+        The percentage of negative marker reads assigned to the correct cell types.
+      # A reference key from the bibtex library at src/common/library.bib (required).
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+      maximize: true
+    - name: negative_marker_purity_cells
+      label: Negative Marker Purity (Cells)
+      summary: "The percentage of cells that do not contain counts of negative markers of their specific cell type."
+      description: |
+        The percentage of cells that do not contain counts of negative markers of their specific cell type.
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+      maximize: true
+    - name: coexpr_similarity
+      label: Co-expression Similarity
+      summary: "The similarity between the co-expression patterns of spatial and scRNA-seq data."
+      description: |
+        The similarity is calculated as the absolute difference between the correlation matrices of spatial and 
+        scRNA-seq data. The correlation matrices contain pair-wise correlations between all genes in the dataset.
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+      maximize: true
+    - name: coexpr_similarity_celltype
+      label: Co-expression Similarity (Cell Type)
+      summary: "The similarity between the within cell type co-expression patterns of spatial and scRNA-seq data."
+      description: |
+        The similarity is calculated as the absolute difference between the correlation matrices of spatial and 
+        scRNA-seq data for each cell type. The final score is the mean over cell types. The correlation matrices contain
+        pair-wise correlations between all genes in the dataset.
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+    - name: rel_pairwise_ct_expr_sim
+      label: Relative Pairwise Cell Type Expression Similarity
+      summary: "Similarity of the mean expression difference between cell type pairs between spatial and scRNA-seq data."
+      description: |
+        todo
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+    - name: rel_pairwise_gene_expr_sim
+      label: Relative Pairwise Gene Expression Similarity
+      summary: "Similarity of the mean expression difference between gene pairs between spatial and scRNA-seq data."
+      description: |
+        todo
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+    - name: knn_mixing
+      label: KNN Mixing
+      summary: "Measure of the modality mixing within the joint knn graph of spatial and scRNA-seq data."
+      description: |
+        todo
+      references:
+        doi: "10.1101/2023.02.13.528102"
+      min: 0
+      max: 1
+      
+
+
+# Resources required to run the component
+resources:
+  # The script of your component (required)
+  - type: python_script
+    path: script.py
+  # Additional resources your script needs (optional)
+  # - type: file
+  #   path: weights.pt
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+      - /src/base/setup_spatialdata_partial.yaml
+  - type: native
+
+runners:
+  # This platform allows running the component natively
+  - type: executable
+  # Allows turning the component into a Nextflow module / pipeline.
+  - type: nextflow
+    directives:
+      label: [midtime, midmem, midcpu]

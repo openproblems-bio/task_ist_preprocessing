@@ -1,0 +1,39 @@
+__merge__: /src/api/comp_method_calculate_cell_volume.yaml
+
+name: alpha_shapes
+label: "Alpha Shapes"
+summary: "Calculate the cell volume using alpha shapes"
+description: "Calculate the cell volume using alpha shapes of the 2D projected transcripts point cloud of each cell"
+links:
+  documentation: "https://github.com/bellockk/alphashape"
+  repository: "https://github.com/theislab/txsim"
+references:
+  doi: "10.1101/2023.02.13.528102"
+
+arguments:
+  - name: --alpha
+    type: double
+    description: Alpha parameter for calculating the alpha shape (0.0 refers to the convex hull)
+    required: false
+    default: 0.0
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+      - /src/base/setup_spatialdata_partial.yaml
+    setup:
+      - type: python
+        pypi: [alphashape, descartes]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]

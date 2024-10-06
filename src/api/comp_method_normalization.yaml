@@ -1,0 +1,30 @@
+namespace: methods_normalization
+info:
+  type: method
+  subtype: method_normalization
+  type_info:
+    label: Normalization
+    summary: Normalizing spatial transcriptomics data
+    description: A normalization method normalizes spatial transcriptomics data to account for technical variations and enable comparisons between samples.
+
+arguments:
+  - name: --input_spatial_aggregated_counts
+    __merge__: file_spatial_aggregated_counts.yaml
+    required: true
+    direction: input
+  - name: --input_cell_volumes
+    __merge__: file_cell_volumes.yaml
+    required: false
+    direction: input
+  - name: --output
+    required: true
+    direction: output
+    __merge__: file_spatial_normalized_counts.yaml
+    
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py

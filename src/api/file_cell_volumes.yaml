@@ -1,5 +1,5 @@
 type: file
-example: "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
+example: "resources_test/task_ist_preprocessing/mouse_brain_combined/cell_volumes.h5ad"
 label: "Cell Volumes"
 summary: An obs column of cell volumes calculated from spatial transcriptomics data.
 description: |

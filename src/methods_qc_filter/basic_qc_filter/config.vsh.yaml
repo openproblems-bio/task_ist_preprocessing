@@ -1,0 +1,40 @@
+__merge__: /src/api/comp_method_qc_filter.yaml
+
+name: basic_qc_filter
+label: "Basic QC Filter"
+summary: "Get cell filter based on counts per cell."
+description: "Get cell filter based on counts per cell. A fixed percentage of cells is beeing kept even if they don't pass the QC."
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1101/2023.02.13.528102"
+
+arguments:
+  - name: --min_counts
+    required: false
+    direction: input
+    type: integer
+    default: 10
+  - name: --min_cell_percentage
+    required: false
+    direction: input
+    type: double
+    default: 0.8
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]

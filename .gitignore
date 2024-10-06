@@ -7,7 +7,7 @@ __pycache__/
 
 logs/*
 !logs/README.txt
-temp/
+temp*/
 dependency.png
 envs/src/
 singularity_container/
@@ -16,5 +16,8 @@ singularity_container/
 /.nextflow
 /resources_test
 /resources
+/.vscode
+/.nextflow*
+/work
 
 .DS_STORE

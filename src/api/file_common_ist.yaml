@@ -1,0 +1,171 @@
+type: file
+example: "resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr"
+label: "Common iST Dataset"
+summary: An unprocessed spatial imaging dataset stored as a zarr file.
+description: |
+  This dataset contains raw images, labels, points, shapes, and tables as output by a dataset loader.
+info:
+  format:
+    type: spatialdata_zarr
+    images:
+      - type: object
+        name: image
+        description: The raw image data
+        required: true
+      - type: object
+        name: image_3D
+        description: The raw 3D image data
+        required: false
+      - type: object
+        name: he_image
+        description: H&E image data
+        required: false 
+    labels:
+      - type: object
+        name: "cell_labels"
+        description: Cell segmentation labels
+        required: false
+      - type: object
+        name: "nucleus_labels"
+        description: Cell segmentation labels
+        required: false
+      # - type: datatree
+      #   name: "{segm}_3D"
+      #   description: Custom segmentation of the 3D data
+      #   required: false
+      # - type: datatree
+      #   name: "expert_segm_{patch}"
+      #   description: Expert segmentation of a patch of the data
+      #   required: false
+      # - type: DataTree[zyx]
+      #   name: "expert_segm_{patch}_3D"
+      #   description: Expert segmentation of a 3D patch of the data
+      #   required: false
+    points:
+      - type: dataframe
+        name: transcripts
+        description: Point cloud data of transcripts
+        required: true
+        columns:
+          - type: float
+            name: "x"
+            required: true
+            description: x-coordinate of the point
+          - type: float
+            name: "y"
+            required: true
+            description: y-coordinate of the point
+          - type: float
+            name: "z"
+            required: false
+            description: z-coordinate of the point
+          - type: categorical
+            name: feature_name
+            required: true
+            description: Name of the feature
+          - type: integer
+            name: "cell_id"
+            required: false
+            description: Unique identifier of the cell
+          - type: integer
+            name: "nucleus_id"
+            required: false
+            description: Unique identifier of the nucleus
+          - type: string
+            name: "cell_type"
+            required: false
+            description: Cell type of the cell
+          - type: float
+            name: qv
+            required: false
+            description: Quality value of the point
+          - type: long
+            name: transcript_id
+            required: true
+            description: Unique identifier of the transcript
+          - type: boolean
+            name: overlaps_nucleus
+            required: false
+            description: Whether the point overlaps with a nucleus
+    shapes:
+      - type: dataframe
+        name: "cell_boundaries"
+        description: Cell boundaries
+        required: false
+        columns:
+          - type: object
+            name: "geometry"
+            required: true
+            description: Geometry of the cell boundary
+      - type: dataframe
+        name: "nucleus_boundaries"
+        description: Nucleus boundaries
+        required: false
+        columns:
+          - type: object
+            name: "geometry"
+            required: true
+            description: Geometry of the nucleus boundary
+    tables:
+      - type: anndata
+        name: "metadata"
+        description: Metadata of spatial dataset
+        required: true
+        uns:
+          - type: string
+            name: dataset_id
+            required: true
+            description: A unique identifier for the dataset
+          - type: string
+            name: dataset_name
+            required: true
+            description: A human-readable name for the dataset
+          - type: string
+            name: dataset_url
+            required: true
+            description: Link to the original source of the dataset
+          - type: string
+            name: dataset_reference
+            required: true
+            description: Bibtex reference of the paper in which the dataset was published
+          - type: string
+            name: dataset_summary
+            required: true
+            description: Short description of the dataset
+          - type: string
+            name: dataset_description
+            required: true
+            description: Long description of the dataset
+          - type: string
+            name: dataset_organism
+            required: true
+            description: The organism of the sample in the dataset
+          - type: string
+            name: segmentation_id
+            required: true
+            multiple: true
+            description: A unique identifier for the segmentation
+        obs:
+          - type: string
+            name: cell_id
+            required: true
+            description: A unique identifier for the cell
+        var:
+          - type: string
+            name: gene_ids
+            required: true
+            description: Unique identifier for the gene
+          - type: string
+            name: feature_types
+            required: true
+            description: Type of the feature
+        obsm:
+          - type: double
+            name: spatial
+            required: true
+            description: Spatial coordinates of the cell
+    coordinate_systems:
+      - type: object
+        name: global
+        description: Coordinate system of the replicate
+        required: true

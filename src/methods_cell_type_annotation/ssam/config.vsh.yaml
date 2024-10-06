@@ -1,0 +1,38 @@
+__merge__: /src/api/comp_method_cell_type_annotation.yaml
+
+name: ssam
+label: "SSAM"
+summary: "Annotate cell types using SSAM"
+description: "Annotate cell types using SSAM"
+links:
+  documentation: "https://ssam.readthedocs.io"
+  repository: "https://github.com/HiDiHlabs/ssam"
+references:
+  doi: "10.1038/s41467-021-23807-4"
+
+arguments:
+  - name: --um_per_pixel # TODO: Should be able to infer this from transcripts
+    required: false
+    direction: input
+    type: double
+    default: 0.5
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+    setup:
+      - type: python
+        pypi: [planktonspace]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem ]

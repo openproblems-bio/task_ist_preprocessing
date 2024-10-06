@@ -1,0 +1,37 @@
+namespace: methods_cell_type_annotation
+info:
+  type: method
+  subtype: method_cell_type_annotation
+  type_info:
+    label: Cell Type Annotation
+    summary: Annotating cell types in spatial data
+    description: A cell type annotation method annotates cell types in spatial data.
+arguments:
+  - name: --input_spatial_normalized_counts
+    __merge__: file_spatial_normalized_counts.yaml
+    required: true
+    direction: input
+  - name: --input_transcript_assignments
+    __merge__: file_transcript_assignments.yaml
+    direction: input
+    required: false
+  - name: --input_scrnaseq_reference
+    required: false
+    direction: input
+    __merge__: file_scrnaseq_reference.yaml
+  - name: --celltype_key
+    required: false
+    direction: input
+    type: string
+    default: cell_type
+  - name: --output
+    required: true
+    direction: output
+    __merge__: file_spatial_with_cell_types.yaml
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py
