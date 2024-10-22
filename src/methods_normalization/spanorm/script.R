@@ -15,16 +15,27 @@ par <- list(
 
 sce <- readH5AD(par$input)
 sce <- as(sce, "SpatialExperiment")
-#I put random coordinates 
-num_cells <- ncol(sce)
-set.seed(42)
-random_x <- runif(num_cells, min = 0, max = 100) 
-random_y <- runif(num_cells, min = 0, max = 100)  
-random_coords <- matrix(c(random_x, random_y), ncol = 2)
-spatialCoords(sce) <- random_coords
+
+centroid_x <- colData(sce)$centroid_x
+centroid_y <- colData(sce)$centroid_y
+
+spatial_coords <- matrix(c(centroid_x, centroid_y), ncol = 2)
+
+spatialCoords(sce) <- spatial_coords
 
 keep = filterGenes(sce, 0.05)
 sce <- sce[keep, ]
 result <- SpaNorm(sce)
-zellkonverter::writeH5AD(as(result, 'SingleCellExperiment'), par$output)
+
+main_assay <- assay(result, "X")
+row_data <- rowData(result)
+col_data <- colData(result)
+
+final_sce <- SingleCellExperiment(
+  assays = list(X = main_assay),
+  rowData = row_data,
+  colData = col_data
+)
+
+zellkonverter::writeH5AD(final_sce, par$output)
 
