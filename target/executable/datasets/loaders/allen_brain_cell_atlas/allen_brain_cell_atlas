@@ -531,7 +531,7 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/alleninstitute/abc_atlas_access"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas"
-LABEL org.opencontainers.image.created="2024-10-03T00:27:20Z"
+LABEL org.opencontainers.image.created="2024-10-22T14:47:05Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
 LABEL org.opencontainers.image.revision="bfe6af5ebbbf0bfd37706d63ec2bacff6e7a21c3"
 LABEL org.opencontainers.image.version="build_main"
