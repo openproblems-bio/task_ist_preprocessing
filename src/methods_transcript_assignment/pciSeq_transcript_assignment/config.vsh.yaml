@@ -1,6 +1,6 @@
 __merge__: /src/api/comp_method_transcript_assignment.yaml
 
-name: pciSeq_transcript_assignment
+name: pciseq_transcript_assignment
 label: "pciSeq Transcript Assignment"
 summary: "Assign transcripts to cells using the pciSeq method from Qian et. al. (2020)"
 description: "Uses a reference sc-RNAseq dataset to probabalistically assign cell types and transcripts to cells ."
