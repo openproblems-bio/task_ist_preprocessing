@@ -152,6 +152,10 @@ engines:
     image: openproblems/base_python:1.0.0
     __merge__: 
       - /src/base/setup_spatialdata_partial.yaml
+      - /src/base/setup_txsim_partial.yaml
+    setup:
+      - type: python
+        pypi: [pciseq]
   - type: native
 
 runners:
