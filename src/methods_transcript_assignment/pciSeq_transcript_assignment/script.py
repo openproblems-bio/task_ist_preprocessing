@@ -91,6 +91,8 @@ opts = {k: par[k] for k in opts_keys}
 # print(opts)
 
 input_scrnaseq = ad.read_h5ad(par['input_scrnaseq'])
+input_scrnaseq.X = input_scrnaseq.layers['counts']
+
 assignments, cell_types = tx.preprocessing.run_pciSeq(
     transcripts_dataframe,
     label_image,
