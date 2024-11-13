@@ -19,12 +19,12 @@ arguments:
     type: string
     description: The key of the pixel space coordinate system within the spatial data
     default: global
-  - name: --sc_cell_type_key
-    type: string
-    default: cell_type
-    required: true
-    direction: input
-    description: The name of column in the SC-RNAseq AnnData .obs with the cell type of each cell
+  # - name: --sc_cell_type_key
+  #   type: string
+  #   default: cell_type
+  #   required: true
+  #   direction: input
+  #   description: The name of column in the SC-RNAseq AnnData .obs with the cell type of each cell
 
   # - name: --exclude_genes
   #   type: string
@@ -161,3 +161,5 @@ engines:
 runners:
   - type: executable
   - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem ]
