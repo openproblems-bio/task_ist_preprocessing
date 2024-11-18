@@ -23,3 +23,7 @@ engines:
 runners:
   - type: executable
   - type: nextflow
+
+test_resources:
+  - type: python_script
+    path: src/methods_segmentation/binning/test_binning.py
