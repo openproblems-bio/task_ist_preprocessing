@@ -1,13 +1,5 @@
 import txsim as tx
-#from pathlib import Path
-#import tifffile
-#import squidpy as sq
-#from scipy import ndimage
-#import skimage.io
-#import skimage.measure
-#import skimage.segmentation
 import numpy as np
-#import argparse
 import os
 import yaml
 import spatialdata as sd
