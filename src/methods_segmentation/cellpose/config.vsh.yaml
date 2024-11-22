@@ -1,4 +1,13 @@
 name: cellpose
+label: "Cellpose Segmentation"
+summary: "Output of the segmantation methot cellpose"
+description: "Output of the segmantation methot cellpose"
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1038/s41592-020-01018-x"
+
 
 __merge__: /src/api/comp_method_segmentation.yaml 
 
@@ -81,3 +90,5 @@ engines:
 runners:
   - type: executable
   - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
