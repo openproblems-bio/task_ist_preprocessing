@@ -1,0 +1,94 @@
+name: cellpose
+label: "Cellpose Segmentation"
+summary: "Output of the segmantation methot cellpose"
+description: "Output of the segmantation methot cellpose"
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1038/s41592-020-01018-x"
+
+
+__merge__: /src/api/comp_method_segmentation.yaml 
+
+arguments:
+  - name: --batch_size
+    type: integer
+    default: 8
+  - name: --model_type
+    type: string
+    default: "cyto"
+  - name: --channel_axis
+    type: string
+    default: "None"
+  - name: --z_axis
+    type: string
+    default: "None"
+  - name: --normalize
+    type: boolean
+    default: True
+  - name: --invert
+    type: boolean
+    default: False
+  - name: --rescale
+    type: string
+    default: "None"
+  - name: --diameter
+    type: double
+    default: 30.0
+  - name: --do_3D
+    type: boolean
+    default: False
+  - name: --anisotropy
+    type: string
+    default: "None"
+#  - name: --net_avg
+#    type: boolean
+#    default: False
+  - name: --augment
+    type: boolean
+    default: False
+  #- name: --tile
+  #  type: boolean
+  #  default: True
+  - name: --tile_overlap
+    type: double
+    default: 0.1
+  - name: --resample
+    type: boolean
+    default: True
+  - name: --interp
+    type: boolean
+    default: True
+  - name: --flow_threshold
+    type: double
+    default: 0.4
+  - name: --cellprob_threshold
+    type: double
+    default: 0.0
+  - name: --min_size
+    type: integer
+    default: 15
+  - name: --stitch_threshold
+    type: double
+    default: 0.0
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: spatialdata
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
