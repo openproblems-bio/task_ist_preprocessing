@@ -509,9 +509,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders vizgen_merscope"
-LABEL org.opencontainers.image.created="2024-10-22T14:47:05Z"
+LABEL org.opencontainers.image.created="2024-11-22T17:27:26Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="bfe6af5ebbbf0bfd37706d63ec2bacff6e7a21c3"
+LABEL org.opencontainers.image.revision="7f6c798bffa26afd2e2071c3b9dcce0eec0d50d9"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
