@@ -1,0 +1,36 @@
+name: binning
+label: "Binning Segmentation"
+summary: "Output of the segmantation method binninge"
+description: "Output of the segmantation method binning"
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1101/2024.11.07.622434"
+  
+__merge__: /src/api/comp_method_segmentation.yaml 
+
+arguments:
+  - name: --bin_size
+    type: integer
+    default: 30
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: spatialdata
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
