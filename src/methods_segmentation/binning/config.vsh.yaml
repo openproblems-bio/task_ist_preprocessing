@@ -1,12 +1,12 @@
 name: binning
 label: "Binning Segmentation"
-summary: "Output of the segmantation method binninge"
-description: "Output of the segmantation method binning"
+summary: "Segment the spatial data into equidistant square bins"
+description: "The binning method for segmentation serves as a baseline of a poor segmentation"
 links:
   documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
   repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
 references:
-  doi: "10.1101/2024.11.07.622434"
+  doi: "10.1101/2023.02.13.528102"
   
 __merge__: /src/api/comp_method_segmentation.yaml 
 
