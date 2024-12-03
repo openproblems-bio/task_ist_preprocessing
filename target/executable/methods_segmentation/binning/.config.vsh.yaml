@@ -1,106 +1,15 @@
-name: "vizgen_merscope"
-namespace: "datasets/loaders"
+name: "binning"
+namespace: "methods_segmentation"
 version: "build_main"
 argument_groups:
-- name: "Inputs"
-  arguments:
-  - type: "string"
-    name: "--gcloud_bucket"
-    description: "Google cloud bucket name"
-    info: null
-    default:
-    - "vz-ffpe-showcase"
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--dataset_bucket_name"
-    description: "The name of the dataset base directory in the vizgen google cloud\
-      \ bucket"
-    info: null
-    default:
-    - "HumanBreastCancerPatient1"
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--segmentation_id"
-    description: "The segmentation identifier"
-    info: null
-    default:
-    - "cell"
-    required: false
-    direction: "input"
-    multiple: true
-    multiple_sep: ";"
-- name: "Metadata"
-  arguments:
-  - type: "string"
-    name: "--id"
-    description: "A unique identifier for the dataset"
-    info: null
-    required: true
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--dataset_name"
-    description: "Nicely formatted name."
-    info: null
-    required: true
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--dataset_url"
-    description: "Link to the original source of the dataset."
-    info: null
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--dataset_reference"
-    description: "Bibtex reference of the paper in which the dataset was published."
-    info: null
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--dataset_summary"
-    description: "Short description of the dataset."
-    info: null
-    required: true
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--dataset_description"
-    description: "Long description of the dataset."
-    info: null
-    required: true
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "string"
-    name: "--dataset_organism"
-    description: "The organism of the sample in the dataset."
-    info: null
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-- name: "Outputs"
+- name: "Arguments"
   arguments:
   - type: "file"
-    name: "--output"
-    label: "Common iST Dataset"
-    summary: "An unprocessed spatial imaging dataset stored as a zarr file."
-    description: "This dataset contains raw images, labels, points, shapes, and tables\
-      \ as output by a dataset loader.\n"
+    name: "--input"
+    label: "Raw iST Dataset"
+    summary: "A spatial transcriptomics dataset, preprocessed for this benchmark."
+    description: "This dataset contains preprocessed images, labels, points, shapes,\
+      \ and tables for spatial transcriptomics data.\n"
     info:
       format:
         type: "spatialdata_zarr"
@@ -255,21 +164,83 @@ argument_groups:
           description: "Coordinate system of the replicate"
           required: true
     example:
-    - "resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr"
+    - "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output"
+    label: "Segmentation"
+    summary: "A segmentation of a spatial transcriptomics dataset"
+    description: "This dataset contains a segmentation of the spatial transcriptomics\
+      \ data.\n"
+    info:
+      format:
+        type: "spatialdata_zarr"
+        labels:
+        - type: "object"
+          name: "segmentation"
+          description: "Segmentation of the data"
+          required: true
+        tables:
+        - type: "anndata"
+          name: "table"
+          description: "AnnData table"
+          required: true
+          obs:
+          - type: "string"
+            name: "cell_id"
+            description: "Cell ID"
+            required: true
+          - type: "string"
+            name: "region"
+            description: "Region"
+            required: true
+    example:
+    - "resources_test/task_ist_preprocessing/mouse_brain_combined/segmentation.zarr"
     must_exist: true
     create_parent: true
     required: true
     direction: "output"
     multiple: false
     multiple_sep: ";"
+  - type: "integer"
+    name: "--bin_size"
+    info: null
+    default:
+    - 30
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 resources:
 - type: "python_script"
   path: "script.py"
   is_executable: true
+label: "Binning Segmentation"
+summary: "Segment the spatial data into equidistant square bins"
+description: "The binning method for segmentation serves as a baseline of a poor segmentation"
+test_resources:
 - type: "file"
-  path: "download.sh"
+  path: "resources_test/task_ist_preprocessing/mouse_brain_combined"
+  dest: "resources_test/task_ist_preprocessing/mouse_brain_combined"
+- type: "python_script"
+  path: "run_and_check_output.py"
   is_executable: true
-info: null
+- type: "python_script"
+  path: "check_config.py"
+  is_executable: true
+info:
+  type: "method"
+  subtype: "method_segmentation"
+  type_info:
+    label: "Segmentation"
+    summary: "A segmentation of the spatial data into cells"
+    description: "A segmentation method uses the spatial data to segment an image\
+      \ into cells."
 status: "enabled"
 repositories:
 - type: "github"
@@ -282,9 +253,13 @@ repositories:
   tag: "build/main"
   path: "viash/core"
 license: "MIT"
+references:
+  doi:
+  - "10.1101/2023.02.13.528102"
 links:
   repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
   docker_registry: "ghcr.io"
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
 runners:
 - type: "executable"
   id: "executable"
@@ -293,9 +268,9 @@ runners:
   id: "nextflow"
   directives:
     label:
-    - "highmem"
-    - "midcpu"
     - "midtime"
+    - "lowcpu"
+    - "lowmem"
     tag: "$id"
   auto:
     simplifyInput: true
@@ -325,23 +300,26 @@ engines:
   - type: "python"
     user: false
     pypi:
-    - "spatialdata"
+    - "squidpy"
+    - "rasterio"
+    github:
+    - "theislab/txsim@dev"
     upgrade: true
   - type: "python"
     user: false
     pypi:
-    - "spatialdata-io"
+    - "spatialdata"
     upgrade: true
   entrypoint: []
   cmd: null
 - type: "native"
   id: "native"
 build_info:
-  config: "src/datasets/loaders/vizgen_merscope/config.vsh.yaml"
+  config: "src/methods_segmentation/binning/config.vsh.yaml"
   runner: "executable"
   engine: "docker|native"
-  output: "target/executable/datasets/loaders/vizgen_merscope"
-  executable: "target/executable/datasets/loaders/vizgen_merscope/vizgen_merscope"
+  output: "target/executable/methods_segmentation/binning"
+  executable: "target/executable/methods_segmentation/binning/binning"
   viash_version: "0.9.0"
   git_commit: "9e32a2d35c1b2920e3be6f749db97babd692fb65"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
