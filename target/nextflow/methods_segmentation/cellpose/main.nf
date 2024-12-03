@@ -3459,7 +3459,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/cellpose",
     "viash_version" : "0.9.0",
-    "git_commit" : "9e32a2d35c1b2920e3be6f749db97babd692fb65",
+    "git_commit" : "7a0d863d9951304e716d1d50d2687d26ec7d7165",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3587,7 +3587,6 @@ import shutil
 import numpy as np
 from spatialdata.models import Labels2DModel
 import xarray as xr
-import datatree as dt
 
 
 def convert_to_lower_dtype(arr):
