@@ -1,0 +1,50 @@
+name: mesmer
+label: "Mesmer Segmentation"
+summary: "Output of the segmantation method mesmer"
+description: "Output of the segmantation methot cmesmer"
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "doi.org/10.1038/s41587-021-01094-0"
+
+
+__merge__: /src/api/comp_method_segmentation.yaml 
+
+arguments:
+- name: --batch_size
+  type: integer
+  default: 8
+
+- name: --image_mpp
+  type: double
+  default: 0.2125
+
+- name: --compartment
+  type: string
+  default: "nuclear"
+
+- name: --squeeze
+  type: string
+  default: "None"  # TODO: Confirm if None should be the default and review the if clause in run_mesmer.py
+
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: spatialdata
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
