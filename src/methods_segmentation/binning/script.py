@@ -8,7 +8,7 @@ import shutil
 import numpy as np
 from spatialdata.models import Labels2DModel
 import xarray as xr
-import datatree as dt
+
 
 
 def convert_to_lower_dtype(arr):
