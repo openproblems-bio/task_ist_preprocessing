@@ -58,14 +58,8 @@ transcripts = sd.transform(transcripts, trans, par['coordinate_system'])
 
 # Assign cell ids to transcripts
 print('Assigning transcripts to cell ids', flush=True)
-y_coords = transcripts.y.compute().to_numpy(dtype=np.int64)
-x_coords = transcripts.x.compute().to_numpy(dtype=np.int64)
-
-#test floats
 y_coords = transcripts.y.compute().to_numpy()
 x_coords = transcripts.x.compute().to_numpy()
-
-print(y_coords)
 
 #Added for pciSeq
 #TODO this will immediately break when the name of the gene isn't feature_name
