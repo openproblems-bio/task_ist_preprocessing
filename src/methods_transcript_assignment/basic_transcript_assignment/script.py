@@ -2,6 +2,7 @@ import numpy as np
 import dask
 import spatialdata as sd
 import anndata as ad
+import pandas as pd
 import os
 import shutil
 
@@ -11,7 +12,7 @@ par = {
   'input_segmentation': 'resources_test/task_ist_preprocessing/mouse_brain_combined/segmentation.zarr',
   'transcripts_key': 'transcripts',
   'coordinate_system': 'global',
-  'output': 'assigned_transcripts.zarr',
+  'output': 'basic_assigned_transcripts.zarr',
 }
 meta = {
   'name': 'basic'
@@ -49,6 +50,17 @@ cell_id_dask_series = dask.dataframe.from_dask_array(
 )
 sdata[par['transcripts_key']]["cell_id"] = cell_id_dask_series 
 
+#create new .obs for cells based on the segmentation output (corresponding with the transcripts 'cell_id')
+unique_cells = np.unique(cell_id_dask_series)
+
+# check if a '0' (noise/background) cell is in cell_id and remove
+zero_idx = np.where(unique_cells == 0)
+if len(zero_idx[0]): unique_cells=np.delete(unique_cells, zero_idx[0][0])
+
+#transform into pandas series and check
+cell_id_col = pd.Series(unique_cells, name='cell_id', index=unique_cells)
+assert 0 not in cell_id_col, "Found '0' in cell_id column of assingment output cell matrix"
+
 # TODO: Also take care of the following cases:
 # - segmentation 3D, transcripts 3D
 # - segmentation 3D, transcripts 2D
@@ -61,7 +73,7 @@ sdata_transcripts_only = sd.SpatialData(
   },
   tables={
     "table": ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
+      obs=pd.DataFrame(cell_id_col),
       var=sdata.tables["table"].var[[]]
     )
   }

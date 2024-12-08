@@ -50,4 +50,4 @@ info:
           - type: string
             name: region
             description: Region
-            required: true
+            required: false
