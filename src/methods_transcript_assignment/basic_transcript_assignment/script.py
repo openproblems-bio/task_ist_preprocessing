@@ -73,7 +73,7 @@ sdata_transcripts_only = sd.SpatialData(
   },
   tables={
     "table": ad.AnnData(
-      obs=pd.DataFrame(cell_id_col), # have to make the series a dataframe for some reason
+      obs=pd.DataFrame(cell_id_col),
       var=sdata.tables["table"].var[[]]
     )
   }

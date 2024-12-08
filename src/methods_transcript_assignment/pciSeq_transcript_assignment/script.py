@@ -16,8 +16,8 @@ par = {
   'coordinate_system': 'global',
   'output': '../pciSeq_assigned_transcripts.zarr',
 
-  'input_scrnaseq': '../brain_scrnaseq_subsample_WMB-10X.h5ad',
-  'sc_cell_type_key': 'subclass',
+  'input_scrnaseq': 'resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad',
+  'sc_cell_type_key': 'cell_type',
 
   'exclude_genes': None,
   'max_iter': 1000,
@@ -36,10 +36,6 @@ meta = {
   'name': 'pciSeq_transcript_assignment'
 }
 ## VIASH END
-
-# # Set coordinate system to default if not given
-# if par['coordinate_system'] == None:
-#    par['coordinate_system'] = 'global'
 
 # Read input
 print('Reading input files', flush=True)
@@ -65,6 +61,12 @@ print('Assigning transcripts to cell ids', flush=True)
 y_coords = transcripts.y.compute().to_numpy(dtype=np.int64)
 x_coords = transcripts.x.compute().to_numpy(dtype=np.int64)
 
+#test floats
+y_coords = transcripts.y.compute().to_numpy()
+x_coords = transcripts.x.compute().to_numpy()
+
+print(y_coords)
+
 #Added for pciSeq
 #TODO this will immediately break when the name of the gene isn't feature_name
 transcripts_dataframe = sdata[par['transcripts_key']].compute()[['feature_name']] 
@@ -88,7 +90,6 @@ opts_keys = [#'exclude_genes',
   'save_data']
 
 opts = {k: par[k] for k in opts_keys}
-# print(opts)
 
 input_scrnaseq = ad.read_h5ad(par['input_scrnaseq'])
 input_scrnaseq.X = input_scrnaseq.layers['counts']
@@ -129,8 +130,6 @@ output_table = ad.AnnData(
 # - segmentation 2D, transcripts 3D
 
 # Subset sdata to transcripts with cell ids
-# print("test: save anndata")
-# output_table.write_h5ad("../output_anndata.h5ad")
 
 print('Subsetting to transcripts cell id and cell type data', flush=True)
 sdata_transcripts_only = sd.SpatialData(
@@ -147,7 +146,4 @@ if os.path.exists(par["output"]):
   shutil.rmtree(par["output"])
 sdata_transcripts_only.write(par['output'])
 
-# TODO: is this a problem?
-# INFO     The SpatialData object is not self-contained (i.e. it contains some elements that are Dask-backed from locations outside ../pciSeq_assigned_transcripts.zarr).    
-#          Please see the documentation of `is_self_contained()` to understand the implications of working with SpatialData objects that are not self-contained.             
-# INFO     The Zarr backing store has been changed from None the new file path: ../pciSeq_assigned_transcripts.zarr   
+
