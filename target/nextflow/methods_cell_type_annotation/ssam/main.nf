@@ -2976,7 +2976,7 @@ meta = [
                       "type" : "string",
                       "name" : "region",
                       "description" : "Region",
-                      "required" : true
+                      "required" : false
                     }
                   ]
                 }
@@ -3574,7 +3574,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/ssam",
     "viash_version" : "0.9.0",
-    "git_commit" : "7a0d863d9951304e716d1d50d2687d26ec7d7165",
+    "git_commit" : "778f2b8cb137a5a3e53403fca1506865c029b06d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

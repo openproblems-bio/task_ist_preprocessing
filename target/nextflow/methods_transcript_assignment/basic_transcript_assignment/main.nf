@@ -3422,6 +3422,17 @@ meta = [
           "multiple_sep" : ";"
         },
         {
+          "type" : "string",
+          "name" : "--sc_cell_type_key",
+          "default" : [
+            "cell_type"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
           "type" : "file",
           "name" : "--output",
           "label" : "Transcript Assignment",
@@ -3493,7 +3504,7 @@ meta = [
                       "type" : "string",
                       "name" : "region",
                       "description" : "Region",
-                      "required" : true
+                      "required" : false
                     }
                   ]
                 }
@@ -3669,7 +3680,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/basic_transcript_assignment",
     "viash_version" : "0.9.0",
-    "git_commit" : "7a0d863d9951304e716d1d50d2687d26ec7d7165",
+    "git_commit" : "778f2b8cb137a5a3e53403fca1506865c029b06d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3791,6 +3802,7 @@ import numpy as np
 import dask
 import spatialdata as sd
 import anndata as ad
+import pandas as pd
 import os
 import shutil
 
@@ -3800,6 +3812,7 @@ par = {
   'input_ist': $( if [ ! -z ${VIASH_PAR_INPUT_IST+x} ]; then echo "r'${VIASH_PAR_INPUT_IST//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'input_segmentation': $( if [ ! -z ${VIASH_PAR_INPUT_SEGMENTATION+x} ]; then echo "r'${VIASH_PAR_INPUT_SEGMENTATION//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'input_scrnaseq': $( if [ ! -z ${VIASH_PAR_INPUT_SCRNASEQ+x} ]; then echo "r'${VIASH_PAR_INPUT_SCRNASEQ//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'sc_cell_type_key': $( if [ ! -z ${VIASH_PAR_SC_CELL_TYPE_KEY+x} ]; then echo "r'${VIASH_PAR_SC_CELL_TYPE_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'transcripts_key': $( if [ ! -z ${VIASH_PAR_TRANSCRIPTS_KEY+x} ]; then echo "r'${VIASH_PAR_TRANSCRIPTS_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'coordinate_system': $( if [ ! -z ${VIASH_PAR_COORDINATE_SYSTEM+x} ]; then echo "r'${VIASH_PAR_COORDINATE_SYSTEM//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
@@ -3861,6 +3874,17 @@ cell_id_dask_series = dask.dataframe.from_dask_array(
 )
 sdata[par['transcripts_key']]["cell_id"] = cell_id_dask_series 
 
+#create new .obs for cells based on the segmentation output (corresponding with the transcripts 'cell_id')
+unique_cells = np.unique(cell_id_dask_series)
+
+# check if a '0' (noise/background) cell is in cell_id and remove
+zero_idx = np.where(unique_cells == 0)
+if len(zero_idx[0]): unique_cells=np.delete(unique_cells, zero_idx[0][0])
+
+#transform into pandas series and check
+cell_id_col = pd.Series(unique_cells, name='cell_id', index=unique_cells)
+assert 0 not in cell_id_col, "Found '0' in cell_id column of assingment output cell matrix"
+
 # TODO: Also take care of the following cases:
 # - segmentation 3D, transcripts 3D
 # - segmentation 3D, transcripts 2D
@@ -3873,7 +3897,7 @@ sdata_transcripts_only = sd.SpatialData(
   },
   tables={
     "table": ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
+      obs=pd.DataFrame(cell_id_col),
       var=sdata.tables["table"].var[[]]
     )
   }

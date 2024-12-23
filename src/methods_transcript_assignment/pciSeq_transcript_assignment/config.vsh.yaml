@@ -1,0 +1,165 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
+name: pciseq_transcript_assignment
+label: "pciSeq Transcript Assignment"
+summary: "Assign transcripts to cells using the pciSeq method from Qian et. al. (2020)"
+description: "Uses a reference sc-RNAseq dataset to probabalistically assign cell types and transcripts to cells ."
+links:
+  documentation: "https://github.com/acycliq/pciSeq"
+  repository: "https://github.com/acycliq/pciSeq"
+references:
+  doi: "10.1038/s41592-019-0631-4"
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    description: The key of the transcripts within the points of the spatial data
+    default: transcripts
+  - name: --coordinate_system
+    type: string
+    description: The key of the pixel space coordinate system within the spatial data
+    default: global
+  # - name: --sc_cell_type_key
+  #   type: string
+  #   default: cell_type
+  #   required: true
+  #   direction: input
+  #   description: The name of column in the SC-RNAseq AnnData .obs with the cell type of each cell
+
+  # - name: --exclude_genes
+  #   type: string
+  #   required: false
+  #   description: "list of genes to be excluded during cell-typing, e.g ['Aldoc', 'Id2'] to exclude all spots from Aldoc and Id2"
+  #   direction: input 
+  #   default: None
+
+  - name: --max_iter
+    type: integer
+    required: false
+    description: "Maximum number of loops allowed for the Variational Bayes to run"
+    direction: input 
+    default: 1000
+
+  - name: --CellCallTolerance
+    type: double
+    required: false
+    description: "Convergence achieved if assignment probabilities between two successive loops is less than the tolerance"
+    direction: input 
+    default: 0.02
+  
+  - name: --rGene
+    type: double
+    required: false
+    description: |
+      "A gamma distribution expresses the efficiency of the in-situ sequencing for each gene. It tries to capture
+      the ratio of the observed over the theoretical counts for a given gene. rGene controls the variance and
+      Inefficiency is the average of this assumed Gamma distribution"
+    direction: input 
+    default: 20
+
+  - name: --Inefficiency
+    type: double
+    required: false
+    description: " "
+    direction: input 
+    default: 0.2
+
+  - name: --InsideCellBonus
+    type: double
+    required: false
+    description: |
+      "If a spot is inside the cell boundaries this bonus will give the likelihood an extra boost
+      in order to make the spot more probable to get assigned to the cell than another spot positioned
+      outside the cell boundaries"
+    direction: input 
+    default: 2
+
+  - name: --MisreadDensity
+    type: double
+    required: false
+    description: |
+      "To account for spots far from the some a uniform distribution is introduced to describe those misreads.
+      By default this uniform distribution has a density of 1e-5 misreads per pixel."
+    direction: input 
+    default: 0.00001
+
+  - name: --SpotReg
+    type: double
+    required: false
+    description: |
+      "Gene detection might come with irregularities due to technical errors. A small value is introduced
+      here to account for these errors. It is an additive factor, applied to the single cell expression
+      counts when the mean counts per class and per gene are calculated."
+    direction: input 
+    default: 0.1
+
+  - name: --nNeighbors
+    type: integer
+    required: false
+    description: |
+      "By default only the 3 nearest cells will be considered as possible parent cells for any given spot.
+      There is also one extra 'super-neighbor', which is always a neighbor to the spots so we can assign
+      the misreads to. Could be seen as the background. Hence, by default the algorithm tries examines
+      whether any of the 3 nearest cells is a possible parent cell to a given cell or whether the spot is
+      a misread"
+    direction: input 
+    default: 3
+
+  # 
+  - name: --rSpot
+    type: double
+    required: false
+    description: |
+      "A gamma distributed variate from Gamma(rSpot, 1) is applied to the mean expression, hence the counts
+      are distributed according to a Negative Binomial distribution.
+      The value for rSpot will control the variance/dispersion of the counts"
+    direction: input 
+    default: 2
+
+  - name: --save_data
+    type: boolean
+    required: false
+    description: "Boolean, if True the output will be saved as tsv files in a folder named 'pciSeq' in your system's temp dir."
+    direction: input 
+    default: False
+
+  # output directory 'default' will save to temp location
+  # - name: output_path
+  #   default: ['default']
+
+  # 
+  # - name: --dtype
+  #   type: string
+  #   required: false
+  #   description: |
+  #     "Use either np.float16 or np.float32 to reduce memory usage. In most cases RAM consumption shouldnt
+  #     need more than 32Gb RAM. If you have a dataset from a full coronal mouse slice with a high number of
+  #     segmented cells (around 150,000) a gene panel of more than 250 genes and 100 or more different
+  #     cell types (aka clusters, aka classes) in the single cell data then you might need at least 64GB on
+  #     your machine. Changing the datatype to a float16 or float32 will help keeping RAM usage to a lower
+  #     level"
+  #   direction: input 
+  #   default: np.float64
+
+
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
+      - /src/base/setup_txsim_partial.yaml
+    setup:
+      - type: python
+        pypi: [pciseq]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem ]

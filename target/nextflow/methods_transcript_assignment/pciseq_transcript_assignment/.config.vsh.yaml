@@ -1,83 +1,170 @@
-name: "similarity"
-namespace: "metrics"
+name: "pciseq_transcript_assignment"
+namespace: "methods_transcript_assignment"
 version: "build_main"
 argument_groups:
 - name: "Arguments"
   arguments:
   - type: "file"
-    name: "--input"
-    label: "Spatial Corrected"
-    summary: "Corrected spatial data counts with cell type annotations"
-    description: "This file contains the corrected counts of the spatial transcriptomics\
-      \ data and cell type annotations.\n"
+    name: "--input_ist"
+    label: "Raw iST Dataset"
+    summary: "A spatial transcriptomics dataset, preprocessed for this benchmark."
+    description: "This dataset contains preprocessed images, labels, points, shapes,\
+      \ and tables for spatial transcriptomics data.\n"
     info:
       format:
-        type: "h5ad"
-        layers:
-        - type: "integer"
-          name: "counts"
-          description: "Raw counts"
+        type: "spatialdata_zarr"
+        images:
+        - type: "object"
+          name: "image"
+          description: "The raw image data"
           required: true
-        - type: "integer"
-          name: "normalized"
-          description: "Normalized counts"
-          required: true
-        - type: "double"
-          name: "normalized"
-          description: "Corrected normalized expression"
+        - type: "object"
+          name: "image_3D"
+          description: "The raw 3D image data"
           required: false
-        - type: "double"
-          name: "normalized_uncorrected"
-          description: "Uncorrected normalized expression"
+        - type: "object"
+          name: "he_image"
+          description: "H&E image data"
           required: false
-        obs:
-        - type: "string"
-          name: "cell_id"
-          description: "Unique identifier for the cell (from assignment step)"
-          required: true
-        - type: "string"
-          name: "centroid_x"
-          description: "X coordinate of the cell"
-          required: true
-        - type: "string"
-          name: "centroid_y"
-          description: "Y coordinate of the cell"
-          required: true
-        - type: "string"
-          name: "centroid_z"
-          description: "Z coordinate of the cell"
+        labels:
+        - type: "object"
+          name: "cell_labels"
+          description: "Cell segmentation labels"
           required: false
-        - type: "string"
-          name: "n_counts"
-          description: "Number of counts in the cell"
+        - type: "object"
+          name: "nucleus_labels"
+          description: "Cell segmentation labels"
+          required: false
+        points:
+        - type: "dataframe"
+          name: "transcripts"
+          description: "Point cloud data of transcripts"
           required: true
-        - type: "string"
-          name: "n_genes"
-          description: "Number of genes in the cell"
+          columns:
+          - type: "float"
+            name: "x"
+            required: true
+            description: "x-coordinate of the point"
+          - type: "float"
+            name: "y"
+            required: true
+            description: "y-coordinate of the point"
+          - type: "float"
+            name: "z"
+            required: false
+            description: "z-coordinate of the point"
+          - type: "categorical"
+            name: "feature_name"
+            required: true
+            description: "Name of the feature"
+          - type: "integer"
+            name: "cell_id"
+            required: false
+            description: "Unique identifier of the cell"
+          - type: "integer"
+            name: "nucleus_id"
+            required: false
+            description: "Unique identifier of the nucleus"
+          - type: "string"
+            name: "cell_type"
+            required: false
+            description: "Cell type of the cell"
+          - type: "float"
+            name: "qv"
+            required: false
+            description: "Quality value of the point"
+          - type: "long"
+            name: "transcript_id"
+            required: true
+            description: "Unique identifier of the transcript"
+          - type: "boolean"
+            name: "overlaps_nucleus"
+            required: false
+            description: "Whether the point overlaps with a nucleus"
+        shapes:
+        - type: "dataframe"
+          name: "cell_boundaries"
+          description: "Cell boundaries"
+          required: false
+          columns:
+          - type: "object"
+            name: "geometry"
+            required: true
+            description: "Geometry of the cell boundary"
+        - type: "dataframe"
+          name: "nucleus_boundaries"
+          description: "Nucleus boundaries"
+          required: false
+          columns:
+          - type: "object"
+            name: "geometry"
+            required: true
+            description: "Geometry of the nucleus boundary"
+        tables:
+        - type: "anndata"
+          name: "metadata"
+          description: "Metadata of spatial dataset"
           required: true
-        - type: "string"
-          name: "volume"
-          description: "Volume of the cell"
-          required: true
-        - type: "string"
-          name: "cell_type"
-          description: "Cell type of the cell"
-          required: true
-        var:
-        - type: "string"
-          name: "gene_name"
-          description: "Name of the gene"
-          required: true
-        - type: "string"
-          name: "n_counts"
-          description: "Number of counts of the gene"
-          required: true
-        - type: "string"
-          name: "n_cells"
-          description: "Number of cells expressing the gene"
+          uns:
+          - type: "string"
+            name: "dataset_id"
+            required: true
+            description: "A unique identifier for the dataset"
+          - type: "string"
+            name: "dataset_name"
+            required: true
+            description: "A human-readable name for the dataset"
+          - type: "string"
+            name: "dataset_url"
+            required: true
+            description: "Link to the original source of the dataset"
+          - type: "string"
+            name: "dataset_reference"
+            required: true
+            description: "Bibtex reference of the paper in which the dataset was published"
+          - type: "string"
+            name: "dataset_summary"
+            required: true
+            description: "Short description of the dataset"
+          - type: "string"
+            name: "dataset_description"
+            required: true
+            description: "Long description of the dataset"
+          - type: "string"
+            name: "dataset_organism"
+            required: true
+            description: "The organism of the sample in the dataset"
+          - type: "string"
+            name: "segmentation_id"
+            required: true
+            multiple: true
+            description: "A unique identifier for the segmentation"
+          obs:
+          - type: "string"
+            name: "cell_id"
+            required: true
+            description: "A unique identifier for the cell"
+          var:
+          - type: "string"
+            name: "gene_ids"
+            required: true
+            description: "Unique identifier for the gene"
+          - type: "string"
+            name: "feature_types"
+            required: true
+            description: "Type of the feature"
+          obsm:
+          - type: "double"
+            name: "spatial"
+            required: true
+            description: "Spatial coordinates of the cell"
+        coordinate_systems:
+        - type: "object"
+          name: "global"
+          description: "Coordinate system of the replicate"
           required: true
     example:
-    - "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_corrected_counts.h5ad"
+    - "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr"
     must_exist: true
     create_parent: true
     required: true
@@ -85,28 +172,43 @@ argument_groups:
     multiple: false
     multiple_sep: ";"
   - type: "file"
-    name: "--input_qc_col"
-    label: "QC Columns"
-    summary: "QC columns for spatial data"
-    description: "This file contains the QC-filter column for spatial data.\n"
+    name: "--input_segmentation"
+    label: "Segmentation"
+    summary: "A segmentation of a spatial transcriptomics dataset"
+    description: "This dataset contains a segmentation of the spatial transcriptomics\
+      \ data.\n"
     info:
       format:
-        type: "h5ad"
-        obs:
-        - type: "string"
-          name: "passed_QC"
-          description: "Whether the cell passed the quality control"
+        type: "spatialdata_zarr"
+        labels:
+        - type: "object"
+          name: "segmentation"
+          description: "Segmentation of the data"
           required: true
+        tables:
+        - type: "anndata"
+          name: "table"
+          description: "AnnData table"
+          required: true
+          obs:
+          - type: "string"
+            name: "cell_id"
+            description: "Cell ID"
+            required: true
+          - type: "string"
+            name: "region"
+            description: "Region"
+            required: true
     example:
-    - "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_qc_col.h5ad"
+    - "resources_test/task_ist_preprocessing/mouse_brain_combined/segmentation.zarr"
     must_exist: true
     create_parent: true
-    required: true
+    required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
   - type: "file"
-    name: "--input_sc"
+    name: "--input_scrnaseq"
     label: "scRNA-seq Reference"
     summary: "A single-cell reference dataset, preprocessed for this benchmark."
     description: "This dataset contains preprocessed counts and metadata for single-cell\
@@ -358,12 +460,21 @@ argument_groups:
     - "resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad"
     must_exist: true
     create_parent: true
-    required: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--sc_cell_type_key"
+    info: null
+    default:
+    - "cell_type"
+    required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
   - type: "file"
-    name: "--input_transcript_assignments"
+    name: "--output"
     label: "Transcript Assignment"
     summary: "A spatial transcriptomics dataset with assigned transcripts"
     description: "This dataset contains the spatial transcriptomics data with assigned\
@@ -420,40 +531,159 @@ argument_groups:
     must_exist: true
     create_parent: true
     required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--transcripts_key"
+    description: "The key of the transcripts within the points of the spatial data"
+    info: null
+    default:
+    - "transcripts"
+    required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "file"
-    name: "--output"
-    label: "Score"
-    summary: "Metric score file"
-    info:
-      format:
-        type: "h5ad"
-        uns:
-        - type: "string"
-          name: "metric_ids"
-          description: "One or more unique metric identifiers"
-          multiple: true
-          required: true
-        - type: "double"
-          name: "metric_values"
-          description: "The metric values obtained for the given prediction. Must\
-            \ be of same length as 'metric_ids'."
-          multiple: true
-          required: true
-    example:
-    - "resources_test/task_ist_preprocessing/mouse_brain_combined/score.h5ad"
-    must_exist: true
-    create_parent: true
-    required: true
-    direction: "output"
+  - type: "string"
+    name: "--coordinate_system"
+    description: "The key of the pixel space coordinate system within the spatial\
+      \ data"
+    info: null
+    default:
+    - "global"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--max_iter"
+    description: "Maximum number of loops allowed for the Variational Bayes to run"
+    info: null
+    default:
+    - 1000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--CellCallTolerance"
+    description: "Convergence achieved if assignment probabilities between two successive\
+      \ loops is less than the tolerance"
+    info: null
+    default:
+    - 0.02
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rGene"
+    description: "\"A gamma distribution expresses the efficiency of the in-situ sequencing\
+      \ for each gene. It tries to capture\nthe ratio of the observed over the theoretical\
+      \ counts for a given gene. rGene controls the variance and\nInefficiency is\
+      \ the average of this assumed Gamma distribution\"\n"
+    info: null
+    default:
+    - 20.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--Inefficiency"
+    description: " "
+    info: null
+    default:
+    - 0.2
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--InsideCellBonus"
+    description: "\"If a spot is inside the cell boundaries this bonus will give the\
+      \ likelihood an extra boost\nin order to make the spot more probable to get\
+      \ assigned to the cell than another spot positioned\noutside the cell boundaries\"\
+      \n"
+    info: null
+    default:
+    - 2.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--MisreadDensity"
+    description: "\"To account for spots far from the some a uniform distribution\
+      \ is introduced to describe those misreads.\nBy default this uniform distribution\
+      \ has a density of 1e-5 misreads per pixel.\"\n"
+    info: null
+    default:
+    - 1.0E-5
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--SpotReg"
+    description: "\"Gene detection might come with irregularities due to technical\
+      \ errors. A small value is introduced\nhere to account for these errors. It\
+      \ is an additive factor, applied to the single cell expression\ncounts when\
+      \ the mean counts per class and per gene are calculated.\"\n"
+    info: null
+    default:
+    - 0.1
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--nNeighbors"
+    description: "\"By default only the 3 nearest cells will be considered as possible\
+      \ parent cells for any given spot.\nThere is also one extra 'super-neighbor',\
+      \ which is always a neighbor to the spots so we can assign\nthe misreads to.\
+      \ Could be seen as the background. Hence, by default the algorithm tries examines\n\
+      whether any of the 3 nearest cells is a possible parent cell to a given cell\
+      \ or whether the spot is\na misread\"\n"
+    info: null
+    default:
+    - 3
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rSpot"
+    description: "\"A gamma distributed variate from Gamma(rSpot, 1) is applied to\
+      \ the mean expression, hence the counts\nare distributed according to a Negative\
+      \ Binomial distribution.\nThe value for rSpot will control the variance/dispersion\
+      \ of the counts\"\n"
+    info: null
+    default:
+    - 2.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--save_data"
+    description: "Boolean, if True the output will be saved as tsv files in a folder\
+      \ named 'pciSeq' in your system's temp dir."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
     multiple: false
     multiple_sep: ";"
 resources:
 - type: "python_script"
   path: "script.py"
   is_executable: true
+label: "pciSeq Transcript Assignment"
+summary: "Assign transcripts to cells using the pciSeq method from Qian et. al. (2020)"
+description: "Uses a reference sc-RNAseq dataset to probabalistically assign cell\
+  \ types and transcripts to cells ."
 test_resources:
 - type: "file"
   path: "resources_test/task_ist_preprocessing/mouse_brain_combined"
@@ -465,86 +695,13 @@ test_resources:
   path: "check_config.py"
   is_executable: true
 info:
-  metrics:
-  - name: "negative_marker_purity_reads"
-    label: "Negative Marker Purity (Reads)"
-    summary: "The percentage of negative marker reads assigned to the correct cell\
-      \ types."
-    description: "The percentage of negative marker reads assigned to the correct\
-      \ cell types.\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-    maximize: true
-  - name: "negative_marker_purity_cells"
-    label: "Negative Marker Purity (Cells)"
-    summary: "The percentage of cells that do not contain counts of negative markers\
-      \ of their specific cell type."
-    description: "The percentage of cells that do not contain counts of negative markers\
-      \ of their specific cell type.\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-    maximize: true
-  - name: "coexpr_similarity"
-    label: "Co-expression Similarity"
-    summary: "The similarity between the co-expression patterns of spatial and scRNA-seq\
-      \ data."
-    description: "The similarity is calculated as the absolute difference between\
-      \ the correlation matrices of spatial and \nscRNA-seq data. The correlation\
-      \ matrices contain pair-wise correlations between all genes in the dataset.\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-    maximize: true
-  - name: "coexpr_similarity_celltype"
-    label: "Co-expression Similarity (Cell Type)"
-    summary: "The similarity between the within cell type co-expression patterns of\
-      \ spatial and scRNA-seq data."
-    description: "The similarity is calculated as the absolute difference between\
-      \ the correlation matrices of spatial and \nscRNA-seq data for each cell type.\
-      \ The final score is the mean over cell types. The correlation matrices contain\n\
-      pair-wise correlations between all genes in the dataset.\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-  - name: "rel_pairwise_ct_expr_sim"
-    label: "Relative Pairwise Cell Type Expression Similarity"
-    summary: "Similarity of the mean expression difference between cell type pairs\
-      \ between spatial and scRNA-seq data."
-    description: "todo\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-  - name: "rel_pairwise_gene_expr_sim"
-    label: "Relative Pairwise Gene Expression Similarity"
-    summary: "Similarity of the mean expression difference between gene pairs between\
-      \ spatial and scRNA-seq data."
-    description: "todo\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-  - name: "knn_mixing"
-    label: "KNN Mixing"
-    summary: "Measure of the modality mixing within the joint knn graph of spatial\
-      \ and scRNA-seq data."
-    description: "todo\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-  type: "metric"
+  type: "method"
+  subtype: "method_transcript_assignment"
   type_info:
-    label: "Metric"
-    summary: "A metric for evaluating iST preprocessing methods"
-    description: "This metric evaluates the quality of the iST preprocessing based\
-      \ on similarity to the scRNAseq reference.\n"
+    label: "Assignment"
+    summary: "Assigning transcripts to cells"
+    description: "An assignment method assigns transcripts to cells based on the spatial\
+      \ data and the cell segmentation."
 status: "enabled"
 repositories:
 - type: "github"
@@ -557,9 +714,13 @@ repositories:
   tag: "build/main"
   path: "viash/core"
 license: "MIT"
+references:
+  doi:
+  - "10.1038/s41592-019-0631-4"
 links:
-  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/acycliq/pciSeq"
   docker_registry: "ghcr.io"
+  documentation: "https://github.com/acycliq/pciSeq"
 runners:
 - type: "executable"
   id: "executable"
@@ -569,8 +730,8 @@ runners:
   directives:
     label:
     - "midtime"
-    - "midmem"
     - "midcpu"
+    - "midmem"
     tag: "$id"
   auto:
     simplifyInput: true
@@ -600,6 +761,11 @@ engines:
   - type: "python"
     user: false
     pypi:
+    - "spatialdata"
+    upgrade: true
+  - type: "python"
+    user: false
+    pypi:
     - "squidpy"
     - "rasterio"
     github:
@@ -608,18 +774,18 @@ engines:
   - type: "python"
     user: false
     pypi:
-    - "spatialdata"
+    - "pciseq"
     upgrade: true
   entrypoint: []
   cmd: null
 - type: "native"
   id: "native"
 build_info:
-  config: "src/metrics/similarity/config.vsh.yaml"
+  config: "src/methods_transcript_assignment/pciSeq_transcript_assignment/config.vsh.yaml"
   runner: "nextflow"
   engine: "docker|native"
-  output: "target/nextflow/metrics/similarity"
-  executable: "target/nextflow/metrics/similarity/main.nf"
+  output: "target/nextflow/methods_transcript_assignment/pciseq_transcript_assignment"
+  executable: "target/nextflow/methods_transcript_assignment/pciseq_transcript_assignment/main.nf"
   viash_version: "0.9.0"
   git_commit: "778f2b8cb137a5a3e53403fca1506865c029b06d"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"

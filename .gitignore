@@ -18,3 +18,5 @@ singularity_container/
 /.vscode
 /.nextflow*
 /work
+
+.DS_STORE
