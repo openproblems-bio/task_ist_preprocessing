@@ -19,6 +19,11 @@ arguments:
     required: false
     direction: input
     __merge__: file_scrnaseq_reference.yaml
+  - name: "--sc_cell_type_key"
+    type: string
+    required: false
+    direction: input
+    default: cell_type 
   - name: "--output"
     __merge__: file_transcript_assignments.yaml
     direction: output
