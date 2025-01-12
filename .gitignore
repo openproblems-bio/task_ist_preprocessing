@@ -21,3 +21,6 @@ singularity_container/
 /work
 
 *.DS_Store
+
+
+.DS_STORE
