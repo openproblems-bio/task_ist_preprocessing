@@ -1,0 +1,39 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
+name: clustermap_transcript_assignment
+label: "Clustermap Transcript Assignment"
+summary: "Assign transcripts to cells based on the ClusterMap method from He et al. 2021"
+description: "Clusters RNA transcripts using density peak clustering."
+links:
+  documentation: "https://github.com/wanglab-broad/ClusterMap"
+  repository: "https://github.com/wanglab-broad/ClusterMap"
+references:
+  doi: "10.1038/s41467-021-26044-x"
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    description: The key of the transcripts within the points of the spatial data
+    default: transcripts
+  - name: --coordinate_system
+    type: string
+    description: The key of the pixel space coordinate system within the spatial data
+    default: global
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
+      
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem ]
