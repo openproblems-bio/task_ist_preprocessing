@@ -20,6 +20,111 @@ arguments:
     description: The key of the pixel space coordinate system within the spatial data
     default: global
 
+  - name: window_size
+    type: integer
+    required: false
+    description: "# small values to keep memory usage low, too small will lead to bad segmentations though"
+    direction: input 
+    default: 700
+
+  - name: use_dapi
+    type: boolean
+    required: false
+    description: "Whether to use the DAPI segmentation channel for clustermap"
+    direction: input 
+    default: True
+
+  - name: xy_radius
+    type: integer
+    required: false
+    description: "?"
+    direction: input 
+    default: 40
+
+  - name: z_radius
+    type: integer
+    required: false
+    description: "?"
+    direction: input 
+    default: 0
+
+  - name: fast_preprocess
+    type: boolean
+    required: false
+    description: "?"
+    direction: input 
+    default: False 
+
+  - name: gauss_blur
+    type: boolean
+    required: false
+    description: "Whether to apply gaussian blur to the DAPI image"
+    direction: input 
+    default: True
+    
+  - name: sigma
+    type: double
+    required: false
+    description: "Sigma parameter for for gaussian blur"
+    direction: input 
+    default: 1
+
+  - name: pct_filter
+    type: double
+    required: false
+    description: "Percent of transcripts to filter out. For example, pct_filter=0.1 will remove at 10% of transcripts"
+    direction: input 
+    default: 0.0
+
+  - name: LOF
+    type: boolean
+    required: false
+    description: "preprocess?"
+    direction: input 
+    default: False
+
+  - name: contamination
+    type: double
+    required: false
+    description: "?"
+    direction: input 
+    default: 0
+
+  - name: min_spot_per_cell
+    type: integer
+    required: false
+    description: "Minimum transcripts per cell"
+    direction: input 
+    default: 5
+
+  - name: add_dapi
+    type: boolean
+    required: false
+    description: "?"
+    direction: input 
+    default: True
+
+  - name: use_genedis
+    type: boolean
+    required: false
+    description: "?"
+    direction: input 
+    default: True
+
+  - name: dapi_grid_interval
+    type: integer
+    required: false
+    description: "?"
+    direction: input 
+    default: 5
+
+  - name: cell_num_threshold
+    type: double
+    required: false
+    description: "A threshold for deciding the number of cells. A larger value gives more cells"
+    direction: input 
+    default: 0.1
+
 resources:
   - type: python_script
     path: script.py
@@ -29,7 +134,10 @@ engines:
     image: openproblems/base_python:1.0.0
     __merge__: 
       - /src/base/setup_spatialdata_partial.yaml
-      
+    setup:
+      - type: python
+        pypi: [anndata, PyYAML, imagecodecs, fastdist, h5py, imageio, natsort, networkx, opencv-python, pynndescent, pywavelets, scanpy, scikit-image, sinfo, stdlib-list, tifffile, tqdm, umap-learn, xlrd]
+        github: [wanglab-broad/ClusterMap]
   - type: native
 
 runners:
