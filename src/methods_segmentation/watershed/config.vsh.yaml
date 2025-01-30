@@ -3,10 +3,10 @@ label: "watershed Segmentation"
 summary: "Output of the segmantation methot watershed"
 description: "Output of the segmantation methot watershed"
 links:
-  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
-  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  documentation: "https://github.com/theislab/txsim"
+  repository: "https://github.com/BennyStrobes/Watershed"
 references:
-  doi: "10.1109/ICAA53760.2021.00010"
+  doi: "10.1109/34.87344"
 
 
 __merge__: /src/api/comp_method_segmentation.yaml 
