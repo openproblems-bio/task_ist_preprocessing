@@ -1,0 +1,28 @@
+__merge__: /src/api/comp_method_normalization.yaml
+
+name: spanorm
+label: "Spatially-aware normalisation for spatial transcriptomics data"
+summary: "Spatially-aware normalisation for spatial transcriptomics data"
+description: "Spatially-aware normalisation for spatial transcriptomics data"
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/bhuvad/SpaNorm/tree/master"
+references:
+  doi: "https://doi.org/10.1101/2024.05.31.596908"
+
+resources:
+  - type: r_script
+    path: script.R
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
