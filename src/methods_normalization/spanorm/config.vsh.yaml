@@ -16,9 +16,10 @@ resources:
 
 engines:
   - type: docker
-    image: openproblems/base_python:1.0.0
-    __merge__: 
-      - /src/base/setup_txsim_partial.yaml
+    image: openproblems/base_r:1.0.0
+    setup:
+      - type: r
+        bioc: SpaNorm, zellkonverter
   - type: native
 
 runners:
