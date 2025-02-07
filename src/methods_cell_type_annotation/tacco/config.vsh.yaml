@@ -1,3 +1,5 @@
+__merge__: /src/api/comp_method_cell_type_annotation.yaml
+
 name: tacco
 label: "Tacco"
 summary: "Annotate cell types using Tacco"
@@ -7,24 +9,6 @@ links:
   repository: "https://github.com/simonwm/tacco"
 references:
   doi: "10.1038/s41587-023-01657-3"
-
-arguments:
-  - name: --input_spatial_normalized_counts
-    type: file
-    required: true
-    direction: input
-  - name: --input_scrnaseq_reference
-    type: file
-    required: true
-    direction: input
-  - name: --celltype_key
-    type: string
-    default: cell_type
-    direction: input
-  - name: --output
-    type: file
-    default: spatial_with_celltypes.h5ad
-    direction: output
 
 resources:
   - type: python_script
