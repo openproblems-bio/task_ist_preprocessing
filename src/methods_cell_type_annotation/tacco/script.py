@@ -29,14 +29,14 @@ adata_sp.X = adata_sp.layers['counts']
 adata_sc.X = adata_sc.layers['counts']
 
 # Run tacco
-cell_type_assigment = tacco.tl.annotate(
+cell_type_assignment = tacco.tl.annotate(
     adata=adata_sp,
     reference=adata_sc,
     annotation_key=par['celltype_key']
 )
 
 # Tacco stores the cell type proportions in a n_obs x n_celltypes matrix, so we have to extract the celltype with highest consensus
-cell_types = cell_type_assigment.columns
+cell_types = cell_type_assignment.columns
 highest_score_idx = np.argmax(cell_type_assignment, axis=1)
 adata_sp.obs[par['celltype_key']] = cell_types[highest_score_idx]
 
