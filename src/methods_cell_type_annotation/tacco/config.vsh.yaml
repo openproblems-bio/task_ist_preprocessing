@@ -15,8 +15,15 @@ resources:
     path: script.py
 
 engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: [anndata, numpy, tacco]
   - type: native
 
 runners:
   - type: executable
   - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem ]
