@@ -16,7 +16,10 @@ resources:
 
 engines:
   - type: docker
-    image: community.wave.seqera.io/library/python_pip_anndata_numpy_pruned:3c5f3c38e8727ccf
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: [anndata, numpy, tacco]
   - type: native
 
 runners:
