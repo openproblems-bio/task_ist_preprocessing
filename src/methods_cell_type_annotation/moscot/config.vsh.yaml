@@ -11,14 +11,14 @@ references:
   doi: "10.1038/s41586-024-08453-2"
 
 arguments:
-# TODO: alpha check range [0.9, 0.8, 0.7]
-# TODO: tau_a=tau_b check range [0.1,0.2,0.3]
-# TODO: rank depends on data set size, rank=5000 for 300k cells and down to rank=500 minimal
+# TODO: alpha check range [0.7, 0.8, 0.9]
+# TODO: tau_a=tau_b check range [0.1, 0.2, 0.3] (seems only to work with tau=1 on our data)
+# TODO: rank depends on data set size, rank=5000 for 300k cells and down to rank=500 minimum (seems only to work with rank=-1 on our data)
   - name: --alpha
     required: false
     direction: input
     type: double
-    default: 0.5
+    default: 0.8
   - name: --tau
     required: false
     direction: input

@@ -14,8 +14,8 @@ from moscot.problems.space import MappingProblem
    'output': 'spatial_with_celltypes.h5ad',
    'celltype_key': 'cell_type',
    'alpha': 0.8,
-   'tau': 0.2,
-   'rank': 5000,
+   'tau': 1.0,
+   'rank': -1,
    'mapping_mode': 'max',
  }
  meta = {
