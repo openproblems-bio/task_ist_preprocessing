@@ -14,6 +14,7 @@ from moscot.problems.space import MappingProblem
    'output': 'spatial_with_celltypes.h5ad',
    'celltype_key': 'cell_type',
    'alpha': 0.8,
+   'epsilon': 0.01,
    'tau': 1.0,
    'rank': -1,
    'mapping_mode': 'max',
@@ -44,15 +45,14 @@ adata_sp.obsm["spatial"] = adata_sp.obs[["centroid_x", "centroid_y"]].to_numpy()
 # Define mapping problem
 mp = MappingProblem(adata_sc=adata_sc, adata_sp=adata_sp)
 
-# TODO: check parameters: sc_attr, xy_callback, x_callback, y_callback
 mp = mp.prepare(
-    sc_attr={"attr": "obsm", "key": "X_pca"},
+    sc_attr={"attr": "layers", "key": "normalized"},
     xy_callback="local-pca",
 )
 
 mp = mp.solve(
     alpha=par['alpha'],
-    epsilon=0.01,
+    epsilon=par['epsilon'],
     tau_a=par['tau'],
     tau_b=par['tau'],
     rank=par['rank'],
