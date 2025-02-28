@@ -1,0 +1,60 @@
+__merge__: /src/api/comp_method_cell_type_annotation.yaml
+
+name: moscot
+label: "MOSCOT"
+summary: "Mapping of annotations from single-cell to spatial using moscot"
+description: "Mapping of annotations from single-cell to spatial using moscot"
+links:
+  documentation: "https://moscot.readthedocs.io"
+  repository: "https://github.com/theislab/moscot"
+references:
+  doi: "10.1038/s41586-024-08453-2"
+
+arguments:
+# TODO: alpha check range [0.7, 0.8, 0.9]
+# TODO: tau_a=tau_b check range [0.1, 0.2, 0.3] (seems only to work with tau=1 on our data)
+# TODO: rank depends on data set size, rank=5000 for 300k cells and down to rank=500 minimum (seems only to work with rank=-1 on our data)
+  - name: --alpha
+    required: false
+    direction: input
+    type: double
+    default: 0.8
+  - name: --epsilon
+    required: false
+    direction: input
+    type: double
+    default: 0.01
+  - name: --tau
+    required: false
+    direction: input
+    type: double
+    default: 1.0
+  - name: --rank
+    required: false
+    direction: input
+    type: integer
+    default: -1
+  - name: --mapping_mode
+    required: false
+    direction: input
+    type: string
+    choices: ["sum", "max"]
+    default: "max"
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: [numpy, anndata, scanpy, moscot, flax, diffrax]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem ]
