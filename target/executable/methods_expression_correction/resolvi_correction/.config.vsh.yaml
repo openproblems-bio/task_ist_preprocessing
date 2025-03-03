@@ -1,14 +1,14 @@
-name: "similarity"
-namespace: "metrics"
+name: "resolvi_correction"
+namespace: "methods_expression_correction"
 version: "build_main"
 argument_groups:
 - name: "Arguments"
   arguments:
   - type: "file"
-    name: "--input"
-    label: "Spatial Corrected"
-    summary: "Corrected spatial data counts with cell type annotations"
-    description: "This file contains the corrected counts of the spatial transcriptomics\
+    name: "--input_spatial_with_cell_types"
+    label: "Spatial with Cell Types"
+    summary: "Normalized counts with cell type annotations"
+    description: "This file contains the normalized counts of the spatial transcriptomics\
       \ data and cell type annotations.\n"
     info:
       format:
@@ -22,14 +22,6 @@ argument_groups:
           name: "normalized"
           description: "Normalized counts"
           required: true
-        - type: "double"
-          name: "normalized"
-          description: "Corrected normalized expression"
-          required: false
-        - type: "double"
-          name: "normalized_uncorrected"
-          description: "Uncorrected normalized expression"
-          required: false
         obs:
         - type: "string"
           name: "cell_id"
@@ -77,7 +69,7 @@ argument_groups:
           description: "Number of cells expressing the gene"
           required: true
     example:
-    - "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_corrected_counts.h5ad"
+    - "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_with_cell_types.h5ad"
     must_exist: true
     create_parent: true
     required: true
@@ -85,28 +77,7 @@ argument_groups:
     multiple: false
     multiple_sep: ";"
   - type: "file"
-    name: "--input_qc_col"
-    label: "QC Columns"
-    summary: "QC columns for spatial data"
-    description: "This file contains the QC-filter column for spatial data.\n"
-    info:
-      format:
-        type: "h5ad"
-        obs:
-        - type: "string"
-          name: "passed_QC"
-          description: "Whether the cell passed the quality control"
-          required: true
-    example:
-    - "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_qc_col.h5ad"
-    must_exist: true
-    create_parent: true
-    required: true
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "file"
-    name: "--input_sc"
+    name: "--input_scrnaseq_reference"
     label: "scRNA-seq Reference"
     summary: "A single-cell reference dataset, preprocessed for this benchmark."
     description: "This dataset contains preprocessed counts and metadata for single-cell\
@@ -358,102 +329,107 @@ argument_groups:
     - "resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad"
     must_exist: true
     create_parent: true
-    required: true
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "file"
-    name: "--input_transcript_assignments"
-    label: "Transcript Assignment"
-    summary: "A spatial transcriptomics dataset with assigned transcripts"
-    description: "This dataset contains the spatial transcriptomics data with assigned\
-      \ transcripts."
-    info:
-      format:
-        type: "spatialdata_zarr"
-        points:
-        - type: "dataframe"
-          name: "transcripts"
-          description: "Point cloud data of transcripts"
-          required: true
-          columns:
-          - type: "float"
-            name: "x"
-            required: true
-            description: "x-coordinate of the point"
-          - type: "float"
-            name: "y"
-            required: true
-            description: "y-coordinate of the point"
-          - type: "float"
-            name: "z"
-            required: false
-            description: "z-coordinate of the point"
-          - type: "categorical"
-            name: "feature_name"
-            required: true
-            description: "Name of the feature"
-          - type: "integer"
-            name: "cell_id"
-            required: false
-            description: "Unique identifier of the cell"
-          - type: "long"
-            name: "transcript_id"
-            required: true
-            description: "Unique identifier of the transcript"
-        tables:
-        - type: "anndata"
-          name: "table"
-          description: "AnnData table"
-          required: true
-          obs:
-          - type: "string"
-            name: "cell_id"
-            description: "Cell ID"
-            required: true
-          - type: "string"
-            name: "region"
-            description: "Region"
-            required: false
-    example:
-    - "resources_test/task_ist_preprocessing/mouse_brain_combined/transcript_assignments.zarr"
-    must_exist: true
-    create_parent: true
-    required: true
+    required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
   - type: "file"
     name: "--output"
-    label: "Score"
-    summary: "Metric score file"
+    label: "Spatial Corrected"
+    summary: "Corrected spatial data counts with cell type annotations"
+    description: "This file contains the corrected counts of the spatial transcriptomics\
+      \ data and cell type annotations.\n"
     info:
       format:
         type: "h5ad"
-        uns:
-        - type: "string"
-          name: "metric_ids"
-          description: "One or more unique metric identifiers"
-          multiple: true
+        layers:
+        - type: "integer"
+          name: "counts"
+          description: "Raw counts"
+          required: true
+        - type: "integer"
+          name: "normalized"
+          description: "Normalized counts"
           required: true
         - type: "double"
-          name: "metric_values"
-          description: "The metric values obtained for the given prediction. Must\
-            \ be of same length as 'metric_ids'."
-          multiple: true
+          name: "normalized"
+          description: "Corrected normalized expression"
+          required: false
+        - type: "double"
+          name: "normalized_uncorrected"
+          description: "Uncorrected normalized expression"
+          required: false
+        obs:
+        - type: "string"
+          name: "cell_id"
+          description: "Unique identifier for the cell (from assignment step)"
+          required: true
+        - type: "string"
+          name: "centroid_x"
+          description: "X coordinate of the cell"
+          required: true
+        - type: "string"
+          name: "centroid_y"
+          description: "Y coordinate of the cell"
+          required: true
+        - type: "string"
+          name: "centroid_z"
+          description: "Z coordinate of the cell"
+          required: false
+        - type: "string"
+          name: "n_counts"
+          description: "Number of counts in the cell"
+          required: true
+        - type: "string"
+          name: "n_genes"
+          description: "Number of genes in the cell"
+          required: true
+        - type: "string"
+          name: "volume"
+          description: "Volume of the cell"
+          required: true
+        - type: "string"
+          name: "cell_type"
+          description: "Cell type of the cell"
+          required: true
+        var:
+        - type: "string"
+          name: "gene_name"
+          description: "Name of the gene"
+          required: true
+        - type: "string"
+          name: "n_counts"
+          description: "Number of counts of the gene"
+          required: true
+        - type: "string"
+          name: "n_cells"
+          description: "Number of cells expressing the gene"
           required: true
     example:
-    - "resources_test/task_ist_preprocessing/mouse_brain_combined/score.h5ad"
+    - "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_corrected_counts.h5ad"
     must_exist: true
     create_parent: true
     required: true
     direction: "output"
     multiple: false
     multiple_sep: ";"
+  - type: "string"
+    name: "--celltype_key"
+    info: null
+    default:
+    - "cell_type"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 resources:
 - type: "python_script"
   path: "script.py"
   is_executable: true
+label: "resolVI Correction"
+summary: "Corrects the expression of genes using resolVI"
+description: "Corrects the expression of genes based on the resolVI method, a part\
+  \ of scvi-tools."
 test_resources:
 - type: "file"
   path: "resources_test/task_ist_preprocessing/mouse_brain_combined"
@@ -465,86 +441,13 @@ test_resources:
   path: "check_config.py"
   is_executable: true
 info:
-  metrics:
-  - name: "negative_marker_purity_reads"
-    label: "Negative Marker Purity (Reads)"
-    summary: "The percentage of negative marker reads assigned to the correct cell\
-      \ types."
-    description: "The percentage of negative marker reads assigned to the correct\
-      \ cell types.\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-    maximize: true
-  - name: "negative_marker_purity_cells"
-    label: "Negative Marker Purity (Cells)"
-    summary: "The percentage of cells that do not contain counts of negative markers\
-      \ of their specific cell type."
-    description: "The percentage of cells that do not contain counts of negative markers\
-      \ of their specific cell type.\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-    maximize: true
-  - name: "coexpr_similarity"
-    label: "Co-expression Similarity"
-    summary: "The similarity between the co-expression patterns of spatial and scRNA-seq\
-      \ data."
-    description: "The similarity is calculated as the absolute difference between\
-      \ the correlation matrices of spatial and \nscRNA-seq data. The correlation\
-      \ matrices contain pair-wise correlations between all genes in the dataset.\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-    maximize: true
-  - name: "coexpr_similarity_celltype"
-    label: "Co-expression Similarity (Cell Type)"
-    summary: "The similarity between the within cell type co-expression patterns of\
-      \ spatial and scRNA-seq data."
-    description: "The similarity is calculated as the absolute difference between\
-      \ the correlation matrices of spatial and \nscRNA-seq data for each cell type.\
-      \ The final score is the mean over cell types. The correlation matrices contain\n\
-      pair-wise correlations between all genes in the dataset.\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-  - name: "rel_pairwise_ct_expr_sim"
-    label: "Relative Pairwise Cell Type Expression Similarity"
-    summary: "Similarity of the mean expression difference between cell type pairs\
-      \ between spatial and scRNA-seq data."
-    description: "todo\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-  - name: "rel_pairwise_gene_expr_sim"
-    label: "Relative Pairwise Gene Expression Similarity"
-    summary: "Similarity of the mean expression difference between gene pairs between\
-      \ spatial and scRNA-seq data."
-    description: "todo\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-  - name: "knn_mixing"
-    label: "KNN Mixing"
-    summary: "Measure of the modality mixing within the joint knn graph of spatial\
-      \ and scRNA-seq data."
-    description: "todo\n"
-    references:
-      doi: "10.1101/2023.02.13.528102"
-    min: 0
-    max: 1
-  type: "metric"
+  type: "method"
+  subtype: "method_expression_correction"
   type_info:
-    label: "Metric"
-    summary: "A metric for evaluating iST preprocessing methods"
-    description: "This metric evaluates the quality of the iST preprocessing based\
-      \ on similarity to the scRNAseq reference.\n"
+    label: "Expression correction"
+    summary: "Correcting expression levels in spatial data"
+    description: "An expression correction method corrects expression levels in spatial\
+      \ data."
 status: "enabled"
 repositories:
 - type: "github"
@@ -557,9 +460,13 @@ repositories:
   tag: "build/main"
   path: "viash/core"
 license: "MIT"
+references:
+  doi:
+  - "10.1101/2025.01.20.634005"
 links:
-  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/scverse/scvi-tools"
   docker_registry: "ghcr.io"
+  documentation: "https://docs.scvi-tools.org/en/latest/user_guide/models/resolvi.html"
 runners:
 - type: "executable"
   id: "executable"
@@ -569,8 +476,8 @@ runners:
   directives:
     label:
     - "midtime"
-    - "midmem"
-    - "midcpu"
+    - "highcpu"
+    - "highmem"
     tag: "$id"
   auto:
     simplifyInput: true
@@ -608,18 +515,18 @@ engines:
   - type: "python"
     user: false
     pypi:
-    - "spatialdata"
+    - "scvi-tools"
     upgrade: true
   entrypoint: []
   cmd: null
 - type: "native"
   id: "native"
 build_info:
-  config: "src/metrics/similarity/config.vsh.yaml"
+  config: "src/methods_expression_correction/resolvi_correction/config.vsh.yaml"
   runner: "executable"
   engine: "docker|native"
-  output: "target/executable/metrics/similarity"
-  executable: "target/executable/metrics/similarity/similarity"
+  output: "target/executable/methods_expression_correction/resolvi_correction"
+  executable: "target/executable/methods_expression_correction/resolvi_correction/resolvi_correction"
   viash_version: "0.9.0"
   git_commit: "68d3887c5a2c91e444383526acbc1f40661223b0"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"

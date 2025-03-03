@@ -4,6 +4,7 @@ __pycache__/
 /results/
 /temp/
 .snakemake
+tmp
 
 logs/*
 !logs/README.txt
