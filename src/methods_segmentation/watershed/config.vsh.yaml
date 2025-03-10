@@ -1,10 +1,10 @@
 name: watershed
 label: "watershed Segmentation"
-summary: "Output of the segmantation methot watershed"
-description: "Output of the segmantation methot watershed"
+summary: "Output of the segmentation method watershed"
+description: "Output of the segmentation method watershed"
 links:
-  documentation: "https://github.com/theislab/txsim"
-  repository: "https://github.com/BennyStrobes/Watershed"
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/theislab/txsim"
 references:
   doi: "10.1109/34.87344"
 
