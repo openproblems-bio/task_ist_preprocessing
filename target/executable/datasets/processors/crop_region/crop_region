@@ -478,9 +478,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/processors crop_region"
-LABEL org.opencontainers.image.created="2025-03-03T13:06:23Z"
+LABEL org.opencontainers.image.created="2025-03-10T12:03:57Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="778f2b8cb137a5a3e53403fca1506865c029b06d"
+LABEL org.opencontainers.image.revision="a900549e66ea74b5a135389de4303b7d999fdf03"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

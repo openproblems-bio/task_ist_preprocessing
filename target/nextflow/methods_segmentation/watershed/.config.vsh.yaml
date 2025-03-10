@@ -1,4 +1,4 @@
-name: "binning"
+name: "watershed"
 namespace: "methods_segmentation"
 version: "build_main"
 argument_groups:
@@ -207,11 +207,434 @@ argument_groups:
     direction: "output"
     multiple: false
     multiple_sep: ";"
-  - type: "integer"
-    name: "--bin_size"
+  - type: "string"
+    name: "--normalize_func"
     info: null
     default:
-    - 30
+    - "gamma"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--normalize_gamma"
+    info: null
+    default:
+    - 1
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--normalize_gain"
+    info: null
+    default:
+    - 1
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--normalize_inv"
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--normalize_cutoff"
+    info: null
+    default:
+    - 0.5
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--contrast_adjustment_func"
+    info: null
+    default:
+    - "equalize_adapthist"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--contrast_adjustment_kernel_size"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--contrast_adjustment_clip_limit"
+    info: null
+    default:
+    - 0.01
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--contrast_adjustment_nbins"
+    info: null
+    default:
+    - 256
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--contrast_adjustment_mask"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--contrast_adjustment_in_range"
+    info: null
+    default:
+    - "image"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--contrast_adjustment_out_range"
+    info: null
+    default:
+    - "dtype"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--blur_func"
+    info: null
+    default:
+    - "gaussian"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--blur_sigma"
+    info: null
+    default:
+    - 1
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--blur_output"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--blur_mode"
+    info: null
+    default:
+    - "nearest"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--blur_cval"
+    info: null
+    default:
+    - 0.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--blur_preserve_range"
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--blur_truncate"
+    info: null
+    default:
+    - 4.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--threshold_func"
+    info: null
+    default:
+    - "local_otsu"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--threshold_nbins"
+    info: null
+    default:
+    - 256
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--threshold_hist"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--threshold_out"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--threshold_mask"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--threshold_shift_x"
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--threshold_shift_y"
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--threshold_shift_z"
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--threshold_footprint"
+    info: null
+    default:
+    - "square"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--threshold_footprint_size"
+    info: null
+    default:
+    - 50
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--distance_transform_func"
+    info: null
+    default:
+    - "distance_transform_edt"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--distance_transform_sampling"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--distance_transform_return_distances"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--distance_transform_return_indices"
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--distance_transform_distances"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--distance_transform_indices"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--local_maxima_func"
+    info: null
+    default:
+    - "find_local_maxima"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--local_maxima_min_distance"
+    info: null
+    default:
+    - 5
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--post_processing_func_1"
+    info: null
+    default:
+    - "remove_small_objects"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--post_processing_min_size_1"
+    info: null
+    default:
+    - 64
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--post_processing_connectivity_1"
+    info: null
+    default:
+    - 1
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--post_processing_out_1"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--post_processing_func_2"
+    info: null
+    default:
+    - "remove_small_holes"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--post_processing_area_threshold_2"
+    info: null
+    default:
+    - 64
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--post_processing_connectivity_2"
+    info: null
+    default:
+    - 1
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--post_processing_out_2"
+    info: null
+    default:
+    - "None"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--bg_intensity_filter_bg_factor"
+    info: null
+    default:
+    - 0.3
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--bg_intensity_filter_window_size"
+    info: null
+    default:
+    - 1000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--bg_intensity_filter_bg_size"
+    info: null
+    default:
+    - 2000
     required: false
     direction: "input"
     multiple: false
@@ -220,9 +643,9 @@ resources:
 - type: "python_script"
   path: "script.py"
   is_executable: true
-label: "Binning Segmentation"
-summary: "Segment the spatial data into equidistant square bins"
-description: "The binning method for segmentation serves as a baseline of a poor segmentation"
+label: "watershed Segmentation"
+summary: "Output of the segmentation method watershed"
+description: "Output of the segmentation method watershed"
 test_resources:
 - type: "file"
   path: "resources_test/task_ist_preprocessing/mouse_brain_combined"
@@ -255,9 +678,9 @@ repositories:
 license: "MIT"
 references:
   doi:
-  - "10.1101/2023.02.13.528102"
+  - "10.1109/34.87344"
 links:
-  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/theislab/txsim"
   docker_registry: "ghcr.io"
   documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
 runners:
@@ -315,11 +738,11 @@ engines:
 - type: "native"
   id: "native"
 build_info:
-  config: "src/methods_segmentation/binning/config.vsh.yaml"
-  runner: "executable"
+  config: "src/methods_segmentation/watershed/config.vsh.yaml"
+  runner: "nextflow"
   engine: "docker|native"
-  output: "target/executable/methods_segmentation/binning"
-  executable: "target/executable/methods_segmentation/binning/binning"
+  output: "target/nextflow/methods_segmentation/watershed"
+  executable: "target/nextflow/methods_segmentation/watershed/main.nf"
   viash_version: "0.9.0"
   git_commit: "a900549e66ea74b5a135389de4303b7d999fdf03"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"

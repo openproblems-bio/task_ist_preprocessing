@@ -4022,7 +4022,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/process_datasets",
     "viash_version" : "0.9.0",
-    "git_commit" : "778f2b8cb137a5a3e53403fca1506865c029b06d",
+    "git_commit" : "a900549e66ea74b5a135389de4303b7d999fdf03",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
