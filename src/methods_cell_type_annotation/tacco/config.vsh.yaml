@@ -1,0 +1,29 @@
+__merge__: /src/api/comp_method_cell_type_annotation.yaml
+
+name: tacco
+label: "Tacco"
+summary: "Annotate cell types using Tacco"
+description: "Annotate cell types using Tacco"
+links:
+  documentation: "https://simonwm.github.io/tacco/"
+  repository: "https://github.com/simonwm/tacco"
+references:
+  doi: "10.1038/s41587-023-01657-3"
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: [anndata, numpy, tacco]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem ]
