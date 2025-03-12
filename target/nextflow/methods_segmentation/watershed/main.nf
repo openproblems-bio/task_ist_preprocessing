@@ -3789,7 +3789,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/watershed",
     "viash_version" : "0.9.0",
-    "git_commit" : "a900549e66ea74b5a135389de4303b7d999fdf03",
+    "git_commit" : "85284ec8c78ca7445b22b9a5fb483380e643311e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
