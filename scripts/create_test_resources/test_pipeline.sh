@@ -75,17 +75,18 @@ viash run src/metrics/similarity/config.vsh.yaml -- \
 
 # create a state file
 cat >> $OUT_DIR/state.yaml <<EOL
-output_sp: $OUT_DIR/raw_ist.zarr
-output_sc: $OUT_DIR/scrnaseq_reference.h5ad
-output_segmentation: $OUT_DIR/segmentation.zarr
-output_transcript_assignments: $OUT_DIR/transcript_assignments.zarr
-output_spatial_aggregated_counts: $OUT_DIR/spatial_aggregated_counts.h5ad
-output_cell_volumes: $OUT_DIR/cell_volumes.h5ad
-output_spatial_normalized_counts: $OUT_DIR/spatial_normalized_counts.h5ad
-output_spatial_with_cell_types: $OUT_DIR/spatial_with_cell_types.h5ad
-output_spatial_corrected_counts: $OUT_DIR/spatial_corrected_counts.h5ad
-output_spatial_qc_col: $OUT_DIR/spatial_qc_col.h5ad
-output_score: $OUT_DIR/score.h5ad
+id: mouse_brain_combined
+output_sp: !file raw_ist.zarr
+output_sc: !file scrnaseq_reference.h5ad
+output_segmentation: !file segmentation.zarr
+output_transcript_assignments: !file transcript_assignments.zarr
+output_spatial_aggregated_counts: !file spatial_aggregated_counts.h5ad
+output_cell_volumes: !file cell_volumes.h5ad
+output_spatial_normalized_counts: !file spatial_normalized_counts.h5ad
+output_spatial_with_cell_types: !file spatial_with_cell_types.h5ad
+output_spatial_corrected_counts: !file spatial_corrected_counts.h5ad
+output_spatial_qc_col: !file spatial_qc_col.h5ad
+output_score: !file score.h5ad
 EOL
 
 # sync test resources
