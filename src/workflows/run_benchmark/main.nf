@@ -381,15 +381,15 @@ workflow run_wf {
           state.steps.collectMany{step ->
             step.type in ["dataset", "metric"] ? [] : [step.component_id]
           }
-        def new_metadata = [
+        return [
           dataset_id: state.orig_id,
           // dataset_sc_id: ..., // todo: extract this from the dataset
           // dataset_sp_id: ..., // todo: extract this from the dataset
           method_ids: method_ids,
-          metric_id: metric_id,
-          steps: state.steps
+          steps: state.steps,
+          metric_ids: state.score_uns.metrics_ids,
+          metrics_values: state.score_uns.metrics_values
         ]
-        new_metadata + state.score_uns
       }
       def score_uns_yaml_blob = toYamlBlob(score_uns)
       def score_uns_file = tempFile("score_uns.yaml")
