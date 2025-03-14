@@ -1,0 +1,82 @@
+name: wu_human_breast_cancer_sc
+namespace: datasets/loaders
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - type: string
+        name: --cancer_subtypes
+        required: false
+        description: The cancer subtypes to download data for.
+        multiple: true
+        default: 
+          - HER2+
+          - TNBC
+          - ER+
+  - name: Caching settings
+    arguments:
+      - type: boolean
+        name: --keep_files
+        required: false
+        description: Whether to remove the downloaded files after processing.
+        default: false
+  - name: Metadata
+    arguments:
+      - type: string
+        name: --dataset_id
+        description: "A unique identifier for the dataset"
+        required: false
+        default: "2021Wu_human_breast_cancer_sc"
+      - name: --dataset_name
+        type: string
+        description: Nicely formatted name.
+        required: false
+        default: "2021Wu_human_breast_cancer_sc"
+      - type: string
+        name: --dataset_url
+        description: Link to the original source of the dataset.
+        required: false
+        default: "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE176078"
+      - name: --dataset_reference
+        type: string
+        description: Bibtex reference of the paper in which the dataset was published.
+        required: false
+        default: "https://doi.org/10.1038/s41588-021-00911-1"
+      - name: --dataset_summary
+        type: string
+        description: Short description of the dataset.
+        required: false
+        default: "This dataset contains scRNA-seq data from human breast cancer cells."
+      - name: --dataset_description
+        type: string
+        description: Long description of the dataset.
+        required: false
+        default: "This dataset contains scRNA-seq data from human breast cancer cells."
+      - name: --dataset_organism
+        type: string
+        description: The organism of the sample in the dataset.
+        required: false
+        default: "Homo sapiens"
+  - name: Outputs
+    arguments:
+    - name: "--output"
+      __merge__: /src/api/file_common_scrnaseq.yaml
+      direction: output
+      required: true
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [veryhighmem, midcpu, midtime]
