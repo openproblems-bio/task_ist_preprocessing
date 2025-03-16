@@ -1,3 +1,6 @@
+meta.resources_dir = 'target/executable/data_processors/process_dataset',
+meta.config = 'target/executable/data_processors/process_dataset/.config.vsh.yaml'
+
 include { findArgumentSchema } from "${meta.resources_dir}/helper.nf"
 
 workflow auto {
