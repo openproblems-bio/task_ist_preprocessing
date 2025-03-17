@@ -18,6 +18,24 @@ arguments:
     type: string
     default: cell_type
 
+  - name: --n_hidden
+    required: false
+    direction: input
+    type: int
+    default: 32
+
+  - name: --encode_covariates
+    required: false
+    direction: input
+    type: boolean
+    default: false
+
+  - name: --downsample_counts
+    required: false
+    direction: input
+    type: boolean
+    default: true
+
 resources:
   - type: python_script
     path: script.py
