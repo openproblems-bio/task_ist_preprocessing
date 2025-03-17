@@ -20,16 +20,17 @@ par = {
 }
 
 meta = {
-    "temp_dir": "./tmp/nsclc_sc_zuani",
+    "temp_dir": "./tmp/nsclc_sc_zuani/",
 }
 
 ## VIASH END
 
 
-#os.system(f'wget "ftp://ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad" -P {par["output"]}')
+os.system(f'wget "ftp://ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad" -P {meta["temp_dir"]}')
 
 
-adata = ad.read_h5ad( '/mnt/d/file_h5ad/file.h5ad/10X_Lung_Tumour_Annotated_v2.h5ad', backed="r")
+#adata = ad.read_h5ad( '/mnt/d/file_h5ad/file.h5ad/10X_Lung_Tumour_Annotated_v2.h5ad', backed="r")
+adata = ad.read_h5ad( f'{meta["temp_dir"]}10X_Lung_Tumour_Annotated_v2.h5ad', backed="r")
 adata = adata[:100].to_memory()
 
 rename_obs_keys = {
