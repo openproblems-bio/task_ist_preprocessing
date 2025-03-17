@@ -29,7 +29,7 @@ HERE
 
 # Run nextflow workflow locally
 nextflow run . \
-  -main-script target/nextflow/datasets/process_nsclc_zuani/main.nf \
+  -main-script target/nextflow/datasets/workflows/process_nsclc_sc_zuani/main.nf \
   -params-file /tmp/params.yaml \
   -profile docker \
   -c common/nextflow_helpers/labels_ci.config

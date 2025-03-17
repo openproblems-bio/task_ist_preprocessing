@@ -1,8 +1,7 @@
-name: nsclc_sc_zuani
+name: process_nsclc_sc_zuani
 namespace: datasets/workflows
 
 argument_groups:
-
   - name: Caching settings
     arguments:
       - type: boolean
