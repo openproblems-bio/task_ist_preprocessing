@@ -18,7 +18,7 @@ par = {
   'downsample_counts': True
 }
 meta = {
-  'name': 'gene_efficiency_correction',
+  'name': 'resolvi_correction',
 }
 ## VIASH END
 

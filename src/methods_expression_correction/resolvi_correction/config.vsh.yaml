@@ -21,7 +21,7 @@ arguments:
   - name: --n_hidden
     required: false
     direction: input
-    type: int
+    type: integer
     default: 32
 
   - name: --encode_covariates
