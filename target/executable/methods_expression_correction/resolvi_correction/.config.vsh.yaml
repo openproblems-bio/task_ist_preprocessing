@@ -1,26 +1,26 @@
-name: "moscot"
-namespace: "methods_cell_type_annotation"
+name: "resolvi_correction"
+namespace: "methods_expression_correction"
 version: "build_main"
 argument_groups:
 - name: "Arguments"
   arguments:
   - type: "file"
-    name: "--input_spatial_normalized_counts"
-    label: "Spatial Normalized"
-    summary: "Normalized counts"
+    name: "--input_spatial_with_cell_types"
+    label: "Spatial with Cell Types"
+    summary: "Normalized counts with cell type annotations"
     description: "This file contains the normalized counts of the spatial transcriptomics\
-      \ data.\n"
+      \ data and cell type annotations.\n"
     info:
       format:
         type: "h5ad"
         layers:
         - type: "integer"
           name: "counts"
-          description: "Raw aggregated counts"
+          description: "Raw counts"
           required: true
         - type: "integer"
           name: "normalized"
-          description: "Normalized expression values"
+          description: "Normalized counts"
           required: true
         obs:
         - type: "string"
@@ -47,6 +47,14 @@ argument_groups:
           name: "n_genes"
           description: "Number of genes in the cell"
           required: true
+        - type: "string"
+          name: "volume"
+          description: "Volume of the cell"
+          required: true
+        - type: "string"
+          name: "cell_type"
+          description: "Cell type of the cell"
+          required: true
         var:
         - type: "string"
           name: "gene_name"
@@ -61,71 +69,10 @@ argument_groups:
           description: "Number of cells expressing the gene"
           required: true
     example:
-    - "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_normalized_counts.h5ad"
+    - "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_with_cell_types.h5ad"
     must_exist: true
     create_parent: true
     required: true
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "file"
-    name: "--input_transcript_assignments"
-    label: "Transcript Assignment"
-    summary: "A spatial transcriptomics dataset with assigned transcripts"
-    description: "This dataset contains the spatial transcriptomics data with assigned\
-      \ transcripts."
-    info:
-      format:
-        type: "spatialdata_zarr"
-        points:
-        - type: "dataframe"
-          name: "transcripts"
-          description: "Point cloud data of transcripts"
-          required: true
-          columns:
-          - type: "float"
-            name: "x"
-            required: true
-            description: "x-coordinate of the point"
-          - type: "float"
-            name: "y"
-            required: true
-            description: "y-coordinate of the point"
-          - type: "float"
-            name: "z"
-            required: false
-            description: "z-coordinate of the point"
-          - type: "categorical"
-            name: "feature_name"
-            required: true
-            description: "Name of the feature"
-          - type: "integer"
-            name: "cell_id"
-            required: false
-            description: "Unique identifier of the cell"
-          - type: "long"
-            name: "transcript_id"
-            required: true
-            description: "Unique identifier of the transcript"
-        tables:
-        - type: "anndata"
-          name: "table"
-          description: "AnnData table"
-          required: true
-          obs:
-          - type: "string"
-            name: "cell_id"
-            description: "Cell ID"
-            required: true
-          - type: "string"
-            name: "region"
-            description: "Region"
-            required: false
-    example:
-    - "resources_test/task_ist_preprocessing/mouse_brain_combined/transcript_assignments.zarr"
-    must_exist: true
-    create_parent: true
-    required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
@@ -386,20 +333,11 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "string"
-    name: "--celltype_key"
-    info: null
-    default:
-    - "cell_type"
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
   - type: "file"
     name: "--output"
-    label: "Spatial with Cell Types"
-    summary: "Normalized counts with cell type annotations"
-    description: "This file contains the normalized counts of the spatial transcriptomics\
+    label: "Spatial Corrected"
+    summary: "Corrected spatial data counts with cell type annotations"
+    description: "This file contains the corrected counts of the spatial transcriptomics\
       \ data and cell type annotations.\n"
     info:
       format:
@@ -413,6 +351,14 @@ argument_groups:
           name: "normalized"
           description: "Normalized counts"
           required: true
+        - type: "double"
+          name: "normalized"
+          description: "Corrected normalized expression"
+          required: false
+        - type: "double"
+          name: "normalized_uncorrected"
+          description: "Uncorrected normalized expression"
+          required: false
         obs:
         - type: "string"
           name: "cell_id"
@@ -460,58 +406,46 @@ argument_groups:
           description: "Number of cells expressing the gene"
           required: true
     example:
-    - "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_with_cell_types.h5ad"
+    - "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_corrected_counts.h5ad"
     must_exist: true
     create_parent: true
     required: true
     direction: "output"
     multiple: false
     multiple_sep: ";"
-  - type: "double"
-    name: "--alpha"
+  - type: "string"
+    name: "--celltype_key"
     info: null
     default:
-    - 0.8
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "double"
-    name: "--epsilon"
-    info: null
-    default:
-    - 0.01
-    required: false
-    direction: "input"
-    multiple: false
-    multiple_sep: ";"
-  - type: "double"
-    name: "--tau"
-    info: null
-    default:
-    - 1.0
+    - "cell_type"
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
   - type: "integer"
-    name: "--rank"
+    name: "--n_hidden"
     info: null
     default:
-    - -1
+    - 32
     required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
-  - type: "string"
-    name: "--mapping_mode"
+  - type: "boolean"
+    name: "--encode_covariates"
     info: null
     default:
-    - "max"
+    - false
     required: false
-    choices:
-    - "sum"
-    - "max"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--downsample_counts"
+    info: null
+    default:
+    - true
+    required: false
     direction: "input"
     multiple: false
     multiple_sep: ";"
@@ -519,9 +453,10 @@ resources:
 - type: "python_script"
   path: "script.py"
   is_executable: true
-label: "MOSCOT"
-summary: "Mapping of annotations from single-cell to spatial using moscot"
-description: "Mapping of annotations from single-cell to spatial using moscot"
+label: "resolVI Correction"
+summary: "Corrects the expression of genes using resolVI"
+description: "Corrects the expression of genes based on the resolVI method, a part\
+  \ of scvi-tools."
 test_resources:
 - type: "file"
   path: "resources_test/task_ist_preprocessing/mouse_brain_combined"
@@ -534,11 +469,12 @@ test_resources:
   is_executable: true
 info:
   type: "method"
-  subtype: "method_cell_type_annotation"
+  subtype: "method_expression_correction"
   type_info:
-    label: "Cell Type Annotation"
-    summary: "Annotating cell types in spatial data"
-    description: "A cell type annotation method annotates cell types in spatial data."
+    label: "Expression correction"
+    summary: "Correcting expression levels in spatial data"
+    description: "An expression correction method corrects expression levels in spatial\
+      \ data."
 status: "enabled"
 repositories:
 - type: "github"
@@ -553,11 +489,11 @@ repositories:
 license: "MIT"
 references:
   doi:
-  - "10.1038/s41586-024-08453-2"
+  - "10.1101/2025.01.20.634005"
 links:
-  repository: "https://github.com/theislab/moscot"
+  repository: "https://github.com/scverse/scvi-tools"
   docker_registry: "ghcr.io"
-  documentation: "https://moscot.readthedocs.io"
+  documentation: "https://docs.scvi-tools.org/en/latest/user_guide/models/resolvi.html"
 runners:
 - type: "executable"
   id: "executable"
@@ -567,8 +503,8 @@ runners:
   directives:
     label:
     - "midtime"
-    - "midcpu"
-    - "midmem"
+    - "highcpu"
+    - "highmem"
     tag: "$id"
   auto:
     simplifyInput: true
@@ -598,23 +534,26 @@ engines:
   - type: "python"
     user: false
     pypi:
-    - "numpy"
-    - "anndata"
-    - "scanpy"
-    - "moscot"
-    - "flax"
-    - "diffrax"
+    - "squidpy"
+    - "rasterio"
+    github:
+    - "theislab/txsim@dev"
+    upgrade: true
+  - type: "python"
+    user: false
+    pypi:
+    - "scvi-tools"
     upgrade: true
   entrypoint: []
   cmd: null
 - type: "native"
   id: "native"
 build_info:
-  config: "src/methods_cell_type_annotation/moscot/config.vsh.yaml"
+  config: "src/methods_expression_correction/resolvi_correction/config.vsh.yaml"
   runner: "executable"
   engine: "docker|native"
-  output: "target/executable/methods_cell_type_annotation/moscot"
-  executable: "target/executable/methods_cell_type_annotation/moscot/moscot"
+  output: "target/executable/methods_expression_correction/resolvi_correction"
+  executable: "target/executable/methods_expression_correction/resolvi_correction/resolvi_correction"
   viash_version: "0.9.0"
   git_commit: "56ed6b778d3373530962210f4cc5df5dedfac8ed"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
