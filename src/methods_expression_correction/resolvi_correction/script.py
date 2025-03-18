@@ -22,6 +22,11 @@ meta = {
 }
 ## VIASH END
 
+# NOTE/TODO: for grid search:
+# - n_hidden: 32 (default), 64, 128
+# - encode_covariates: False(default)/True
+# - downsample_counts: True(default)/False
+
 # Optional parameter check: For this specific correction method the par['input_sc'] is required
    
 # Read input
