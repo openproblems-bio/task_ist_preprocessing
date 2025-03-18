@@ -31,15 +31,16 @@ adata = adata[:,adata.var["feature_name"].isin(genes_sp)].copy()
 adata.var.reset_index(inplace=True, drop=True)
 adata.var_names = adata.var["feature_name"].values.astype(str).tolist()
 
-# # NOTE: Arbitrary columns can lead to issues for anndata in R (specifically in the method script for 
-# #       scrattch.mapping). In the future we'll need more columns (region matching filter) --> TODO
-# # For now, only kept as a comment, should be fixed at the scrattch.mapping level
-# adata.obs = adata.obs[["celltype"]]
-
-# Filter spatial genes: #TODO: Add this here or as a requirement for raw spatialdata
-# genes_sp = [g for g in genes_sp if not g.startswith("BLANK")]
-# genes_sp = [g for g in genes_sp if not g.startswith("NegControl")]
-# ...filter transcripts tables
+# store metadata to adata and sdata uns
+metadata_uns_cols = ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism"]
+for col in metadata_uns_cols:
+    orig_col = f"orig_{col}"
+    if orig_col in adata.uns:
+        adata.uns[orig_col] = adata.uns[col]
+    adata.uns[col] = par[col]
+    if orig_col in sdata.table.uns:
+        sdata.table.uns[orig_col] = sdata.table.uns[col]
+    sdata.table.uns[col] = par[col]
 
 # Save the single-cell data
 adata.write_h5ad(par["output_sc"], compression="gzip")
