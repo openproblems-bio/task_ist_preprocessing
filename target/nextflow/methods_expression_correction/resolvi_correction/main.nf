@@ -3531,7 +3531,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_expression_correction/resolvi_correction",
     "viash_version" : "0.9.0",
-    "git_commit" : "56ed6b778d3373530962210f4cc5df5dedfac8ed",
+    "git_commit" : "9651f11819ca63bf3046244b1f49d40cd4ced7e4",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3721,7 +3721,7 @@ supervised_resolvi = scvi.external.RESOLVI(adata_sp, semisupervised=True,
   n_hidden = par['n_hidden'], 
   encode_covariates = par['encode_covariates'], 
   downsample_counts = par['downsample_counts'])
-supervised_resolvi.train(max_epochs=50)
+supervised_resolvi.train(max_epochs=100)
 
 samples_corr = supervised_resolvi.sample_posterior(
         model=supervised_resolvi.module.model_corrected,

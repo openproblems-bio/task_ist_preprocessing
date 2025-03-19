@@ -621,7 +621,7 @@ build_info:
   output: "target/nextflow/metrics/similarity"
   executable: "target/nextflow/metrics/similarity/main.nf"
   viash_version: "0.9.0"
-  git_commit: "56ed6b778d3373530962210f4cc5df5dedfac8ed"
+  git_commit: "9651f11819ca63bf3046244b1f49d40cd4ced7e4"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

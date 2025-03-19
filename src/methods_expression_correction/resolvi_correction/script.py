@@ -49,7 +49,7 @@ supervised_resolvi = scvi.external.RESOLVI(adata_sp, semisupervised=True,
   n_hidden = par['n_hidden'], 
   encode_covariates = par['encode_covariates'], 
   downsample_counts = par['downsample_counts'])
-supervised_resolvi.train(max_epochs=50)
+supervised_resolvi.train(max_epochs=100)
 
 samples_corr = supervised_resolvi.sample_posterior(
         model=supervised_resolvi.module.model_corrected,

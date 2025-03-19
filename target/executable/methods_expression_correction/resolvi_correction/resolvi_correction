@@ -498,9 +498,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "scvi-tools"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_expression_correction resolvi_correction"
-LABEL org.opencontainers.image.created="2025-03-18T14:51:33Z"
+LABEL org.opencontainers.image.created="2025-03-19T14:30:09Z"
 LABEL org.opencontainers.image.source="https://github.com/scverse/scvi-tools"
-LABEL org.opencontainers.image.revision="56ed6b778d3373530962210f4cc5df5dedfac8ed"
+LABEL org.opencontainers.image.revision="9651f11819ca63bf3046244b1f49d40cd4ced7e4"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1207,7 +1207,7 @@ supervised_resolvi = scvi.external.RESOLVI(adata_sp, semisupervised=True,
   n_hidden = par['n_hidden'], 
   encode_covariates = par['encode_covariates'], 
   downsample_counts = par['downsample_counts'])
-supervised_resolvi.train(max_epochs=50)
+supervised_resolvi.train(max_epochs=100)
 
 samples_corr = supervised_resolvi.sample_posterior(
         model=supervised_resolvi.module.model_corrected,
