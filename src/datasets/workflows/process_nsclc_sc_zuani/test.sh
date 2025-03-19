@@ -17,7 +17,7 @@ fi
 
 cat > /tmp/params.yaml << HERE
 param_list:
-  - id: process_nsclc_zuani/process_nsclc_zuani
+  - id: process_nsclc_sc_zuani/process_nsclc_sc_zuani
 
 keep_files: false 
 

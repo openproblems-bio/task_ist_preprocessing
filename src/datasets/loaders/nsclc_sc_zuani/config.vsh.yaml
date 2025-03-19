@@ -27,12 +27,12 @@ argument_groups:
       - name: --dataset_summary
         type: string
         description: Short description of the dataset.
-        required: true
+        required: false
         default: "We performed single cell RNA sequencing (scRNA-seq) of NSCLC tumours and matched, adjacent, non-involved lung tissue from 24 patients. The data set is composed of approximately 900,000 cells from two different populations: CD235- (haematopoietic and non-haematopoietic cells depleted of erythrocytes), and CD45+ (all haematopoietic cells)." 
       - name: --dataset_description
         type: string
         description: Long description of the dataset.
-        required: true
+        required: false
         default: "We performed single cell RNA sequencing (scRNA-seq) of NSCLC tumours and matched, adjacent, non-involved lung tissue from 24 patients. The data set is composed of approximately 900,000 cells from two different populations: CD235- (haematopoietic and non-haematopoietic cells depleted of erythrocytes), and CD45+ (all haematopoietic cells)." 
       - name: --dataset_organism
         type: string
