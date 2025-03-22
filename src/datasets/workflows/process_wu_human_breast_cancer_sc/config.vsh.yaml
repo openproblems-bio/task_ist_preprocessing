@@ -1,92 +1,62 @@
-name: process_allen_brain_cell_atlas
+name: process_wu_human_breast_cancer_sc
 namespace: datasets/workflows
 
 argument_groups:
   - name: Inputs
     arguments:
       - type: string
-        name: --abca_version
+        name: --cancer_subtypes
         required: false
-        default: "20230630"
-        description: The version of the Allen Brain Cell Atlas to download data from.
-      - type: string
-        name: --regions
-        required: false
-        description: A list of brain regions to download data for. If not provided, data for all regions will be downloaded.
+        description: The cancer subtypes to download data for.
         multiple: true
-        default:
-          - CTXsp
-          - HPF
-          - HY
-          - Isocortex-1
-          - Isocortex-2
-          - Isocortex-3
-          - Isocortex-4
-          - MB
-          - OLF
-          - TH
+        default: 
+          - HER2+
+          - TNBC
+          - ER+
   - name: Caching settings
     arguments:
       - type: boolean
         name: --keep_files
-        required: true
+        required: false
         description: Whether to remove the downloaded files after processing.
+        default: false
   - name: Metadata
     arguments:
       - type: string
-        name: --id
+        name: --dataset_id
         description: "A unique identifier for the dataset"
-        required: true
+        required: false
+        default: "2021Wu_human_breast_cancer_sc"
       - name: --dataset_name
         type: string
         description: Nicely formatted name.
-        required: true
+        required: false
+        default: "2021Wu_human_breast_cancer_sc"
       - type: string
         name: --dataset_url
         description: Link to the original source of the dataset.
         required: false
+        default: "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE176078"
       - name: --dataset_reference
         type: string
         description: Bibtex reference of the paper in which the dataset was published.
         required: false
+        default: "https://doi.org/10.1038/s41588-021-00911-1"
       - name: --dataset_summary
         type: string
         description: Short description of the dataset.
-        required: true
+        required: false
+        default: "This dataset contains scRNA-seq data from human breast cancer cells."
       - name: --dataset_description
         type: string
         description: Long description of the dataset.
-        required: true
+        required: false
+        default: "This dataset contains scRNA-seq data from human breast cancer cells."
       - name: --dataset_organism
         type: string
         description: The organism of the sample in the dataset.
         required: false
-  - name: Sampling options
-    arguments:
-      - type: integer
-        name: --sample_n_obs
-        required: false
-        description: The number of cells to sample.
-      - type: string
-        name: --sample_obs_weight
-        required: false
-        description: The column to use for weighting the sampling of cells.
-        choices:
-          - donor_label
-          - anatomical_division_label
-          - class
-          - subclass
-      - type: string
-        name: --sample_transform
-        required: false
-        description: The transformation to apply to the column used for weighting the sampling of cells.
-        choices:
-          - log
-          - sqrt
-      - name: "--sample_seed"
-        type: "integer"
-        description: "A seed for the subsampling."
-        example: 123
+        default: "Homo sapiens"
   - name: Outputs
     arguments:
     - name: "--output_dataset"
@@ -107,9 +77,9 @@ resources:
   - path: /common/nextflow_helpers/helper.nf
 
 dependencies:
-  - name: datasets/loaders/allen_brain_cell_atlas
-  - name: datasets/processors/subsample
-    repository: openproblems
+  - name: datasets/loaders/wu_human_breast_cancer_sc
+#  - name: datasets/processors/subsample
+#    repository: openproblems
   - name: datasets/normalization/log_cp
     repository: openproblems
   - name: datasets/processors/pca
@@ -118,8 +88,8 @@ dependencies:
     repository: openproblems
   - name: datasets/processors/knn
     repository: openproblems
-  - name: utils/extract_uns_metadata
-    repository: openproblems
+  - name: h5ad/extract_uns_metadata
+    repository: core
 
 runners:
   - type: nextflow

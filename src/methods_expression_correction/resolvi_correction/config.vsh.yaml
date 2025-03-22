@@ -1,0 +1,57 @@
+__merge__: /src/api/comp_method_expression_correction.yaml
+
+name: resolvi_correction
+label: "resolVI Correction"
+summary: "Corrects the expression of genes using resolVI"
+description: >-
+  Corrects the expression of genes based on the resolVI method, a part of scvi-tools.
+links:
+  documentation: "https://docs.scvi-tools.org/en/latest/user_guide/models/resolvi.html"
+  repository: "https://github.com/scverse/scvi-tools"
+references:
+  doi: "10.1101/2025.01.20.634005"
+
+arguments:
+  - name: --celltype_key
+    required: false
+    direction: input
+    type: string
+    default: cell_type
+
+  - name: --n_hidden
+    required: false
+    direction: input
+    type: integer
+    default: 32
+
+  - name: --encode_covariates
+    required: false
+    direction: input
+    type: boolean
+    default: false
+
+  - name: --downsample_counts
+    required: false
+    direction: input
+    type: boolean
+    default: true
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+    setup:
+        - type: python
+          pypi: [scvi-tools]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, highcpu, highmem ]

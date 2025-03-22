@@ -1,27 +1,7 @@
+__merge__: /src/api/comp_data_preprocessor.yaml
+
 name: process_datasets
 namespace: workflows
-
-argument_groups:
-  - name: Inputs
-    arguments:
-      - name: "--input_sp"
-        __merge__: /src/api/file_common_ist.yaml
-        required: true
-        direction: input
-      - name: "--input_sc"
-        __merge__: /src/api/file_common_scrnaseq.yaml
-        required: true
-        direction: input
-  - name: Outputs
-    arguments:
-      - name: "--output_sp"
-        __merge__: /src/api/file_raw_ist.yaml
-        required: true
-        direction: output
-      - name: "--output_sc"
-        __merge__: /src/api/file_scrnaseq_reference.yaml
-        required: true
-        direction: output
 
 resources:
   - type: nextflow_script

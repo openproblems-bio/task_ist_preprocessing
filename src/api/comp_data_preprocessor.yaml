@@ -1,4 +1,3 @@
-namespace: data_processors
 info:
   type: data_processor
   type_info:
@@ -7,25 +6,58 @@ info:
     description: |
       This component processes a common single-cell and a common spatial transcriptomics
       dataset for the benchmark.
-arguments:
-  - name: "--input_sp"
-    __merge__: file_common_ist.yaml
-    direction: input
-    required: true
-  - name: "--input_sc"
-    __merge__: file_common_scrnaseq.yaml
-    direction: input
-    required: true
-  - name: "--output_sp"
-    __merge__: file_raw_ist.yaml
-    direction: output
-    required: true
-  - name: "--output_sc"
-    __merge__: file_scrnaseq_reference.yaml
-    direction: output
-    required: true
-test_resources:
-  - path: /resources_test/common
-    dest: resources_test/common
-  - type: python_script
-    path: /common/component_tests/run_and_check_output.py
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--input_sp"
+        __merge__: file_common_ist.yaml
+        required: true
+        direction: input
+      - name: "--input_sc"
+        __merge__: file_common_scrnaseq.yaml
+        required: true
+        direction: input
+  - name: Outputs
+    arguments:
+      - name: "--output_sp"
+        __merge__: file_raw_ist.yaml
+        required: true
+        direction: output
+        default: "$id/output_sp.h5ad"
+      - name: "--output_sc"
+        __merge__: file_scrnaseq_reference.yaml
+        required: true
+        direction: output
+        default: "$id/output_sc.h5ad"
+  - name: Combined Dataset Metadata
+    description: Metadata for the combined dataset that will be stored.
+    arguments:
+      - type: string
+        name: --dataset_id
+        description: "A unique identifier for the dataset"
+        required: true
+      - name: --dataset_name
+        type: string
+        description: Nicely formatted name.
+        required: true
+      - type: string
+        name: --dataset_url
+        description: Link to the original source of the dataset.
+        required: false
+      - name: --dataset_reference
+        type: string
+        description: Bibtex reference of the paper in which the dataset was published.
+        required: false
+      - name: --dataset_summary
+        type: string
+        description: Short description of the dataset.
+        required: true
+      - name: --dataset_description
+        type: string
+        description: Long description of the dataset.
+        required: true
+      - name: --dataset_organism
+        type: string
+        description: The organism of the sample in the dataset.
+        required: false
