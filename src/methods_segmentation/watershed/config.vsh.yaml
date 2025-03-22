@@ -1,0 +1,179 @@
+name: watershed
+label: "watershed Segmentation"
+summary: "Output of the segmentation method watershed"
+description: "Output of the segmentation method watershed"
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/theislab/txsim"
+references:
+  doi: "10.1109/34.87344"
+
+
+__merge__: /src/api/comp_method_segmentation.yaml 
+
+arguments:
+- name: --normalize_func
+  type: string
+  default: "gamma"
+- name: --normalize_gamma
+  type: integer
+  default: 1
+- name: --normalize_gain
+  type: integer
+  default: 1
+- name: --normalize_inv
+  type: boolean
+  default: False
+- name: --normalize_cutoff
+  type: double
+  default: 0.5
+- name: --contrast_adjustment_func
+  type: string
+  default: "equalize_adapthist"
+- name: --contrast_adjustment_kernel_size
+  type: string
+  default: "None"
+- name: --contrast_adjustment_clip_limit
+  type: double
+  default: 0.01
+- name: --contrast_adjustment_nbins
+  type: integer
+  default: 256
+- name: --contrast_adjustment_mask
+  type: string
+  default: "None"
+- name: --contrast_adjustment_in_range
+  type: string
+  default: "image"
+- name: --contrast_adjustment_out_range
+  type: string
+  default: "dtype"
+- name: --blur_func
+  type: string
+  default: "gaussian"
+- name: --blur_sigma
+  type: integer
+  default: 1
+- name: --blur_output
+  type: string
+  default: "None"
+- name: --blur_mode
+  type: string
+  default: "nearest"
+- name: --blur_cval
+  type: double
+  default: 0.0
+- name: --blur_preserve_range
+  type: boolean
+  default: False
+- name: --blur_truncate #keep as double
+  type: double
+  default: 4.0
+- name: --threshold_func
+  type: string
+  default: "local_otsu"
+- name: --threshold_nbins
+  type: integer
+  default: 256
+- name: --threshold_hist
+  type: string
+  default: "None"
+- name: --threshold_out
+  type: string
+  default: "None"
+- name: --threshold_mask
+  type: string
+  default: "None"
+- name: --threshold_shift_x
+  type: boolean
+  default: False
+- name: --threshold_shift_y
+  type: boolean
+  default: False
+- name: --threshold_shift_z
+  type: boolean
+  default: False
+- name: --threshold_footprint
+  type: string
+  default: "square"
+- name: --threshold_footprint_size
+  type: integer
+  default: 50
+- name: --distance_transform_func
+  type: string
+  default: "distance_transform_edt"
+- name: --distance_transform_sampling
+  type: string
+  default: "None"
+- name: --distance_transform_return_distances
+  type: boolean
+  default: True
+- name: --distance_transform_return_indices
+  type: boolean
+  default: False
+- name: --distance_transform_distances
+  type: string
+  default: "None"
+- name: --distance_transform_indices
+  type: string
+  default: "None"
+- name: --local_maxima_func
+  type: string
+  default: "find_local_maxima"
+- name: --local_maxima_min_distance
+  type: integer
+  default: 5
+- name: --post_processing_func_1
+  type: string
+  default: "remove_small_objects"
+- name: --post_processing_min_size_1
+  type: integer
+  default: 64
+- name: --post_processing_connectivity_1
+  type: integer
+  default: 1
+- name: --post_processing_out_1
+  type: string
+  default: "None"
+- name: --post_processing_func_2
+  type: string
+  default: "remove_small_holes"
+- name: --post_processing_area_threshold_2
+  type: integer
+  default: 64
+- name: --post_processing_connectivity_2
+  type: integer
+  default: 1
+- name: --post_processing_out_2
+  type: string
+  default: "None"
+- name: --bg_intensity_filter_bg_factor
+  type: double
+  default: 0.3
+- name: --bg_intensity_filter_window_size
+  type: integer
+  default: 1000
+- name: --bg_intensity_filter_bg_size
+  type: integer
+  default: 2000
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    setup:
+      - type: python
+        pypi: spatialdata
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
+
