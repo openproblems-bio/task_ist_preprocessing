@@ -14,8 +14,7 @@ cat > /tmp/params.yaml << HERE
 param_list:
 
   - id: "vizgen_merscope/2022_vizgen_human_breast_cancer_merfish/rep1"
-    gcloud_bucket: "vz-ffpe-showcase"
-    dataset_bucket_name: "HumanBreastCancerPatient1"
+    input: "gs://vz-ffpe-showcase/HumanBreastCancerPatient1"
     dataset_name: "Vizgen Human Breast Cancer MERFISH Patient1"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
     dataset_summary: "Human Breast Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -24,8 +23,7 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "vizgen_merscope/2022_vizgen_human_liver_cancer_merfish/rep1"
-    gcloud_bucket: "vz-ffpe-showcase"
-    dataset_bucket_name: "HumanLiverCancerPatient1"
+    input: "gs://vz-ffpe-showcase/HumanLiverCancerPatient1"
     dataset_name: "Vizgen Human Liver Cancer MERFISH Patient1"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
     dataset_summary: "Human Liver Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -34,8 +32,7 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "vizgen_merscope/2022_vizgen_human_liver_cancer_merfish/rep2"
-    gcloud_bucket: "vz-ffpe-showcase"
-    dataset_bucket_name: "HumanLiverCancerPatient2"
+    input: "gs://vz-ffpe-showcase/HumanLiverCancerPatient2"
     dataset_name: "Vizgen Human Liver Cancer MERFISH Patient2"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
     dataset_summary: "Human Liver Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -44,8 +41,7 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "vizgen_merscope/2022_vizgen_human_lung_cancer_merfish/rep1"
-    gcloud_bucket: "vz-ffpe-showcase"
-    dataset_bucket_name: "HumanLungCancerPatient1"
+    input: "gs://vz-ffpe-showcase/HumanLungCancerPatient1"
     dataset_name: "Vizgen Human Lung Cancer MERFISH Patient1"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
     dataset_summary: "Human Lung Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -54,8 +50,7 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "vizgen_merscope/2022_vizgen_human_lung_cancer_merfish/rep2"
-    gcloud_bucket: "vz-ffpe-showcase"
-    dataset_bucket_name: "HumanLungCancerPatient2"
+    input: "gs://vz-ffpe-showcase/HumanLungCancerPatient2"
     dataset_name: "Vizgen Human Lung Cancer MERFISH Patient2"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
     dataset_summary: "Human Lung Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -78,14 +73,11 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --config common/nextflow_helpers/labels_tw.config \
   --labels datasets,vizgen_merscope
 
-
-
 # More datasets that can be simply added:
 # TODO: Make a decision on replicate naming (see ovarian cancer replicate that has multiple slices)
 
 #   - id: "vizgen_merscope/2022_vizgen_human_colon_cancer_merfish/rep1"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanColonCancerPatient1"
+#     input: "gs://vz-ffpe-showcase/HumanColonCancerPatient1"
 #     dataset_name: "2022 Vizgen Human Colon Cancer MERFISH Patient1"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Colon Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -94,8 +86,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 #     segmentation_id: ["cell"]
 
 #   - id: "vizgen_merscope/2022_vizgen_human_colon_cancer_merfish/rep2"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanColonCancerPatient2"
+#     input: "gs://vz-ffpe-showcase/HumanColonCancerPatient2"
 #     dataset_name: "2022 Vizgen Human Colon Cancer MERFISH Patient2"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Colon Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -104,8 +95,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 #     segmentation_id: ["cell"]
 
 #   - id: "vizgen_merscope/2022_vizgen_human_melanoma_merfish/rep1"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanMelanomaPatient1"
+#     input: "gs://vz-ffpe-showcase/HumanMelanomaPatient1"
 #     dataset_name: "2022 Vizgen Human Melanoma MERFISH Patient1"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Melanoma data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -114,8 +104,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 #     segmentation_id: ["cell"]
 
 #   - id: "vizgen_merscope/2022_vizgen_human_melanoma_merfish/rep2"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanMelanomaPatient2"
+#     input: "gs://vz-ffpe-showcase/HumanMelanomaPatient2"
 #     dataset_name: "2022 Vizgen Human Melanoma MERFISH Patient2"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Melanoma data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -124,8 +113,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 #     segmentation_id: ["cell"]
 
 #   - id: "vizgen_merscope/2022_vizgen_human_ovarian_cancer_merfish/rep1"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanOvarianCancerPatient1"
+#     input: "gs://vz-ffpe-showcase/HumanOvarianCancerPatient1"
 #     dataset_name: "2022 Vizgen Human Ovarian Cancer MERFISH Patient1"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Ovarian Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -135,8 +123,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 
 #   # Patient 2 has multiple slices
 #   - id: "vizgen_merscope/2022_vizgen_human_ovarian_cancer_merfish/rep2_slice1"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanOvarianCancerPatient2Slice1"
+#     input: "gs://vz-ffpe-showcase/HumanOvarianCancerPatient2Slice1"
 #     dataset_name: "2022 Vizgen Human Ovarian Cancer MERFISH Patient2 Slice1"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Ovarian Cancer data (Slice 1) from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -145,8 +132,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 #     segmentation_id: ["cell"]
 
 #   - id: "vizgen_merscope/2022_vizgen_human_ovarian_cancer_merfish/rep2_slice2"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanOvarianCancerPatient2Slice2"
+#     input: "gs://vz-ffpe-showcase/HumanOvarianCancerPatient2Slice2"
 #     dataset_name: "2022 Vizgen Human Ovarian Cancer MERFISH Patient2 Slice2"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Ovarian Cancer data (Slice 2) from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -155,8 +141,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 #     segmentation_id: ["cell"]
 
 #   - id: "vizgen_merscope/2022_vizgen_human_ovarian_cancer_merfish/rep2_slice3"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanOvarianCancerPatient2Slice3"
+#     input: "gs://vz-ffpe-showcase/HumanOvarianCancerPatient2Slice3"
 #     dataset_name: "2022 Vizgen Human Ovarian Cancer MERFISH Patient2 Slice3"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Ovarian Cancer data (Slice 3) from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -165,8 +150,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 #     segmentation_id: ["cell"]
 
 #   - id: "vizgen_merscope/2022_vizgen_human_prostate_cancer_merfish/rep1"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanProstateCancerPatient1"
+#     input: "gs://vz-ffpe-showcase/HumanProstateCancerPatient1"
 #     dataset_name: "2022 Vizgen Human Prostate Cancer MERFISH Patient1"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Prostate Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -175,8 +159,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 #     segmentation_id: ["cell"]
 
 #   - id: "vizgen_merscope/2022_vizgen_human_prostate_cancer_merfish/rep2"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanProstateCancerPatient2"
+#     input: "gs://vz-ffpe-showcase/HumanProstateCancerPatient2"
 #     dataset_name: "2022 Vizgen Human Prostate Cancer MERFISH Patient2"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Prostate Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -185,8 +168,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 #     segmentation_id: ["cell"]
 
 #   - id: "vizgen_merscope/2022_vizgen_human_uterine_cancer_merfish/rep1"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanUterineCancerPatient1"
+#     input: "gs://vz-ffpe-showcase/HumanUterineCancerPatient1"
 #     dataset_name: "2022 Vizgen Human Uterine Cancer MERFISH Patient1"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Uterine Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -195,8 +177,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
 #     segmentation_id: ["cell"]
 
 #   - id: "vizgen_merscope/2022_vizgen_human_uterine_cancer_merfish/rep2"
-#     gcloud_bucket: "vz-ffpe-showcase"
-#     dataset_bucket_name: "HumanUterineCancerPatient2"
+#     input: "gs://vz-ffpe-showcase/HumanUterineCancerPatient2"
 #     dataset_name: "2022 Vizgen Human Uterine Cancer MERFISH Patient2"
 #     dataset_url: "https://info.vizgen.com/ffpe-showcase"
 #     dataset_summary: "Human Uterine Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
