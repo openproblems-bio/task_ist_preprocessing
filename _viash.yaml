@@ -72,8 +72,3 @@ repositories:
     type: github
     repo: openproblems-bio/openproblems
     tag: build/main
-  - name: core
-    type: github
-    repo: openproblems-bio/core
-    tag: build/main
-    path: viash/core

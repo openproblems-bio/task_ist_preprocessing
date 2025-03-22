@@ -51,8 +51,8 @@ resources:
     path: /_viash.yaml
 
 dependencies:
-  - name: h5ad/extract_uns_metadata
-    repository: core
+  - name: utils/extract_uns_metadata
+    repository: openproblems
   - name: methods_segmentation/custom_segmentation
   - name: methods_transcript_assignment/basic_transcript_assignment
   - name: methods_count_aggregation/basic_count_aggregation
