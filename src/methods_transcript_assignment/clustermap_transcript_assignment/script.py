@@ -19,7 +19,7 @@ par = {
   'input_segmentation': 'resources_test/task_ist_preprocessing/mouse_brain_combined/segmentation.zarr',
   'transcripts_key': 'transcripts',
   'coordinate_system': 'global',
-  'output': 'basic_assigned_transcripts.zarr',
+  'output': 'clustermap_assigned_transcripts.zarr',
   'window_size': 700,
   'use_dapi': True,
   'xy_radius': 40,

@@ -137,7 +137,14 @@ engines:
     setup:
       - type: python
         pypi: [anndata, PyYAML, imagecodecs, fastdist, h5py, imageio, natsort, networkx, opencv-python, pynndescent, pywavelets, scanpy, scikit-image, sinfo, stdlib-list, tifffile, tqdm, umap-learn, xlrd]
-        github: [wanglab-broad/ClusterMap]
+      - type: docker
+        run: |
+          apt-get update && \
+          apt-get install -y libgl1-mesa-glx libglib2.0-0 && \
+          git clone https://github.com/wanglab-broad/ClusterMap.git && \
+          cd ClusterMap && \
+          pip install -e .
+      #  #github: [wanglab-broad/ClusterMap]
   - type: native
 
 runners:
