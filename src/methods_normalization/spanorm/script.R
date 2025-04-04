@@ -3,12 +3,14 @@ library(SingleCellExperiment)
 library(SpatialExperiment)
 library(zellkonverter)
 
+## VIASH START
 par <- list(
-  "input" = 'resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad',
+  "input_spatial_aggregated_counts" = 'resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad',
   "output" = 'tmp/spatial_spanormed_counts.h5ad'
 )
+## VIASH END
 
-sce <- readH5AD(par$input)
+sce <- readH5AD(par$input_spatial_aggregated_counts)
 sce <- as(sce, "SpatialExperiment")
 
 centroid_x <- colData(sce)$centroid_x
