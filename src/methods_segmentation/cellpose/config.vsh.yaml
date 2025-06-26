@@ -18,6 +18,9 @@ arguments:
   - name: --model_type
     type: string
     default: "cyto"
+  - name: --resample
+    type: boolean
+    default: True
   - name: --channel_axis
     type: string
     default: "None"
@@ -35,7 +38,7 @@ arguments:
     default: "None"
   - name: --diameter
     type: double
-    default: 30.0
+    default: 30.0 #default should be None with cellpose v4
   - name: --do_3D
     type: boolean
     default: False
@@ -54,12 +57,9 @@ arguments:
   - name: --tile_overlap
     type: double
     default: 0.1
-  - name: --resample
-    type: boolean
-    default: True
-  - name: --interp
-    type: boolean
-    default: True
+  #- name: --interp #Seems to be removed in v4
+  #  type: boolean
+  #  default: True
   - name: --flow_threshold
     type: double
     default: 0.4
