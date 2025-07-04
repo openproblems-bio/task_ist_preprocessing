@@ -1,4 +1,4 @@
-viash_version: 0.9.0
+viash_version: 0.9.4
 
 name: task_ist_preprocessing
 organization: openproblems-bio
@@ -20,15 +20,15 @@ description: |
   to solve. Outline the input data types, the expected output, and any assumptions or constraints.
   Be sure to explain any terminology or concepts that are essential for understanding the task.
 
-  Explain the motivation behind your proposed task. Describe the biological or computational 
+  Explain the motivation behind your proposed task. Describe the biological or computational
   problem you aim to address and why it's important. Discuss the current state of research in
-  this area and any gaps or challenges that your task could help address. This section 
+  this area and any gaps or challenges that your task could help address. This section
   should convince readers of the significance and relevance of your task.
 
 # references:
 #   doi:
 #     - 10.21203/rs.3.rs-4181617/v1
-  
+
 info:
   image: The name of the image file to use for the component on the website.
   test_resources:
@@ -42,10 +42,10 @@ info:
       path: s3://openproblems-data/resources_test/task_ist_preprocessing/
       dest: resources_test/task_ist_preprocessing
 
-authors: 
+authors:
   - name: Louis Kümmerle
     roles: [ author, maintainer ]
-    info: 
+    info:
       github: LouisK92
       orcid: 0000-0002-9193-1243
   - name: Malte D. Luecken
