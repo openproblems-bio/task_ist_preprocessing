@@ -1,4 +1,4 @@
-viash_version: 0.9.0
+viash_version: 0.9.4
 name: task_ist_preprocessing
 organization: openproblems-bio
 version: build_main
@@ -11,7 +11,15 @@ links:
 label: iST Preprocessing
 summary: Benchmarking approaches for preprocessing imaging-based spatial transcriptomics
 # TODO: Add a description.
-description: "Provide a clear and concise description of your task, detailing the specific problem it aims\nto solve. Outline the input data types, the expected output, and any assumptions or constraints.\nBe sure to explain any terminology or concepts that are essential for understanding the task.\n\nExplain the motivation behind your proposed task. Describe the biological or computational \nproblem you aim to address and why it's important. Discuss the current state of research in\nthis area and any gaps or challenges that your task could help address. This section \nshould convince readers of the significance and relevance of your task.\n"
+description: |
+  Provide a clear and concise description of your task, detailing the specific problem it aims
+  to solve. Outline the input data types, the expected output, and any assumptions or constraints.
+  Be sure to explain any terminology or concepts that are essential for understanding the task.
+
+  Explain the motivation behind your proposed task. Describe the biological or computational
+  problem you aim to address and why it's important. Discuss the current state of research in
+  this area and any gaps or challenges that your task could help address. This section
+  should convince readers of the significance and relevance of your task.
 # references:
 #   doi:
 #     - 10.21203/rs.3.rs-4181617/v1
@@ -55,8 +63,3 @@ repositories:
     type: github
     repo: openproblems-bio/openproblems
     tag: build/main
-  - name: core
-    type: github
-    repo: openproblems-bio/core
-    tag: build/main
-    path: viash/core

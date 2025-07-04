@@ -1,5 +1,3 @@
-include { findArgumentSchema } from "${meta.resources_dir}/helper.nf"
-
 workflow auto {
   findStates(params, meta.config)
     | meta.workflow.run(
@@ -16,12 +14,19 @@ workflow run_wf {
 
     | process_dataset_comp.run(
       fromState: [
-        input_sp: "input_sp",
-        input_sc: "input_sc"
+        "input_sc",
+        "input_sp",
+        "dataset_id",
+        "dataset_name",
+        "dataset_url",
+        "dataset_reference",
+        "dataset_summary",
+        "dataset_description",
+        "dataset_organism"
       ],
       toState: [
-        output_sc: "output_sc",
-        output_sp: "output_sp"
+        "output_sc",
+        "output_sp"
       ]
     )
 

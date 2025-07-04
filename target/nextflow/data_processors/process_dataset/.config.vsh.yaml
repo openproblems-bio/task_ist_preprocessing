@@ -2,7 +2,7 @@ name: "process_dataset"
 namespace: "data_processors"
 version: "build_main"
 argument_groups:
-- name: "Arguments"
+- name: "Inputs"
   arguments:
   - type: "file"
     name: "--input_sp"
@@ -429,6 +429,8 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
+- name: "Outputs"
+  arguments:
   - type: "file"
     name: "--output_sp"
     label: "Raw iST Dataset"
@@ -590,6 +592,8 @@ argument_groups:
           required: true
     example:
     - "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr"
+    default:
+    - "$id/output_sp.h5ad"
     must_exist: true
     create_parent: true
     required: true
@@ -847,10 +851,71 @@ argument_groups:
           multiple: true
     example:
     - "resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad"
+    default:
+    - "$id/output_sc.h5ad"
     must_exist: true
     create_parent: true
     required: true
     direction: "output"
+    multiple: false
+    multiple_sep: ";"
+- name: "Combined Dataset Metadata"
+  description: "Metadata for the combined dataset that will be stored."
+  arguments:
+  - type: "string"
+    name: "--dataset_id"
+    description: "A unique identifier for the dataset"
+    info: null
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_name"
+    description: "Nicely formatted name."
+    info: null
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_url"
+    description: "Link to the original source of the dataset."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_reference"
+    description: "Bibtex reference of the paper in which the dataset was published."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_summary"
+    description: "Short description of the dataset."
+    info: null
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_description"
+    description: "Long description of the dataset."
+    info: null
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_organism"
+    description: "The organism of the sample in the dataset."
+    info: null
+    required: false
+    direction: "input"
     multiple: false
     multiple_sep: ";"
 resources:
@@ -865,6 +930,15 @@ test_resources:
   path: "run_and_check_output.py"
   is_executable: true
 info:
+  test_setup:
+    run:
+      dataset_id: "test_dataset"
+      dataset_name: "Test dataset"
+      dataset_summary: "A test dataset"
+      dataset_description: "A test dataset"
+      dataset_organism: "mus_musculus"
+      dataset_url: "https://example.com"
+      dataset_reference: "10.0123/456789123"
   type: "data_processor"
   type_info:
     label: "Data preprocessor"
@@ -872,16 +946,14 @@ info:
     description: "This component processes a common single-cell and a common spatial\
       \ transcriptomics\ndataset for the benchmark.\n"
 status: "enabled"
+scope:
+  image: "public"
+  target: "public"
 repositories:
 - type: "github"
   name: "openproblems"
   repo: "openproblems-bio/openproblems"
   tag: "build/main"
-- type: "github"
-  name: "core"
-  repo: "openproblems-bio/core"
-  tag: "build/main"
-  path: "viash/core"
 license: "MIT"
 links:
   repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
@@ -920,7 +992,7 @@ runners:
 engines:
 - type: "docker"
   id: "docker"
-  image: "openproblems/base_python:1.0.0"
+  image: "openproblems/base_python:1"
   namespace_separator: "/"
   setup:
   - type: "python"
@@ -938,8 +1010,8 @@ build_info:
   engine: "docker|native"
   output: "target/nextflow/data_processors/process_dataset"
   executable: "target/nextflow/data_processors/process_dataset/main.nf"
-  viash_version: "0.9.0"
-  git_commit: "9651f11819ca63bf3046244b1f49d40cd4ced7e4"
+  viash_version: "0.9.4"
+  git_commit: "d941f5b9254f7ff60e86128e794b406f16ca84f1"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"
@@ -950,11 +1022,11 @@ package_config:
     \ specific problem it aims\nto solve. Outline the input data types, the expected\
     \ output, and any assumptions or constraints.\nBe sure to explain any terminology\
     \ or concepts that are essential for understanding the task.\n\nExplain the motivation\
-    \ behind your proposed task. Describe the biological or computational \nproblem\
+    \ behind your proposed task. Describe the biological or computational\nproblem\
     \ you aim to address and why it's important. Discuss the current state of research\
     \ in\nthis area and any gaps or challenges that your task could help address.\
-    \ This section \nshould convince readers of the significance and relevance of\
-    \ your task.\n"
+    \ This section\nshould convince readers of the significance and relevance of your\
+    \ task.\n"
   info:
     image: "The name of the image file to use for the component on the website."
     test_resources:
@@ -972,12 +1044,7 @@ package_config:
     name: "openproblems"
     repo: "openproblems-bio/openproblems"
     tag: "build/main"
-  - type: "github"
-    name: "core"
-    repo: "openproblems-bio/core"
-    tag: "build/main"
-    path: "viash/core"
-  viash_version: "0.9.0"
+  viash_version: "0.9.4"
   source: "src"
   target: "target"
   config_mods:
