@@ -10,28 +10,36 @@ par <- list(
 )
 ## VIASH END
 
+# Read the input h5ad file and convert to SingleCellExperiment
 sce <- readH5AD(par$input_spatial_aggregated_counts)
+# Convert to SpatialExperiment for SpaNorm
 sce <- as(sce, "SpatialExperiment")
 
+# Extract spatial coordinates
 centroid_x <- colData(sce)$centroid_x
 centroid_y <- colData(sce)$centroid_y
 
+# Create spatial coordinates matrix for SpaNorm
 spatial_coords <- matrix(c(centroid_x, centroid_y), ncol = 2)
 
+# Set spatial coordinates in the SpatialExperiment object
 spatialCoords(sce) <- spatial_coords
 
-keep = filterGenes(sce, 0.05)
-sce <- sce[keep, ]
+# Apply SpaNorm normalization to the spatial data
 result <- SpaNorm(sce)
 
-main_assay <- assay(result, "X")
-row_data <- rowData(result)
-col_data <- colData(result)
+# Get the normalized matrix from SpaNorm result (log-transformed normalized counts)
+normalized_matrix <- assay(result, "logcounts")
 
+# Create final SCE with all original layers preserved
 final_sce <- SingleCellExperiment(
-  assays = list(X = main_assay),
-  rowData = row_data,
-  colData = col_data
+  assays = assays(sce),  # Preserve all original assays
+  rowData = rowData(sce),
+  colData = colData(sce)
 )
 
+# Add the normalized matrix as a new layer called 'normalized'
+assay(final_sce, "normalized") <- normalized_matrix
+
+# Write the final object to h5ad format
 zellkonverter::writeH5AD(final_sce, par$output)
