@@ -16,10 +16,20 @@ resources:
 
 engines:
   - type: docker
-    image: openproblems/base_r:1.0.0
+    image: openproblems/base_r:1
     setup:
       - type: r
         bioc: [SpaNorm, zellkonverter]
+      #- type: r
+      #  bioc: [SummarizedExperiment,SingleCellExperiment,SpatialExperiment]
+      #  bioc_force_install: true
+      - type: docker
+        run: |
+          Rscript -e "BiocManager::install('SingleCellExperiment', type = 'source', force = TRUE, ask = FALSE)"
+      # This can probably be left out again in the future. It currently fixes a bug described in these issues:
+      # https://github.com/drighelli/SpatialExperiment/issues/171
+      # https://github.com/satijalab/seurat/issues/9889
+      # The reinstall of SingleCellExperiment triggers the correct re-install of SpatialExperiment.
   - type: native
 
 runners:
