@@ -8,4 +8,4 @@ Download and process the single cell data:
 Download and process the spatial data:
 `bash 2023_10x_mouse_brain_xenium_rep1.sh`
 
-Combine the two datasets and run the ist preprocessing pipeline once with generic methods to create example outputs after each step.
+Combine the two datasets and run the ist preprocessing pipeline once with generic methods to create example outputs after each step: `test_pipeline.sh`
