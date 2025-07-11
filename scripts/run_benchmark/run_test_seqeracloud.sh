@@ -27,7 +27,7 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --workspace 53907369739130 \
   --params-file /tmp/params.yaml \
   --config common/nextflow_helpers/labels_tw.config \
-  --labels task_template,test
+  --labels task_ist_preprocessing,test
 
 aws s3 sync \
   s3://openproblems-nextflow/temp/results \

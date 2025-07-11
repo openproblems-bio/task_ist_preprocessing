@@ -39,6 +39,6 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --config common/nextflow_helpers/labels_tw.config \
   --labels datasets,wu_human_breast_cancer_sc
 
-aws s3 sync \
-  s3://openproblems-data/resources/datasets/wu_human_breast_cancer_sc/2021Wu_human_breast_cancer_sc \
-  resources/datasets/wu_human_breast_cancer_sc/2021Wu_human_breast_cancer_sc
+#aws s3 sync \
+#  s3://openproblems-data/resources/datasets/wu_human_breast_cancer_sc/2021Wu_human_breast_cancer_sc \
+#  resources/datasets/wu_human_breast_cancer_sc/2021Wu_human_breast_cancer_sc
