@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders tenx_xenium"
-LABEL org.opencontainers.image.created="2025-07-09T07:06:45Z"
+LABEL org.opencontainers.image.created="2025-07-11T15:23:27Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="11d6913cbefddcf5ac0b277b853dc75e1aca5b5b"
+LABEL org.opencontainers.image.revision="dfec587ae7283f9542ce896b0dd10d76cb8bf93c"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

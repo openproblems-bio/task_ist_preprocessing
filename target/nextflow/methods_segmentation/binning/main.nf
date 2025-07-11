@@ -3495,7 +3495,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/binning",
     "viash_version" : "0.9.4",
-    "git_commit" : "11d6913cbefddcf5ac0b277b853dc75e1aca5b5b",
+    "git_commit" : "dfec587ae7283f9542ce896b0dd10d76cb8bf93c",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

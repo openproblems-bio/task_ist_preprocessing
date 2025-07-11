@@ -3807,7 +3807,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "11d6913cbefddcf5ac0b277b853dc75e1aca5b5b",
+    "git_commit" : "dfec587ae7283f9542ce896b0dd10d76cb8bf93c",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4323,8 +4323,8 @@ workflow run_wf {
           // dataset_sp_id: ..., // todo: extract this from the dataset
           method_ids: method_ids,
           steps: state.steps,
-          metric_ids: state.score_uns.metrics_ids,
-          metrics_values: state.score_uns.metrics_values
+          metric_ids: state.score_uns.metric_ids,
+          metrics_values: state.score_uns.metric_values
         ]
       }
       def score_uns_yaml_blob = toYamlBlob(score_uns)
