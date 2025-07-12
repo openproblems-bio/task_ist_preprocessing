@@ -17,8 +17,9 @@ fi
 
 cat > /tmp/params.yaml << HERE
 param_list:
-  - id: process_nsclc_sc_zuani/process_nsclc_sc_zuani
-
+  - id: process_zuani_human_nsclc_sc/2024Zuani_human_nsclc_sc
+        
+input: "ftp://anonymous@ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad"
 keep_files: false 
 
 output_dataset: "\$id/dataset.h5ad"
@@ -29,7 +30,7 @@ HERE
 
 # Run nextflow workflow locally
 nextflow run . \
-  -main-script target/nextflow/datasets/workflows/process_nsclc_sc_zuani/main.nf \
+  -main-script target/nextflow/datasets/workflows/process_zuani_human_nsclc_sc/main.nf \
   -params-file /tmp/params.yaml \
   -profile docker \
   -c common/nextflow_helpers/labels_ci.config

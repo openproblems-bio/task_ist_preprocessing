@@ -23,9 +23,9 @@ workflow run_wf {
       [id, new_state]
     }
 
-    | nsclc_sc_zuani.run(
+    | zuani_human_nsclc_sc.run(
       fromState: [
-        "cancer_subtypes",
+        "input",
         "dataset_id",
         "dataset_name",
         "dataset_url",

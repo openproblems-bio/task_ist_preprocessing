@@ -1,7 +1,14 @@
-name: process_nsclc_sc_zuani
-namespace: datasets/workflows
+name: zuani_human_nsclc_sc
+namespace: datasets/loaders
 
 argument_groups:
+  - name: Inputs
+    arguments:
+      - type: file
+        name: --input
+        description: Path to the dataset
+        required: true
+        example: "ftp://anonymous@ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad"
   - name: Caching settings
     arguments:
       - type: boolean
@@ -15,12 +22,12 @@ argument_groups:
         name: --dataset_id
         description: "A unique identifier for the dataset"
         required: false
-        default: "E-MTAB-13526" 
+        default: "2024Zuani_human_nsclc_sc" 
       - name: --dataset_name
         type: string
         description: Nicely formatted name.
         required: false
-        default: "E-MTAB-13526" 
+        default: "2024Zuani_human_nsclc_sc" 
       - type: string
         name: --dataset_url
         description: Link to the original source of the dataset.
@@ -34,12 +41,12 @@ argument_groups:
       - name: --dataset_summary
         type: string
         description: Short description of the dataset.
-        required: true
-        default: "We performed single cell RNA sequencing (scRNA-seq) of NSCLC tumours and matched, adjacent, non-involved lung tissue from 24 patients. The data set is composed of approximately 900,000 cells from two different populations: CD235- (haematopoietic and non-haematopoietic cells depleted of erythrocytes), and CD45+ (all haematopoietic cells)." 
+        required: false
+        default: "Single cell RNA sequencing atlas of non-small cell lung cancer (NSCLC)" 
       - name: --dataset_description
         type: string
         description: Long description of the dataset.
-        required: true
+        required: false
         default: "We performed single cell RNA sequencing (scRNA-seq) of NSCLC tumours and matched, adjacent, non-involved lung tissue from 24 patients. The data set is composed of approximately 900,000 cells from two different populations: CD235- (haematopoietic and non-haematopoietic cells depleted of erythrocytes), and CD45+ (all haematopoietic cells)." 
       - name: --dataset_organism
         type: string
@@ -52,35 +59,20 @@ argument_groups:
       __merge__: /src/api/file_common_scrnaseq.yaml
       direction: output
       required: true
-      default: "$id/dataset.h5ad"
-    - name: "--output_meta"
-      direction: "output"
-      type: file
-      description: "Dataset metadata"
-      default: "$id/dataset_meta.yaml"
 
 resources:
-  - type: nextflow_script
-    path: main.nf
-    entrypoint: run_wf
-  - path: /common/nextflow_helpers/helper.nf
+  - type: python_script
+    path: script.py
 
-dependencies:
-  - name: datasets/loaders/nsclc_sc_zuani
-#  - name: datasets/processors/subsample
-#    repository: openproblems
-  - name: datasets/normalization/log_cp
-    repository: openproblems
-  - name: datasets/processors/pca
-    repository: openproblems
-  - name: datasets/processors/hvg
-    repository: openproblems
-  - name: datasets/processors/knn
-    repository: openproblems
-  - name: h5ad/extract_uns_metadata
-    repository: core
+engines:
+  - type: docker
+    image: openproblems/base_python:1.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
 
 runners:
+  - type: executable
   - type: nextflow
     directives:
-      label: [midcpu, midmem, hightime]
+      label: [veryhighmem, midcpu, midtime]
