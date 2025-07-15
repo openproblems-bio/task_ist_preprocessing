@@ -64,8 +64,7 @@ for dataset in "${DATASETS_TO_PROCESS[@]}"; do
             cat >> /tmp/params.yaml << 'HERE'
 
   - id: "vizgen_merscope/2022_vizgen_human_breast_cancer_merfish/rep1"
-    gcloud_bucket: "vz-ffpe-showcase"
-    dataset_bucket_name: "HumanBreastCancerPatient1"
+    input: "gs://vz-ffpe-showcase/HumanBreastCancerPatient1"
     dataset_name: "Vizgen Human Breast Cancer MERFISH Patient1"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
     dataset_summary: "Human Breast Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -78,8 +77,7 @@ HERE
             cat >> /tmp/params.yaml << 'HERE'
 
   - id: "vizgen_merscope/2022_vizgen_human_liver_cancer_merfish/rep1"
-    gcloud_bucket: "vz-ffpe-showcase"
-    dataset_bucket_name: "HumanLiverCancerPatient1"
+    input: "gs://vz-ffpe-showcase/HumanLiverCancerPatient1"
     dataset_name: "Vizgen Human Liver Cancer MERFISH Patient1"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
     dataset_summary: "Human Liver Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -92,8 +90,7 @@ HERE
             cat >> /tmp/params.yaml << 'HERE'
 
   - id: "vizgen_merscope/2022_vizgen_human_liver_cancer_merfish/rep2"
-    gcloud_bucket: "vz-ffpe-showcase"
-    dataset_bucket_name: "HumanLiverCancerPatient2"
+    input: "gs://vz-ffpe-showcase/HumanLiverCancerPatient2"
     dataset_name: "Vizgen Human Liver Cancer MERFISH Patient2"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
     dataset_summary: "Human Liver Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -106,8 +103,7 @@ HERE
             cat >> /tmp/params.yaml << 'HERE'
 
   - id: "vizgen_merscope/2022_vizgen_human_lung_cancer_merfish/rep1"
-    gcloud_bucket: "vz-ffpe-showcase"
-    dataset_bucket_name: "HumanLungCancerPatient1"
+    input: "gs://vz-ffpe-showcase/HumanLungCancerPatient1"
     dataset_name: "Vizgen Human Lung Cancer MERFISH Patient1"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
     dataset_summary: "Human Lung Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
@@ -120,8 +116,7 @@ HERE
             cat >> /tmp/params.yaml << 'HERE'
 
   - id: "vizgen_merscope/2022_vizgen_human_lung_cancer_merfish/rep2"
-    gcloud_bucket: "vz-ffpe-showcase"
-    dataset_bucket_name: "HumanLungCancerPatient2"
+    input: "gs://vz-ffpe-showcase/HumanLungCancerPatient2"
     dataset_name: "Vizgen Human Lung Cancer MERFISH Patient2"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
     dataset_summary: "Human Lung Cancer data from the MERSCOPE FFPE Human Immuno-Oncology Data Release."
