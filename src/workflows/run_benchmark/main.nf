@@ -397,8 +397,8 @@ workflow run_wf {
           // dataset_sp_id: ..., // todo: extract this from the dataset
           method_ids: method_ids,
           steps: state.steps,
-          metric_ids: state.score_uns.metrics_ids,
-          metrics_values: state.score_uns.metrics_values
+          metric_ids: state.score_uns.metric_ids,
+          metrics_values: state.score_uns.metric_values
         ]
       }
       def score_uns_yaml_blob = toYamlBlob(score_uns)

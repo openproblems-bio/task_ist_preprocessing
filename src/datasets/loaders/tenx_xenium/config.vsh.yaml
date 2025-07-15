@@ -56,7 +56,7 @@ resources:
 
 engines:
   - type: docker
-    image: openproblems/base_python:1.0.0
+    image: openproblems/base_python:1
     setup:
       - type: python
         pypi:
@@ -67,4 +67,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [highmem, midcpu, midtime]
+      label: [midmem, midcpu, midtime]
