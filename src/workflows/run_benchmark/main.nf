@@ -25,6 +25,16 @@ workflow run_wf {
       [id, new_state]
     }
 
+    // extract the dataset metadata
+    | extract_uns_metadata.run(
+      fromState: [input: "input_sc"],
+      toState: { id, output, state ->
+        state + [
+          dataset_uns: readYaml(output.output).uns
+        ]
+      }
+    )
+
   /****************************************
    *       RUN SEGMENTATION METHODS       *
    ****************************************/
@@ -381,15 +391,15 @@ workflow run_wf {
           state.steps.collectMany{step ->
             step.type in ["dataset", "metric"] ? [] : [step.component_id]
           }
-        def new_metadata = [
+        return [
           dataset_id: state.orig_id,
           // dataset_sc_id: ..., // todo: extract this from the dataset
           // dataset_sp_id: ..., // todo: extract this from the dataset
           method_ids: method_ids,
-          metric_id: metric_id,
-          steps: state.steps
+          steps: state.steps,
+          metric_ids: state.score_uns.metric_ids,
+          metrics_values: state.score_uns.metric_values
         ]
-        new_metadata + state.score_uns
       }
       def score_uns_yaml_blob = toYamlBlob(score_uns)
       def score_uns_file = tempFile("score_uns.yaml")
@@ -403,7 +413,7 @@ workflow run_wf {
    * GENERATE OUTPUT YAML FILES *
    ******************************/
   // extract the dataset metadata
-  meta_ch = input_ch
+  meta_ch = init_ch
   
     // store join id
     | map{ id, state -> 
@@ -414,18 +424,11 @@ workflow run_wf {
     | joinStates { ids, states ->
       // TODO: determine what to store in the dataset_uns file
 
+      // store the dataset metadata in a file
+      def dataset_uns = states.collect{it.dataset_uns}
+      def dataset_uns_yaml_blob = toYamlBlob(dataset_uns)
       def dataset_uns_file = tempFile("dataset_uns.yaml")
-      dataset_uns_file.write("")
-
-      // // store the dataset metadata in a file
-      // def dataset_uns = states.collect{state ->
-      //   def uns = state.dataset_uns.clone()
-      //   uns.remove("normalization_id")
-      //   uns
-      // }
-      // def dataset_uns_yaml_blob = toYamlBlob(dataset_uns)
-      // def dataset_uns_file = tempFile("dataset_uns.yaml")
-      // dataset_uns_file.write(dataset_uns_yaml_blob)
+      dataset_uns_file.write(dataset_uns_yaml_blob)
 
       // store the method configs in a file
       def methods =

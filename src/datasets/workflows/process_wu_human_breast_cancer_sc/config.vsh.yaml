@@ -88,8 +88,10 @@ dependencies:
     repository: openproblems
   - name: datasets/processors/knn
     repository: openproblems
-  - name: h5ad/extract_uns_metadata
-    repository: core
+  - name: utils/extract_uns_metadata
+    repository: openproblems
+#  - name: h5ad/extract_uns_metadata
+#    repository: core
 
 runners:
   - type: nextflow

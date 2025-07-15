@@ -1,15 +1,32 @@
+__merge__: /src/api/comp_data_preprocessor.yaml
+
 name: process_dataset
 namespace: data_processors
 
-__merge__: /src/api/comp_data_preprocessor.yaml
+info:
+  test_setup:
+    run:
+      dataset_id: "test_dataset"
+      dataset_name: "Test dataset"
+      dataset_summary: "A test dataset"
+      dataset_description: "A test dataset"
+      dataset_organism: "mus_musculus"
+      dataset_url: "https://example.com"
+      dataset_reference: "10.0123/456789123"
 
 resources:
   - type: python_script
     path: script.py
 
+test_resources:
+  - path: /resources_test/common
+    dest: resources_test/common
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+
 engines:
   - type: docker
-    image: openproblems/base_python:1.0.0
+    image: openproblems/base_python:1
     __merge__: 
       - /src/base/setup_spatialdata_partial.yaml
   - type: native

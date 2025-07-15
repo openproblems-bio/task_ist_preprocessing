@@ -1,21 +1,17 @@
 # https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard
 
 import os
-import stat
 from pathlib import Path
-import subprocess
 from datetime import datetime
 import spatialdata as sd
 import spatialdata_io as sdio
 
 ## VIASH START
 par = {
-    "gcloud_bucket": "vz-ffpe-showcase",
-    "dataset_bucket_name": "HumanBreastCancerPatient1",
+    "input": "path/to/HumanBreastCancerPatient1",
     "segmentation_id": ["cell"],
     "output": "output.zarr",
-    "id": "vizgen_merscope/2022_vizgen_human_breast_cancer_merfish/rep1",
-    #"dataset_id": "2022Vizgen_human_breast_cancer_Patient1",
+    "dataset_id": "vizgen_merscope/2022_vizgen_human_breast_cancer_merfish/rep1",
     "dataset_name": "value",
     "dataset_url": "https://vizgen.com/data-release-program/",
     "dataset_reference": "value",
@@ -29,20 +25,7 @@ par = {
 
 assert ("cell" in par["segmentation_id"]) and (len(par["segmentation_id"]) == 1), "Currently cell labels are definitely assigned in this script. And merscope does not provide other segmentations."
 
-
 t0 = datetime.now()
-
-# Download raw data
-print(datetime.now() - t0, "Download raw data", flush=True)
-download_script = f"{meta['resources_dir']}/download.sh" #https://viash.io/guide/component/variables.html#meta-variables-in-meta
-BUCKET_NAME = par['gcloud_bucket']
-DATASET = par["dataset_bucket_name"]
-OUT_DIR = meta["temp_dir"]
-DRY_RUN = "false"
-
-# Run the download script
-out = subprocess.run([download_script, BUCKET_NAME, DATASET, OUT_DIR, DRY_RUN], check=True, capture_output=True, text=True)
-print(out.stdout, flush=True)
 
 # If the cell polygons are in the old format (cell_boundaries/*.hdf5 instead of cell_boundaries.parquet) the raw data
 # needs to be modified for the spatialdata-io loader 
@@ -92,12 +75,13 @@ def read_boundary_hdf5(folder):
     data.to_csv(count_path)
     obs.to_csv(obs_path)
 
-if not (Path(OUT_DIR) / "cell_boundaries.parquet").exists():
-    read_boundary_hdf5(str(OUT_DIR))
+RAW_DATA_DIR = Path(par["input_dir"])
+
+if not (RAW_DATA_DIR / "cell_boundaries.parquet").exists():
+    read_boundary_hdf5(str(RAW_DATA_DIR))
 
 
 # Generate spatialdata.zarr
-RAW_DATA_DIR = Path(OUT_DIR)
 
 #########################################
 # Convert raw files to spatialdata zarr #
@@ -176,14 +160,8 @@ del sdata["cell_labels"].attrs['label_index_to_category']
 print(datetime.now() - t0, "Add info to metadata table", flush=True)
 
 #TODO: values as input variables
-sdata["metadata"].uns["dataset_id"] = par["id"]
-sdata["metadata"].uns["dataset_name"] = par["dataset_name"]
-sdata["metadata"].uns["dataset_url"] = par["dataset_url"]
-sdata["metadata"].uns["dataset_reference"] = par["dataset_reference"]
-sdata["metadata"].uns["dataset_summary"] = par["dataset_summary"]
-sdata["metadata"].uns["dataset_description"] = par["dataset_description"]
-sdata["metadata"].uns["dataset_organism"] = par["dataset_organism"]
-sdata["metadata"].uns["segmentation_id"] = par["segmentation_id"]
+for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism", "segmentation_id"]:
+    sdata["metadata"].uns[key] = par[key]
 
 #########
 # Write #

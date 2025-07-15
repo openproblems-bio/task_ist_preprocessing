@@ -10,7 +10,7 @@ import tarfile
 par = {
     "cancer_subtypes": ['HER2+', 'TNBC', 'ER+'],
     "keep_files": True, # wether to delete the intermediate files
-    "output": "2021Wu_human_breast_cancer_sc.h5ad",
+    "output": "./temp/datasets/2021Wu_human_breast_cancer_sc.h5ad",
     "dataset_id": "2021Wu_human_breast_cancer_sc",
     "dataset_name": "2021Wu_human_breast_cancer_sc",
     "dataset_url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE176078",
@@ -20,7 +20,7 @@ par = {
     "dataset_organism": "Homo sapiens"
 }
 meta = {
-    "temp_dir": "./tmp/2021Wu_human_breast_cancer_sc",
+    "temp_dir": "./temp/datasets/2021Wu_human_breast_cancer_sc",
 }
 ## VIASH END
 

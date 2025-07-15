@@ -19,12 +19,11 @@ workflow run_wf {
       def new_state = state + [dataset_id: id]
       [id, new_state]
     }
+
     | vizgen_merscope.run(
       fromState: [
         "input",
         "segmentation_id",
-        "gcloud_bucket",
-        "dataset_bucket_name",
         "dataset_id",
         "dataset_name",
         "dataset_url",

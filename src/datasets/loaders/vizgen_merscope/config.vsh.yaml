@@ -4,14 +4,10 @@ namespace: datasets/loaders
 argument_groups:
   - name: Inputs
     arguments:
-      - type: string
-        name: --gcloud_bucket
-        default: "vz-ffpe-showcase"
-        description: "Google cloud bucket name"
-      - type: string
-        name: --dataset_bucket_name
-        default: "HumanBreastCancerPatient1"
-        description: "The name of the dataset base directory in the vizgen google cloud bucket"
+      - type: file
+        name: --input
+        example: "gs://vz-ffpe-showcase/HumanBreastCancerPatient1"
+        description: "Path to the directory containing the dataset in the vizgen google cloud bucket"
       - type: string
         name: --segmentation_id
         default: ["cell"]
@@ -57,12 +53,10 @@ argument_groups:
 resources:
   - type: python_script
     path: script.py
-  - path: download.sh
-    is_executable: true
 
 engines:
   - type: docker
-    image: openproblems/base_python:1.0.0
+    image: openproblems/base_python:1
     __merge__: 
       - /src/base/setup_spatialdata_partial.yaml
     setup:

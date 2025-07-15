@@ -8,8 +8,8 @@ cd "$REPO_ROOT"
 
 set -e
 
-if [ ! -d temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium ]; then
-  mkdir -p temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium
+if [ ! -d temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1 ]; then
+  mkdir -p temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1
 fi
 if [ ! -f temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip ]; then
   wget -O temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip \
@@ -29,9 +29,9 @@ param_list:
     dataset_description: Demonstration of gene expression profiling for fresh frozen mouse brain on the Xenium platform using the pre-designed Mouse Brain Gene Expression Panel (v1).
     dataset_organism: mus_musculus
     crop_region_min_x: 10000
-    crop_region_max_x: 12000
+    crop_region_max_x: 11000
     crop_region_min_y: 10000
-    crop_region_max_y: 12000
+    crop_region_max_y: 11000
 
 publish_dir: resources_test/common
 output_dataset: '\$id/dataset.zarr'

@@ -1,0 +1,39 @@
+__merge__: /src/api/comp_method_normalization.yaml
+
+name: spanorm
+label: "SpaNorm normalization"
+summary: "Spatially-aware normalisation for spatial transcriptomics data"
+description: "Spatially-aware normalisation for spatial transcriptomics data"
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/bhuvad/SpaNorm/tree/master"
+references:
+  doi: "10.1101/2024.05.31.596908"
+
+resources:
+  - type: r_script
+    path: script.R
+
+engines:
+  - type: docker
+    image: openproblems/base_r:1
+    setup:
+      - type: r
+        bioc: [SpaNorm, zellkonverter]
+      #- type: r
+      #  bioc: [SummarizedExperiment,SingleCellExperiment,SpatialExperiment]
+      #  bioc_force_install: true
+      - type: docker
+        run: |
+          Rscript -e "BiocManager::install('SingleCellExperiment', type = 'source', force = TRUE, ask = FALSE)"
+      # This can probably be left out again in the future. It currently fixes a bug described in these issues:
+      # https://github.com/drighelli/SpatialExperiment/issues/171
+      # https://github.com/satijalab/seurat/issues/9889
+      # The reinstall of SingleCellExperiment triggers the correct re-install of SpatialExperiment.
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
