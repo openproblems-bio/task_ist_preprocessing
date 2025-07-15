@@ -3518,7 +3518,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_tenx_xenium",
     "viash_version" : "0.9.4",
-    "git_commit" : "c19b095bc9dd55f61ff2968e5254a118d1aa936f",
+    "git_commit" : "cf0fa6de5c80d6f16f65b225404bf08a6cf70a50",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
