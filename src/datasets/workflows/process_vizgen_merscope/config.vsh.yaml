@@ -16,7 +16,7 @@ argument_groups:
   - name: Metadata
     arguments:
       - type: string
-        name: --id
+        name: --dataset_id
         description: "A unique identifier for the dataset"
         required: true
       - name: --dataset_name
@@ -74,6 +74,7 @@ resources:
   - type: nextflow_script
     path: main.nf
     entrypoint: run_wf
+  - path: /common/nextflow_helpers/helper.nf
 
 dependencies:
   - name: datasets/loaders/vizgen_merscope
