@@ -453,9 +453,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation binning"
-LABEL org.opencontainers.image.created="2025-07-11T15:26:16Z"
+LABEL org.opencontainers.image.created="2025-07-15T10:24:19Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="1e0e50c5304f188c06e0caa4e05e4214a7b0dd69"
+LABEL org.opencontainers.image.revision="cff63090b934907877ac16ee4e0cefebf35da5d7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
