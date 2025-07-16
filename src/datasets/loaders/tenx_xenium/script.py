@@ -8,12 +8,11 @@ import tempfile
 
 ## VIASH START
 par = {
-    "input": "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs",
+    "input": "https://cf.10xgenomics.com/samples/xenium/1.9.0/Xenium_V1_hLiver_cancer_section_FFPE/Xenium_V1_hLiver_cancer_section_FFPE_outs.zip",
     "segmentation_id": [
         "cell",
         "nucleus",
     ],
-    "output": "output.zarr",
     "dataset_id": "value",
     "dataset_name": "value",
     "dataset_url": "value",
@@ -21,16 +20,26 @@ par = {
     "dataset_summary": "value",
     "dataset_description": "value",
     "dataset_organism": "value",
-    "output": "temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zarr"
+    "output": "temp/datasets/10x_xenium/liver/liver.zarr"
 }
+meta = {
+    "cpus": 1,
+}
+
 ## VIASH END
 
-
-# if input is a zip, extract it to a temporary folder
+# Download the data if it's a download url, extract the data if it's a zip file
 par_input = par["input"]
 with tempfile.TemporaryDirectory() as tmpdirname:
+    if par_input.startswith("http"):
+        print(f"Downloading data to {tmpdirname}", flush=True)
+        file_name = par_input.split("/")[-1]
+        # download the data
+        os.system(f"wget {par['input']} -O {tmpdirname}/{file_name}")
+        par_input = tmpdirname + "/" + file_name
+
     if zipfile.is_zipfile(par_input):
-        print("Extracting input zip", flush=True)
+        print(f"Extracting input zip to {tmpdirname}", flush=True)
         with zipfile.ZipFile(par_input, "r") as zip_ref:
             zip_ref.extractall(tmpdirname)
             par_input = tmpdirname
