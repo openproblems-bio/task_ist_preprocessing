@@ -3570,7 +3570,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/zuani_human_nsclc_sc",
     "viash_version" : "0.9.4",
-    "git_commit" : "cf0fa6de5c80d6f16f65b225404bf08a6cf70a50",
+    "git_commit" : "776ba368e3332c6710006f75b8f4a09790e0d74f",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3731,8 +3731,14 @@ dep = {
 # Helper variables
 TMP_DIR = Path(meta["temp_dir"] or "./tmp")
 TMP_DIR.mkdir(parents=True, exist_ok=True)
-FILE_PATH = TMP_DIR / par["input"].split("/")[-1]
-DOWNLOAD_URL = par["input"]
+#FILE_PATH = TMP_DIR / par["input"].split("/")[-1]
+#DOWNLOAD_URL = par["input"]
+# Hard code the download url since it fails running on seqera: (TODO: either keep it like this and remove the input argument or remove this and resolve the issue)
+#   (--2025-07-16 05:34:27--  http://_viash_par/input_1/10X_Lung_Tumour_Annotated_v2.h5ad
+#   Resolving _viash_par (_viash_par)... failed: Name or service not known.
+#   wget: unable to resolve host address ‘_viash_par’)
+FILE_PATH = TMP_DIR / "10X_Lung_Tumour_Annotated_v2.h5ad"
+DOWNLOAD_URL = "ftp://anonymous@ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad"
 
 # Download the data (55GB)
 os.system(f'wget "{DOWNLOAD_URL}" -P "{TMP_DIR}/"')
