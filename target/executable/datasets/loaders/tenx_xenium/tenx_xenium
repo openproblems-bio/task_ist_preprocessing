@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders tenx_xenium"
-LABEL org.opencontainers.image.created="2025-07-16T10:58:07Z"
+LABEL org.opencontainers.image.created="2025-07-17T14:27:45Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="776ba368e3332c6710006f75b8f4a09790e0d74f"
+LABEL org.opencontainers.image.revision="3a4f83c54f8d466250750d1535dd040fae584b5d"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -573,8 +573,8 @@ function ViashHelp {
   echo ""
   echo "Inputs:"
   echo "    --input"
-  echo "        type: file, required parameter, file must exist"
-  echo "        A 10x xenium directory or zip file"
+  echo "        type: string, required parameter"
+  echo "        A 10x xenium directory or zip file or download url"
   echo ""
   echo "    --segmentation_id"
   echo "        type: string, required parameter, multiple values allowed"
@@ -1008,12 +1008,6 @@ if [ -z ${VIASH_META_TEMP_DIR+x} ]; then
   exit 1
 fi
 
-# check whether required files exist
-if [ ! -z "$VIASH_PAR_INPUT" ] && [ ! -e "$VIASH_PAR_INPUT" ]; then
-  ViashError "Input file '$VIASH_PAR_INPUT' does not exist."
-  exit 1
-fi
-
 # check whether parameters values are of the right type
 if [[ -n "$VIASH_META_CPUS" ]]; then
   if ! [[ "$VIASH_META_CPUS" =~ ^[-+]?[0-9]+$ ]]; then
@@ -1105,10 +1099,6 @@ fi
 if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   # detect volumes from file arguments
   VIASH_CHOWN_VARS=()
-if [ ! -z "$VIASH_PAR_INPUT" ]; then
-  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_INPUT")" )
-  VIASH_PAR_INPUT=$(ViashDockerAutodetectMount "$VIASH_PAR_INPUT")
-fi
 if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT")" )
   VIASH_PAR_OUTPUT=$(ViashDockerAutodetectMount "$VIASH_PAR_OUTPUT")
@@ -1229,12 +1219,18 @@ dep = {
 
 ## VIASH END
 
-
-# if input is a zip, extract it to a temporary folder
+# Download the data if it's a download url, extract the data if it's a zip file
 par_input = par["input"]
 with tempfile.TemporaryDirectory() as tmpdirname:
+    if par_input.startswith("http"):
+        print(f"Downloading data to {tmpdirname}", flush=True)
+        file_name = par_input.split("/")[-1]
+        # download the data
+        os.system(f"wget {par['input']} -O {tmpdirname}/{file_name}")
+        par_input = tmpdirname + "/" + file_name
+
     if zipfile.is_zipfile(par_input):
-        print("Extracting input zip", flush=True)
+        print(f"Extracting input zip to {tmpdirname}", flush=True)
         with zipfile.ZipFile(par_input, "r") as zip_ref:
             zip_ref.extractall(tmpdirname)
             par_input = tmpdirname
@@ -1285,9 +1281,6 @@ VIASHEOF
 if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   # strip viash automount from file paths
   
-  if [ ! -z "$VIASH_PAR_INPUT" ]; then
-    VIASH_PAR_INPUT=$(ViashDockerStripAutomount "$VIASH_PAR_INPUT")
-  fi
   if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
     VIASH_PAR_OUTPUT=$(ViashDockerStripAutomount "$VIASH_PAR_OUTPUT")
   fi

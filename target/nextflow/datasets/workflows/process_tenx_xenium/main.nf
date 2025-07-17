@@ -3038,11 +3038,9 @@ meta = [
       "name" : "Inputs",
       "arguments" : [
         {
-          "type" : "file",
+          "type" : "string",
           "name" : "--input",
-          "description" : "A 10x xenium directory or zip file",
-          "must_exist" : true,
-          "create_parent" : true,
+          "description" : "A 10x xenium directory or zip file or download url",
           "required" : true,
           "direction" : "input",
           "multiple" : false,
@@ -3518,7 +3516,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_tenx_xenium",
     "viash_version" : "0.9.4",
-    "git_commit" : "776ba368e3332c6710006f75b8f4a09790e0d74f",
+    "git_commit" : "3a4f83c54f8d466250750d1535dd040fae584b5d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

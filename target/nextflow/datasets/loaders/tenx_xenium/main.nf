@@ -3038,11 +3038,9 @@ meta = [
       "name" : "Inputs",
       "arguments" : [
         {
-          "type" : "file",
+          "type" : "string",
           "name" : "--input",
-          "description" : "A 10x xenium directory or zip file",
-          "must_exist" : true,
-          "create_parent" : true,
+          "description" : "A 10x xenium directory or zip file or download url",
           "required" : true,
           "direction" : "input",
           "multiple" : false,
@@ -3479,7 +3477,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/tenx_xenium",
     "viash_version" : "0.9.4",
-    "git_commit" : "776ba368e3332c6710006f75b8f4a09790e0d74f",
+    "git_commit" : "3a4f83c54f8d466250750d1535dd040fae584b5d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3638,12 +3636,18 @@ dep = {
 
 ## VIASH END
 
-
-# if input is a zip, extract it to a temporary folder
+# Download the data if it's a download url, extract the data if it's a zip file
 par_input = par["input"]
 with tempfile.TemporaryDirectory() as tmpdirname:
+    if par_input.startswith("http"):
+        print(f"Downloading data to {tmpdirname}", flush=True)
+        file_name = par_input.split("/")[-1]
+        # download the data
+        os.system(f"wget {par['input']} -O {tmpdirname}/{file_name}")
+        par_input = tmpdirname + "/" + file_name
+
     if zipfile.is_zipfile(par_input):
-        print("Extracting input zip", flush=True)
+        print(f"Extracting input zip to {tmpdirname}", flush=True)
         with zipfile.ZipFile(par_input, "r") as zip_ref:
             zip_ref.extractall(tmpdirname)
             par_input = tmpdirname
