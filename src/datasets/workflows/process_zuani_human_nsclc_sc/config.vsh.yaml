@@ -2,13 +2,13 @@ name: process_zuani_human_nsclc_sc
 namespace: datasets/workflows
 
 argument_groups:
-  - name: Inputs
-    arguments:
-      - type: file
-        name: --input
-        description: Path to the dataset
-        required: true
-        example: "ftp://anonymous@ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad"
+  #- name: Inputs
+  #  arguments:
+  #    - type: file
+  #      name: --input
+  #      description: Path to the dataset
+  #      required: true
+  #      example: "ftp://anonymous@ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad"
   - name: Caching settings
     arguments:
       - type: boolean

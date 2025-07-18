@@ -3311,7 +3311,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_qc_filter/basic_qc_filter",
     "viash_version" : "0.9.4",
-    "git_commit" : "3a4f83c54f8d466250750d1535dd040fae584b5d",
+    "git_commit" : "4ecc6dacc3b32cbf782c77f2f5c2f51426c2dddc",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

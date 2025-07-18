@@ -19,7 +19,6 @@ cat > /tmp/params.yaml << HERE
 param_list:
   - id: zuani_human_nsclc_sc/2024Zuani_human_nsclc_sc
         
-input: "ftp://anonymous@ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad"
 keep_files: false 
 
 output_dataset: "\$id/dataset.h5ad"

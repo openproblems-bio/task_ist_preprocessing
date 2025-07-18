@@ -25,7 +25,6 @@ workflow run_wf {
 
     | zuani_human_nsclc_sc.run(
       fromState: [
-        "input",
         "dataset_id",
         "dataset_name",
         "dataset_url",

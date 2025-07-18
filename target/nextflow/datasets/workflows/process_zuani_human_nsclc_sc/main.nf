@@ -3035,25 +3035,6 @@ meta = [
   "version" : "build_main",
   "argument_groups" : [
     {
-      "name" : "Inputs",
-      "arguments" : [
-        {
-          "type" : "file",
-          "name" : "--input",
-          "description" : "Path to the dataset",
-          "example" : [
-            "ftp:/anonymous@ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad"
-          ],
-          "must_exist" : true,
-          "create_parent" : true,
-          "required" : true,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        }
-      ]
-    },
-    {
       "name" : "Caching settings",
       "arguments" : [
         {
@@ -3615,7 +3596,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_zuani_human_nsclc_sc",
     "viash_version" : "0.9.4",
-    "git_commit" : "3a4f83c54f8d466250750d1535dd040fae584b5d",
+    "git_commit" : "4ecc6dacc3b32cbf782c77f2f5c2f51426c2dddc",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3755,7 +3736,6 @@ workflow run_wf {
 
     | zuani_human_nsclc_sc.run(
       fromState: [
-        "input",
         "dataset_id",
         "dataset_name",
         "dataset_url",
