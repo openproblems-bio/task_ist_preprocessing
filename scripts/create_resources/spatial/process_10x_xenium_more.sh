@@ -148,6 +148,23 @@ param_list:
     dataset_organism: "homo_sapiens"
     segmentation_id: [cell, nucleus]
 
+  - id: "10x_xenium/2023_janesick_human_breast_cancer_xenium/rep1"
+    input: https://cf.10xgenomics.com/samples/xenium/1.0.1/Xenium_FFPE_Human_Breast_Cancer_Rep1/Xenium_FFPE_Human_Breast_Cancer_Rep1_outs.zip
+    dataset_name: "Xenium FFPE Human Breast Cancer Rep1"
+    dataset_url: "https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast"
+    dataset_summary: "Preview of Xenium In Situ Gene Expression data for adult breast cancer."
+    dataset_description: "Cancer type T2N1M0, Stage II-B, ER+/HER2+/PR−. Preview of Xenium In Situ Gene Expression data for adult breast cancer. In Situ Gene Expression dataset analyzed using Xenium Onboard Analysis 1.0.1"
+    dataset_organism: "homo_sapiens"
+    segmentation_id: [cell, nucleus]
+
+  - id: "10x_xenium/2023_janesick_human_breast_cancer_xenium/rep2"
+    input: https://cf.10xgenomics.com/samples/xenium/1.0.1/Xenium_FFPE_Human_Breast_Cancer_Rep2/Xenium_FFPE_Human_Breast_Cancer_Rep2_outs.zip
+    dataset_name: "Xenium FFPE Human Breast Cancer Rep2"
+    dataset_url: "https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast"
+    dataset_summary: "Preview of Xenium In Situ Gene Expression data for adult breast cancer."
+    dataset_description: "Cancer type pT2 pN1a pMX, ER−/HER2+/PR−. Preview of Xenium In Situ Gene Expression data for adult breast cancer. In Situ Gene Expression dataset analyzed using Xenium Onboard Analysis 1.4.0"
+    dataset_organism: "homo_sapiens"
+    segmentation_id: [cell, nucleus]
 
 output_dataset: "\$id/dataset.zarr"
 output_state: "\$id/state.yaml"
