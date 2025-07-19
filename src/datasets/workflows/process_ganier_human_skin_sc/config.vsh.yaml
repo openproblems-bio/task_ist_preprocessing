@@ -1,0 +1,82 @@
+name: process_ganier_human_skin_sc
+namespace: datasets/workflows
+
+argument_groups:
+  - name: Caching settings
+    arguments:
+      - type: boolean
+        name: --keep_files
+        required: false
+        description: Whether to remove the downloaded files after processing.
+        default: false
+  - name: Metadata
+    arguments:
+      - type: string
+        name: --dataset_id
+        description: "A unique identifier for the dataset"
+        required: false
+        default: "2024Ganier_human_skin_sc"
+      - name: --dataset_name
+        type: string
+        description: Nicely formatted name.
+        required: false
+        default: "2024Ganier_human_skin_sc"
+      - type: string
+        name: --dataset_url
+        description: Link to the original source of the dataset.
+        required: false
+        default: "https://spatial-skin-atlas.cellgeni.sanger.ac.uk"
+      - name: --dataset_reference
+        type: string
+        description: Bibtex reference of the paper in which the dataset was published.
+        required: false
+        default: "https://doi.org/10.1073/pnas.2313326120"
+      - name: --dataset_summary
+        type: string
+        description: Short description of the dataset.
+        required: false
+        default: "This dataset contains scRNA-seq data from healthy human skin."
+      - name: --dataset_description
+        type: string
+        description: Long description of the dataset.
+        required: false
+        default: "This dataset contains scRNA-seq data from healthy human skin."
+      - name: --dataset_organism
+        type: string
+        description: The organism of the sample in the dataset.
+        required: false
+        default: "Homo sapiens"
+  - name: Outputs
+    arguments:
+    - name: "--output_dataset"
+      __merge__: /src/api/file_common_scrnaseq.yaml
+      direction: output
+      required: true
+      default: "$id/dataset.h5ad"
+    - name: "--output_meta"
+      direction: "output"
+      type: file
+      description: "Dataset metadata"
+      default: "$id/dataset_meta.yaml"
+
+resources:
+  - type: nextflow_script
+    path: main.nf
+    entrypoint: run_wf
+  - path: /common/nextflow_helpers/helper.nf
+
+dependencies:
+  - name: datasets/loaders/ganier_human_skin_sc
+  - name: datasets/processors/pca
+    repository: openproblems
+  - name: datasets/processors/hvg
+    repository: openproblems
+  - name: datasets/processors/knn
+    repository: openproblems
+  - name: utils/extract_uns_metadata
+    repository: openproblems
+
+runners:
+  - type: nextflow
+    directives:
+      label: [midcpu, midmem, hightime]
