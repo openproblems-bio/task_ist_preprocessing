@@ -3524,7 +3524,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_vizgen_merscope",
     "viash_version" : "0.9.4",
-    "git_commit" : "40d59340c4ae1d1950cbbe0972b9929192ba3456",
+    "git_commit" : "31a37a601d2e7dca3c9e515be0b7807ca7657cfc",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
