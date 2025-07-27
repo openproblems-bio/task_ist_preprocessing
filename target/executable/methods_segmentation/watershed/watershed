@@ -453,9 +453,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation watershed"
-LABEL org.opencontainers.image.created="2025-07-21T12:42:12Z"
+LABEL org.opencontainers.image.created="2025-07-27T11:37:45Z"
 LABEL org.opencontainers.image.source="https://github.com/theislab/txsim"
-LABEL org.opencontainers.image.revision="31a37a601d2e7dca3c9e515be0b7807ca7657cfc"
+LABEL org.opencontainers.image.revision="9b75094edb80c3d70633afd4a396263c07eb18ce"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

@@ -3385,7 +3385,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_normalization/spanorm",
     "viash_version" : "0.9.4",
-    "git_commit" : "31a37a601d2e7dca3c9e515be0b7807ca7657cfc",
+    "git_commit" : "9b75094edb80c3d70633afd4a396263c07eb18ce",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
