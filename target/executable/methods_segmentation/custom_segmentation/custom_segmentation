@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation custom_segmentation"
-LABEL org.opencontainers.image.created="2025-07-27T11:37:45Z"
+LABEL org.opencontainers.image.created="2025-07-28T13:45:29Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="9b75094edb80c3d70633afd4a396263c07eb18ce"
+LABEL org.opencontainers.image.revision="7aa4b39acf45d03c231b0bc1d8df04032447b6f4"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
