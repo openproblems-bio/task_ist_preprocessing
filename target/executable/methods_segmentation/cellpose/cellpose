@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "cellpose<4.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation cellpose"
-LABEL org.opencontainers.image.created="2025-07-28T13:45:29Z"
+LABEL org.opencontainers.image.created="2025-07-29T12:05:32Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="7aa4b39acf45d03c231b0bc1d8df04032447b6f4"
+LABEL org.opencontainers.image.revision="8b8b69dbb192839ee88c24f5e8edd0a070c4c6d7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
