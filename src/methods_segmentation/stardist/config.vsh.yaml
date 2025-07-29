@@ -1,0 +1,41 @@
+name: stardist
+label: "Stardist Segmentation"
+summary: "Output of the segmantation methot stardist"
+description: "Output of the segmantation methot stardist"
+links:
+  documentation: "https://github.com/stardist/stardist"
+  repository: "https://github.com/stardist/stardist"
+references:
+  doi: "10.48550/arXiv.1806.03535"
+
+
+__merge__: /src/api/comp_method_segmentation.yaml 
+
+arguments:
+  - name: --model
+    type: string
+    default: "2D_versatile_fluo"
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi: spatialdata
+      - type: python
+        pypi: stardist
+      - type: python
+        pypi: numpy<2.0.0
+      - type: python
+        pypi: tensorflow
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem, gpu ]
