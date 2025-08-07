@@ -64,6 +64,7 @@ for dataset in "${DATASETS_TO_PROCESS[@]}"; do
             cat >> /tmp/params.yaml << 'HERE'
 
   - id: "vizgen_merscope/2022_vizgen_human_breast_cancer_merfish/rep1"
+    dataset_id: "vizgen_merscope/2022_vizgen_human_breast_cancer_merfish/rep1"
     input: "gs://vz-ffpe-showcase/HumanBreastCancerPatient1"
     dataset_name: "Vizgen Human Breast Cancer MERFISH Patient1"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
@@ -77,6 +78,7 @@ HERE
             cat >> /tmp/params.yaml << 'HERE'
 
   - id: "vizgen_merscope/2022_vizgen_human_liver_cancer_merfish/rep1"
+    dataset_id: "vizgen_merscope/2022_vizgen_human_liver_cancer_merfish/rep1"
     input: "gs://vz-ffpe-showcase/HumanLiverCancerPatient1"
     dataset_name: "Vizgen Human Liver Cancer MERFISH Patient1"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
@@ -90,6 +92,7 @@ HERE
             cat >> /tmp/params.yaml << 'HERE'
 
   - id: "vizgen_merscope/2022_vizgen_human_liver_cancer_merfish/rep2"
+    dataset_id: "vizgen_merscope/2022_vizgen_human_liver_cancer_merfish/rep2"
     input: "gs://vz-ffpe-showcase/HumanLiverCancerPatient2"
     dataset_name: "Vizgen Human Liver Cancer MERFISH Patient2"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
@@ -103,6 +106,7 @@ HERE
             cat >> /tmp/params.yaml << 'HERE'
 
   - id: "vizgen_merscope/2022_vizgen_human_lung_cancer_merfish/rep1"
+    dataset_id: "vizgen_merscope/2022_vizgen_human_lung_cancer_merfish/rep1"
     input: "gs://vz-ffpe-showcase/HumanLungCancerPatient1"
     dataset_name: "Vizgen Human Lung Cancer MERFISH Patient1"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
@@ -116,6 +120,7 @@ HERE
             cat >> /tmp/params.yaml << 'HERE'
 
   - id: "vizgen_merscope/2022_vizgen_human_lung_cancer_merfish/rep2"
+    dataset_id: "vizgen_merscope/2022_vizgen_human_lung_cancer_merfish/rep2"
     input: "gs://vz-ffpe-showcase/HumanLungCancerPatient2"
     dataset_name: "Vizgen Human Lung Cancer MERFISH Patient2"
     dataset_url: "https://info.vizgen.com/ffpe-showcase?submissionGuid=a93dbab5-c128-4269-afe3-82ea2bf9cdaf"
