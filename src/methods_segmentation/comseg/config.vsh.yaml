@@ -71,18 +71,20 @@ resources:
   - type: python_script
     path: script.py
 
+
 engines:
   - type: docker
     image: openproblems/base_python:1
     setup:
       - type: python
-        pypi: spatialdata
-      - type: python
-        pypi: sopa
-      - type: python
-        pypi: pandas
-    __merge__: 
-      - /src/base/setup_txsim_partial.yaml
+        pypi: 
+          - spatialdata
+          - sopa
+          - anndata
+          - pandas
+          - numpy
+          - xarray
+          - scikit-image
   - type: native
 
 runners:
