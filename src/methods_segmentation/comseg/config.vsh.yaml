@@ -83,6 +83,8 @@ engines:
         pypi: anndata
       - type: python
         pypi: pandas
+      - type: python
+        pypi: squidpy
     __merge__: 
       - /src/base/setup_txsim_partial.yaml
   - type: native
