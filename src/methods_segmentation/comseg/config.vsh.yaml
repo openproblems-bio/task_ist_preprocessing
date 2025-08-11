@@ -11,7 +11,7 @@ links:
 references:
   doi: "10.1038/s41467-021-24552-8"
 
-__merge__: /src/api/comp_method_segmentation.yaml 
+__merge__: /src/api/comp_method_segmentation.yaml
 
 arguments:
   - name: --transcripts_key
@@ -80,11 +80,7 @@ engines:
       - type: python
         pypi: sopa
       - type: python
-        pypi: anndata
-      - type: python
         pypi: pandas
-      - type: python
-        pypi: squidpy
     __merge__: 
       - /src/base/setup_txsim_partial.yaml
   - type: native
