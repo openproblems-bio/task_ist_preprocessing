@@ -1,0 +1,94 @@
+name: comseg
+label: "ComSeg Segmentation"
+summary: "Spatial segmentation using ComSeg method"
+description: |
+  ComSeg is a spatial transcriptomics segmentation method that uses transcript locations 
+  and morphological information to define cell boundaries. It is particularly effective 
+  for high-resolution spatial transcriptomics data.
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1038/s41467-021-24552-8"
+
+__merge__: /src/api/comp_method_segmentation.yaml 
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    default: "transcripts"
+    description: "Key for transcripts in the points layer"
+  - name: --shapes_key
+    type: string
+    default: "cell_boundaries"
+    description: "Key for cell boundaries in the shapes layer"
+  - name: --images_key
+    type: string
+    default: "morphology_mip"
+    description: "Key for morphology image in the images layer"
+  - name: --patch_width
+    type: integer
+    default: 1200
+    description: "Width of image patches for processing"
+  - name: --patch_overlap
+    type: integer
+    default: 50
+    description: "Overlap between patches"
+  - name: --transcript_patch_width
+    type: integer
+    default: 200
+    description: "Width of transcript patches"
+  - name: --mean_cell_diameter
+    type: double
+    default: 15.0
+    description: "Expected mean cell diameter in micrometers"
+  - name: --max_cell_radius
+    type: double
+    default: 25.0
+    description: "Maximum cell radius in micrometers"
+  - name: --alpha
+    type: double
+    default: 0.5
+    description: "Alpha parameter for ComSeg algorithm"
+  - name: --min_rna_per_cell
+    type: integer
+    default: 5
+    description: "Minimum number of transcripts per cell"
+  - name: --gene_column
+    type: string
+    default: "feature_name"
+    description: "Column name for gene identifiers in transcripts data"
+  - name: --norm_vector
+    type: boolean
+    default: false
+    description: "Whether to normalize vectors in ComSeg"
+  - name: --allow_disconnected_polygon
+    type: boolean
+    default: true
+    description: "Allow disconnected polygons in segmentation"
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi: spatialdata
+      - type: python
+        pypi: sopa
+      - type: python
+        pypi: anndata
+      - type: python
+        pypi: pandas
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, highmem ]
