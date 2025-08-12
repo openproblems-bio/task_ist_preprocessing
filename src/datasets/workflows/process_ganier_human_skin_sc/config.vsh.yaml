@@ -67,12 +67,12 @@ resources:
 
 dependencies:
   - name: datasets/loaders/ganier_human_skin_sc
-  - name: datasets/processors/pca
-    repository: openproblems
-  - name: datasets/processors/hvg
-    repository: openproblems
-  - name: datasets/processors/knn
-    repository: openproblems
+  - name: processors/pca
+    repository: datasets
+  - name: processors/hvg
+    repository: datasets
+  - name: processors/knn
+    repository: datasets
   - name: utils/extract_uns_metadata
     repository: openproblems
 
