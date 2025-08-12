@@ -19,4 +19,5 @@ singularity_container/
 /.nextflow*
 /work
 
-.DS_STORE
+*.DS_Store
+tmp

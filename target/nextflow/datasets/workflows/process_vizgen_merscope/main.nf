@@ -3070,7 +3070,7 @@ meta = [
       "arguments" : [
         {
           "type" : "string",
-          "name" : "--id",
+          "name" : "--dataset_id",
           "description" : "A unique identifier for the dataset",
           "required" : true,
           "direction" : "input",
@@ -3442,6 +3442,10 @@ meta = [
       "path" : "main.nf",
       "is_executable" : true,
       "entrypoint" : "run_wf"
+    },
+    {
+      "type" : "file",
+      "path" : "/common/nextflow_helpers/helper.nf"
     }
   ],
   "status" : "enabled",
@@ -3468,6 +3472,12 @@ meta = [
       "type" : "github",
       "name" : "openproblems",
       "repo" : "openproblems-bio/openproblems",
+      "tag" : "build/main"
+    },
+    {
+      "type" : "github",
+      "name" : "datasets",
+      "repo" : "openproblems-bio/datasets",
       "tag" : "build/main"
     }
   ],
@@ -3524,7 +3534,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_vizgen_merscope",
     "viash_version" : "0.9.4",
-    "git_commit" : "8b8b69dbb192839ee88c24f5e8edd0a070c4c6d7",
+    "git_commit" : "16c6e21ef81efdd062143cad6b79cf992167e1c5",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3558,6 +3568,12 @@ meta = [
         "type" : "github",
         "name" : "openproblems",
         "repo" : "openproblems-bio/openproblems",
+        "tag" : "build/main"
+      },
+      {
+        "type" : "github",
+        "name" : "datasets",
+        "repo" : "openproblems-bio/datasets",
         "tag" : "build/main"
       }
     ],
@@ -3633,6 +3649,8 @@ include { crop_region } from "${meta.resources_dir}/../../../../nextflow/dataset
 
 // inner workflow
 // user-provided Nextflow code
+include { findArgumentSchema } from "${meta.resources_dir}/helper.nf"
+
 workflow auto {
   findStates(params, meta.config)
     | meta.workflow.run(

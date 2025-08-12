@@ -3495,34 +3495,34 @@ meta = [
       }
     },
     {
-      "name" : "datasets/normalization/log_cp",
+      "name" : "normalization/log_cp",
       "repository" : {
         "type" : "github",
-        "repo" : "openproblems-bio/openproblems",
+        "repo" : "openproblems-bio/datasets",
         "tag" : "build/main"
       }
     },
     {
-      "name" : "datasets/processors/pca",
+      "name" : "processors/pca",
       "repository" : {
         "type" : "github",
-        "repo" : "openproblems-bio/openproblems",
+        "repo" : "openproblems-bio/datasets",
         "tag" : "build/main"
       }
     },
     {
-      "name" : "datasets/processors/hvg",
+      "name" : "processors/hvg",
       "repository" : {
         "type" : "github",
-        "repo" : "openproblems-bio/openproblems",
+        "repo" : "openproblems-bio/datasets",
         "tag" : "build/main"
       }
     },
     {
-      "name" : "datasets/processors/knn",
+      "name" : "processors/knn",
       "repository" : {
         "type" : "github",
-        "repo" : "openproblems-bio/openproblems",
+        "repo" : "openproblems-bio/datasets",
         "tag" : "build/main"
       }
     },
@@ -3540,6 +3540,12 @@ meta = [
       "type" : "github",
       "name" : "openproblems",
       "repo" : "openproblems-bio/openproblems",
+      "tag" : "build/main"
+    },
+    {
+      "type" : "github",
+      "name" : "datasets",
+      "repo" : "openproblems-bio/datasets",
       "tag" : "build/main"
     }
   ],
@@ -3596,7 +3602,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_lu_human_liver_cancer_sc",
     "viash_version" : "0.9.4",
-    "git_commit" : "8b8b69dbb192839ee88c24f5e8edd0a070c4c6d7",
+    "git_commit" : "16c6e21ef81efdd062143cad6b79cf992167e1c5",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3630,6 +3636,12 @@ meta = [
         "type" : "github",
         "name" : "openproblems",
         "repo" : "openproblems-bio/openproblems",
+        "tag" : "build/main"
+      },
+      {
+        "type" : "github",
+        "name" : "datasets",
+        "repo" : "openproblems-bio/datasets",
         "tag" : "build/main"
       }
     ],
@@ -3701,10 +3713,10 @@ meta = [
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
 include { lu_human_liver_cancer_sc } from "${meta.resources_dir}/../../../../nextflow/datasets/loaders/lu_human_liver_cancer_sc/main.nf"
-include { log_cp } from "${meta.root_dir}/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/datasets/normalization/log_cp/main.nf"
-include { pca } from "${meta.root_dir}/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/datasets/processors/pca/main.nf"
-include { hvg } from "${meta.root_dir}/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/datasets/processors/hvg/main.nf"
-include { knn } from "${meta.root_dir}/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/datasets/processors/knn/main.nf"
+include { log_cp } from "${meta.root_dir}/dependencies/github/openproblems-bio/datasets/build/main/nextflow/normalization/log_cp/main.nf"
+include { pca } from "${meta.root_dir}/dependencies/github/openproblems-bio/datasets/build/main/nextflow/processors/pca/main.nf"
+include { hvg } from "${meta.root_dir}/dependencies/github/openproblems-bio/datasets/build/main/nextflow/processors/hvg/main.nf"
+include { knn } from "${meta.root_dir}/dependencies/github/openproblems-bio/datasets/build/main/nextflow/processors/knn/main.nf"
 include { extract_uns_metadata } from "${meta.root_dir}/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/utils/extract_uns_metadata/main.nf"
 
 // inner workflow

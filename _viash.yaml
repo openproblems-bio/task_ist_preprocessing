@@ -63,3 +63,7 @@ repositories:
     type: github
     repo: openproblems-bio/openproblems
     tag: build/main
+  - name: datasets
+    type: github
+    repo: openproblems-bio/datasets
+    tag: build/main

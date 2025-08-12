@@ -3401,6 +3401,12 @@ meta = [
       "name" : "openproblems",
       "repo" : "openproblems-bio/openproblems",
       "tag" : "build/main"
+    },
+    {
+      "type" : "github",
+      "name" : "datasets",
+      "repo" : "openproblems-bio/datasets",
+      "tag" : "build/main"
     }
   ],
   "license" : "MIT",
@@ -3477,7 +3483,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/tenx_xenium",
     "viash_version" : "0.9.4",
-    "git_commit" : "8b8b69dbb192839ee88c24f5e8edd0a070c4c6d7",
+    "git_commit" : "16c6e21ef81efdd062143cad6b79cf992167e1c5",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3511,6 +3517,12 @@ meta = [
         "type" : "github",
         "name" : "openproblems",
         "repo" : "openproblems-bio/openproblems",
+        "tag" : "build/main"
+      },
+      {
+        "type" : "github",
+        "name" : "datasets",
+        "repo" : "openproblems-bio/datasets",
         "tag" : "build/main"
       }
     ],
