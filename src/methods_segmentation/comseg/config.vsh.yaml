@@ -9,7 +9,7 @@ links:
   documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
   repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
 references:
-  doi: "10.1038/s41467-021-24552-8"
+  doi: "10.1038/s41592-020-01018-x"
 
 __merge__: /src/api/comp_method_segmentation.yaml
 
@@ -85,6 +85,8 @@ engines:
           - numpy
           - xarray
           - scikit-image
+          - comseg
+          - scipy
   - type: native
 
 runners:
