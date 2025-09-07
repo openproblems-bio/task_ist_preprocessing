@@ -67,6 +67,7 @@ arguments:
     default: true
     description: "Allow disconnected polygons in segmentation"
 
+
 resources:
   - type: python_script
     path: script.py

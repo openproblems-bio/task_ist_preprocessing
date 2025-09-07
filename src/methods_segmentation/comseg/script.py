@@ -21,20 +21,7 @@ logger = logging.getLogger(__name__)
 ## VIASH START
 par = {
     "input": "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
-    "output": "segmentation.zarr",
-    "transcripts_key": "transcripts",
-    "shapes_key": "cell_boundaries",
-    "images_key": "morphology_mip",
-    "patch_width": 1200,
-    "patch_overlap": 50,
-    "transcript_patch_width": 200,
-    "mean_cell_diameter": 15.0,
-    "max_cell_radius": 25.0,
-    "alpha": 0.5,
-    "min_rna_per_cell": 5,
-    "gene_column": "feature_name",
-    "norm_vector": False,
-    "allow_disconnected_polygon": True
+    "output": "segmentation.zarr"
 }
 ## VIASH END
 
