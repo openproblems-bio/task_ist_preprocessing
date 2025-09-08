@@ -15,6 +15,7 @@ arguments:
     type: file
     description: "Path to single-cell reference data in H5AD format for marker gene identification"
     required: false
+    default: "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad"
   - name: --max_overlaps_pos
     type: integer
     default: 4
@@ -36,10 +37,20 @@ resources:
   - type: python_script
     path: script.py
 
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, highmem, gpu ]
+
 engines:
   - type: docker
     image: openproblems/base_python:1
     setup:
+      - type: python
+        pypi: "numpy<2.0"
+      - type: python
+        pypi: "imgaug<0.4.1"
       - type: python
         pypi: spatialdata
       - type: python
@@ -60,12 +71,8 @@ engines:
         pypi: pyyaml
       - type: python
         pypi: scikit-image
-    __merge__: 
-      - /src/base/setup_txsim_partial.yaml
+      - type: python
+        pypi: torch
+      - type: python
+        pypi: torchvision
   - type: native
-
-runners:
-  - type: executable
-  - type: nextflow
-    directives:
-      label: [ midtime, lowcpu, highmem, gpu ]
