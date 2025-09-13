@@ -6,6 +6,11 @@ import anndata as ad
 par = {
     'input_scrnaseq_reference': 'resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad',
     'output': 'output.h5ad',
+    'output_transcript_assignments': 'output_transcript_assignments.zarr',
+    'output_qc_col': 'output_qc_col.h5ad',
+}
+meta = {
+    "resources_dir": "src/control_methods/"
 }
 ## VIASH END
 
