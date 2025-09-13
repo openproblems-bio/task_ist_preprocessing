@@ -3697,6 +3697,18 @@ meta = [
       }
     },
     {
+      "name" : "control_methods/identity",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "control_methods/permute_celltype_annotations",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "methods_segmentation/custom_segmentation",
       "repository" : {
         "type" : "local"
@@ -3813,7 +3825,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "16c6e21ef81efdd062143cad6b79cf992167e1c5",
+    "git_commit" : "6455731a09b72313aa35ec2153da732db22b7ee0",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3924,6 +3936,8 @@ meta = [
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
 include { extract_uns_metadata } from "${meta.root_dir}/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/utils/extract_uns_metadata/main.nf"
+include { identity } from "${meta.resources_dir}/../../../nextflow/control_methods/identity/main.nf"
+include { permute_celltype_annotations } from "${meta.resources_dir}/../../../nextflow/control_methods/permute_celltype_annotations/main.nf"
 include { custom_segmentation } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/custom_segmentation/main.nf"
 include { basic_transcript_assignment } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/basic_transcript_assignment/main.nf"
 include { basic_count_aggregation } from "${meta.resources_dir}/../../../nextflow/methods_count_aggregation/basic_count_aggregation/main.nf"
@@ -3969,6 +3983,36 @@ workflow run_wf {
       toState: { id, output, state ->
         state + [
           dataset_uns: readYaml(output.output).uns
+        ]
+      }
+    )
+
+  /****************************************
+   *        CONTROL METHODS               *
+   ****************************************/
+  control_methods = [
+    identity,
+    permute_celltype_annotations
+  ]
+  control_ch = init_ch
+    | runEach(
+      components: control_methods,
+      id: { id, state, comp ->
+        id + "/control_" + comp.name
+      },
+      fromState: [
+        input_scrnaseq_reference: "input_sc"
+      ],
+      toState: { id, out_dict, state, comp ->
+        state + [
+          steps: state.steps + [[
+            type: "control",
+            component_id: comp.name,
+            run_id: id
+          ]],
+          output_correction: out_dict.output,
+          output_qc_filter: out_dict.output_qc_col,
+          output_assignment: out_dict.output_transcript_assignments
         ]
       }
     )
@@ -4098,9 +4142,9 @@ workflow run_wf {
     )
 
   
-  /****************************************
-   *          COUNT AGGREGATION           *
-   ****************************************/
+  /************************************
+   *          QC FILTERING            *
+   ************************************/
   qc_filter_methods = [
     basic_qc_filter
   ]
@@ -4277,12 +4321,19 @@ workflow run_wf {
     )
 
   /****************************************
+   *          COMBINE WITH CONTROL        *
+   ****************************************/
+
+  expr_corr_and_control_ch = expr_corr_ch.mix(control_ch)
+
+
+  /****************************************
    *                METRICS               *
    ****************************************/
   metrics = [
     similarity
   ]
-  metric_ch = expr_corr_ch
+  metric_ch = expr_corr_and_control_ch
     | runEach(
       components: metrics,
       id: { id, state, comp ->

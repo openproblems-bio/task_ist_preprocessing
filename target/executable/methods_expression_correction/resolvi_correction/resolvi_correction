@@ -453,9 +453,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "scvi-tools"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_expression_correction resolvi_correction"
-LABEL org.opencontainers.image.created="2025-08-12T13:35:42Z"
+LABEL org.opencontainers.image.created="2025-09-13T22:26:42Z"
 LABEL org.opencontainers.image.source="https://github.com/scverse/scvi-tools"
-LABEL org.opencontainers.image.revision="16c6e21ef81efdd062143cad6b79cf992167e1c5"
+LABEL org.opencontainers.image.revision="6455731a09b72313aa35ec2153da732db22b7ee0"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
