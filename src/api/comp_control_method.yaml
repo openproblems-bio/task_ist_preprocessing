@@ -1,0 +1,27 @@
+namespace: control_methods
+
+info:
+  type: control_method
+  type_info:
+    label: Control method
+    summary: A control method for the ist preprocessing task.
+    description: |
+      A control method for the imaging-based spatial transcriptomics preprocessing task.
+
+arguments:
+  - name: --input_scrnaseq_reference
+    required: true
+    direction: input
+    __merge__: file_scrnaseq_reference.yaml
+  - name: --output
+    required: true
+    direction: output
+    __merge__: file_spatial_corrected_counts.yaml
+
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py

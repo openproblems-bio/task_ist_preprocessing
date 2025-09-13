@@ -1,0 +1,20 @@
+__merge__: /src/api/comp_control_method.yaml
+name: shuffle_celltype_annotations
+label: Shuffle celltype annotations
+summary: Celltype annotations are randomly permuted
+description: The scRNAseq reference's celltype annotations are randomly permuted and taken as processed spatial data
+arguments:
+  - name: --seed
+    type: integer
+    default: 0
+resources:
+  - type: python_script
+    path: script.py
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [midtime, midmem, lowcpu]
