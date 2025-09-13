@@ -6,9 +6,12 @@ description: The scRNAseq reference is taken as processed spatial data
 resources:
   - type: python_script
     path: script.py
+  - path: /src/control_methods/util.py
 engines:
   - type: docker
     image: openproblems/base_python:1
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
 runners:
   - type: executable
   - type: nextflow

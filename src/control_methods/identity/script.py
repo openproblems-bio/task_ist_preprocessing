@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import anndata as ad
 
@@ -8,21 +9,30 @@ par = {
 }
 ## VIASH END
 
+# add helper scripts to path
+sys.path.append(meta["resources_dir"])
+from util import add_layers_obs_var_to_scrnaseq_ref, create_dummy_transcript_assignment_table
+
 print('Read input_scrnaseq_reference', flush=True)
 adata = ad.read_h5ad(par['input_scrnaseq_reference'])
 
+# Generate expected output of dummy processed spatial data
 print("Add required layers, obs and var columns for spatial data", flush=True)
-adata.layers["normalized_uncorrected"] = adata.layers["normalized"]
-adata.obs["cell_id"] = adata.obs.index
-adata.obs["centroid_x"] = 0
-adata.obs["centroid_y"] = 0
-adata.obs["centroid_z"] = 0
-adata.obs["n_counts"] = np.array(adata.layers["counts"].sum(axis=1))[:,0]
-adata.obs["n_genes"] = np.array((adata.layers["counts"] > 0).sum(axis=1))[:,0]
-adata.obs["volume"] = 1
-adata.var["gene_name"] = adata.var.index
-adata.var["n_counts"] = np.array(adata.layers["counts"].sum(axis=0))[0,:]
-adata.var["n_cells"] = np.array((adata.layers["counts"] > 0).sum(axis=0))[0,:]
+add_layers_obs_var_to_scrnaseq_ref(adata)
 
-print("Store outputs", flush=True)
+print("Create dummy transcript assignment table", flush=True)
+sdata_transcripts_only = create_dummy_transcript_assignment_table(adata)
+
+print("Create dummy qc column", flush=True)
+adata_qc = ad.AnnData(obs=adata.obs[[]])
+adata_qc.obs["passed_QC"] = True
+
+# Write outputs
+print("Write h5ad", flush=True)
 adata.write_h5ad(par['output'], compression='gzip')
+
+print("Write transcripts zarr", flush=True)
+sdata_transcripts_only.write(par['output_transcript_assignments'])
+
+print("Write qc column", flush=True)
+adata_qc.write_h5ad(par['output_qc_col'], compression='gzip')
