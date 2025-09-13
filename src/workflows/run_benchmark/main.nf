@@ -36,6 +36,36 @@ workflow run_wf {
     )
 
   /****************************************
+   *        CONTROL METHODS               *
+   ****************************************/
+  control_methods = [
+    identity,
+    permute_celltype_annotations
+  ]
+  control_ch = init_ch
+    | runEach(
+      components: control_methods,
+      id: { id, state, comp ->
+        id + "/control_" + comp.name
+      },
+      fromState: [
+        input_scrnaseq_reference: "input_sc"
+      ],
+      toState: { id, out_dict, state, comp ->
+        state + [
+          steps: state.steps + [[
+            type: "control",
+            component_id: comp.name,
+            run_id: id
+          ]],
+          output_correction: out_dict.output,
+          output_qc_filter: out_dict.output_qc_col,
+          output_assignment: out_dict.output_transcript_assignments
+        ]
+      }
+    )
+
+  /****************************************
    *       RUN SEGMENTATION METHODS       *
    ****************************************/
   segm_methods = [
@@ -160,9 +190,9 @@ workflow run_wf {
     )
 
   
-  /****************************************
-   *          COUNT AGGREGATION           *
-   ****************************************/
+  /************************************
+   *          QC FILTERING            *
+   ************************************/
   qc_filter_methods = [
     basic_qc_filter
   ]
@@ -339,12 +369,19 @@ workflow run_wf {
     )
 
   /****************************************
+   *          COMBINE WITH CONTROL        *
+   ****************************************/
+
+  expr_corr_and_control_ch = expr_corr_ch.mix(control_ch)
+
+
+  /****************************************
    *                METRICS               *
    ****************************************/
   metrics = [
     similarity
   ]
-  metric_ch = expr_corr_ch
+  metric_ch = expr_corr_and_control_ch
     | runEach(
       components: metrics,
       id: { id, state, comp ->
