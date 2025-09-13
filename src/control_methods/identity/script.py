@@ -20,6 +20,11 @@ adata = ad.read_h5ad(par['input_scrnaseq_reference'])
 print("Add required layers, obs and var columns for spatial data", flush=True)
 add_layers_obs_var_to_scrnaseq_ref(adata)
 
+print("Delete obsm, obsp and varm", flush=True)
+del adata.obsm
+del adata.varm
+del adata.obsp
+
 print("Create dummy transcript assignment table", flush=True)
 sdata_transcripts_only = create_dummy_transcript_assignment_table(adata)
 
