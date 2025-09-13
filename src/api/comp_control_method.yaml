@@ -17,6 +17,14 @@ arguments:
     required: true
     direction: output
     __merge__: file_spatial_corrected_counts.yaml
+  - name: --output_transcript_assignments
+    required: true
+    direction: output
+    __merge__: file_transcript_assignments.yaml
+  - name: --output_qc_col
+    required: true
+    direction: output
+    __merge__: file_spatial_qc_col.yaml
 
 test_resources:
   - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
