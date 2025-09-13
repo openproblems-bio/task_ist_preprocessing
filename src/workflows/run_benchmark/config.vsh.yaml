@@ -53,6 +53,8 @@ resources:
 dependencies:
   - name: utils/extract_uns_metadata
     repository: openproblems
+  - name: control_methods/identity
+  - name: control_methods/permute_celltype_annotations
   - name: methods_segmentation/custom_segmentation
   - name: methods_transcript_assignment/basic_transcript_assignment
   - name: methods_count_aggregation/basic_count_aggregation
