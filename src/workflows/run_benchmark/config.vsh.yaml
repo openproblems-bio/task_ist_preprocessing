@@ -62,8 +62,8 @@ dependencies:
   - name: methods_segmentation/watershed
   - name: methods_transcript_assignment/basic_transcript_assignment
   - name: methods_transcript_assignment/baysor
-  - name: methods_transcript_assignment/clustermap_transcript_assignment
-  - name: methods_transcript_assignment/pciseq_transcript_assignment
+  - name: methods_transcript_assignment/clustermap
+  - name: methods_transcript_assignment/pciseq
   - name: methods_count_aggregation/basic_count_aggregation
   - name: methods_qc_filter/basic_qc_filter
   - name: methods_calculate_cell_volume/alpha_shapes

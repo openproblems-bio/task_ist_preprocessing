@@ -107,8 +107,8 @@ workflow run_wf {
       ]
     ),
     baysor,
-    clustermap_transcript_assignment,
-    pciseq_transcript_assignment
+    clustermap,
+    pciseq
   ]
   segm_ass_ch = segm_ch
     | runEach(
