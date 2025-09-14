@@ -71,7 +71,11 @@ workflow run_wf {
   segm_methods = [
     custom_segmentation.run(
       args: [labels_key: "cell_labels"]
-    )
+    ),
+    cellpose,
+    binning,
+    stardist,
+    watershed
   ]
   segm_ch = init_ch
     | runEach(
@@ -101,7 +105,10 @@ workflow run_wf {
         transcripts_key: "transcripts",
         coordinate_system: "global"
       ]
-    )
+    ),
+    baysor,
+    clustermap_transcript_assignment,
+    pciseq_transcript_assignment
   ]
   segm_ass_ch = segm_ch
     | runEach(
@@ -280,30 +287,32 @@ workflow run_wf {
    ****************************************/
 
    // TODO: implement this when direct normalization methods are added
-  direct_norm_methods = []
-  direct_norm_ch = Channel.empty()
-  // direct_norm_ch = qc_filter_ch
-  //   | runEach(
-  //     components: direct_norm_methods,
-  //     id: { id, state, comp ->
-  //       id + "/norm_" + comp.name
-  //     },
-  //     fromState: [
-  //       input: "output_count_aggregation"
-  //     ],
-  //     toState: { id, out_dict, state, comp ->
-  //       state + [
-  //         steps: state.steps + [[
-  //           type: "normalization",
-  //           run_id: id,
-  //           component_id: comp.name,
-  //           input_state: state,
-  //           output_dict: out_dict
-  //         ]],
-  //         output_normalization: out_dict.output
-  //       ]
-  //     }
-  //   )
+  direct_norm_methods = [
+    spanorm
+  ]
+  //direct_norm_ch = Channel.empty()
+   direct_norm_ch = qc_filter_ch
+     | runEach(
+       components: direct_norm_methods,
+       id: { id, state, comp ->
+         id + "/norm_" + comp.name
+       },
+       fromState: [
+         input: "output_count_aggregation"
+       ],
+       toState: { id, out_dict, state, comp ->
+         state + [
+           steps: state.steps + [[
+             type: "normalization",
+             run_id: id,
+             component_id: comp.name,
+             input_state: state,
+             output_dict: out_dict
+           ]],
+           output_normalization: out_dict.output
+         ]
+       }
+     )
   
   /****************************************
    *          COMBINE NORMALIZATION        *
@@ -315,7 +324,9 @@ workflow run_wf {
    *         CELL TYPE ANNOTATION         *
    ****************************************/
   cta_methods = [
-    ssam
+    ssam,
+    tacco,
+    moscot
   ]
   cta_ch = normalization_ch
     | runEach(
@@ -344,7 +355,8 @@ workflow run_wf {
    *         EXPRESSION CORRECTION        *
    ****************************************/
   expr_corr_methods = [
-    gene_efficiency_correction
+    gene_efficiency_correction,
+    resolvi_correction
   ]
   expr_corr_ch = cta_ch
     | runEach(
