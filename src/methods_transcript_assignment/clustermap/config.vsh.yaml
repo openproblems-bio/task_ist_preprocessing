@@ -1,6 +1,6 @@
 __merge__: /src/api/comp_method_transcript_assignment.yaml
 
-name: clustermap_transcript_assignment
+name: clustermap
 label: "Clustermap Transcript Assignment"
 summary: "Assign transcripts to cells based on the ClusterMap method from He et al. 2021"
 description: "Clusters RNA transcripts using density peak clustering."

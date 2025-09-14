@@ -3715,7 +3715,49 @@ meta = [
       }
     },
     {
+      "name" : "methods_segmentation/cellpose",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_segmentation/binning",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_segmentation/stardist",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_segmentation/watershed",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "methods_transcript_assignment/basic_transcript_assignment",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_transcript_assignment/baysor",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_transcript_assignment/clustermap",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_transcript_assignment/pciseq",
       "repository" : {
         "type" : "local"
       }
@@ -3745,13 +3787,37 @@ meta = [
       }
     },
     {
+      "name" : "methods_normalization/spanorm",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "methods_cell_type_annotation/ssam",
       "repository" : {
         "type" : "local"
       }
     },
     {
+      "name" : "methods_cell_type_annotation/tacco",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_cell_type_annotation/moscot",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "methods_expression_correction/gene_efficiency_correction",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_expression_correction/resolvi_correction",
       "repository" : {
         "type" : "local"
       }
@@ -3825,7 +3891,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "a5ad23865a58f05c539885f88f4a7750e909e020",
+    "git_commit" : "2e349430564b99fc9a0a9d8c7478c4eb5f913261",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3939,13 +4005,24 @@ include { extract_uns_metadata } from "${meta.root_dir}/dependencies/github/open
 include { identity } from "${meta.resources_dir}/../../../nextflow/control_methods/identity/main.nf"
 include { permute_celltype_annotations } from "${meta.resources_dir}/../../../nextflow/control_methods/permute_celltype_annotations/main.nf"
 include { custom_segmentation } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/custom_segmentation/main.nf"
+include { cellpose } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/cellpose/main.nf"
+include { binning } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/binning/main.nf"
+include { stardist } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/stardist/main.nf"
+include { watershed } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/watershed/main.nf"
 include { basic_transcript_assignment } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/basic_transcript_assignment/main.nf"
+include { baysor } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/baysor/main.nf"
+include { clustermap } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/clustermap/main.nf"
+include { pciseq } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/pciseq/main.nf"
 include { basic_count_aggregation } from "${meta.resources_dir}/../../../nextflow/methods_count_aggregation/basic_count_aggregation/main.nf"
 include { basic_qc_filter } from "${meta.resources_dir}/../../../nextflow/methods_qc_filter/basic_qc_filter/main.nf"
 include { alpha_shapes } from "${meta.resources_dir}/../../../nextflow/methods_calculate_cell_volume/alpha_shapes/main.nf"
 include { normalize_by_volume } from "${meta.resources_dir}/../../../nextflow/methods_normalization/normalize_by_volume/main.nf"
+include { spanorm } from "${meta.resources_dir}/../../../nextflow/methods_normalization/spanorm/main.nf"
 include { ssam } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/ssam/main.nf"
+include { tacco } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/tacco/main.nf"
+include { moscot } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/moscot/main.nf"
 include { gene_efficiency_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/gene_efficiency_correction/main.nf"
+include { resolvi_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/resolvi_correction/main.nf"
 include { similarity } from "${meta.resources_dir}/../../../nextflow/metrics/similarity/main.nf"
 
 // inner workflow
@@ -4023,7 +4100,11 @@ workflow run_wf {
   segm_methods = [
     custom_segmentation.run(
       args: [labels_key: "cell_labels"]
-    )
+    ),
+    cellpose,
+    binning,
+    stardist,
+    watershed
   ]
   segm_ch = init_ch
     | runEach(
@@ -4053,7 +4134,10 @@ workflow run_wf {
         transcripts_key: "transcripts",
         coordinate_system: "global"
       ]
-    )
+    ),
+    baysor,
+    clustermap,
+    pciseq
   ]
   segm_ass_ch = segm_ch
     | runEach(
@@ -4232,30 +4316,32 @@ workflow run_wf {
    ****************************************/
 
    // TODO: implement this when direct normalization methods are added
-  direct_norm_methods = []
-  direct_norm_ch = Channel.empty()
-  // direct_norm_ch = qc_filter_ch
-  //   | runEach(
-  //     components: direct_norm_methods,
-  //     id: { id, state, comp ->
-  //       id + "/norm_" + comp.name
-  //     },
-  //     fromState: [
-  //       input: "output_count_aggregation"
-  //     ],
-  //     toState: { id, out_dict, state, comp ->
-  //       state + [
-  //         steps: state.steps + [[
-  //           type: "normalization",
-  //           run_id: id,
-  //           component_id: comp.name,
-  //           input_state: state,
-  //           output_dict: out_dict
-  //         ]],
-  //         output_normalization: out_dict.output
-  //       ]
-  //     }
-  //   )
+  direct_norm_methods = [
+    spanorm
+  ]
+  //direct_norm_ch = Channel.empty()
+   direct_norm_ch = qc_filter_ch
+     | runEach(
+       components: direct_norm_methods,
+       id: { id, state, comp ->
+         id + "/norm_" + comp.name
+       },
+       fromState: [
+         input: "output_count_aggregation"
+       ],
+       toState: { id, out_dict, state, comp ->
+         state + [
+           steps: state.steps + [[
+             type: "normalization",
+             run_id: id,
+             component_id: comp.name,
+             input_state: state,
+             output_dict: out_dict
+           ]],
+           output_normalization: out_dict.output
+         ]
+       }
+     )
   
   /****************************************
    *          COMBINE NORMALIZATION        *
@@ -4267,7 +4353,9 @@ workflow run_wf {
    *         CELL TYPE ANNOTATION         *
    ****************************************/
   cta_methods = [
-    ssam
+    ssam,
+    tacco,
+    moscot
   ]
   cta_ch = normalization_ch
     | runEach(
@@ -4296,7 +4384,8 @@ workflow run_wf {
    *         EXPRESSION CORRECTION        *
    ****************************************/
   expr_corr_methods = [
-    gene_efficiency_correction
+    gene_efficiency_correction,
+    resolvi_correction
   ]
   expr_corr_ch = cta_ch
     | runEach(
