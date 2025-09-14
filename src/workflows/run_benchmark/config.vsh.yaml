@@ -56,13 +56,24 @@ dependencies:
   - name: control_methods/identity
   - name: control_methods/permute_celltype_annotations
   - name: methods_segmentation/custom_segmentation
+  - name: methods_segmentation/cellpose
+  - name: methods_segmentation/binning
+  - name: methods_segmentation/stardist
+  - name: methods_segmentation/watershed
   - name: methods_transcript_assignment/basic_transcript_assignment
+  - name: methods_transcript_assignment/baysor
+  - name: methods_transcript_assignment/clustermap
+  - name: methods_transcript_assignment/pciseq
   - name: methods_count_aggregation/basic_count_aggregation
   - name: methods_qc_filter/basic_qc_filter
   - name: methods_calculate_cell_volume/alpha_shapes
   - name: methods_normalization/normalize_by_volume
+  - name: methods_normalization/spanorm
   - name: methods_cell_type_annotation/ssam
+  - name: methods_cell_type_annotation/tacco
+  - name: methods_cell_type_annotation/moscot
   - name: methods_expression_correction/gene_efficiency_correction
+  - name: methods_expression_correction/resolvi_correction
   - name: metrics/similarity
 
 runners:
