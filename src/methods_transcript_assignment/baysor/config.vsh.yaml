@@ -69,17 +69,41 @@ resources:
     path: script.py
 
 engines:
+  #NOTE: The docker container must be build with the correct platform. On mac viash test won't work. Rebuild the container
+  #      with the correct platform separately with the following command:
+  #      docker run -it --rm --platform linux/x86_64 python:3.11.13-bookworm /bin/bash
+  #      ... and then the commands to build the next layers.
   - type: docker
-    image: openproblems/base_python:1
-    __merge__: 
-      - /src/base/setup_spatialdata_partial.yaml
+    image: python:3.11.13-bookworm
     setup:
+      - type: apt
+        packages: procps
+      - type: python
+        github:
+          - openproblems-bio/core#subdirectory=packages/python/openproblems
+      - type: python
+        packages:
+           - spatialdata
       - type: docker
         run:
           - wget https://github.com/kharchenkolab/Baysor/releases/download/v0.7.1/baysor-x86_x64-linux-v0.7.1_build.zip
           - unzip baysor-x86_x64-linux-v0.7.1_build.zip
           - chmod +x /bin/baysor
           - ln -sf /bin/baysor/bin/baysor /usr/local/bin/baysor
+  #- type: docker
+  #  image: openproblems/base_python:1
+  #  __merge__: 
+  #    - /src/base/setup_spatialdata_partial.yaml
+  #  setup:
+  #    - type: docker
+  #      run:
+  #        - wget https://github.com/kharchenkolab/Baysor/releases/download/v0.7.1/baysor-x86_x64-linux-v0.7.1_build.zip
+  #        - unzip baysor-x86_x64-linux-v0.7.1_build.zip
+  #        - chmod +x /bin/baysor
+  #        - ln -sf /bin/baysor/bin/baysor /usr/local/bin/baysor
+  #        #- execstack -c /bin/baysor/bin/../lib/julia/libopenlibm.so
+  #        #Since the update of the base image we run into an issue that could be solved with execstack, however this package not 
+  #        #available for the given os version.
   - type: native
 
 runners:
