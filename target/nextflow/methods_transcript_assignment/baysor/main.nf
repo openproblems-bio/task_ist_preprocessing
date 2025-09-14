@@ -3957,13 +3957,28 @@ meta = [
     {
       "type" : "docker",
       "id" : "docker",
-      "image" : "openproblems/base_python:1",
+      "image" : "python:3.11.13-bookworm",
       "namespace_separator" : "/",
       "setup" : [
         {
+          "type" : "apt",
+          "packages" : [
+            "procps"
+          ],
+          "interactive" : false
+        },
+        {
           "type" : "python",
           "user" : false,
-          "pypi" : [
+          "github" : [
+            "openproblems-bio/core#subdirectory=packages/python/openproblems"
+          ],
+          "upgrade" : true
+        },
+        {
+          "type" : "python",
+          "user" : false,
+          "packages" : [
             "spatialdata"
           ],
           "upgrade" : true
@@ -3990,7 +4005,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.4",
-    "git_commit" : "6455731a09b72313aa35ec2153da732db22b7ee0",
+    "git_commit" : "a5ad23865a58f05c539885f88f4a7750e909e020",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

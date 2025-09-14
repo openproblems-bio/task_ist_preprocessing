@@ -4121,7 +4121,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/clustermap_transcript_assignment",
     "viash_version" : "0.9.4",
-    "git_commit" : "6455731a09b72313aa35ec2153da732db22b7ee0",
+    "git_commit" : "a5ad23865a58f05c539885f88f4a7750e909e020",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
