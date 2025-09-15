@@ -4,6 +4,7 @@ from pathlib import Path
 from tifffile import imwrite
 import dask
 import numpy as np
+import xarray as xr
 import pandas as pd
 import anndata as ad
 import spatialdata as sd
@@ -67,7 +68,11 @@ transcripts[['x', 'y', 'z', 'feature_name']].compute().to_csv(TRANSCRIPTS_CSV)
 
 # Write segmentation to tif
 print('Writing segmentation to tif', flush=True)
-imwrite(SEGMENTATION_TIF, sdata_segm["segmentation"]["scale0"].image.to_numpy())
+if isinstance(sdata_segm["segmentation"], xr.DataTree):
+    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
+else:
+     label_image = sdata_segm["segmentation"].to_numpy()
+imwrite(SEGMENTATION_TIF, label_image)
 
 # Write config to toml
 print('Writing config to toml', flush=True)
