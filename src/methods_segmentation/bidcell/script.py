@@ -18,7 +18,7 @@ from bidcell import BIDCellModel
 par = {
     'input': 'resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr',
     'output': 'output.zarr',
-    'single_cell_ref': 'resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad',
+    'single_cell_ref': None,
     'max_overlaps_pos': 4,
     'max_overlaps_neg': 15,
     'model_epochs': 10,
@@ -101,10 +101,25 @@ def main():
                 tiff.write(img, photometric="minisblack", resolution=(1, 1))
             
             # Process single-cell reference data if provided
-            if par['single_cell_ref'] and os.path.exists(par['single_cell_ref']):
+            # First check if there's an scRNA-seq reference in the spatial data itself
+            if 'scrnaseq_reference' in sdata.tables:
+                logging.info("Using scRNA-seq reference from input spatial data")
+                adata = sdata.tables['scrnaseq_reference']
+            elif par.get('single_cell_ref') and os.path.exists(par['single_cell_ref']):
                 logging.info(f"Loading single-cell reference from {par['single_cell_ref']}")
                 adata = sc.read_h5ad(par['single_cell_ref'])
+            else:
+                logging.info("No single-cell reference found, using scrnaseq_reference.h5ad from test data")
+                # Try to use the scrnaseq_reference.h5ad that should be in the same directory as raw_ist.zarr
+                input_dir = os.path.dirname(par['input'])
+                ref_path = os.path.join(input_dir, 'scrnaseq_reference.h5ad')
+                if os.path.exists(ref_path):
+                    logging.info(f"Found scRNA-seq reference at {ref_path}")
+                    adata = sc.read_h5ad(ref_path)
+                else:
+                    adata = None
                 
+            if adata is not None:
                 # Filter to shared genes
                 shared_genes = [g for g in sdata_genes if g in adata.var["feature_name"].values]
                 logging.info(f"Found {len(shared_genes)} shared genes between spatial and scRNA-seq data")
@@ -177,7 +192,7 @@ def main():
                 'min_cell_size': par['min_cell_size']
             }
             
-            if par['single_cell_ref'] and os.path.exists(par['single_cell_ref']):
+            if adata is not None:
                 config.update({
                     'scref_path': str(scref_path),
                     'pos_marker_path': str(pos_marker_path),
