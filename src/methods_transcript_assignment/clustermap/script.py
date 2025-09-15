@@ -1,4 +1,5 @@
 import numpy as np
+import xarray as xr
 import dask
 import spatialdata as sd
 import anndata as ad
@@ -204,7 +205,10 @@ transcripts = sd.transform(transcripts, trans, par['coordinate_system'])
 print('Assigning transcripts to cell ids', flush=True)
 
 # Turn segmentation SpatialData into numpy array
-label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() #TODO: mabye this line needs generalization (DataTree vs DataArray)
+if isinstance(sdata_segm["segmentation"], xr.DataTree):
+    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
+else:
+     label_image = sdata_segm["segmentation"].to_numpy()
 dapi_image = np.squeeze(sdata['morphology_mip']['scale0']['image'].compute())
 
 # Extract coordinates and feature names (= gene names) from SpatialData
