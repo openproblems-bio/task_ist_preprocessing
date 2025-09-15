@@ -47,9 +47,17 @@ engines:
     image: openproblems/base_python:1
     setup:
       - type: python
-        pypi: "numpy>=1.24.4,<2.0.0"
-      - type: python
+        pypi: "numpy==1.26.4"
+      - type: python  
         pypi: "imgaug==0.4.0"
+      - type: python
+        pypi: "scipy<1.14"
+      - type: python
+        pypi: "scikit-learn<1.6"
+      - type: python
+        pypi: "dask==2024.11.2"
+      - type: python
+        pypi: "bidcell"
       - type: python
         pypi: spatialdata
       - type: python
@@ -61,8 +69,6 @@ engines:
       - type: python
         pypi: natsort
       - type: python
-        pypi: dask[dataframe]
-      - type: python
         pypi: spatialdata-plot
       - type: python
         pypi: pyyaml
@@ -72,6 +78,4 @@ engines:
         pypi: torch
       - type: python
         pypi: torchvision
-      - type: python
-        pypi: "bidcell"
   - type: native
