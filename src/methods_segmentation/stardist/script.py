@@ -4,7 +4,8 @@ from pathlib import Path
 import numpy as np
 import xarray as xr
 import spatialdata as sd
-from csbdeep.utils import normalize
+#from csbdeep.utils import normalize
+from csbdeep.data import Normalizer, normalize_mi_ma
 from stardist.models import StarDist2D
 
 
@@ -24,8 +25,8 @@ def convert_to_lower_dtype(arr):
 
 ## VIASH START
 par = {
-  "input": "./resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr",
-  "output": "./temp/stardist/segmentation.zarr",
+  "input": "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
+  "output": "temp/stardist/segmentation.zarr",
   "model": "2D_versatile_fluo"
 }
 
@@ -38,10 +39,34 @@ image = sdata['morphology_mip']['scale0'].image.compute().to_numpy()
 transformation = sdata['morphology_mip']['scale0'].image.transform.copy()
 
 # Segment image
+
 # Load pretrained model
 model = StarDist2D.from_pretrained(par['model'])
+
 # Segment on normalized image 
-labels, _ = model.predict_instances(normalize(image)[0,:,:]) # scale = None, **hyperparams)
+#labels, _ = model.predict_instances(normalize(image)[0,:,:]) # scale = None, **hyperparams)
+
+# from https://github.com/stardist/stardist/blob/main/examples/other2D/predict_big_data.ipynb
+class MyNormalizer(Normalizer):
+    def __init__(self, mi, ma):
+            self.mi, self.ma = mi, ma
+    def before(self, x, axes):
+        return normalize_mi_ma(x, self.mi, self.ma, dtype=np.float32)
+    def after(*args, **kwargs):
+        assert False
+    @property
+    def do_after(self):
+        return False
+
+mi, ma = np.percentile(image, [1,99.8])
+normalizer = MyNormalizer(mi, ma)
+block_size = min(image.shape[1] // 3, 4096)
+offset = min(block_size // 5.5, 128)
+
+labels, _ = model.predict_instances_big(
+    image[0,:,:], axes='YX', block_size=block_size, min_overlap=offset, context=offset, normalizer=normalizer#, n_tiles=(4,4)
+)
+
 
 
 # Create output
