@@ -97,7 +97,8 @@ with open(CONFIG_TOML, "w") as toml_file:
 
 
 # Run Baysor
-n_threads = max(meta['cpus']-2, 1)
+n_threads = meta['cpus'] or os.cpu_count()
+n_threads = max(n_threads-2, 1)
 os.environ['JULIA_NUM_THREADS'] = str(n_threads)
 print('Running Baysor', flush=True)
 baysor_cmd = f"baysor run -c {CONFIG_TOML} -o {BAYSOR_OUTPUT} {TRANSCRIPTS_CSV} {SEGMENTATION_TIF}"
