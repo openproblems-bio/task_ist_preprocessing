@@ -1,4 +1,5 @@
 import numpy as np
+import xarray as xr
 import dask
 import spatialdata as sd
 import txsim as tx
@@ -68,7 +69,10 @@ transcripts_dataframe['x'] = x_coords
 transcripts_dataframe['y'] = y_coords
 
 #same as before
-label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() #TODO: mabye this line needs generalization (DataTree vs DataArray)
+if isinstance(sdata_segm["segmentation"], xr.DataTree):
+    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
+else:
+     label_image = sdata_segm["segmentation"].to_numpy()
 
 # Grab all the pciSeq parameters
 opts_keys = [#'exclude_genes',

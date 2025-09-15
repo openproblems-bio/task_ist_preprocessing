@@ -4005,7 +4005,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.4",
-    "git_commit" : "2e349430564b99fc9a0a9d8c7478c4eb5f913261",
+    "git_commit" : "6ea85bf258b6c210cca80940fe9e719d6fe3fbde",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4128,6 +4128,7 @@ from pathlib import Path
 from tifffile import imwrite
 import dask
 import numpy as np
+import xarray as xr
 import pandas as pd
 import anndata as ad
 import spatialdata as sd
@@ -4211,7 +4212,11 @@ transcripts[['x', 'y', 'z', 'feature_name']].compute().to_csv(TRANSCRIPTS_CSV)
 
 # Write segmentation to tif
 print('Writing segmentation to tif', flush=True)
-imwrite(SEGMENTATION_TIF, sdata_segm["segmentation"]["scale0"].image.to_numpy())
+if isinstance(sdata_segm["segmentation"], xr.DataTree):
+    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
+else:
+     label_image = sdata_segm["segmentation"].to_numpy()
+imwrite(SEGMENTATION_TIF, label_image)
 
 # Write config to toml
 print('Writing config to toml', flush=True)

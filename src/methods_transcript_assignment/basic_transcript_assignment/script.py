@@ -1,4 +1,5 @@
 import numpy as np
+import xarray as xr
 import dask
 import spatialdata as sd
 import anndata as ad
@@ -41,7 +42,10 @@ transcripts = sd.transform(transcripts, trans, par['coordinate_system'])
 print('Assigning transcripts to cell ids', flush=True)
 y_coords = transcripts.y.compute().to_numpy(dtype=np.int64)
 x_coords = transcripts.x.compute().to_numpy(dtype=np.int64)
-label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() #TODO: mabye this line needs generalization (DataTree vs DataArray)
+if isinstance(sdata_segm["segmentation"], xr.DataTree):
+    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
+else:
+     label_image = sdata_segm["segmentation"].to_numpy()
 cell_id_dask_series = dask.dataframe.from_dask_array(
     dask.array.from_array(
         label_image[y_coords, x_coords], chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())

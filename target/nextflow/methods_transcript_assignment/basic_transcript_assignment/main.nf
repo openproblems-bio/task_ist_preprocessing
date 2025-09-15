@@ -3909,7 +3909,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/basic_transcript_assignment",
     "viash_version" : "0.9.4",
-    "git_commit" : "2e349430564b99fc9a0a9d8c7478c4eb5f913261",
+    "git_commit" : "6ea85bf258b6c210cca80940fe9e719d6fe3fbde",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4027,6 +4027,7 @@ def innerWorkflowFactory(args) {
 tempscript=".viash_script.py"
 cat > "$tempscript" << VIASHMAIN
 import numpy as np
+import xarray as xr
 import dask
 import spatialdata as sd
 import anndata as ad
@@ -4093,7 +4094,10 @@ transcripts = sd.transform(transcripts, trans, par['coordinate_system'])
 print('Assigning transcripts to cell ids', flush=True)
 y_coords = transcripts.y.compute().to_numpy(dtype=np.int64)
 x_coords = transcripts.x.compute().to_numpy(dtype=np.int64)
-label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() #TODO: mabye this line needs generalization (DataTree vs DataArray)
+if isinstance(sdata_segm["segmentation"], xr.DataTree):
+    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
+else:
+     label_image = sdata_segm["segmentation"].to_numpy()
 cell_id_dask_series = dask.dataframe.from_dask_array(
     dask.array.from_array(
         label_image[y_coords, x_coords], chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
