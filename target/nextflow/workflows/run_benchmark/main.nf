@@ -3891,7 +3891,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "6ea85bf258b6c210cca80940fe9e719d6fe3fbde",
+    "git_commit" : "27a08e6de2f06b001da97b76b54403472a6fd101",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
