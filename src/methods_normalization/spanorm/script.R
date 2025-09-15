@@ -26,7 +26,17 @@ spatial_coords <- matrix(c(centroid_x, centroid_y), ncol = 2)
 spatialCoords(sce) <- spatial_coords
 
 # Apply SpaNorm normalization to the spatial data
-result <- SpaNorm(sce)
+set.seed(777)
+
+# Calculate sample.p based on number of cells (following recommendations of https://github.com/bhuvad/SpaNorm/issues/10#issuecomment-2918248535)
+n_cells <- ncol(sce)
+if (n_cells > 100000) {
+  sample_p <- 25000 / n_cells
+} else {
+  sample_p <- 0.25
+}
+
+result <- SpaNorm(sce, sample.p = sample_p)
 
 # Get the normalized matrix from SpaNorm result (log-transformed normalized counts)
 normalized_matrix <- assay(result, "logcounts")
