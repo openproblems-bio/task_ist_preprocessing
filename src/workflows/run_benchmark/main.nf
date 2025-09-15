@@ -298,18 +298,16 @@ workflow run_wf {
          id + "/norm_" + comp.name
        },
        fromState: [
-         input: "output_count_aggregation"
+        input_spatial_aggregated_counts: "output_count_aggregation",
        ],
        toState: { id, out_dict, state, comp ->
          state + [
            steps: state.steps + [[
-             type: "normalization",
-             run_id: id,
-             component_id: comp.name,
-             input_state: state,
-             output_dict: out_dict
-           ]],
-           output_normalization: out_dict.output
+            type: "normalization",
+            component_id: comp.name,
+            run_id: id
+          ]],
+          output_normalization: out_dict.output
          ]
        }
      )
