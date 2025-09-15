@@ -458,9 +458,9 @@ cd ClusterMap && \
 pip install -e .
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment clustermap"
-LABEL org.opencontainers.image.created="2025-09-15T15:22:49Z"
+LABEL org.opencontainers.image.created="2025-09-15T21:37:48Z"
 LABEL org.opencontainers.image.source="https://github.com/wanglab-broad/ClusterMap"
-LABEL org.opencontainers.image.revision="27a08e6de2f06b001da97b76b54403472a6fd101"
+LABEL org.opencontainers.image.revision="2f146dfde77ca98f38ea5954a5761892afc14bd8"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

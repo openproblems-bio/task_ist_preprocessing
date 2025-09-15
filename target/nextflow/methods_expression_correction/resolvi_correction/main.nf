@@ -3690,9 +3690,10 @@ meta = [
       "id" : "nextflow",
       "directives" : {
         "label" : [
-          "midtime",
+          "hightime",
           "highcpu",
-          "highmem"
+          "highmem",
+          "gpu"
         ],
         "tag" : "$id"
       },
@@ -3760,7 +3761,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_expression_correction/resolvi_correction",
     "viash_version" : "0.9.4",
-    "git_commit" : "27a08e6de2f06b001da97b76b54403472a6fd101",
+    "git_commit" : "2f146dfde77ca98f38ea5954a5761892afc14bd8",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4365,9 +4366,10 @@ meta["defaults"] = [
     "tag" : "build_main"
   },
   "label" : [
-    "midtime",
+    "hightime",
     "highcpu",
-    "highmem"
+    "highmem",
+    "gpu"
   ],
   "tag" : "$id"
 }'''),

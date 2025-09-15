@@ -3326,9 +3326,9 @@ meta = [
       "id" : "nextflow",
       "directives" : {
         "label" : [
-          "midtime",
-          "lowcpu",
-          "lowmem"
+          "veryhightime",
+          "midcpu",
+          "highmem"
         ],
         "tag" : "$id"
       },
@@ -3391,7 +3391,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_normalization/spanorm",
     "viash_version" : "0.9.4",
-    "git_commit" : "27a08e6de2f06b001da97b76b54403472a6fd101",
+    "git_commit" : "2f146dfde77ca98f38ea5954a5761892afc14bd8",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3570,7 +3570,17 @@ spatial_coords <- matrix(c(centroid_x, centroid_y), ncol = 2)
 spatialCoords(sce) <- spatial_coords
 
 # Apply SpaNorm normalization to the spatial data
-result <- SpaNorm(sce)
+set.seed(777)
+
+# Calculate sample.p based on number of cells (following recommendations of https://github.com/bhuvad/SpaNorm/issues/10#issuecomment-2918248535)
+n_cells <- ncol(sce)
+if (n_cells > 100000) {
+  sample_p <- 25000 / n_cells
+} else {
+  sample_p <- 0.25
+}
+
+result <- SpaNorm(sce, sample.p = sample_p)
 
 # Get the normalized matrix from SpaNorm result (log-transformed normalized counts)
 normalized_matrix <- assay(result, "logcounts")
@@ -3972,9 +3982,9 @@ meta["defaults"] = [
     "tag" : "build_main"
   },
   "label" : [
-    "midtime",
-    "lowcpu",
-    "lowmem"
+    "veryhightime",
+    "midcpu",
+    "highmem"
   ],
   "tag" : "$id"
 }'''),

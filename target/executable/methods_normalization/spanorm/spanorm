@@ -452,9 +452,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("BiocManager", quietly 
 RUN Rscript -e "BiocManager::install('SingleCellExperiment', type = 'source', force = TRUE, ask = FALSE)"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_normalization spanorm"
-LABEL org.opencontainers.image.created="2025-09-15T15:22:51Z"
+LABEL org.opencontainers.image.created="2025-09-15T21:37:51Z"
 LABEL org.opencontainers.image.source="https://github.com/bhuvad/SpaNorm/tree/master"
-LABEL org.opencontainers.image.revision="27a08e6de2f06b001da97b76b54403472a6fd101"
+LABEL org.opencontainers.image.revision="2f146dfde77ca98f38ea5954a5761892afc14bd8"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1129,7 +1129,17 @@ spatial_coords <- matrix(c(centroid_x, centroid_y), ncol = 2)
 spatialCoords(sce) <- spatial_coords
 
 # Apply SpaNorm normalization to the spatial data
-result <- SpaNorm(sce)
+set.seed(777)
+
+# Calculate sample.p based on number of cells (following recommendations of https://github.com/bhuvad/SpaNorm/issues/10#issuecomment-2918248535)
+n_cells <- ncol(sce)
+if (n_cells > 100000) {
+  sample_p <- 25000 / n_cells
+} else {
+  sample_p <- 0.25
+}
+
+result <- SpaNorm(sce, sample.p = sample_p)
 
 # Get the normalized matrix from SpaNorm result (log-transformed normalized counts)
 normalized_matrix <- assay(result, "logcounts")

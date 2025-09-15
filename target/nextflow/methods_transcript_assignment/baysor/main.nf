@@ -3923,9 +3923,9 @@ meta = [
       "id" : "nextflow",
       "directives" : {
         "label" : [
-          "midtime",
+          "veryhightime",
           "midcpu",
-          "midmem"
+          "highmem"
         ],
         "tag" : "$id"
       },
@@ -4005,7 +4005,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.4",
-    "git_commit" : "27a08e6de2f06b001da97b76b54403472a6fd101",
+    "git_commit" : "2f146dfde77ca98f38ea5954a5761892afc14bd8",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4240,6 +4240,9 @@ with open(CONFIG_TOML, "w") as toml_file:
 
 
 # Run Baysor
+n_threads = meta['cpus'] or os.cpu_count()
+n_threads = max(n_threads-2, 1)
+os.environ['JULIA_NUM_THREADS'] = str(n_threads)
 print('Running Baysor', flush=True)
 baysor_cmd = f"baysor run -c {CONFIG_TOML} -o {BAYSOR_OUTPUT} {TRANSCRIPTS_CSV} {SEGMENTATION_TIF}"
 print("\\\\t" + baysor_cmd, flush=True)
@@ -4713,9 +4716,9 @@ meta["defaults"] = [
     "tag" : "build_main"
   },
   "label" : [
-    "midtime",
+    "veryhightime",
     "midcpu",
-    "midmem"
+    "highmem"
   ],
   "tag" : "$id"
 }'''),
