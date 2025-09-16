@@ -155,7 +155,8 @@ engines:
       - /src/base/setup_txsim_partial.yaml
     setup:
       - type: python
-        pypi: [pciseq]
+        github: [acycliq/pciSeq@issue_14]
+      #  pypi: [pciseq] # See https://github.com/acycliq/pciSeq/issues/14
   - type: native
 
 runners:
