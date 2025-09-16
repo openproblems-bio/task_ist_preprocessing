@@ -33,7 +33,7 @@ arguments:
     required: false
     direction: input
     type: integer
-    default: -1
+    default: 5000
   - name: --mapping_mode
     required: false
     direction: input
