@@ -8,7 +8,7 @@ import moscot as mt
 from moscot.problems.space import MappingProblem
 
 ## VIASH START
- par = {
+par = {
    'input_spatial_normalized_counts': 'resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_normalized_counts.h5ad',
    'input_scrnaseq_reference': 'resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad',
    'output': 'spatial_with_celltypes.h5ad',
@@ -18,10 +18,10 @@ from moscot.problems.space import MappingProblem
    'tau': 1.0,
    'rank': 5000,
    'mapping_mode': 'max',
- }
- meta = {
+}
+meta = {
    'name': 'moscot',
- }
+}
  ## VIASH END
 
 # Optional parameter check: For this specific annotation method the par['input_spatial_normalized_counts'] and par['input_scrnaseq_reference'] are required
