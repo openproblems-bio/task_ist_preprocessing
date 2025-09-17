@@ -3761,7 +3761,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_expression_correction/resolvi_correction",
     "viash_version" : "0.9.4",
-    "git_commit" : "cb66f69121ddb36cba34ced479c9430d9b2b50b8",
+    "git_commit" : "a5dd37df07de5bb0dd21e7533714d592a95cef0e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3879,11 +3879,9 @@ def innerWorkflowFactory(args) {
 tempscript=".viash_script.py"
 cat > "$tempscript" << VIASHMAIN
 import anndata as ad
-import txsim as tx
 import scvi
 import pandas as pd
 import scanpy as sc
-import scipy
 import numpy as np
 
 ## VIASH START
@@ -3967,7 +3965,8 @@ samples = supervised_resolvi.sample_posterior(
     model=supervised_resolvi.module.model_residuals,
     return_sites=[
         'mixture_proportions', 'mean_poisson', 'per_gene_background', 
-        'diffusion_mixture_proportion', 'per_neighbor_diffusion', 'px_r_inv'
+        'per_neighbor_diffusion', 'px_r_inv' #'diffusion_mixture_proportion'
+        #NOTE: set of strs important: see https://github.com/scverse/scvi-tools/issues/3252#issuecomment-3304041641
         ],
     num_samples=20, return_samples=False, batch_size=4000)
 samples = pd.DataFrame(samples).T

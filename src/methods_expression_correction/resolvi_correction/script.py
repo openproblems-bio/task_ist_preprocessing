@@ -1,9 +1,7 @@
 import anndata as ad
-import txsim as tx
 import scvi
 import pandas as pd
 import scanpy as sc
-import scipy
 import numpy as np
 
 ## VIASH START
@@ -12,7 +10,7 @@ import numpy as np
 par = {
   'input_spatial_with_cell_types': 'resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_with_cell_types.h5ad',
   'celltype_key': 'cell_type',
-  'output': '../resolvi_spatial_corrected.h5ad',
+  'output': 'temp/resolvi_spatial_corrected.h5ad',
   'n_hidden': 32,
   'encode_covariates': False,
   'downsample_counts': True
@@ -66,7 +64,8 @@ samples = supervised_resolvi.sample_posterior(
     model=supervised_resolvi.module.model_residuals,
     return_sites=[
         'mixture_proportions', 'mean_poisson', 'per_gene_background', 
-        'diffusion_mixture_proportion', 'per_neighbor_diffusion', 'px_r_inv'
+        'per_neighbor_diffusion', 'px_r_inv' #'diffusion_mixture_proportion'
+        #NOTE: set of strs important: see https://github.com/scverse/scvi-tools/issues/3252#issuecomment-3304041641
         ],
     num_samples=20, return_samples=False, batch_size=4000)
 samples = pd.DataFrame(samples).T

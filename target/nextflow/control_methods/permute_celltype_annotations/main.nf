@@ -3721,7 +3721,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/control_methods/permute_celltype_annotations",
     "viash_version" : "0.9.4",
-    "git_commit" : "cb66f69121ddb36cba34ced479c9430d9b2b50b8",
+    "git_commit" : "a5dd37df07de5bb0dd21e7533714d592a95cef0e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
