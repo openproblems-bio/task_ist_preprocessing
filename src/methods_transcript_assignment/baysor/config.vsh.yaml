@@ -84,6 +84,7 @@ engines:
       - type: python
         packages:
            - spatialdata
+           - sopa[baysor]
       - type: docker
         run:
           - wget https://github.com/kharchenkolab/Baysor/releases/download/v0.7.1/baysor-x86_x64-linux-v0.7.1_build.zip
