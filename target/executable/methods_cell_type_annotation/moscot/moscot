@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "numpy" "anndata" "scanpy" "moscot" "flax" "diffrax"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation moscot"
-LABEL org.opencontainers.image.created="2025-09-15T21:37:49Z"
+LABEL org.opencontainers.image.created="2025-09-17T15:54:23Z"
 LABEL org.opencontainers.image.source="https://github.com/theislab/moscot"
-LABEL org.opencontainers.image.revision="2f146dfde77ca98f38ea5954a5761892afc14bd8"
+LABEL org.opencontainers.image.revision="cb66f69121ddb36cba34ced479c9430d9b2b50b8"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -620,7 +620,7 @@ function ViashHelp {
   echo ""
   echo "    --rank"
   echo "        type: integer"
-  echo "        default: -1"
+  echo "        default: 5000"
   echo ""
   echo "    --mapping_mode"
   echo "        type: string"
@@ -1006,7 +1006,7 @@ if [ -z ${VIASH_PAR_TAU+x} ]; then
   VIASH_PAR_TAU="1.0"
 fi
 if [ -z ${VIASH_PAR_RANK+x} ]; then
-  VIASH_PAR_RANK="-1"
+  VIASH_PAR_RANK="5000"
 fi
 if [ -z ${VIASH_PAR_MAPPING_MODE+x} ]; then
   VIASH_PAR_MAPPING_MODE="max"
@@ -1294,6 +1294,11 @@ assert par['input_scrnaseq_reference'] is not None, 'Single cell input is requir
 # Read input
 adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
 adata_sp = ad.read_h5ad(par['input_spatial_normalized_counts'])
+
+# Adjust rank in case of small data set
+if adata_sp.n_obs < 10000:
+    print('Adjusting rank to -1 since data set is small (n_obs < 10k)', flush=True)
+    par['rank'] = -1
 
 # Check for normalized layer and centroid information
 assert "normalized" in adata_sc.layers.keys(), 'Layer "normalized" is required for single-cell anndata'

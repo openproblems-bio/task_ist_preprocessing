@@ -3679,7 +3679,7 @@ meta = [
           "type" : "integer",
           "name" : "--rank",
           "default" : [
-            -1
+            5000
           ],
           "required" : false,
           "direction" : "input",
@@ -3844,7 +3844,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/moscot",
     "viash_version" : "0.9.4",
-    "git_commit" : "2f146dfde77ca98f38ea5954a5761892afc14bd8",
+    "git_commit" : "cb66f69121ddb36cba34ced479c9430d9b2b50b8",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4017,6 +4017,11 @@ assert par['input_scrnaseq_reference'] is not None, 'Single cell input is requir
 # Read input
 adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
 adata_sp = ad.read_h5ad(par['input_spatial_normalized_counts'])
+
+# Adjust rank in case of small data set
+if adata_sp.n_obs < 10000:
+    print('Adjusting rank to -1 since data set is small (n_obs < 10k)', flush=True)
+    par['rank'] = -1
 
 # Check for normalized layer and centroid information
 assert "normalized" in adata_sc.layers.keys(), 'Layer "normalized" is required for single-cell anndata'

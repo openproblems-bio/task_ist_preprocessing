@@ -3557,7 +3557,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/travaglini_human_lung_sc",
     "viash_version" : "0.9.4",
-    "git_commit" : "2f146dfde77ca98f38ea5954a5761892afc14bd8",
+    "git_commit" : "cb66f69121ddb36cba34ced479c9430d9b2b50b8",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

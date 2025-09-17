@@ -3979,7 +3979,8 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "spatialdata"
+            "spatialdata",
+            "sopa[baysor]"
           ],
           "upgrade" : true
         },
@@ -4005,7 +4006,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.4",
-    "git_commit" : "2f146dfde77ca98f38ea5954a5761892afc14bd8",
+    "git_commit" : "cb66f69121ddb36cba34ced479c9430d9b2b50b8",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4125,13 +4126,13 @@ cat > "$tempscript" << VIASHMAIN
 import os
 import shutil
 from pathlib import Path
-from tifffile import imwrite
+import xarray as xr
 import dask
 import numpy as np
-import xarray as xr
 import pandas as pd
 import anndata as ad
 import spatialdata as sd
+import sopa
 
 
 ## VIASH START
@@ -4180,13 +4181,15 @@ dep = {
 TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 
-TRANSCRIPTS_CSV = TMP_DIR / "transcripts.csv"
-SEGMENTATION_TIF = TMP_DIR / "segmentation.tif"
 CONFIG_TOML = TMP_DIR / "config.toml"
-BAYSOR_OUTPUT = TMP_DIR / "baysor_output.csv"
 
 
-# Read input
+##############################
+# Basic assignment for prior #
+##############################
+
+# Sopa takes the prior segmentation as cell_id column in the transcripts table. 
+# Generate this column with basic assignment:
 print('Reading input files', flush=True)
 sdata = sd.read_zarr(par['input_ist'])
 sdata_segm = sd.read_zarr(par['input_segmentation'])
@@ -4197,7 +4200,6 @@ assert par['coordinate_system'] in transcripts_coord_systems, f"Coordinate syste
 segmentation_coord_systems = sd.transformations.get_transformation(sdata_segm["segmentation"], get_all=True).keys()
 assert par['coordinate_system'] in segmentation_coord_systems, f"Coordinate system '{par['coordinate_system']}' not found in input data."
 
-# Transform transcript coordinates to the coordinate system
 print('Transforming transcripts coordinates', flush=True)
 transcripts = sd.transform(sdata[par['transcripts_key']], to_coordinate_system=par['coordinate_system'])
 
@@ -4205,18 +4207,32 @@ transcripts = sd.transform(sdata[par['transcripts_key']], to_coordinate_system=p
 trans = sd.transformations.get_transformation(sdata_segm["segmentation"], get_all=True)[par['coordinate_system']].inverse()
 transcripts = sd.transform(transcripts, trans, par['coordinate_system'])
 
-
-# Write transcripts to csv 
-print('Writing transcripts to csv', flush=True)
-transcripts[['x', 'y', 'z', 'feature_name']].compute().to_csv(TRANSCRIPTS_CSV)
-
-# Write segmentation to tif
-print('Writing segmentation to tif', flush=True)
+print('Assigning transcripts to cell ids', flush=True)
+y_coords = transcripts.y.compute().to_numpy(dtype=np.int64)
+x_coords = transcripts.x.compute().to_numpy(dtype=np.int64)
 if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
 else:
-     label_image = sdata_segm["segmentation"].to_numpy()
-imwrite(SEGMENTATION_TIF, label_image)
+    label_image = sdata_segm["segmentation"].to_numpy()
+cell_id_dask_series = dask.dataframe.from_dask_array(
+    dask.array.from_array(
+        label_image[y_coords, x_coords], chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
+    ), 
+    index=sdata[par['transcripts_key']].index
+)
+sdata[par['transcripts_key']]["cell_id"] = cell_id_dask_series
+
+
+########################
+# Run baysor with sopa #
+########################
+
+# Create reduced sdata
+sdata_sopa = sd.SpatialData(
+    points={
+        "transcripts": sdata[par['transcripts_key']]
+    },
+)
 
 # Write config to toml
 print('Writing config to toml', flush=True)
@@ -4239,68 +4255,29 @@ with open(CONFIG_TOML, "w") as toml_file:
     toml_file.write(toml_str)
 
 
-# Run Baysor
-n_threads = meta['cpus'] or os.cpu_count()
-n_threads = max(n_threads-2, 1)
-os.environ['JULIA_NUM_THREADS'] = str(n_threads)
-print('Running Baysor', flush=True)
-baysor_cmd = f"baysor run -c {CONFIG_TOML} -o {BAYSOR_OUTPUT} {TRANSCRIPTS_CSV} {SEGMENTATION_TIF}"
-print("\\\\t" + baysor_cmd, flush=True)
-os.system(baysor_cmd)
 
+# Make transcript patches
+sopa.make_transcript_patches(sdata_sopa, patch_width=2000, patch_overlap=50, prior_shapes_key="cell_id")
+sopa.settings.parallelization_backend = "dask"
 
-# Read Baysor output
-print('Reading Baysor output', flush=True)
-df_baysor = pd.read_csv(BAYSOR_OUTPUT)
+# Run baysor
+sopa.segmentation.baysor(sdata_sopa, config=str(CONFIG_TOML))
 
-# Formatting of Baysor output
-print('Formatting Baysor output', flush=True)
-
-def convert_str_ids_to_ints(df, file_path_for_error_messages=None):
-    """Convert cell ids like "CR4b68f93d8-27" to 27
-    
-    The file argument is just for creating more informative Error messages.
-    """
-    
-    df = df.copy()
-    file = file_path_for_error_messages
-    
-    unique_cell_values = df.loc[~df["cell"].isnull(), "cell"].unique()
-    unique_types = {type(value) for value in unique_cell_values}
-    n_cells_pre = len(df.loc[~df["cell"].isnull(),"cell"].unique())
-    if (len(unique_types) == 1) and (str in unique_types):
-        df.loc[~df["cell"].isnull(),"cell"] = df.loc[~df["cell"].isnull(),"cell"].apply(lambda i: i.split("-")[-1]).astype(int)
-    elif (len(unique_types) != 1):
-        raise ValueError(f"Non NaN values of column 'cell' in file {file} have multiple types: {unique_types}")
-    n_cells_post = len(df.loc[~df["cell"].isnull(),"cell"].unique())
-    
-    if n_cells_pre != n_cells_post:
-        raise ValueError(f"Number of cells changed after conversion to integers, probably baysor used different substrings with same integers for some cells. Check file: {file}")
-        
-    # Convert nan values to 0 (background)
-    df.loc[df["cell"].isnull(),"cell"] = 0
-    
-        
-    return df
-
-df_baysor = convert_str_ids_to_ints(df_baysor, file_path_for_error_messages=BAYSOR_OUTPUT)
-
-
-# Add cell ids to transcripts
-print('Adding cell ids to transcripts', flush=True)
-cell_id_dask_series = dask.dataframe.from_dask_array(
-    dask.array.from_array(
-        df_baysor['cell'].values, chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
-    ), 
-    index=sdata[par['transcripts_key']].index
+# Assign transcripts to cell ids
+sopa.spatial.assign_transcript_to_cell(
+    sdata_sopa,
+    points_key="transcripts",
+    shapes_key="baysor_boundaries",
+    key_added="cell_id",
+    unassigned_value=0
 )
-sdata[par['transcripts_key']]["cell_id"] = cell_id_dask_series
+
 
 
 # Create objects for cells table
 print('Creating objects for cells table', flush=True)
 #create new .obs for cells based on the segmentation output (corresponding with the transcripts 'cell_id')
-unique_cells = np.unique(cell_id_dask_series)
+unique_cells = np.unique(sdata_sopa["transcripts"]["cell_id"])
 
 # check if a '0' (noise/background) cell is in cell_id and remove
 zero_idx = np.where(unique_cells == 0)
@@ -4315,7 +4292,7 @@ assert 0 not in cell_id_col, "Found '0' in cell_id column of assingment output c
 print('Subsetting to transcripts cell id data', flush=True)
 sdata_transcripts_only = sd.SpatialData(
     points={
-        "transcripts": sdata[par['transcripts_key']]
+        "transcripts": sdata_sopa['transcripts']
     },
     tables={
         "table": ad.AnnData(

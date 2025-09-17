@@ -43,14 +43,17 @@ adata_sp.obsm['X_spatial'] = spatial_array
 # Apply gene efficiency correction
 print('Running ResolVI', flush=True)
 
+print('Setting up anndata', flush=True)
 scvi.external.RESOLVI.setup_anndata(adata_sp, labels_key=par['celltype_key'], layer="counts")
 
+print('Setting up model', flush=True)
 supervised_resolvi = scvi.external.RESOLVI(adata_sp, semisupervised=True, 
   n_hidden = par['n_hidden'], 
   encode_covariates = par['encode_covariates'], 
   downsample_counts = par['downsample_counts'])
 supervised_resolvi.train(max_epochs=100)
 
+print('Sampling posterior (corrected)', flush=True)
 samples_corr = supervised_resolvi.sample_posterior(
         model=supervised_resolvi.module.model_corrected,
         return_sites=['px_rate'],
@@ -58,6 +61,7 @@ samples_corr = supervised_resolvi.sample_posterior(
         num_samples=20, return_samples=False, batch_size=4000) #batch_steps was not a parameter
 samples_corr = pd.DataFrame(samples_corr).T
 
+print('Sampling posterior (residuals)', flush=True)
 samples = supervised_resolvi.sample_posterior(
     model=supervised_resolvi.module.model_residuals,
     return_sites=[

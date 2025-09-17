@@ -453,9 +453,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "scvi-tools"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_expression_correction resolvi_correction"
-LABEL org.opencontainers.image.created="2025-09-15T21:37:50Z"
+LABEL org.opencontainers.image.created="2025-09-17T15:54:24Z"
 LABEL org.opencontainers.image.source="https://github.com/scverse/scvi-tools"
-LABEL org.opencontainers.image.revision="2f146dfde77ca98f38ea5954a5761892afc14bd8"
+LABEL org.opencontainers.image.revision="cb66f69121ddb36cba34ced479c9430d9b2b50b8"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1227,14 +1227,17 @@ adata_sp.obsm['X_spatial'] = spatial_array
 # Apply gene efficiency correction
 print('Running ResolVI', flush=True)
 
+print('Setting up anndata', flush=True)
 scvi.external.RESOLVI.setup_anndata(adata_sp, labels_key=par['celltype_key'], layer="counts")
 
+print('Setting up model', flush=True)
 supervised_resolvi = scvi.external.RESOLVI(adata_sp, semisupervised=True, 
   n_hidden = par['n_hidden'], 
   encode_covariates = par['encode_covariates'], 
   downsample_counts = par['downsample_counts'])
 supervised_resolvi.train(max_epochs=100)
 
+print('Sampling posterior (corrected)', flush=True)
 samples_corr = supervised_resolvi.sample_posterior(
         model=supervised_resolvi.module.model_corrected,
         return_sites=['px_rate'],
@@ -1242,6 +1245,7 @@ samples_corr = supervised_resolvi.sample_posterior(
         num_samples=20, return_samples=False, batch_size=4000) #batch_steps was not a parameter
 samples_corr = pd.DataFrame(samples_corr).T
 
+print('Sampling posterior (residuals)', flush=True)
 samples = supervised_resolvi.sample_posterior(
     model=supervised_resolvi.module.model_residuals,
     return_sites=[
