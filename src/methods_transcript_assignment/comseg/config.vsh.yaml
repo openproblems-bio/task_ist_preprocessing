@@ -88,7 +88,7 @@ engines:
           - scikit-image
           - comseg
           - scipy
-          - dask
+
   - type: native
 
 runners:

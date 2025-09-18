@@ -96,7 +96,7 @@ def main():
         sd_output = sd.SpatialData()
         
         cell_id_col = sdata["transcripts"][f"cell_id"]
-        sdata.tables["table"]=ad.AnnData(obs=pd.DataFrame({"cell_id":cell_id_col}), var=sdata.tables["table"].var)
+        sdata.tables["table"]=ad.AnnData(obs=pd.DataFrame({"cell_id":cell_id_col}), var=sdata.tables["table"].var[[]])
         sdata_new = sd.SpatialData(
             points=sdata.points,  
             tables=sdata.tables   
