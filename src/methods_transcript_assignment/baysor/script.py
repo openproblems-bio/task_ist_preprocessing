@@ -114,9 +114,12 @@ with open(CONFIG_TOML, "w") as toml_file:
 
 # Make transcript patches
 sopa.make_transcript_patches(sdata_sopa, patch_width=2000, patch_overlap=50, prior_shapes_key="cell_id")
-sopa.settings.parallelization_backend = "dask"
 
 # Run baysor
+# sopa.settings.parallelization_backend = "dask" #NOTE: didn't lead to high speed, also I think workers kept dying, instead went with JULIA_NUM_THREADS
+n_threads = meta['cpus'] or os.cpu_count()
+n_threads = max(n_threads-2, 1)
+os.environ['JULIA_NUM_THREADS'] = str(n_threads)
 sopa.segmentation.baysor(sdata_sopa, config=str(CONFIG_TOML))
 
 # Assign transcripts to cell ids
