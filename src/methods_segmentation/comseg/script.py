@@ -7,48 +7,66 @@ import pandas as pd
 import shutil
 import os
 import sys
-import logging
-from spatialdata.models import Labels2DModel
 import numpy as np
-import xarray as xr
 from pathlib import Path
 from scipy import sparse
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 ## VIASH START
 par = {
     "input": "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
-    "output": "segmentation.zarr"
+    "output": "transcripts.zarr"
 }
 ## VIASH END
+def fixed_count_transcripts_aligned(geo_df, points, value_key):
+           
+            """
+            The same function as sopa.aggregation.transcripts._count_transcripts_aligned.
+            Minor change just the matrix X is converted to csr_matrix, to avoid bug error in comseg call
 
-def convert_to_lower_dtype(arr):
-    """Convert array to lowest possible integer dtype based on max value."""
-    max_val = arr.max()
-    if max_val <= np.iinfo(np.uint8).max:
-        new_dtype = np.uint8
-    elif max_val <= np.iinfo(np.uint16).max:
-        new_dtype = np.uint16
-    elif max_val <= np.iinfo(np.uint32).max:
-        new_dtype = np.uint32
-    else:
-        new_dtype = np.uint64
-    return arr.astype(new_dtype)
+            """
+            from scipy.sparse import csr_matrix
+            from anndata import AnnData
+            from dask.diagnostics import ProgressBar
+            from functools import partial
+            from sopa._settings import settings
+            import geopandas as gpd
+            def _add_csr(X_partitions, geo_df, partition, gene_column, gene_names ):
+                if settings.gene_exclude_pattern is not None:
+                    partition = partition[~partition[gene_column].str.match(settings.gene_exclude_pattern, case=False, na=False)]
 
+                points_gdf = gpd.GeoDataFrame(partition, geometry=gpd.points_from_xy(partition["x"], partition["y"]))
+                joined = geo_df.sjoin(points_gdf)
+                cells_indices, column_indices = joined.index, joined[gene_column].cat.codes
+                cells_indices = cells_indices[column_indices >= 0]
+                column_indices = column_indices[column_indices >= 0]
+                X_partition = csr_matrix((np.full(len(cells_indices), 1), (cells_indices, column_indices)),
+                    shape=(len(geo_df), len(gene_names)),
+                )
+                X_partitions.append(X_partition)
+            
+
+            points[value_key] = points[value_key].astype("category").cat.as_known()
+            gene_names = points[value_key].cat.categories.astype(str)
+            X = csr_matrix((len(geo_df), len(gene_names)), dtype=int)
+            adata = AnnData(X=X, var=pd.DataFrame(index=gene_names))
+            adata.obs_names = geo_df.index.astype(str)
+            geo_df = geo_df.reset_index()
+            X_partitions = []
+            with ProgressBar():
+                points.map_partitions(
+                    partial(_add_csr, X_partitions, geo_df, gene_column=value_key, gene_names=gene_names),
+                    meta=(),
+                ).compute()
+            for X_partition in X_partitions:
+                adata.X += X_partition
+            if settings.gene_exclude_pattern is not None:
+                adata = adata[:, ~adata.var_names.str.match(settings.gene_exclude_pattern, case=False, na=False)].copy()
+            return adata
 
 def main():
-
+        
         sdata = sd.read_zarr(par["input"])
-        sopa.make_image_patches(
-            sdata, 
-            patch_width=par["patch_width"], 
-            patch_overlap=par["patch_overlap"]
-        )
-
-
+        sopa.make_image_patches(sdata, patch_width=par["patch_width"], patch_overlap=par["patch_overlap"])
 
         transcript_patch_args = {
             "sdata": sdata,
@@ -56,8 +74,8 @@ def main():
             "patch_width": par["transcript_patch_width"],
         }
         transcript_patch_args["prior_shapes_key"] = par["shapes_key"]
-        sopa.make_transcript_patches(**transcript_patch_args)
         
+        sopa.make_transcript_patches(**transcript_patch_args)
         
         config = {
             "dict_scale": {"x": 1, "y": 1, "z": 1},
@@ -70,108 +88,23 @@ def main():
             "gene_column": par["gene_column"],
         }
         
-        # Monkey patch to fix sparse matrix format issue in SOPA
-        original_count_transcripts = sopa.aggregation.transcripts._count_transcripts_aligned
         
-        def fixed_count_transcripts_aligned(geo_df, points, gene_column):
-                    """Fixed version that ensures CSR matrix format for AnnData compatibility."""
-                    #try:
-                        # Try original function first
-                    #    result = original_count_transcripts(geo_df, points, gene_column)
-                    #    return result
-                    #except ValueError as e:
-                
-                            
-                            # Alternative implementation with proper sparse matrix handling
-                    from collections import defaultdict
-                    gene_names = sorted(points[gene_column].unique())
-                    gene_to_idx = {gene: i for i, gene in enumerate(gene_names)}
-                    
-                    # Count transcripts per cell
-                    cell_gene_counts = defaultdict(lambda: defaultdict(int))
-                    
-                    for cell_idx, geom in enumerate(geo_df.geometry):
-                        if geom is None or geom.is_empty:
-                            continue
-                            
-                        # Simple approach: check if points are within geometry bounds
-                        if hasattr(geom, 'bounds'):
-                            minx, miny, maxx, maxy = geom.bounds
-                            mask = (
-                                (points['x'] >= minx) & (points['x'] <= maxx) &
-                                (points['y'] >= miny) & (points['y'] <= maxy)
-                            )
-                            points_in_cell = points[mask]
-                            
-                            for _, point in points_in_cell.iterrows():
-                                if hasattr(geom, 'contains'):
-                                    from shapely.geometry import Point
-                                    point_geom = Point(point['x'], point['y'])
-                                    if geom.contains(point_geom):
-                                        gene = point[gene_column]
-                                        cell_gene_counts[cell_idx][gene] += 1
-                                else:
-                                    # Fallback: use all points in bounding box
-                                    gene = point[gene_column]
-                                    cell_gene_counts[cell_idx][gene] += 1
-                    
-                    # Create sparse matrix in CSR format
-                    row_indices = []
-                    col_indices = []
-                    data = []
-                    
-                    for cell_idx, gene_counts in cell_gene_counts.items():
-                        for gene, count in gene_counts.items():
-                            if gene in gene_to_idx:
-                                row_indices.append(cell_idx)
-                                col_indices.append(gene_to_idx[gene])
-                                data.append(count)
-                    
-                    n_cells = len(geo_df)
-                    n_genes = len(gene_names)
-                    
-                    if len(data) > 0:
-                        X = sparse.csr_matrix(
-                            (data, (row_indices, col_indices)), 
-                            shape=(n_cells, n_genes)
-                        )
-                    else:
-                        X = sparse.csr_matrix((n_cells, n_genes))
-                    
-                    # Create AnnData object with CSR matrix
-                    adata = ad.AnnData(X=X, var=pd.DataFrame(index=gene_names))
-                    return adata
-              
-        
-        # Apply the patch
         sopa.aggregation.transcripts._count_transcripts_aligned = fixed_count_transcripts_aligned
         sopa.segmentation.comseg(sdata, config)
-        
-        # Clean up temporary boundaries if created
-        if hasattr(sdata, 'shapes') and sdata.shapes and "comseg_boundaries" in sdata.shapes:
-            del sdata.shapes["comseg_boundaries"]
-        
-        # Create output SpatialData with segmentation results
+
+        # Create output SpatialData 
         sd_output = sd.SpatialData()
-       # sd_output.labels["segmentation"] = sdata.labels["segmentation"]
         
-
-        cell_id_col = sdata["transcripts"]["cell_id"]
-        sdata.tables["table"]=ad.AnnData(obs=pd.DataFrame({"cell_id":cell_id_col}), var=sdata.tables["table"].var[[]])
-        
-        temp_output = par["output"] + "_temp"
-        sdata.write(temp_output, overwrite=True)
-        shutil.rmtree(par["output"], ignore_errors=True)  # Delete old output
-        shutil.move(temp_output, par["output"])  # Rename temp output to original
-
+        cell_id_col = sdata["transcripts"][f"cell_id"]
+        sdata.tables["table"]=ad.AnnData(obs=pd.DataFrame({"cell_id":cell_id_col}), var=sdata.tables["table"].var)
         sdata_new = sd.SpatialData(
             points=sdata.points,  
             tables=sdata.tables   
-        )
-        output_path = "cleaned_output.zarr" 
+        ) 
+    
+        output_path = par['output']
         sdata_new.write(output_path, overwrite=True)
 
-        
 
 if __name__ == "__main__":
     main()
