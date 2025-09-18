@@ -46,36 +46,49 @@ engines:
   - type: docker
     image: openproblems/base_python:1
     setup:
+      - type: apt
+        packages:
+          - libgl1-mesa-dri
+          - libglib2.0-0
+          - libsm6
+          - libxext6
+          - libfontconfig1
+          - libxrender1
+          - build-essential
+          - git
       - type: python
-        pypi: "numpy==1.26.4"
-      - type: python  
-        pypi: "imgaug==0.4.0"
+        pip: --force-reinstall numpy==1.24.4 scipy==1.11.1 scikit-image==0.21.0
       - type: python
-        pypi: "scipy<1.14"
+        pypi: tifffile==2023.7.18
       - type: python
-        pypi: "scikit-learn<1.6"
+        pypi: natsort==8.4.0
       - type: python
-        pypi: "dask==2024.11.2"
+        pypi: opencv-python-headless==4.8.0.76
       - type: python
-        pypi: "bidcell"
+        pypi: imgaug==0.4.0
+      - type: python
+        pypi: matplotlib==3.7.2
+      - type: python
+        pypi: pandas==2.0.3
+      - type: python
+        pypi: scikit-learn==1.3.0
+      - type: python
+        pypi: tqdm==4.65.0
+      - type: python
+        pypi: pyyaml==6.0.1
+      - type: python
+        pypi: cellpose
+      - type: python
+        pypi: bidcell
       - type: python
         pypi: spatialdata
       - type: python
         pypi: scanpy
       - type: python
-        pypi: tifffile
-      - type: python
-        pypi: opencv-python
-      - type: python
-        pypi: natsort
+        pypi: dask[dataframe]
       - type: python
         pypi: spatialdata-plot
-      - type: python
-        pypi: pyyaml
-      - type: python
-        pypi: scikit-image
-      - type: python
-        pypi: torch
-      - type: python
-        pypi: torchvision
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
   - type: native
+
