@@ -460,9 +460,9 @@ RUN unzip baysor-x86_x64-linux-v0.7.1_build.zip
 RUN chmod +x /bin/baysor
 RUN ln -sf /bin/baysor/bin/baysor /usr/local/bin/baysor
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment baysor"
-LABEL org.opencontainers.image.created="2025-09-17T20:42:48Z"
+LABEL org.opencontainers.image.created="2025-09-18T21:36:59Z"
 LABEL org.opencontainers.image.source="https://github.com/kharchenkolab/Baysor"
-LABEL org.opencontainers.image.revision="a5dd37df07de5bb0dd21e7533714d592a95cef0e"
+LABEL org.opencontainers.image.revision="ecb67b533e961d696d08fdb7e478207a50c91aa9"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1437,9 +1437,12 @@ with open(CONFIG_TOML, "w") as toml_file:
 
 # Make transcript patches
 sopa.make_transcript_patches(sdata_sopa, patch_width=2000, patch_overlap=50, prior_shapes_key="cell_id")
-sopa.settings.parallelization_backend = "dask"
 
 # Run baysor
+# sopa.settings.parallelization_backend = "dask" #NOTE: didn't lead to high speed, also I think workers kept dying, instead went with JULIA_NUM_THREADS
+n_threads = meta['cpus'] or os.cpu_count()
+n_threads = max(n_threads-2, 1)
+os.environ['JULIA_NUM_THREADS'] = str(n_threads)
 sopa.segmentation.baysor(sdata_sopa, config=str(CONFIG_TOML))
 
 # Assign transcripts to cell ids

@@ -3783,7 +3783,8 @@ meta = [
         "label" : [
           "hightime",
           "midcpu",
-          "veryhighmem"
+          "veryhighmem",
+          "gpu"
         ],
         "tag" : "$id"
       },
@@ -3844,7 +3845,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/moscot",
     "viash_version" : "0.9.4",
-    "git_commit" : "a5dd37df07de5bb0dd21e7533714d592a95cef0e",
+    "git_commit" : "ecb67b533e961d696d08fdb7e478207a50c91aa9",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4447,7 +4448,8 @@ meta["defaults"] = [
   "label" : [
     "hightime",
     "midcpu",
-    "veryhighmem"
+    "veryhighmem",
+    "gpu"
   ],
   "tag" : "$id"
 }'''),

@@ -4006,7 +4006,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.4",
-    "git_commit" : "a5dd37df07de5bb0dd21e7533714d592a95cef0e",
+    "git_commit" : "ecb67b533e961d696d08fdb7e478207a50c91aa9",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4258,9 +4258,12 @@ with open(CONFIG_TOML, "w") as toml_file:
 
 # Make transcript patches
 sopa.make_transcript_patches(sdata_sopa, patch_width=2000, patch_overlap=50, prior_shapes_key="cell_id")
-sopa.settings.parallelization_backend = "dask"
 
 # Run baysor
+# sopa.settings.parallelization_backend = "dask" #NOTE: didn't lead to high speed, also I think workers kept dying, instead went with JULIA_NUM_THREADS
+n_threads = meta['cpus'] or os.cpu_count()
+n_threads = max(n_threads-2, 1)
+os.environ['JULIA_NUM_THREADS'] = str(n_threads)
 sopa.segmentation.baysor(sdata_sopa, config=str(CONFIG_TOML))
 
 # Assign transcripts to cell ids
