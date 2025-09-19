@@ -1,22 +1,20 @@
-#!/usr/bin/env python3
-
 import spatialdata as sd
-import scanpy as sc
+import spatialdata_plot as pl
+import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import tifffile
 import cv2
+import dask.dataframe as dd
+import scanpy as sc
+import pandas as pd
 import natsort
 import os 
-import sys
-import logging
-import tempfile
-from pathlib import Path
 from bidcell import BIDCellModel
 
 ## VIASH START
 par = {
     'input': 'resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr',
+    'temp': './temp/bidcell/',
     'output': 'output.zarr',
     'single_cell_ref': None,
     'max_overlaps_pos': 4,
@@ -26,246 +24,206 @@ par = {
 }
 ## VIASH END
 
+# defining the function generate_markers
 def generate_markers(ref_df, max_overlaps_pos=4, max_overlaps_neg=15):
-    """Generate positive and negative marker genes for cell types."""
-    n_genes = ref_df.shape[1] - 3  # Exclude ct_idx, cell_type, atlas columns
-    cell_types = natsort.natsorted(list(set(ref_df["cell_type"].tolist())))
-    n_cell_types = len(cell_types)
+        n_genes = ref_df.shape[1] - 3
+        cell_types = natsort.natsorted(list(set(ref_df["cell_type"].tolist())))
+        n_cell_types = len(cell_types)
 
-    ref_expr = ref_df.iloc[:, :n_genes].to_numpy()
-    gene_names = ref_df.columns[:n_genes]
-    ct_idx = ref_df["ct_idx"].to_numpy()
+        ref_expr = ref_df.iloc[:, :n_genes].to_numpy()
+        gene_names = ref_df.columns[:n_genes]
+        ct_idx = ref_df["ct_idx"].to_numpy()
 
-    # Generate negative markers (genes with low expression)
-    pct_10 = np.percentile(ref_expr, 10, axis=1, keepdims=True)
-    pct_10 = np.tile(pct_10, (1, n_genes))
-    low_expr_true = np.zeros(pct_10.shape)
-    low_expr_true[ref_expr <= pct_10] = 1
+        # Generate negative markers
+        pct_10 = np.percentile(ref_expr, 10, axis=1, keepdims=True)
+        pct_10 = np.tile(pct_10, (1, n_genes))
+        low_expr_true = np.zeros(pct_10.shape)
+        low_expr_true[ref_expr <= pct_10] = 1
 
-    low_expr_true_agg = np.zeros((n_cell_types, n_genes))
-    for ct in range(n_cell_types):
-        rows = np.where(ct_idx == ct)[0]
-        low_expr_true_ct = low_expr_true[rows]
-        low_expr_true_agg[ct, :] = np.prod(low_expr_true_ct, axis=0)
+        low_expr_true_agg = np.zeros((n_cell_types, n_genes))
+        for ct in range(n_cell_types):
+            rows = np.where(ct_idx == ct)[0]
+            low_expr_true_ct = low_expr_true[rows]
+            low_expr_true_agg[ct, :] = np.prod(low_expr_true_ct, axis=0)
 
-    overlaps = np.sum(low_expr_true_agg, 0)
-    too_many = np.where(overlaps > max_overlaps_neg)[0]
-    low_expr_true_agg[:, too_many] = 0
-    df_neg = pd.DataFrame(low_expr_true_agg, index=cell_types, columns=gene_names)
+        overlaps = np.sum(low_expr_true_agg, 0)
+        too_many = np.where(overlaps > max_overlaps_neg)[0]
+        low_expr_true_agg[:, too_many] = 0
+        df_neg = pd.DataFrame(low_expr_true_agg, index=cell_types, columns=gene_names)
 
-    # Generate positive markers (genes with high expression)
-    pct_90 = np.percentile(ref_expr, 90, axis=1, keepdims=True)
-    pct_90 = np.tile(pct_90, (1, n_genes))
-    high_expr_true = np.zeros(pct_90.shape)
-    high_expr_true[ref_expr >= pct_90] = 1
+        # Generate positive markers
+        pct_90 = np.percentile(ref_expr, 90, axis=1, keepdims=True)
+        pct_90 = np.tile(pct_90, (1, n_genes))
+        high_expr_true = np.zeros(pct_90.shape)
+        high_expr_true[ref_expr >= pct_90] = 1
 
-    high_expr_true_agg = np.zeros((n_cell_types, n_genes))
-    for ct in range(n_cell_types):
-        rows = np.where(ct_idx == ct)[0]
-        high_expr_true_ct = high_expr_true[rows]
-        high_expr_true_agg[ct, :] = np.prod(high_expr_true_ct, axis=0)
+        high_expr_true_agg = np.zeros((n_cell_types, n_genes))
+        for ct in range(n_cell_types):
+            rows = np.where(ct_idx == ct)[0]
+            high_expr_true_ct = high_expr_true[rows]
+            high_expr_true_agg[ct, :] = np.prod(high_expr_true_ct, axis=0)
 
-    overlaps = np.sum(high_expr_true_agg, 0)
-    too_many = np.where(overlaps > max_overlaps_pos)[0]
-    high_expr_true_agg[:, too_many] = 0
-    df_pos = pd.DataFrame(high_expr_true_agg, index=cell_types, columns=gene_names)
+        overlaps = np.sum(high_expr_true_agg, 0)
+        too_many = np.where(overlaps > max_overlaps_pos)[0]
+        high_expr_true_agg[:, too_many] = 0
+        df_pos = pd.DataFrame(high_expr_true_agg, index=cell_types, columns=gene_names)
 
-    return df_pos, df_neg
+        return df_pos, df_neg
 
-def main():
-    logging.basicConfig(level=logging.INFO)
+sdata = sd.read_zarr(par['input'])
+sdata_genes = sdata['transcripts']["feature_name"].unique().compute().sort_values().tolist()
+# Creation of the data for a yaml file - input for BIDCELL
+# Extracting DAPI image from dataset.zarr
+image_pyramid = []
+img = sdata["morphology_mip"]["/scale0"]["image"].values
+img = np.squeeze(img)
+image_pyramid.append(img)
+
+if not os.path.exists(par['temp']):
+    os.makedirs(par['temp'])
+
+# Save the TIFF file in the temporary directory
+with tifffile.TiffWriter(f"{par['temp']}morphology_mip_pyramidal.tiff", bigtiff=True) as tiff:
+    for img in image_pyramid:
+        tiff.write(img, photometric="minisblack", resolution=(1, 1))
+
+# Converting h5ad single cell reference to .csv
+adata = sc.read_h5ad(par['input_scrnaseq_reference'])
+shared_genes = [g for g in sdata_genes if g in adata.var["feature_name"].values]
+adata = adata[:, adata.var["feature_name"].isin(shared_genes)]
+
+adata.var_names = adata.var["feature_name"].astype(str)
+sc_ref = pd.DataFrame(
+        data=adata[:, shared_genes].layers["normalized"].toarray(), 
+        columns=shared_genes, 
+        index=range(adata.n_obs)
+    )
+celltypes = adata.obs['cell_type'].unique().tolist()
+cell_type_col = adata.obs['cell_type'].astype('category')
+sc_ref["ct_idx"] = cell_type_col.cat.codes.values
+sc_ref["cell_type"] = cell_type_col.values
+sc_ref["atlas"] = "custom"
+sc_ref.to_csv(f"{par['temp']}scref.csv")
+
+# generating transcript map .csv from test data
+transcript = sdata["transcripts"].compute()
+transcript = pd.DataFrame(transcript)
+transcript[transcript["feature_name"].isin(shared_genes)].to_csv(f"{par['temp']}transcript.csv.gz", compression='gzip')
+
+# generate positive and negative marker files 
+df_pos, df_neg = generate_markers(sc_ref, max_overlaps_pos=4, max_overlaps_neg=15)
+df_pos.to_csv(f"{par['temp']}/pos_marker.csv")
+df_neg.to_csv(f"{par['temp']}/neg_marker.csv")
+
+
+
+import yaml
+
+config = {
+    "cpus": 8, 
+    "files": {
+        "data_dir": par['temp'],
+        "fp_dapi": f"{par['temp']}morphology_mip_pyramidal.tiff",
+        "fp_transcripts": f"{par['temp']}transcript.csv.gz",
+        "fp_ref": f"{par['temp']}scref.csv",
+        "fp_pos_markers": f"{par['temp']}pos_marker.csv",
+        "fp_neg_markers": f"{par['temp']}neg_marker.csv",
+    },
+    "nuclei_fovs": {
+        "stitch_nuclei_fovs": False,
+    },
+    "nuclei": {
+        "diameter": None,  # leave as None to automatically compute
+    },
+    "transcripts": {
+        "shift_to_origin": True,
+        "x_col": "x",
+        "y_col": "y",
+        "gene_col": "feature_name",
+        "transcripts_to_filter": [
+            "NegControlProbe_",
+            "antisense_",
+            "NegControlCodeword_",
+            "BLANK_",
+            "Blank-",
+            "NegPrb",
+        ],
+    },
+    "affine": {
+        "target_pix_um": 1.0,
+        "base_pix_x": 1.0, #0.2125,
+        "base_pix_y": 1.0, #0.2125,
+        "base_ts_x": 1.0,
+        "base_ts_y": 1.0,
+        "global_shift_x": 0,
+        "global_shift_y": 0,
+    },
+    "model_params": {
+        "name": "custom",
+        "patch_size": 48,
+        "elongated": [
+            '01 IT-ET Glut', '02 NP-CT-L6b Glut', '03 MOB-DG-IMN', '04 CGE GABA', '05 MGE GABA', '06 CNU GABA', '08 MH-LH Glut', '09 TH Glut', '11 HY GABA', '12 MOB-CR Glut', '13 CNU-HYa Glut', '14 CNU-HYa GABA', '16 MB Glut', '20 MB GABA', '28 Astro-Epen', '29 Oligo', '30 OEG', '31 Vascular', '32 Immune'
+        ],
+    },
+    "training_params": {
+        "total_epochs": 1,
+        "total_steps": 60,
+        "ne_weight": 1.0,
+        "os_weight": 1.0,
+        "cc_weight": 1.0,
+        "ov_weight": 1.0,
+        "pos_weight": 1.0,
+        "neg_weight": 1.0,
+    },
+    "testing_params": {
+        "test_epoch": 1,
+        "test_step": 60,
+    },
+    "experiment_dirs": {
+        "dir_id": "last",
+    },
+}
+
+# Save YAML file
+with open(f"{par['temp']}testdata.yaml", "w") as f:
+    yaml.dump(config, f, sort_keys=False)
+
+
+
+
+#    # Setting up and running BIDCell
+model = BIDCellModel(f"{par['temp']}testdata.yaml")
+model.run_pipeline() 
+
+    # Analysis and visualisation of BIDcell output
+#dapi_image = tifffile.imread("morphology_mip_pyramidal.tiff")
+#segmentation_mask = tifffile.imread("epoch_10_step_60_connected.tif")
+#h_dapi, w_dapi = dapi_image.shape
+
+#segmentation_mask_resized = cv2.resize(segmentation_mask.astype('float32'), (w_dapi, h_dapi), interpolation=cv2.INTER_NEAREST)
+#segmentation_mask_resized = segmentation_mask_resized.astype(np.uint32)
+#segmentation_mask_resized = segmentation_mask_resized.transpose(1, 0)
+#tifffile.imwrite("bidcellresult_resized.tif", segmentation_mask_resized)
+
+    # creating bidcelloutput.zarr
+#image = tifffile.imread("morphology_mip_pyramidal.tiff")
+#image_with_channel = np.expand_dims(image, axis=0)
+#label_image = tifffile.imread("bidcellresult_resized.tif")
+#labels = sd.models.Labels2DModel.parse(label_image, dims=('y', 'x'))
     
-    # Load spatial data
-    logging.info(f"Loading spatial data from {par['input']}")
-    sdata = sd.read_zarr(par['input'])
-    
-    # Log data characteristics
-    logging.info(f"Loaded spatial data with components: {list(sdata)}")
-    
-    # Get gene list from spatial transcripts
-    sdata_genes = sdata['transcripts']["feature_name"].unique().compute().sort_values().tolist()
-    logging.info(f"Found {len(sdata_genes)} unique genes in spatial data")
-    
-    # Create temporary working directory
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_path = Path(temp_dir)
-        
-        try:
-            # Extract DAPI image for BIDCell
-            logging.info("Extracting morphology image")
-            img = sdata["morphology_mip"]["scale0"]["image"].values
-            img = np.squeeze(img)
-            
-            morphology_path = temp_path / "morphology_mip_pyramidal.tiff"
-            with tifffile.TiffWriter(morphology_path, bigtiff=True) as tiff:
-                tiff.write(img, photometric="minisblack", resolution=(1, 1))
-            
-            # Process single-cell reference data if provided
-            # First check if there's an scRNA-seq reference in the spatial data itself
-            if 'scrnaseq_reference' in sdata.tables:
-                logging.info("Using scRNA-seq reference from input spatial data")
-                adata = sdata.tables['scrnaseq_reference']
-            elif par.get('single_cell_ref') and os.path.exists(par['single_cell_ref']):
-                logging.info(f"Loading single-cell reference from {par['single_cell_ref']}")
-                adata = sc.read_h5ad(par['single_cell_ref'])
-            else:
-                logging.info("No single-cell reference found, using scrnaseq_reference.h5ad from test data")
-                # Try to use the scrnaseq_reference.h5ad that should be in the same directory as raw_ist.zarr
-                input_dir = os.path.dirname(par['input'])
-                ref_path = os.path.join(input_dir, 'scrnaseq_reference.h5ad')
-                if os.path.exists(ref_path):
-                    logging.info(f"Found scRNA-seq reference at {ref_path}")
-                    adata = sc.read_h5ad(ref_path)
-                else:
-                    adata = None
-                
-            if adata is not None:
-                # Filter to shared genes
-                shared_genes = [g for g in sdata_genes if g in adata.var["feature_name"].values]
-                logging.info(f"Found {len(shared_genes)} shared genes between spatial and scRNA-seq data")
-                
-                if len(shared_genes) == 0:
-                    raise ValueError("No shared genes found between spatial and single-cell reference data")
-                
-                adata = adata[:, adata.var["feature_name"].isin(shared_genes)]
-                adata.var_names = adata.var["feature_name"].astype(str)
-                
-                # Create reference dataframe for BIDCell
-                # Use normalized layer if available, otherwise X
-                if "normalized" in adata.layers:
-                    expr_data = adata[:, shared_genes].layers["normalized"].toarray()
-                else:
-                    expr_data = adata[:, shared_genes].X.toarray()
-                
-                sc_ref = pd.DataFrame(
-                    data=expr_data,
-                    columns=shared_genes,
-                    index=range(adata.n_obs)
-                )
-                
-                # Add cell type information
-                if 'cell_type' not in adata.obs.columns:
-                    logging.warning("No 'cell_type' column found in reference data, using dummy cell type")
-                    adata.obs['cell_type'] = 'Unknown'
-                
-                cell_type_col = adata.obs['cell_type'].astype('category')
-                sc_ref["ct_idx"] = cell_type_col.cat.codes.values
-                sc_ref["cell_type"] = cell_type_col.values
-                sc_ref["atlas"] = "custom"
-                
-                # Save reference data
-                scref_path = temp_path / "scref.csv"
-                sc_ref.to_csv(scref_path)
-                
-                # Generate marker files
-                logging.info("Generating positive and negative marker genes")
-                df_pos, df_neg = generate_markers(
-                    sc_ref, 
-                    max_overlaps_pos=par['max_overlaps_pos'],
-                    max_overlaps_neg=par['max_overlaps_neg']
-                )
-                
-                pos_marker_path = temp_path / "pos_marker.csv"
-                neg_marker_path = temp_path / "neg_marker.csv"
-                df_pos.to_csv(pos_marker_path)
-                df_neg.to_csv(neg_marker_path)
-                
-                # Filter transcripts to shared genes
-                transcript = sdata["transcripts"].compute()
-                transcript_filtered = transcript[transcript["feature_name"].isin(shared_genes)]
-                
-            else:
-                logging.warning("No single-cell reference provided, using all genes")
-                transcript_filtered = sdata["transcripts"].compute()
-                shared_genes = sdata_genes
-            
-            # Save transcript data for BIDCell
-            transcript_path = temp_path / "transcript.csv.gz"
-            pd.DataFrame(transcript_filtered).to_csv(transcript_path, compression='gzip')
-            
-            # Create BIDCell configuration file
-            config = {
-                'data_path': str(temp_path),
-                'morphology_path': str(morphology_path),
-                'transcript_path': str(transcript_path),
-                'epochs': par['model_epochs'],
-                'min_cell_size': par['min_cell_size']
-            }
-            
-            if adata is not None:
-                config.update({
-                    'scref_path': str(scref_path),
-                    'pos_marker_path': str(pos_marker_path),
-                    'neg_marker_path': str(neg_marker_path)
-                })
-            
-            config_path = temp_path / "bidcell_config.yaml"
-            import yaml
-            with open(config_path, 'w') as f:
-                yaml.dump(config, f)
-            
-            # Run BIDCell
-            logging.info("Running BIDCell segmentation")
-            model = BIDCellModel(str(config_path))
-            model.run_pipeline()
-            
-            # Process BIDCell output
-            logging.info("Processing BIDCell output")
-            dapi_image = tifffile.imread(morphology_path)
-            
-            # Look for BIDCell output file (adjust name based on actual output)
-            output_files = list(temp_path.glob("*connected.tif"))
-            if not output_files:
-                output_files = list(temp_path.glob("segmentation*.tif"))
-            
-            if not output_files:
-                raise FileNotFoundError("BIDCell segmentation output not found")
-            
-            segmentation_mask = tifffile.imread(output_files[0])
-            h_dapi, w_dapi = dapi_image.shape
-            
-            # Resize segmentation to match DAPI image
-            segmentation_resized = cv2.resize(
-                segmentation_mask.astype('float32'), 
-                (w_dapi, h_dapi), 
-                interpolation=cv2.INTER_NEAREST
-            )
-            segmentation_resized = segmentation_resized.astype(np.uint32)
-            
-            # Create output SpatialData
-            logging.info("Creating output SpatialData")
-            
-            # Prepare images
-            image_with_channel = np.expand_dims(dapi_image, axis=0)
-            images = sd.models.Image2DModel.parse(image_with_channel, dims=('c', 'y', 'x'))
-            
-            # Prepare labels (segmentation)
-            labels = sd.models.Labels2DModel.parse(segmentation_resized, dims=('y', 'x'))
-            
-            # Prepare points (transcripts)
-            transcript_df = pd.DataFrame(transcript_filtered)
-            transcript_df['x'] = transcript_df['x'].astype(float)
-            transcript_df['y'] = transcript_df['y'].astype(float)
-            transcript_df['z'] = transcript_df['z'].astype(float)
-            transcript_df['feature_name'] = transcript_df['feature_name'].astype(str)
-            points = sd.models.PointsModel.parse(transcript_df)
-            
-            # Create output SpatialData object
-            output_sdata = sd.SpatialData(
-                images={'morphology_mip': images},
-                labels={'segmentation': labels},
-                points={'transcripts': points}
-            )
-            
-            # Write output
-            logging.info(f"Writing output to {par['output']}")
-            output_sdata.write(par['output'], overwrite=True)
-            
-            logging.info("BIDCell segmentation completed successfully")
-            
-        except Exception as e:
-            logging.error(f"BIDCell segmentation failed: {str(e)}")
-            sys.exit(1)
+#transcript_processed = pd.read_csv("data/transcript.csv.gz")
+#transcript_processed['x'] = transcript_processed['x'].astype(float)
+#transcript_processed['y'] = transcript_processed['y'].astype(float)
+#transcript_processed['z'] = transcript_processed['z'].astype(float)
+#transcript_processed['feature_name'] = transcript_processed['feature_name'].astype(str)
 
-if __name__ == "__main__":
-    main()
+#images = sd.models.Image2DModel.parse(image_with_channel, dims=('c', 'x', 'y'))
+#labels = sd.models.Labels2DModel.parse(label_image, dims=('y', 'x'))
+#points = sd.models.PointsModel.parse(transcript_processed)
+
+outputsdata = sd.SpatialData()
+#        images={'DAPI': images},
+#        labels={'segmentation_mask_labels': labels},  
+#        points={'transcripts': points}  
+#    )
+outputsdata.write(par['output'], overwrite=True)

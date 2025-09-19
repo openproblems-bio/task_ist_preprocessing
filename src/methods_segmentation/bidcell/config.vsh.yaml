@@ -15,6 +15,10 @@ arguments:
     __merge__: /src/api/file_scrnaseq_reference.yaml
     required: false
     direction: input
+  - name: --temp
+    type: string
+    default: "./temp_bidcell/"
+    description: "Temporary directory for BIDCell intermediate files"
   - name: --max_overlaps_pos
     type: integer
     default: 4
@@ -48,36 +52,38 @@ engines:
     setup:
       - type: apt
         packages:
-          - libgl1-mesa-dri
-          - libglib2.0-0
-          - libsm6
-          - libxext6
-          - libfontconfig1
-          - libxrender1
-          - build-essential
-          - git
+            - libgl1
+            - libgl1-mesa-dri
+            - libglib2.0-0
+            - libsm6
+            - libxext6
+            - libfontconfig1
+            - libxrender1
+            - build-essential
+            - git
+
       - type: python
-        pip: --force-reinstall numpy==1.24.4 scipy==1.11.1 scikit-image==0.21.0
+        pip:  scikit-image
       - type: python
-        pypi: tifffile==2023.7.18
+        pypi: tifffile
       - type: python
-        pypi: natsort==8.4.0
+        pypi: natsort
       - type: python
-        pypi: opencv-python-headless==4.8.0.76
+        pypi: opencv-python-headless
       - type: python
-        pypi: imgaug==0.4.0
+        pypi: imgaug
       - type: python
-        pypi: matplotlib==3.7.2
+        pypi: matplotlib
+      #- type: python
+        #pypi: pandas
       - type: python
-        pypi: pandas==2.0.3
+        pypi: scikit-learn
       - type: python
-        pypi: scikit-learn==1.3.0
+        pypi: tqdm
       - type: python
-        pypi: tqdm==4.65.0
+        pypi: pyyaml
       - type: python
-        pypi: pyyaml==6.0.1
-      - type: python
-        pypi: cellpose
+        pypi: cellpose==3.1.1.2
       - type: python
         pypi: bidcell
       - type: python
@@ -88,6 +94,8 @@ engines:
         pypi: dask[dataframe]
       - type: python
         pypi: spatialdata-plot
+      - type: python
+        pypi: numpy >=1.24.4,<2.0.0
     __merge__: 
       - /src/base/setup_txsim_partial.yaml
   - type: native
