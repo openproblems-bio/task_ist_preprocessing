@@ -74,8 +74,7 @@ def fixed_count_transcripts_aligned(geo_df, points, value_key):
 
 
 
-# Sopa takes the prior segmentation as cell_id column in the transcripts table. 
-# Generate this column with basic assignment:
+# Read input files
 print('Reading input files', flush=True)
 sdata = sd.read_zarr(par['input_ist'])
 sdata_segm = sd.read_zarr(par['input_segmentation'])
