@@ -1,3 +1,5 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
 name: comseg
 label: "ComSeg Segmentation"
 summary: "Spatial segmentation using ComSeg method"
@@ -11,21 +13,16 @@ links:
 references:
   doi: "10.1038/s41592-020-01018-x"
 
-__merge__: /src/api/comp_method_segmentation.yaml
 
 arguments:
   - name: --transcripts_key
     type: string
     default: "transcripts"
     description: "Key for transcripts in the points layer"
-  - name: --shapes_key
+  - name: --coordinate_system
     type: string
-    default: "cell_boundaries"
-    description: "Key for cell boundaries in the shapes layer"
-  - name: --images_key
-    type: string
-    default: "morphology_mip"
-    description: "Key for morphology image in the images layer"
+    default: "global"
+    description: "Coordinate system for the transcripts"
   - name: --patch_width
     type: integer
     default: 1200
