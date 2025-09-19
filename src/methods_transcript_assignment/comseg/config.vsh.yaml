@@ -1,3 +1,5 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
 name: comseg
 label: "ComSeg Segmentation"
 summary: "Spatial segmentation using ComSeg method"
@@ -11,7 +13,6 @@ links:
 references:
   doi: "10.1038/s41592-020-01018-x"
 
-__merge__: /src/api/comp_method_segmentation.yaml
 
 arguments:
   - name: --transcripts_key
