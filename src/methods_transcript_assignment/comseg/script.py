@@ -1,18 +1,19 @@
+import dask
+import xarray as xr
 import spatialdata as sd
 import sopa
 import anndata as ad
 import pandas as pd
 import numpy as np
-from scipy import sparse
 
 ## VIASH START
 par = {
-    "input": "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
-    "output": "transcripts.zarr",
-
+    "input_ist": "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
+    "input_segmentation": "resources_test/task_ist_preprocessing/mouse_brain_combined/segmentation.zarr",
     "transcripts_key": "transcripts",
-    "shapes_key": "cell_boundaries",
-    "images_key": "morphology_mip",
+    "coordinate_system": "global",
+    "output": "temp/comseg/transcripts.zarr",
+
     "patch_width": 1200,
     "patch_overlap": 50,
     "transcript_patch_width": 200,
@@ -72,19 +73,37 @@ def fixed_count_transcripts_aligned(geo_df, points, value_key):
     return adata
 
 
-# Read input SpatialData
-sdata = sd.read_zarr(par["input"])
+
+# Sopa takes the prior segmentation as cell_id column in the transcripts table. 
+# Generate this column with basic assignment:
+print('Reading input files', flush=True)
+sdata = sd.read_zarr(par['input_ist'])
+sdata_segm = sd.read_zarr(par['input_segmentation'])
+
+
+# Convert the prior segmentation to polygons
+if isinstance(sdata_segm["segmentation"], xr.DataTree):
+    shapes_gdf = sopa.shapes.vectorize(sdata_segm["segmentation"]["scale0"].image)
+else:
+    shapes_gdf = sopa.shapes.vectorize(sdata_segm["segmentation"])
+
+sdata["segmentation_boundaries"] = sd.models.ShapesModel.parse(
+    shapes_gdf, transformations=sd.transformations.get_transformation(sdata_segm["segmentation"], get_all=True).copy()
+)
+
+# Make patches
 sopa.make_image_patches(sdata, patch_width=par["patch_width"], patch_overlap=par["patch_overlap"])
 
 transcript_patch_args = {
     "sdata": sdata,
     "write_cells_centroids": True,
     "patch_width": par["transcript_patch_width"],
+    "prior_shapes_key": "segmentation_boundaries",
 }
-transcript_patch_args["prior_shapes_key"] = par["shapes_key"]
 
 sopa.make_transcript_patches(**transcript_patch_args)
 
+# Run ComSeg
 config = {
     "dict_scale": {"x": 1, "y": 1, "z": 1},
     "mean_cell_diameter": par["mean_cell_diameter"],
@@ -96,21 +115,45 @@ config = {
     "gene_column": par["gene_column"],
 }
 
-
 sopa.aggregation.transcripts._count_transcripts_aligned = fixed_count_transcripts_aligned
+# sopa.settings.parallelization_backend = 'dask'
 sopa.segmentation.comseg(sdata, config)
 
-# Create output SpatialData 
-sd_output = sd.SpatialData()
+# Assign transcripts to cell ids
+sopa.spatial.assign_transcript_to_cell(
+    sdata,
+    points_key="transcripts",
+    shapes_key="comseg_boundaries",
+    key_added="cell_id",
+    unassigned_value=0
+)
 
-cell_id_col = sdata["transcripts"][f"cell_id"]
-sdata.tables["table"]=ad.AnnData(obs=pd.DataFrame({"cell_id":cell_id_col}), var=sdata.tables["table"].var[[]])
-sdata_new = sd.SpatialData(
-    points=sdata.points,  
-    tables=sdata.tables   
-) 
+# Create output SpatialData 
+
+# Create objects for cells table
+print('Creating objects for cells table', flush=True)
+unique_cells = np.unique(sdata["transcripts"]["cell_id"])
+zero_idx = np.where(unique_cells == 0)
+if len(zero_idx[0]): 
+    unique_cells=np.delete(unique_cells, zero_idx[0][0])
+cell_id_col = pd.Series(unique_cells, name='cell_id', index=unique_cells)
+
+# Create transcripts only sdata
+print('Subsetting to transcripts cell id data', flush=True)
+sdata_transcripts_only = sd.SpatialData(
+    points={
+        "transcripts": sdata['transcripts']
+    },
+    tables={
+        "table": ad.AnnData(
+          obs=pd.DataFrame(cell_id_col),
+          var=sdata.tables["table"].var[[]]
+        )
+    }
+)
+
 
 output_path = par['output']
-sdata_new.write(output_path, overwrite=True)
+sdata_transcripts_only.write(output_path, overwrite=True)
 
 

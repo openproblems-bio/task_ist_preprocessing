@@ -19,14 +19,10 @@ arguments:
     type: string
     default: "transcripts"
     description: "Key for transcripts in the points layer"
-  - name: --shapes_key
+  - name: --coordinate_system
     type: string
-    default: "cell_boundaries"
-    description: "Key for cell boundaries in the shapes layer"
-  - name: --images_key
-    type: string
-    default: "morphology_mip"
-    description: "Key for morphology image in the images layer"
+    default: "global"
+    description: "Coordinate system for the transcripts"
   - name: --patch_width
     type: integer
     default: 1200
