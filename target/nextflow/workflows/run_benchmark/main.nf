@@ -3763,6 +3763,12 @@ meta = [
       }
     },
     {
+      "name" : "methods_transcript_assignment/comseg",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "methods_count_aggregation/basic_count_aggregation",
       "repository" : {
         "type" : "local"
@@ -3891,7 +3897,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "ca85a33038ed8f9a867be959c50cbb703de02d46",
+    "git_commit" : "8297ead15401c391fad1c608beffa19cd3936707",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4013,6 +4019,7 @@ include { basic_transcript_assignment } from "${meta.resources_dir}/../../../nex
 include { baysor } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/baysor/main.nf"
 include { clustermap } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/clustermap/main.nf"
 include { pciseq } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/pciseq/main.nf"
+include { comseg } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/comseg/main.nf"
 include { basic_count_aggregation } from "${meta.resources_dir}/../../../nextflow/methods_count_aggregation/basic_count_aggregation/main.nf"
 include { basic_qc_filter } from "${meta.resources_dir}/../../../nextflow/methods_qc_filter/basic_qc_filter/main.nf"
 include { alpha_shapes } from "${meta.resources_dir}/../../../nextflow/methods_calculate_cell_volume/alpha_shapes/main.nf"
@@ -4137,7 +4144,8 @@ workflow run_wf {
     ),
     baysor,
     clustermap,
-    pciseq
+    pciseq,
+    comseg
   ]
   segm_ass_ch = segm_ch
     | runEach(
