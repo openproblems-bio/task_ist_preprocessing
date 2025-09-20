@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders vizgen_merscope"
-LABEL org.opencontainers.image.created="2025-09-20T11:46:18Z"
+LABEL org.opencontainers.image.created="2025-09-20T13:14:23Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="dfbf973a10585ab960638a3c8f2c2049f8ce38d0"
+LABEL org.opencontainers.image.revision="0c35995ed8cab8a88866e79f0d3eb59c20b7f314"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1284,7 +1284,7 @@ def read_boundary_hdf5(folder):
     data.to_csv(count_path)
     obs.to_csv(obs_path)
 
-RAW_DATA_DIR = Path(par["input_dir"])
+RAW_DATA_DIR = Path(par["input"])
 
 if not (RAW_DATA_DIR / "cell_boundaries.parquet").exists():
     read_boundary_hdf5(str(RAW_DATA_DIR))
