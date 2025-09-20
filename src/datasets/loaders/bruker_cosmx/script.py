@@ -142,13 +142,13 @@ if flat_files_count == len(FLAT_FILES_ENDINGS):
 else:
     print(datetime.now() - t0, "Download and extract flat files", flush=True)
     os.system(f"wget {par['input_flat_files']} -O '{FILE_NAME_FLAT}'")
-
+    
     with zipfile.ZipFile(FILE_NAME_FLAT, 'r') as zip_ref:
         zip_ref.extractall(TMP_DIR)
-
+    
     print(datetime.now() - t0, f"Move flat files to {DATA_DIR}", flush=True)
     source_dir = FILE_NAME_FLAT.parent / FILE_NAME_FLAT.stem
-
+    
     file_names = os.listdir(source_dir)
     for file_name in file_names:
         if not (DATA_DIR / file_name).exists():
@@ -164,9 +164,9 @@ if not labels_dir.exists():
     print(datetime.now() - t0, "Create CellLabels folder with CellLabels tif", flush=True)
     # Create CellLabels folder with CellLabels tif (somehow this folder name is expected and this is not always present)
     # see e.g. late discussion in https://github.com/gustaveroussy/sopa/issues/285
-
+    #TODO: Check if this works, because the dir with extracted files might have a different name
     labels_dir.mkdir(parents=True, exist_ok=True)
-
+    
     # Get all folders in data_dir that start with "FOV" and move the CellLabels_FXXX.tif file to the CellLabels folder
     print(datetime.now() - t0, "Move CellLabels_FXXX.tif files to CellLabels folder", flush=True)
     for fov_dir in DATA_DIR.glob("FOV*"):
