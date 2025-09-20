@@ -3499,7 +3499,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/vizgen_merscope",
     "viash_version" : "0.9.4",
-    "git_commit" : "0c35995ed8cab8a88866e79f0d3eb59c20b7f314",
+    "git_commit" : "aa69c91223d669a6c21a9651dddf85e2777b701a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3756,7 +3756,7 @@ name = slide_name + "_" + RAW_DATA_DIR.name
 elements_renaming_map = {
     f"{name}_z3"          : "morphology_mip", #TODO: that is actually not the morphology_mip, i.e. either we should rename the label later, or we should actually project over z. But we also want to have 3d at some point anyway
     f"{name}_transcripts" : "transcripts",
-    f"{name}_polygons"    : "cell_polygons",
+    f"{name}_polygons"    : "cell_boundaries",
     f"table"              : "metadata",
 }
 
@@ -3785,7 +3785,7 @@ img_extent = sd.get_extent(sdata['morphology_mip'])
 # TODO: Just note that currently the rasterize function has a bug, this error is small though with the given spatial resolution.
 #       Check https://github.com/scverse/spatialdata/issues/165 for updates on this bug.
 sdata["cell_labels"] = sd.rasterize(
-    sdata["cell_polygons"],
+    sdata["cell_boundaries"],
     ["x", "y"],
     min_coordinate=[int(img_extent["x"][0]), int(img_extent["y"][0])],
     max_coordinate=[int(img_extent["x"][1]), int(img_extent["y"][1])],
