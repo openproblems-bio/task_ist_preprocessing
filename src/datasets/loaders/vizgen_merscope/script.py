@@ -75,7 +75,7 @@ def read_boundary_hdf5(folder):
     data.to_csv(count_path)
     obs.to_csv(obs_path)
 
-RAW_DATA_DIR = Path(par["input_dir"])
+RAW_DATA_DIR = Path(par["input"])
 
 if not (RAW_DATA_DIR / "cell_boundaries.parquet").exists():
     read_boundary_hdf5(str(RAW_DATA_DIR))
