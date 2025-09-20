@@ -115,7 +115,7 @@ t0 = datetime.now()
 TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 FILE_NAME_RAW = TMP_DIR / par["input_raw"].split("/")[-1]
-DATA_DIR = FILE_NAME_RAW.parent / FILE_NAME_RAW.stem / "CellStatsDir"  #TODO: Check if this works, because the dir with extracted files might have a different name
+DATA_DIR = FILE_NAME_RAW.parent / FILE_NAME_RAW.stem / "CellStatsDir"
 
 if par["input_flat_files"] is not None:
     FILE_NAME_FLAT = TMP_DIR / par["input_flat_files"].split("/")[-1].replace("%20", " ")
@@ -174,8 +174,6 @@ if not labels_dir.exists():
         shutil.copy(fov_dir / f"CellLabels_F{fov_id}.tif", labels_dir / f"CellLabels_F{fov_id}.tif")
 else:
     print(datetime.now() - t0, "CellLabels folder already present", flush=True)
-
-
 
 
 
