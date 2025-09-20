@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# NOTE: For local testing you might need to reduce the memory in src/data_processors/process_dataset/config.vsh.yaml
+#       Don't forget to rebuild that dependency of the workflow:
+#       viash ns build src/data_processors/process_dataset/config.vsh.yaml --setup cachedbuild
+
 nextflow run . \
   -main-script target/nextflow/workflows/process_datasets/main.nf \
   -profile docker \
