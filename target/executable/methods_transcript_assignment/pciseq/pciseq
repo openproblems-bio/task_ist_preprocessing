@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/acycliq/pciSeq@issue_14"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment pciseq"
-LABEL org.opencontainers.image.created="2025-09-19T15:57:42Z"
+LABEL org.opencontainers.image.created="2025-09-20T11:46:17Z"
 LABEL org.opencontainers.image.source="https://github.com/acycliq/pciSeq"
-LABEL org.opencontainers.image.revision="8297ead15401c391fad1c608beffa19cd3936707"
+LABEL org.opencontainers.image.revision="dfbf973a10585ab960638a3c8f2c2049f8ce38d0"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

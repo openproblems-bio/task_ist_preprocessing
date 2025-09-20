@@ -453,9 +453,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata"
 
 LABEL org.opencontainers.image.description="Companion container for running component metrics similarity"
-LABEL org.opencontainers.image.created="2025-09-19T15:57:43Z"
+LABEL org.opencontainers.image.created="2025-09-20T11:46:18Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="8297ead15401c391fad1c608beffa19cd3936707"
+LABEL org.opencontainers.image.revision="dfbf973a10585ab960638a3c8f2c2049f8ce38d0"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

@@ -4369,7 +4369,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.4",
-    "git_commit" : "8297ead15401c391fad1c608beffa19cd3936707",
+    "git_commit" : "dfbf973a10585ab960638a3c8f2c2049f8ce38d0",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4539,13 +4539,12 @@ adata = ad.read_h5ad(par["input_sc"])
 # Load the spatial data
 sdata = sd.read_zarr(par["input_sp"])
 
-# Subset the single-cell data to spatial genes
-genes_sp = []
-for key in sdata.tables.keys():
-    # todo: var column names need to be updated to match the rest of openproblems
-    genes_sp = genes_sp + sdata.tables[key].var_names.tolist()
-genes_sp = list(np.unique(genes_sp))
-adata = adata[:,adata.var["feature_name"].isin(genes_sp)].copy()
+# Subset single-cell and spatial data to shared genes
+sp_genes = sdata['transcripts']['feature_name'].unique().compute().tolist()
+sc_genes = adata.var["feature_name"].unique().tolist()
+shared_genes = list(set(sp_genes) & set(sc_genes))
+sdata['transcripts'] = sdata['transcripts'].loc[sdata['transcripts']['feature_name'].isin(shared_genes)]
+adata = adata[:,adata.var["feature_name"].isin(shared_genes)].copy()
 
 # Use feature names for adata instead of feature ids. convert to str
 adata.var.reset_index(inplace=True, drop=True)
