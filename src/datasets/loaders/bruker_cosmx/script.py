@@ -164,7 +164,7 @@ if not labels_dir.exists():
     print(datetime.now() - t0, "Create CellLabels folder with CellLabels tif", flush=True)
     # Create CellLabels folder with CellLabels tif (somehow this folder name is expected and this is not always present)
     # see e.g. late discussion in https://github.com/gustaveroussy/sopa/issues/285
-    #TODO: Check if this works, because the dir with extracted files might have a different name
+    
     labels_dir.mkdir(parents=True, exist_ok=True)
     
     # Get all folders in data_dir that start with "FOV" and move the CellLabels_FXXX.tif file to the CellLabels folder
