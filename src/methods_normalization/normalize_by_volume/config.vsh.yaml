@@ -10,6 +10,10 @@ links:
 references:
   doi: "10.1101/2023.02.13.528102"
 
+arguments:
+  - name: --target_volume
+    type: double
+
 resources:
   - type: python_script
     path: script.py
@@ -17,8 +21,10 @@ resources:
 engines:
   - type: docker
     image: openproblems/base_python:1
-    __merge__: 
-      - /src/base/setup_txsim_partial.yaml
+    setup:
+      - type: python
+        pypi: 
+          - scanpy
   - type: native
 
 runners:
