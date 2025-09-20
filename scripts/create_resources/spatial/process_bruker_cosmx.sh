@@ -23,6 +23,16 @@ param_list:
     dataset_organism: "mus_musculus"
     segmentation_id: ["cell"]
 
+  - id: "bruker_cosmx/bruker_human_liver_cosmx"
+    input_raw: "https://smi-public.objects.liquidweb.services/NormalLiverFiles.zip"
+    input_flat_files: "https://syncandshare.desy.de/index.php/s/zYT4fM28y86cZeW/download/NormalLiver.zip"
+    dataset_name: "Bruker CosMx Human Liver"
+    dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/human-liver-rna-ffpe-dataset/"
+    dataset_summary: "Bruker CosMx Human Liver dataset on FFPE."
+    dataset_description: "Bruker CosMx Human Liver dataset on FFPE."
+    dataset_organism: "homo_sapiens"
+    segmentation_id: ["cell"]
+
 
 output_dataset: "\$id/dataset.zarr"
 output_state: "\$id/state.yaml"
