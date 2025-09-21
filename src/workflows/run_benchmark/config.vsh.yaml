@@ -68,6 +68,7 @@ dependencies:
   - name: methods_count_aggregation/basic_count_aggregation
   - name: methods_qc_filter/basic_qc_filter
   - name: methods_calculate_cell_volume/alpha_shapes
+  - name: methods_normalization/normalize_by_counts
   - name: methods_normalization/normalize_by_volume
   - name: methods_normalization/spanorm
   - name: methods_cell_type_annotation/ssam
