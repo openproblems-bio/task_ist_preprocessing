@@ -50,7 +50,7 @@ engines:
     image: openproblems/base_python:1
     setup:
       - type: python
-        pypi: [numpy, anndata, scanpy, moscot, flax, diffrax]
+        pypi: [numpy, "jax[cuda13]", anndata, scanpy, moscot, flax, diffrax]
   - type: native
 
 runners:
