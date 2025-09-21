@@ -1,0 +1,51 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
+name: proseg
+label: "Proseg Transcript Assignment"
+summary: "Assign transcripts to cells using the Proseg method"
+description: "[Proseg] takes as its inspiration Cellular Potts models (CPMs), which simulate rudimentary cellular behaviors on a lattice of pixels or voxels [...]. With Proseg we [...] generate cell morphologies [using] a probabilistic model of the spatial distribution of observed transcripts."
+links:
+  documentation: "https://github.com/dcjones/proseg"
+  repository: "https://github.com/dcjones/proseg"
+references:
+  doi: "10.1038/s41592-025-02697-0"
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    description: The key of the transcripts within the points of the spatial data
+    default: transcripts
+
+  - name: --coordinate_system
+    type: string
+    description: The key of the pixel space coordinate system within the spatial data
+    default: global
+
+  # - name: --force_2d
+  #   type: string
+  #   required: false
+  #   description: "Ignores z-column in the data if it is provided"
+  #   direction: input 
+  #   default: "false"
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
+    setup:
+      - type: docker
+        run:
+          - curl https://sh.rustup.rs -sSf | sh
+          - cargo install proseg
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem ]
