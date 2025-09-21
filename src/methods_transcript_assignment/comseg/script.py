@@ -1,5 +1,3 @@
-import dask
-import xarray as xr
 import spatialdata as sd
 import sopa
 import anndata as ad
@@ -13,7 +11,7 @@ par = {
     "transcripts_key": "transcripts",
     "coordinate_system": "global",
     "output": "temp/comseg/transcripts.zarr",
-
+    
     "patch_width": 1200,
     "patch_overlap": 50,
     "transcript_patch_width": 200,
@@ -42,7 +40,7 @@ def fixed_count_transcripts_aligned(geo_df, points, value_key):
     def _add_csr(X_partitions, geo_df, partition, gene_column, gene_names ):
         if settings.gene_exclude_pattern is not None:
             partition = partition[~partition[gene_column].str.match(settings.gene_exclude_pattern, case=False, na=False)]
-
+        
         points_gdf = gpd.GeoDataFrame(partition, geometry=gpd.points_from_xy(partition["x"], partition["y"]))
         joined = geo_df.sjoin(points_gdf)
         cells_indices, column_indices = joined.index, joined[gene_column].cat.codes
@@ -53,7 +51,7 @@ def fixed_count_transcripts_aligned(geo_df, points, value_key):
         )
         X_partitions.append(X_partition)
     
-
+    
     points[value_key] = points[value_key].astype("category").cat.as_known()
     gene_names = points[value_key].cat.categories.astype(str)
     X = csr_matrix((len(geo_df), len(gene_names)), dtype=int)
@@ -79,16 +77,9 @@ print('Reading input files', flush=True)
 sdata = sd.read_zarr(par['input_ist'])
 sdata_segm = sd.read_zarr(par['input_segmentation'])
 
-
 # Convert the prior segmentation to polygons
-if isinstance(sdata_segm["segmentation"], xr.DataTree):
-    shapes_gdf = sopa.shapes.vectorize(sdata_segm["segmentation"]["scale0"].image)
-else:
-    shapes_gdf = sopa.shapes.vectorize(sdata_segm["segmentation"])
-
-sdata["segmentation_boundaries"] = sd.models.ShapesModel.parse(
-    shapes_gdf, transformations=sd.transformations.get_transformation(sdata_segm["segmentation"], get_all=True).copy()
-)
+sdata["segmentation_boundaries"] = sd.to_polygons(sdata_segm["segmentation"])
+del sdata["segmentation_boundaries"]["label"] # make_transcript_patches will create a new label column and fails if one exists.
 
 # Make patches
 sopa.make_image_patches(sdata, patch_width=par["patch_width"], patch_overlap=par["patch_overlap"])
@@ -115,7 +106,7 @@ config = {
 }
 
 sopa.aggregation.transcripts._count_transcripts_aligned = fixed_count_transcripts_aligned
-# sopa.settings.parallelization_backend = 'dask'
+# sopa.settings.parallelization_backend = 'dask' #TODO: get parallelization running.
 sopa.segmentation.comseg(sdata, config)
 
 # Assign transcripts to cell ids
@@ -135,6 +126,7 @@ unique_cells = np.unique(sdata["transcripts"]["cell_id"])
 zero_idx = np.where(unique_cells == 0)
 if len(zero_idx[0]): 
     unique_cells=np.delete(unique_cells, zero_idx[0][0])
+
 cell_id_col = pd.Series(unique_cells, name='cell_id', index=unique_cells)
 
 # Create transcripts only sdata
