@@ -1,0 +1,30 @@
+__merge__: /src/api/comp_method_expression_correction.yaml
+
+name: no_correction
+label: "No Correction"
+summary: "Dummy method that does not correct the expression of genes"
+description: >-
+  Dummy method that does not correct the expression of genes.
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1101/2023.02.13.528102"
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi: [anndata]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]

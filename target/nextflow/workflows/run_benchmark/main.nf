@@ -3787,6 +3787,12 @@ meta = [
       }
     },
     {
+      "name" : "methods_normalization/normalize_by_counts",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "methods_normalization/normalize_by_volume",
       "repository" : {
         "type" : "local"
@@ -3812,6 +3818,12 @@ meta = [
     },
     {
       "name" : "methods_cell_type_annotation/moscot",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_expression_correction/no_correction",
       "repository" : {
         "type" : "local"
       }
@@ -3897,7 +3909,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "6785476531c83de0bc0da41fd071d2fbb26273a6",
+    "git_commit" : "e6aa5e4f92c2e54308fd05855d6cd8e0043c1be5",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4023,11 +4035,13 @@ include { comseg } from "${meta.resources_dir}/../../../nextflow/methods_transcr
 include { basic_count_aggregation } from "${meta.resources_dir}/../../../nextflow/methods_count_aggregation/basic_count_aggregation/main.nf"
 include { basic_qc_filter } from "${meta.resources_dir}/../../../nextflow/methods_qc_filter/basic_qc_filter/main.nf"
 include { alpha_shapes } from "${meta.resources_dir}/../../../nextflow/methods_calculate_cell_volume/alpha_shapes/main.nf"
+include { normalize_by_counts } from "${meta.resources_dir}/../../../nextflow/methods_normalization/normalize_by_counts/main.nf"
 include { normalize_by_volume } from "${meta.resources_dir}/../../../nextflow/methods_normalization/normalize_by_volume/main.nf"
 include { spanorm } from "${meta.resources_dir}/../../../nextflow/methods_normalization/spanorm/main.nf"
 include { ssam } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/ssam/main.nf"
 include { tacco } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/tacco/main.nf"
 include { moscot } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/moscot/main.nf"
+include { no_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/no_correction/main.nf"
 include { gene_efficiency_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/gene_efficiency_correction/main.nf"
 include { resolvi_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/resolvi_correction/main.nf"
 include { similarity } from "${meta.resources_dir}/../../../nextflow/metrics/similarity/main.nf"
@@ -4325,6 +4339,7 @@ workflow run_wf {
 
    // TODO: implement this when direct normalization methods are added
   direct_norm_methods = [
+    normalize_by_counts,
     spanorm
   ]
   //direct_norm_ch = Channel.empty()
@@ -4390,6 +4405,7 @@ workflow run_wf {
    *         EXPRESSION CORRECTION        *
    ****************************************/
   expr_corr_methods = [
+    no_correction,
     gene_efficiency_correction,
     resolvi_correction
   ]

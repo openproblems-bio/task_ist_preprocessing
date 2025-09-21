@@ -549,6 +549,9 @@ dependencies:
 - name: "methods_calculate_cell_volume/alpha_shapes"
   repository:
     type: "local"
+- name: "methods_normalization/normalize_by_counts"
+  repository:
+    type: "local"
 - name: "methods_normalization/normalize_by_volume"
   repository:
     type: "local"
@@ -562,6 +565,9 @@ dependencies:
   repository:
     type: "local"
 - name: "methods_cell_type_annotation/moscot"
+  repository:
+    type: "local"
+- name: "methods_expression_correction/no_correction"
   repository:
     type: "local"
 - name: "methods_expression_correction/gene_efficiency_correction"
@@ -617,7 +623,7 @@ build_info:
   output: "target/nextflow/workflows/run_benchmark"
   executable: "target/nextflow/workflows/run_benchmark/main.nf"
   viash_version: "0.9.4"
-  git_commit: "6785476531c83de0bc0da41fd071d2fbb26273a6"
+  git_commit: "e6aa5e4f92c2e54308fd05855d6cd8e0043c1be5"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
   dependencies:
   - "target/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/utils/extract_uns_metadata"
@@ -636,11 +642,13 @@ build_info:
   - "target/nextflow/methods_count_aggregation/basic_count_aggregation"
   - "target/nextflow/methods_qc_filter/basic_qc_filter"
   - "target/nextflow/methods_calculate_cell_volume/alpha_shapes"
+  - "target/nextflow/methods_normalization/normalize_by_counts"
   - "target/nextflow/methods_normalization/normalize_by_volume"
   - "target/nextflow/methods_normalization/spanorm"
   - "target/nextflow/methods_cell_type_annotation/ssam"
   - "target/nextflow/methods_cell_type_annotation/tacco"
   - "target/nextflow/methods_cell_type_annotation/moscot"
+  - "target/nextflow/methods_expression_correction/no_correction"
   - "target/nextflow/methods_expression_correction/gene_efficiency_correction"
   - "target/nextflow/methods_expression_correction/resolvi_correction"
   - "target/nextflow/metrics/similarity"

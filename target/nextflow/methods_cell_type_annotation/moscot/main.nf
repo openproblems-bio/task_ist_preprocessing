@@ -3824,6 +3824,7 @@ meta = [
           "user" : false,
           "pypi" : [
             "numpy",
+            "jax[cuda13]",
             "anndata",
             "scanpy",
             "moscot",
@@ -3845,7 +3846,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/moscot",
     "viash_version" : "0.9.4",
-    "git_commit" : "6785476531c83de0bc0da41fd071d2fbb26273a6",
+    "git_commit" : "e6aa5e4f92c2e54308fd05855d6cd8e0043c1be5",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

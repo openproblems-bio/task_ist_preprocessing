@@ -68,11 +68,13 @@ dependencies:
   - name: methods_count_aggregation/basic_count_aggregation
   - name: methods_qc_filter/basic_qc_filter
   - name: methods_calculate_cell_volume/alpha_shapes
+  - name: methods_normalization/normalize_by_counts
   - name: methods_normalization/normalize_by_volume
   - name: methods_normalization/spanorm
   - name: methods_cell_type_annotation/ssam
   - name: methods_cell_type_annotation/tacco
   - name: methods_cell_type_annotation/moscot
+  - name: methods_expression_correction/no_correction
   - name: methods_expression_correction/gene_efficiency_correction
   - name: methods_expression_correction/resolvi_correction
   - name: metrics/similarity

@@ -453,16 +453,16 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/openproblems-bio/core#subdirectory=packages/python/openproblems"
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata" "sopa[baysor]"
+  pip install --upgrade --no-cache-dir "spatialdata" "anndata<0.12.0" "sopa[baysor]"
 
 RUN wget https://github.com/kharchenkolab/Baysor/releases/download/v0.7.1/baysor-x86_x64-linux-v0.7.1_build.zip
 RUN unzip baysor-x86_x64-linux-v0.7.1_build.zip
 RUN chmod +x /bin/baysor
 RUN ln -sf /bin/baysor/bin/baysor /usr/local/bin/baysor
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment baysor"
-LABEL org.opencontainers.image.created="2025-09-21T14:43:18Z"
+LABEL org.opencontainers.image.created="2025-09-21T16:28:12Z"
 LABEL org.opencontainers.image.source="https://github.com/kharchenkolab/Baysor"
-LABEL org.opencontainers.image.revision="6785476531c83de0bc0da41fd071d2fbb26273a6"
+LABEL org.opencontainers.image.revision="e6aa5e4f92c2e54308fd05855d6cd8e0043c1be5"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

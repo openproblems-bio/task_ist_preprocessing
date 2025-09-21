@@ -289,6 +289,7 @@ workflow run_wf {
 
    // TODO: implement this when direct normalization methods are added
   direct_norm_methods = [
+    normalize_by_counts,
     spanorm
   ]
   //direct_norm_ch = Channel.empty()
@@ -354,6 +355,7 @@ workflow run_wf {
    *         EXPRESSION CORRECTION        *
    ****************************************/
   expr_corr_methods = [
+    no_correction,
     gene_efficiency_correction,
     resolvi_correction
   ]
