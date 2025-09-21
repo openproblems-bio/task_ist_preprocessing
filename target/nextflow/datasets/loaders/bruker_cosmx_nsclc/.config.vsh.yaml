@@ -1,0 +1,415 @@
+name: "bruker_cosmx_nsclc"
+namespace: "datasets/loaders"
+version: "build_main"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "string"
+    name: "--sample"
+    description: "Sample id"
+    info: null
+    example:
+    - "Lung9_Rep1"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--segmentation_id"
+    description: "The segmentation identifier"
+    info: null
+    default:
+    - "cell"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Metadata"
+  arguments:
+  - type: "string"
+    name: "--dataset_id"
+    description: "A unique identifier for the dataset"
+    info: null
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_name"
+    description: "Nicely formatted name."
+    info: null
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_url"
+    description: "Link to the original source of the dataset."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_reference"
+    description: "Bibtex reference of the paper in which the dataset was published."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_summary"
+    description: "Short description of the dataset."
+    info: null
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_description"
+    description: "Long description of the dataset."
+    info: null
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--dataset_organism"
+    description: "The organism of the sample in the dataset."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  arguments:
+  - type: "file"
+    name: "--output"
+    label: "Common iST Dataset"
+    summary: "An unprocessed spatial imaging dataset stored as a zarr file."
+    description: "This dataset contains raw images, labels, points, shapes, and tables\
+      \ as output by a dataset loader.\n"
+    info:
+      format:
+        type: "spatialdata_zarr"
+        images:
+        - type: "object"
+          name: "image"
+          description: "The raw image data"
+          required: true
+        - type: "object"
+          name: "image_3D"
+          description: "The raw 3D image data"
+          required: false
+        - type: "object"
+          name: "he_image"
+          description: "H&E image data"
+          required: false
+        labels:
+        - type: "object"
+          name: "cell_labels"
+          description: "Cell segmentation labels"
+          required: false
+        - type: "object"
+          name: "nucleus_labels"
+          description: "Cell segmentation labels"
+          required: false
+        points:
+        - type: "dataframe"
+          name: "transcripts"
+          description: "Point cloud data of transcripts"
+          required: true
+          columns:
+          - type: "float"
+            name: "x"
+            required: true
+            description: "x-coordinate of the point"
+          - type: "float"
+            name: "y"
+            required: true
+            description: "y-coordinate of the point"
+          - type: "float"
+            name: "z"
+            required: false
+            description: "z-coordinate of the point"
+          - type: "categorical"
+            name: "feature_name"
+            required: true
+            description: "Name of the feature"
+          - type: "integer"
+            name: "cell_id"
+            required: false
+            description: "Unique identifier of the cell"
+          - type: "integer"
+            name: "nucleus_id"
+            required: false
+            description: "Unique identifier of the nucleus"
+          - type: "string"
+            name: "cell_type"
+            required: false
+            description: "Cell type of the cell"
+          - type: "float"
+            name: "qv"
+            required: false
+            description: "Quality value of the point"
+          - type: "long"
+            name: "transcript_id"
+            required: true
+            description: "Unique identifier of the transcript"
+          - type: "boolean"
+            name: "overlaps_nucleus"
+            required: false
+            description: "Whether the point overlaps with a nucleus"
+        shapes:
+        - type: "dataframe"
+          name: "cell_boundaries"
+          description: "Cell boundaries"
+          required: false
+          columns:
+          - type: "object"
+            name: "geometry"
+            required: true
+            description: "Geometry of the cell boundary"
+        - type: "dataframe"
+          name: "nucleus_boundaries"
+          description: "Nucleus boundaries"
+          required: false
+          columns:
+          - type: "object"
+            name: "geometry"
+            required: true
+            description: "Geometry of the nucleus boundary"
+        tables:
+        - type: "anndata"
+          name: "metadata"
+          description: "Metadata of spatial dataset"
+          required: true
+          uns:
+          - type: "string"
+            name: "dataset_id"
+            required: true
+            description: "A unique identifier for the dataset"
+          - type: "string"
+            name: "dataset_name"
+            required: true
+            description: "A human-readable name for the dataset"
+          - type: "string"
+            name: "dataset_url"
+            required: true
+            description: "Link to the original source of the dataset"
+          - type: "string"
+            name: "dataset_reference"
+            required: true
+            description: "Bibtex reference of the paper in which the dataset was published"
+          - type: "string"
+            name: "dataset_summary"
+            required: true
+            description: "Short description of the dataset"
+          - type: "string"
+            name: "dataset_description"
+            required: true
+            description: "Long description of the dataset"
+          - type: "string"
+            name: "dataset_organism"
+            required: true
+            description: "The organism of the sample in the dataset"
+          - type: "string"
+            name: "segmentation_id"
+            required: true
+            multiple: true
+            description: "A unique identifier for the segmentation"
+          obs:
+          - type: "string"
+            name: "cell_id"
+            required: true
+            description: "A unique identifier for the cell"
+          var:
+          - type: "string"
+            name: "gene_ids"
+            required: true
+            description: "Unique identifier for the gene"
+          - type: "string"
+            name: "feature_types"
+            required: true
+            description: "Type of the feature"
+          obsm:
+          - type: "double"
+            name: "spatial"
+            required: true
+            description: "Spatial coordinates of the cell"
+        coordinate_systems:
+        - type: "object"
+          name: "global"
+          description: "Coordinate system of the replicate"
+          required: true
+    example:
+    - "resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "python_script"
+  path: "script.py"
+  is_executable: true
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+repositories:
+- type: "github"
+  name: "openproblems"
+  repo: "openproblems-bio/openproblems"
+  tag: "build/main"
+- type: "github"
+  name: "datasets"
+  repo: "openproblems-bio/datasets"
+  tag: "build/main"
+license: "MIT"
+links:
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  docker_registry: "ghcr.io"
+runners:
+- type: "executable"
+  id: "executable"
+  docker_setup_strategy: "ifneedbepullelsecachedbuild"
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    label:
+    - "highmem"
+    - "midcpu"
+    - "midtime"
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      lowmem: "memory = 20.Gb"
+      midmem: "memory = 50.Gb"
+      highmem: "memory = 100.Gb"
+      lowcpu: "cpus = 5"
+      midcpu: "cpus = 15"
+      highcpu: "cpus = 30"
+      lowtime: "time = 1.h"
+      midtime: "time = 4.h"
+      hightime: "time = 8.h"
+      veryhightime: "time = 24.h"
+  debug: false
+  container: "docker"
+engines:
+- type: "docker"
+  id: "docker"
+  image: "openproblems/base_python:1"
+  namespace_separator: "/"
+  setup:
+  - type: "python"
+    user: false
+    pypi:
+    - "spatialdata"
+    upgrade: true
+  - type: "python"
+    user: false
+    pypi:
+    - "sopa"
+    upgrade: true
+  entrypoint: []
+  cmd: null
+- type: "native"
+  id: "native"
+build_info:
+  config: "src/datasets/loaders/bruker_cosmx_nsclc/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "docker|native"
+  output: "target/nextflow/datasets/loaders/bruker_cosmx_nsclc"
+  executable: "target/nextflow/datasets/loaders/bruker_cosmx_nsclc/main.nf"
+  viash_version: "0.9.4"
+  git_commit: "0d002103b37de4a537bab34fbee375b683698be5"
+  git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
+package_config:
+  name: "task_ist_preprocessing"
+  version: "build_main"
+  label: "iST Preprocessing"
+  summary: "Benchmarking approaches for preprocessing imaging-based spatial transcriptomics"
+  description: "Provide a clear and concise description of your task, detailing the\
+    \ specific problem it aims\nto solve. Outline the input data types, the expected\
+    \ output, and any assumptions or constraints.\nBe sure to explain any terminology\
+    \ or concepts that are essential for understanding the task.\n\nExplain the motivation\
+    \ behind your proposed task. Describe the biological or computational\nproblem\
+    \ you aim to address and why it's important. Discuss the current state of research\
+    \ in\nthis area and any gaps or challenges that your task could help address.\
+    \ This section\nshould convince readers of the significance and relevance of your\
+    \ task.\n"
+  info:
+    image: "The name of the image file to use for the component on the website."
+    test_resources:
+    - type: "s3"
+      path: "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium_rep1/"
+      dest: "resources_test/common/2023_10x_mouse_brain_xenium_rep1/"
+    - type: "s3"
+      path: "s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/"
+      dest: "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/"
+    - type: "s3"
+      path: "s3://openproblems-data/resources_test/task_ist_preprocessing/"
+      dest: "resources_test/task_ist_preprocessing"
+  repositories:
+  - type: "github"
+    name: "openproblems"
+    repo: "openproblems-bio/openproblems"
+    tag: "build/main"
+  - type: "github"
+    name: "datasets"
+    repo: "openproblems-bio/datasets"
+    tag: "build/main"
+  viash_version: "0.9.4"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".runners[.type == \"nextflow\"].config.labels := { lowmem : \"memory = 20.Gb\"\
+    , midmem : \"memory = 50.Gb\", highmem : \"memory = 100.Gb\", lowcpu : \"cpus\
+    \ = 5\", midcpu : \"cpus = 15\", highcpu : \"cpus = 30\", lowtime : \"time = 1.h\"\
+    , midtime : \"time = 4.h\", hightime : \"time = 8.h\", veryhightime : \"time =\
+    \ 24.h\" }\n"
+  authors:
+  - name: "Louis Kümmerle"
+    roles:
+    - "author"
+    - "maintainer"
+    info:
+      github: "LouisK92"
+      orcid: "0000-0002-9193-1243"
+  - name: "Malte D. Luecken"
+    roles:
+    - "author"
+    info:
+      github: "LuckyMD"
+      orcid: "0000-0001-7464-7921"
+  - name: "Daniel Strobl"
+    roles:
+    - "author"
+    info:
+      github: "danielStrobl"
+      orcid: "0000-0002-5516-7057"
+  - name: "Robrecht Cannoodt"
+    roles:
+    - "author"
+    info:
+      github: "rcannood"
+      orcid: "0000-0003-3641-729X"
+  keywords:
+  - "spatial transcriptomics"
+  - "imaging-based spatial transcriptomics"
+  - "preprocessing"
+  license: "MIT"
+  organization: "openproblems-bio"
+  links:
+    repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+    docker_registry: "ghcr.io"
+    issue_tracker: "https://github.com/openproblems-bio/task_ist_preprocessing/issues"
