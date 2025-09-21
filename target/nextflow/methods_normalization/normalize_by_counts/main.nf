@@ -3392,7 +3392,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_normalization/normalize_by_counts",
     "viash_version" : "0.9.4",
-    "git_commit" : "b11c4b408dbbbd0ccf399d7d666e2b0f285d3e4c",
+    "git_commit" : "ff1d0593bf1ffebc5a6492ad2ee457ff5a280bc9",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
