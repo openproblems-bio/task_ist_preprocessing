@@ -452,9 +452,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("BiocManager", quietly 
 RUN Rscript -e "BiocManager::install('SingleCellExperiment', type = 'source', force = TRUE, ask = FALSE)"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_normalization spanorm"
-LABEL org.opencontainers.image.created="2025-09-21T14:17:10Z"
+LABEL org.opencontainers.image.created="2025-09-21T14:43:20Z"
 LABEL org.opencontainers.image.source="https://github.com/bhuvad/SpaNorm/tree/master"
-LABEL org.opencontainers.image.revision="0d002103b37de4a537bab34fbee375b683698be5"
+LABEL org.opencontainers.image.revision="6785476531c83de0bc0da41fd071d2fbb26273a6"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
