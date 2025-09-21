@@ -73,6 +73,7 @@ dependencies:
   - name: methods_cell_type_annotation/ssam
   - name: methods_cell_type_annotation/tacco
   - name: methods_cell_type_annotation/moscot
+  - name: methods_expression_correction/no_correction
   - name: methods_expression_correction/gene_efficiency_correction
   - name: methods_expression_correction/resolvi_correction
   - name: metrics/similarity
