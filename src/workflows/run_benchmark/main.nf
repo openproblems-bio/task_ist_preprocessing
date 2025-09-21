@@ -354,6 +354,7 @@ workflow run_wf {
    *         EXPRESSION CORRECTION        *
    ****************************************/
   expr_corr_methods = [
+    no_correction,
     gene_efficiency_correction,
     resolvi_correction
   ]
