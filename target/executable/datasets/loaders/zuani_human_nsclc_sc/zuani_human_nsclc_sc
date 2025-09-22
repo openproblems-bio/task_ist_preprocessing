@@ -450,9 +450,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders zuani_human_nsclc_sc"
-LABEL org.opencontainers.image.created="2025-09-22T18:19:33Z"
+LABEL org.opencontainers.image.created="2025-09-22T19:47:39Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="e48b5624de26aad7b3a0dc90a01dc77e9e3dc778"
+LABEL org.opencontainers.image.revision="55ccf05a19d2e443f4c787da8114858b71bdc5ff"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
