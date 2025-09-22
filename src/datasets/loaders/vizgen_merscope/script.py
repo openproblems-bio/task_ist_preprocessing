@@ -140,19 +140,34 @@ sdata["morphology_mip"] = sdata["morphology_mip"].sel(c=["DAPI"])
 #################################
 print(datetime.now() - t0, "Get cell labels from polygons", flush=True)
 
-img_extent = sd.get_extent(sdata['morphology_mip'])
 # TODO: Just note that currently the rasterize function has a bug, this error is small though with the given spatial resolution.
 #       Check https://github.com/scverse/spatialdata/issues/165 for updates on this bug.
-sdata["cell_labels"] = sd.rasterize(
-    sdata["cell_boundaries"],
-    ["x", "y"],
-    min_coordinate=[int(img_extent["x"][0]), int(img_extent["y"][0])],
-    max_coordinate=[int(img_extent["x"][1]), int(img_extent["y"][1])],
-    target_coordinate_system="global",
-    target_unit_to_pixels=1,
-    return_regions_as_labels=True,
-)
+# NOTE: we need to iteratively rasterize (see here: https://github.com/scverse/spatialdata/issues/987)
+img_extent = sd.get_extent(sdata['morphology_mip'])
+
+N = 65535
+n_cells = len(sdata['cell_boundaries'])
+n_iter = n_cells // N + bool(n_cells % N)
+
+rasterize_args = {
+    "min_coordinate": [int(img_extent["x"][0]), int(img_extent["y"][0])],
+    "max_coordinate": [int(img_extent["x"][1]), int(img_extent["y"][1])],
+    "target_coordinate_system": "global",
+    "target_unit_to_pixels": 1,
+    "return_regions_as_labels": True,
+}
+
+for i in range(n_iter):
+    labels_image_ = sd.rasterize(sdata['cell_boundaries'].iloc[i*N:min((i+1)*N, n_cells)], ["x", "y"], **rasterize_args)
+    if i == 0:
+        labels_image = labels_image_
+    else:
+        labels_image.values[labels_image_.values > 0] = labels_image_.values[labels_image_.values > 0]
+
+sdata["cell_labels"] = labels_image
+
 del sdata["cell_labels"].attrs['label_index_to_category']
+
 
 ##############################
 # Add info to metadata table #
