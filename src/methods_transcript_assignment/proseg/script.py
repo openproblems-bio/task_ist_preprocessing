@@ -143,7 +143,7 @@ assert 0 not in cell_id_col, "Found '0' in cell_id column of assingment output c
 print('Subsetting to transcripts cell id data', flush=True)
 sdata_transcripts_only = sd.SpatialData(
     points={
-        "transcripts": sdata_sopa[par['transcripts_key']]
+        "transcripts": sdata_sopa['transcripts']
     },
     tables={
         "table": ad.AnnData(
