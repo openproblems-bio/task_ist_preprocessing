@@ -87,7 +87,7 @@ proseg_cmd = (
 )
 print("\t" + proseg_cmd, flush=True)
 #TODO: UNCOMMENT THIS
-# os.system(proseg_cmd)
+os.system(proseg_cmd)
 
 
 # Read Proseg output
@@ -96,8 +96,6 @@ proseg_sd = sd.read_zarr(PROSEG_OUTPUT)
 proseg_transcripts = sd.transform(proseg_sd['transcripts'], to_coordinate_system=par['coordinate_system']).compute()
 proseg_transcripts.set_index('transcript_id', inplace=True) #here transcript_id is the index of the original, not the transcript_id in the original
 proseg_transcripts = proseg_transcripts.reindex(transcripts.index).fillna(-1)
-# proseg_transcripts.to_csv("/Users/habib/Projects/txsim_project/task_ist_preprocessing/temp/proseg_transcripts.csv")
-
 
 # Add cell ids to transcripts
 #NOTE: ADD 1 SINCE PROSEG STARTS COUNTING CELLS AT 0 

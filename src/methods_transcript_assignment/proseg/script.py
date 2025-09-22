@@ -1,12 +1,13 @@
 import os
 import shutil
 from pathlib import Path
-# from tifffile import imwrite
+import xarray as xr
 import dask
 import numpy as np
 import pandas as pd
 import anndata as ad
 import spatialdata as sd
+import sopa
 
 
 ## VIASH START
@@ -17,21 +18,24 @@ par = {
   'input_segmentation': 'resources_test/task_ist_preprocessing/mouse_brain_combined/segmentation.zarr',
   'transcripts_key': 'transcripts',
   'coordinate_system': 'global',
-  'output': './temp/proseg_transcripts.zarr',
-
+  'output': './temp/sopa_testing/proseg_transcripts.zarr',
+  'voxel_layers': 4,
+  'samples': 200,
+  'burnin_samples': 200,
+  'voxel_size': 1.0,
+  'burnin_voxel_size': 2.0 
 }
 meta = {
   'name': 'proseg',
-  'temp_dir': "/Users/habib/Projects/txsim_project/task_ist_preprocessing/temp"
+  'temp_dir': "/Users/habib/Projects/txsim_project/task_ist_preprocessing/temp/sopa",
+  'cpus': 10
 }
 ## VIASH END
 
 TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 
-TRANSCRIPTS_CSV = TMP_DIR / "transcripts.csv"
-SEGMENTATION_NPY = TMP_DIR / "segmentation.npy"
-PROSEG_OUTPUT = TMP_DIR / "proseg_output.zarr"
+# PROSEG_OUTPUT = TMP_DIR / "proseg_output.zarr"
 
 
 # Read input
@@ -46,7 +50,6 @@ segmentation_coord_systems = sd.transformations.get_transformation(sdata_segm["s
 assert par['coordinate_system'] in segmentation_coord_systems, f"Coordinate system '{par['coordinate_system']}' not found in input data."
 
 # Transform transcript coordinates to the coordinate system
-
 print('Transforming transcripts coordinates', flush=True)
 transcripts = sd.transform(sdata[par['transcripts_key']], to_coordinate_system=par['coordinate_system'])
 
@@ -54,67 +57,78 @@ transcripts = sd.transform(sdata[par['transcripts_key']], to_coordinate_system=p
 trans = sd.transformations.get_transformation(sdata_segm["segmentation"], get_all=True)[par['coordinate_system']].inverse()
 transcripts = sd.transform(transcripts, trans, par['coordinate_system'])
 
-# Write transcripts to csv 
-print('Writing transcripts to csv', flush=True)
-transcripts_df = transcripts[['x', 'y', 'z', 'feature_name']].compute()
-transcripts_df['transcript_index'] = transcripts_df.index
-
-#add segmentation for cell_id
-segmentation_image = sdata_segm["segmentation"]["scale0"].image.to_numpy()
-
+#load prior segmentation image
+if isinstance(sdata_segm["segmentation"], xr.DataTree):
+    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
+else:
+    label_image = sdata_segm["segmentation"].to_numpy()
+    
+# assign transcripts to cells based on x,y coords and segmentation image
 y_coords = transcripts.y.compute().to_numpy(dtype=np.int64)
 x_coords = transcripts.x.compute().to_numpy(dtype=np.int64)
-transcripts_df['cell_id'] = segmentation_image[y_coords, x_coords]
-#write to csv
-transcripts_df.to_csv(TRANSCRIPTS_CSV)
-
-# Write segmentation to tif
-print('Writing segmentation to npy', flush=True)
-np.save(SEGMENTATION_NPY, segmentation_image)
-
-# TODO: figure out how to extract the affine transformation from the spatialdata Transform
-# Run Proseg
-print('Running Proseg', flush=True)
-#Make sure to add a space after each line
-proseg_cmd = (
-    f'''proseg {TRANSCRIPTS_CSV} --x-column x --y-column y --z-column z --gene-column feature_name '''
-    f'''--cell-id-column cell_id --cell-id-unassigned 0 --transcript-id-column transcript_index '''
-    f'''--cellpose-masks {SEGMENTATION_NPY} '''
-    f'''--cellpose-x-transform 1 0 0 '''
-    f'''--cellpose-y-transform 0 1 0 '''
-    f'''--output-spatialdata {PROSEG_OUTPUT} --overwrite'''
-
-)
-print("\t" + proseg_cmd, flush=True)
-#TODO: UNCOMMENT THIS
-# os.system(proseg_cmd)
-
-
-# Read Proseg output
-print('Reading proseg output', flush=True)
-proseg_sd = sd.read_zarr(PROSEG_OUTPUT)
-proseg_transcripts = sd.transform(proseg_sd['transcripts'], to_coordinate_system=par['coordinate_system']).compute()
-proseg_transcripts.set_index('transcript_id', inplace=True) #here transcript_id is the index of the original, not the transcript_id in the original
-proseg_transcripts = proseg_transcripts.reindex(transcripts.index).fillna(-1)
-# proseg_transcripts.to_csv("/Users/habib/Projects/txsim_project/task_ist_preprocessing/temp/proseg_transcripts.csv")
-
-
-# Add cell ids to transcripts
-#NOTE: ADD 1 SINCE PROSEG STARTS COUNTING CELLS AT 0 
-print('Adding cell ids to transcripts', flush=True)
 cell_id_dask_series = dask.dataframe.from_dask_array(
     dask.array.from_array(
-        proseg_transcripts['assignment'].values+1, chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
+        label_image[y_coords, x_coords], chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
     ), 
     index=sdata[par['transcripts_key']].index
 )
 sdata[par['transcripts_key']]["cell_id"] = cell_id_dask_series
 
 
+### Run Proseg with sopa
+
+# Create reduced sdata
+print("Creating sopa SpatialData object")
+sdata_sopa = sd.SpatialData(
+    points={
+        "transcripts": sdata[par['transcripts_key']]
+    },
+)
+
+# Make transcript patches
+sopa.make_transcript_patches(sdata_sopa, patch_width=2000, patch_overlap=50, prior_shapes_key="cell_id")
+sdata_sopa['transcripts'].attrs['spatialdata_attrs'] = {}
+sdata_sopa['transcripts'].attrs['spatialdata_attrs']['feature_key'] = 'feature_name'
+
+#TODO add command suffix
+n_threads = meta['cpus'] or os.cpu_count()
+n_threads = max(n_threads-2, 1)
+
+print(f'Running Proseg with {n_threads} threads', flush=True)
+
+command_suffix = (
+    f'''--nthreads {n_threads} '''
+# these should not need to be changed
+    f'''--ncomponents 10 '''
+    # f'''--no-diffusion ''' # should be off by default (?)
+    f'''--diffusion-probability 0.2 '''
+    f'''--diffusion-sigma-far 4 '''
+    f'''--diffusion-sigma-near 1 '''
+    f'''--nuclear-reassignment-prob 0.2 '''
+    f'''--cell-compactness 0.03 '''
+# these can be changed as arguments
+    f'''--voxel-layers {par['voxel_layers']} '''
+    f'''--samples {par['samples']} '''
+    f'''--burnin-samples {par['burnin_samples']} '''
+    f'''--voxel-size  {par['voxel_size']} '''
+    f'''--burnin-voxel-size {par['burnin_voxel_size']} '''
+)
+print('Using parameters:' + command_suffix.replace('--', '\n\t'))
+sopa.segmentation.proseg(sdata_sopa, key_added='proseg_boundaries', command_line_suffix=command_suffix)
+
+
+sopa.spatial.assign_transcript_to_cell(
+    sdata_sopa,
+    points_key="transcripts",
+    shapes_key="proseg_boundaries",
+    key_added="cell_id",
+    unassigned_value=0
+)
+
 # Create objects for cells table
 print('Creating objects for cells table', flush=True)
 #create new .obs for cells based on the segmentation output (corresponding with the transcripts 'cell_id')
-unique_cells = np.unique(cell_id_dask_series)
+unique_cells = np.unique(sdata_sopa["transcripts"]["cell_id"])
 
 # check if a '0' (noise/background) cell is in cell_id and remove
 zero_idx = np.where(unique_cells == 0)
@@ -129,7 +143,7 @@ assert 0 not in cell_id_col, "Found '0' in cell_id column of assingment output c
 print('Subsetting to transcripts cell id data', flush=True)
 sdata_transcripts_only = sd.SpatialData(
     points={
-        "transcripts": sdata[par['transcripts_key']]
+        "transcripts": sdata_sopa[par['transcripts_key']]
     },
     tables={
         "table": ad.AnnData(

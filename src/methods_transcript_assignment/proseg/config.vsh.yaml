@@ -21,12 +21,40 @@ arguments:
     description: The key of the pixel space coordinate system within the spatial data
     default: global
 
-  # - name: --force_2d
-  #   type: string
-  #   required: false
-  #   description: "Ignores z-column in the data if it is provided"
-  #   direction: input 
-  #   default: "false"
+  - name: --voxel_layers
+    type: integer
+    required: false
+    description: "Number of layers on the z-axis to model 3D cells."
+    direction: input 
+    default: 4
+
+  - name: --samples
+    type: integer
+    required: false
+    description: "Run the sampler for this N iterations."
+    direction: input 
+    default: 200
+  
+  - name: --burnin_samples
+    type: integer
+    required: false
+    description: "Run the sampler for a preliminary N samples at a lower resolution."
+    direction: input 
+    default: 200
+
+  - name: --voxel_size
+    type: double
+    required: false
+    description: "Voxel size in microns on the x/y axis."
+    direction: input 
+    default: 1.0
+
+  - name: --burnin_voxel_size
+    type: double
+    required: false
+    description: "Larger voxel size to use for the burn-in phase. (This must be an integer multiple of the final voxel size)."
+    direction: input 
+    default: 2.0
 
 resources:
   - type: python_script
@@ -39,9 +67,14 @@ engines:
       - /src/base/setup_spatialdata_partial.yaml
     setup:
       - type: docker
+        env:
+          - PATH="/root/.cargo/bin:${PATH}"
         run:
-          - curl https://sh.rustup.rs -sSf | sh
+          - curl https://sh.rustup.rs -sSf | sh -s -- -y
+          - echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
           - cargo install proseg
+      - type: python
+        pypi: [sopa]
   - type: native
 
 runners:
