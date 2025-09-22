@@ -109,7 +109,8 @@ workflow run_wf {
     baysor,
     clustermap,
     pciseq,
-    comseg
+    comseg,
+    proseg
   ]
   segm_ass_ch = segm_ch
     | runEach(
