@@ -1,0 +1,84 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
+name: proseg
+label: "Proseg Transcript Assignment"
+summary: "Assign transcripts to cells using the Proseg method"
+description: "[Proseg] takes as its inspiration Cellular Potts models (CPMs), which simulate rudimentary cellular behaviors on a lattice of pixels or voxels [...]. With Proseg we [...] generate cell morphologies [using] a probabilistic model of the spatial distribution of observed transcripts."
+links:
+  documentation: "https://github.com/dcjones/proseg"
+  repository: "https://github.com/dcjones/proseg"
+references:
+  doi: "10.1038/s41592-025-02697-0"
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    description: The key of the transcripts within the points of the spatial data
+    default: transcripts
+
+  - name: --coordinate_system
+    type: string
+    description: The key of the pixel space coordinate system within the spatial data
+    default: global
+
+  - name: --voxel_layers
+    type: integer
+    required: false
+    description: "Number of layers on the z-axis to model 3D cells."
+    direction: input 
+    default: 4
+
+  - name: --samples
+    type: integer
+    required: false
+    description: "Run the sampler for this N iterations."
+    direction: input 
+    default: 200
+  
+  - name: --burnin_samples
+    type: integer
+    required: false
+    description: "Run the sampler for a preliminary N samples at a lower resolution."
+    direction: input 
+    default: 200
+
+  - name: --voxel_size
+    type: double
+    required: false
+    description: "Voxel size in microns on the x/y axis."
+    direction: input 
+    default: 1.0
+
+  - name: --burnin_voxel_size
+    type: double
+    required: false
+    description: "Larger voxel size to use for the burn-in phase. (This must be an integer multiple of the final voxel size)."
+    direction: input 
+    default: 2.0
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
+    setup:
+      - type: docker
+        env:
+          - PATH="/root/.cargo/bin:${PATH}"
+        run:
+          - curl https://sh.rustup.rs -sSf | sh -s -- -y
+          - echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+          - cargo install proseg
+      - type: python
+        pypi: [sopa]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ hightime, highcpu, midmem ]
