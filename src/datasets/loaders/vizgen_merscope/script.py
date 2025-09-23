@@ -254,8 +254,8 @@ for i in range(n_iter):
 print(datetime.now() - t0, "Rasterization finished", flush=True)
 try:
     print(datetime.now() - t0, f"Label image shape: {labels_image.shape}", flush=True)
-except Exception:
-    pass
+except Exception as e:
+    print(datetime.now() - t0, f"Could not access label image shape: {e}", flush=True)
 
 sdata["cell_labels"] = labels_image
 
