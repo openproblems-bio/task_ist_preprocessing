@@ -170,10 +170,10 @@ try:
         "Loaded elements: " + ", ".join(list(sdata.keys())),
         flush=True,
     )
-except Exception:
+except Exception as e:
     print(
         datetime.now() - t0,
-        "Loaded spatialdata object (could not list keys)",
+        f"Loaded spatialdata object (could not list keys): {type(e).__name__}: {e}",
         flush=True,
     )
 
