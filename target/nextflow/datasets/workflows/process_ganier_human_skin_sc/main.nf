@@ -3594,7 +3594,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_ganier_human_skin_sc",
     "viash_version" : "0.9.4",
-    "git_commit" : "7fec7b296ec11373a828c58586899bffc3646314",
+    "git_commit" : "08816f040f996df1c2f879ea0ca29a4f70421e72",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
