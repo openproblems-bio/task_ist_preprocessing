@@ -3497,7 +3497,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx_nsclc",
     "viash_version" : "0.9.4",
-    "git_commit" : "55ccf05a19d2e443f4c787da8114858b71bdc5ff",
+    "git_commit" : "7fec7b296ec11373a828c58586899bffc3646314",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
