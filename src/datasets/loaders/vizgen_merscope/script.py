@@ -27,8 +27,11 @@ assert ("cell" in par["segmentation_id"]) and (len(par["segmentation_id"]) == 1)
 
 t0 = datetime.now()
 
+print(datetime.now() - t0, "Starting vizgen_merscope preprocessing", flush=True)
+print(datetime.now() - t0, "Parameters:", {k: par[k] for k in ["input", "output", "dataset_id", "dataset_organism"]}, flush=True)
+
 # If the cell polygons are in the old format (cell_boundaries/*.hdf5 instead of cell_boundaries.parquet) the raw data
-# needs to be modified for the spatialdata-io loader 
+# needs to be modified for the spatialdata-io loader
 # (see: https://github.com/scverse/spatialdata-io/issues/71#issuecomment-1741995582)
 import h5py
 import pandas as pd
@@ -62,7 +65,9 @@ def read_boundary_hdf5(folder):
     all_concat["EntityID"] = all_concat.index  # renaming to make it compatible with spatialdata-io
     all_concat['ZIndex'] = 0  # adding to make it compatible with spatialdata-io
     all_concat.to_parquet(folder + '/cell_boundaries.parquet')
-    
+
+    print(datetime.now() - t0, f"Wrote parquet: {folder}/cell_boundaries.parquet", flush=True)
+
     count_path = f"{folder}/cell_by_gene.csv"
     obs_path = f"{folder}/cell_metadata.csv"
 
@@ -75,10 +80,16 @@ def read_boundary_hdf5(folder):
     data.to_csv(count_path)
     obs.to_csv(obs_path)
 
+    print(datetime.now() - t0, f"Updated count/obs CSVs: {count_path}, {obs_path}", flush=True)
+
 RAW_DATA_DIR = Path(par["input"])
 
 if not (RAW_DATA_DIR / "cell_boundaries.parquet").exists():
+    print(datetime.now() - t0, "Old boundary format detected, converting...", flush=True)
     read_boundary_hdf5(str(RAW_DATA_DIR))
+    print(datetime.now() - t0, "Boundary conversion finished", flush=True)
+else:
+    print(datetime.now() - t0, "Boundary parquet found, skipping conversion", flush=True)
 
 
 # Generate spatialdata.zarr
@@ -90,20 +101,26 @@ print(datetime.now() - t0, "Convert raw files to spatialdata zarr", flush=True)
 
 slide_name = "slide"
 
+print(datetime.now() - t0, "Calling spatialdata_io.merscope loader...", flush=True)
 sdata = sdio.merscope(
-    RAW_DATA_DIR, 
-    vpt_outputs=None, 
-    z_layers=3, 
-    region_name=None, 
+    RAW_DATA_DIR,
+    vpt_outputs=None,
+    z_layers=3,
+    region_name=None,
     slide_name=slide_name,
-    backend=None, 
-    transcripts=True, 
-    cells_boundaries=True, 
-    cells_table=True, 
-    mosaic_images=True, 
-    #imread_kwargs=mappingproxy({}), 
+    backend=None,
+    transcripts=True,
+    cells_boundaries=True,
+    cells_table=True,
+    mosaic_images=True,
+    #imread_kwargs=mappingproxy({}),
     #image_models_kwargs=mappingproxy({})
 )
+print(datetime.now() - t0, "Loader finished", flush=True)
+try:
+    print(datetime.now() - t0, "Loaded elements: " + ", ".join(list(sdata.keys())), flush=True)
+except Exception:
+    print(datetime.now() - t0, "Loaded spatialdata object (could not list keys)", flush=True)
 
 ###############
 # Rename keys #
@@ -123,8 +140,11 @@ for old_key, new_key in elements_renaming_map.items():
     sdata[new_key] = sdata[old_key]
     del sdata[old_key]
 
+print(datetime.now() - t0, "Renamed elements", flush=True)
+
 # Rename transcript column
 sdata['transcripts'] = sdata['transcripts'].rename(columns={"global_z":"z"})
+print(datetime.now() - t0, "Renamed transcripts column 'global_z' -> 'z'", flush=True)
 
 #########################################
 # Throw out all channels except of DAPI #
@@ -134,6 +154,7 @@ print(datetime.now() - t0, "Throw out all channels except of DAPI", flush=True)
 # TODO: in the future we want to keep PolyT and Cellbound1/2/3 stains. Note however, that somehow saving or plotting the sdata fails when
 #       these channels aren't excluded, not sure why...
 sdata["morphology_mip"] = sdata["morphology_mip"].sel(c=["DAPI"])
+print(datetime.now() - t0, "Selected DAPI channel", flush=True)
 
 #################################
 # Get cell labels from polygons #
@@ -158,11 +179,18 @@ rasterize_args = {
 }
 
 for i in range(n_iter):
+    print(datetime.now() - t0, f"Rasterizing iteration {i+1}/{n_iter} (cells {i*N}..{min((i+1)*N, n_cells)})", flush=True)
     labels_image_ = sd.rasterize(sdata['cell_boundaries'].iloc[i*N:min((i+1)*N, n_cells)], ["x", "y"], **rasterize_args)
     if i == 0:
         labels_image = labels_image_
     else:
         labels_image.values[labels_image_.values > 0] = labels_image_.values[labels_image_.values > 0]
+
+print(datetime.now() - t0, "Rasterization finished", flush=True)
+try:
+    print(datetime.now() - t0, f"Label image shape: {labels_image.shape}", flush=True)
+except Exception:
+    pass
 
 sdata["cell_labels"] = labels_image
 
@@ -178,6 +206,8 @@ print(datetime.now() - t0, "Add info to metadata table", flush=True)
 for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism", "segmentation_id"]:
     sdata["metadata"].uns[key] = par[key]
 
+print(datetime.now() - t0, "Metadata updated", flush=True)
+
 #########
 # Write #
 #########
@@ -185,4 +215,5 @@ print(datetime.now() - t0, f"Writing to {par['output']}", flush=True)
 
 sdata.write(par["output"])
 
+print(datetime.now() - t0, f"Write completed: {par['output']}", flush=True)
 print(datetime.now() - t0, "Done", flush=True)
