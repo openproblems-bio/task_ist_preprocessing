@@ -147,7 +147,7 @@ workflow run_wf {
       filter: { id, state, comp ->
         checkRunMethod(
           comp.config.name,
-          state.segmentation_assignment_methods,
+          state.transcript_assignment_methods,
           state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
@@ -327,7 +327,7 @@ workflow run_wf {
       filter: { id, state, comp ->
         checkRunMethod(
           comp.config.name,
-          state.volume_normalization_methods,
+          state.normalization_methods,
           state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
@@ -367,7 +367,7 @@ workflow run_wf {
       filter: { id, state, comp ->
         checkRunMethod(
           comp.config.name,
-          state.direct_normalization_methods,
+          state.normalization_methods,
           state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )

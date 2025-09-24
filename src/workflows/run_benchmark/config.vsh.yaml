@@ -63,9 +63,9 @@ argument_groups:
         type: string
         multiple: true
         default: "custom_segmentation:cellpose:binning:stardist:watershed"
-      - name: "--segmentation_assignment_methods"
+      - name: "--transcript_assignment_methods"
         description: |
-          A list of segmentation assignment methods to run.
+          A list of transcript assignment methods to run.
         type: string
         multiple: true
         default: "basic_transcript_assignment:baysor:clustermap:pciseq:comseg:proseg"
@@ -87,18 +87,12 @@ argument_groups:
         type: string
         multiple: true
         default: "alpha_shapes"
-      - name: "--volume_normalization_methods"
+      - name: "--normalization_methods"
         description: |
-          A list of volume normalization methods to run.
+          A list of normalization methods to run.
         type: string
         multiple: true
-        default: "normalize_by_volume"
-      - name: "--direct_normalization_methods"
-        description: |
-          A list of direct normalization methods to run.
-        type: string
-        multiple: true
-        default: "normalize_by_counts:spanorm"
+        default: "normalize_by_volume:normalize_by_counts:spanorm"
       - name: "--celltype_annotation_methods"
         description: |
           A list of cell type annotation methods to run.

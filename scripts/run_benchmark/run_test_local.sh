@@ -27,7 +27,6 @@ default_methods:
   - basic_qc_filter
   - alpha_shapes
   - normalize_by_volume
-  - normalize_by_counts
   - ssam
   - no_correction
 segmentation_methods:
@@ -36,7 +35,7 @@ segmentation_methods:
   - binning
   #- stardist
   - watershed
-segmentation_assignment_methods:
+transcript_assignment_methods:
   - basic_transcript_assignment
   #- baysor
   - clustermap
@@ -49,9 +48,8 @@ qc_filtering_methods:
   - basic_qc_filter
 volume_calculation_methods:
   - alpha_shapes
-volume_normalization_methods:
+normalization_methods:
   - normalize_by_volume
-direct_normalization_methods:
   - normalize_by_counts
   - spanorm
 celltype_annotation_methods:
