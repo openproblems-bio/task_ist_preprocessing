@@ -1,5 +1,24 @@
 include { checkItemAllowed } from "${meta.resources_dir}/helper.nf"
 
+Boolean checkDefaultMethods(List steps, List default_methods) {
+  if (!default_methods || default_methods.size() == 0) {
+    return true
+  }
+
+  if (!steps || steps.size() == 0) {
+    return true
+  }
+
+  def non_default_count = steps.findAll { !(it in default_methods) }.size()
+
+  return non_default_count <= 1
+}
+
+Boolean checkRunMethod(String method, List selected_methods, List steps, List default_methods) {
+  checkItemAllowed(method, selected_methods, null, "selected_methods", "NA") &&
+    checkDefaultMethods(steps, default_methods)
+}
+
 workflow auto {
   findStates(params, meta.config)
     | meta.workflow.run(
@@ -83,12 +102,11 @@ workflow run_wf {
     | runEach(
       components: segm_methods,
       filter: { id, state, comp ->
-        checkItemAllowed(
+        checkRunMethod(
           comp.config.name,
           state.segmentation_methods,
-          null,
-          "segmentation_methods",
-          "NA"
+          state.steps.collect{it.component_id} + [comp.name],
+          state.default_methods
         )
       },
       id: { id, state, comp ->
@@ -127,12 +145,11 @@ workflow run_wf {
     | runEach(
       components: segm_ass_methods,
       filter: { id, state, comp ->
-        checkItemAllowed(
+        checkRunMethod(
           comp.config.name,
           state.segmentation_assignment_methods,
-          null,
-          "segmentation_assignment_methods",
-          "NA"
+          state.steps.collect{it.component_id} + [comp.name],
+          state.default_methods
         )
       },
       id: { id, state, comp ->
@@ -201,12 +218,11 @@ workflow run_wf {
     | runEach(
       components: count_aggr_methods,
       filter: { id, state, comp ->
-        checkItemAllowed(
+        checkRunMethod(
           comp.config.name,
           state.count_aggregation_methods,
-          null,
-          "count_aggregation_methods",
-          "NA"
+          state.steps.collect{it.component_id} + [comp.name],
+          state.default_methods
         )
       },
       id: { id, state, comp ->
@@ -238,12 +254,11 @@ workflow run_wf {
     | runEach(
       components: qc_filter_methods,
       filter: { id, state, comp ->
-        checkItemAllowed(
+        checkRunMethod(
           comp.config.name,
           state.qc_filtering_methods,
-          null,
-          "qc_filtering_methods",
-          "NA"
+          state.steps.collect{it.component_id} + [comp.name],
+          state.default_methods
         )
       },
       id: { id, state, comp ->
@@ -275,12 +290,11 @@ workflow run_wf {
     | runEach(
       components: cell_vol_methods,
       filter: { id, state, comp ->
-        checkItemAllowed(
+        checkRunMethod(
           comp.config.name,
           state.volume_calculation_methods,
-          null,
-          "volume_calculation_methods",
-          "NA"
+          state.steps.collect{it.component_id} + [comp.name],
+          state.default_methods
         )
       },
       id: { id, state, comp ->
@@ -311,12 +325,11 @@ workflow run_wf {
     | runEach(
       components: vol_norm_methods,
       filter: { id, state, comp ->
-        checkItemAllowed(
+        checkRunMethod(
           comp.config.name,
           state.volume_normalization_methods,
-          null,
-          "volume_normalization_methods",
-          "NA"
+          state.steps.collect{it.component_id} + [comp.name],
+          state.default_methods
         )
       },
       id: { id, state, comp ->
@@ -348,17 +361,15 @@ workflow run_wf {
     normalize_by_counts,
     spanorm
   ]
-  //direct_norm_ch = Channel.empty()
   direct_norm_ch = qc_filter_ch
     | runEach(
       components: direct_norm_methods,
       filter: { id, state, comp ->
-        checkItemAllowed(
+        checkRunMethod(
           comp.config.name,
           state.direct_normalization_methods,
-          null,
-          "direct_normalization_methods",
-          "NA"
+          state.steps.collect{it.component_id} + [comp.name],
+          state.default_methods
         )
       },
       id: { id, state, comp ->
@@ -397,12 +408,11 @@ workflow run_wf {
     | runEach(
       components: cta_methods,
       filter: { id, state, comp ->
-        checkItemAllowed(
+        checkRunMethod(
           comp.config.name,
           state.celltype_annotation_methods,
-          null,
-          "celltype_annotation_methods",
-          "NA"
+          state.steps.collect{it.component_id} + [comp.name],
+          state.default_methods
         )
       },
       id: { id, state, comp ->
@@ -437,12 +447,11 @@ workflow run_wf {
     | runEach(
       components: expr_corr_methods,
       filter: { id, state, comp ->
-        checkItemAllowed(
+        checkRunMethod(
           comp.config.name,
           state.expression_correction_methods,
-          null,
-          "expression_correction_methods",
-          "NA"
+          state.steps.collect{it.component_id} + [comp.name],
+          state.default_methods
         )
       },
       id: { id, state, comp ->
