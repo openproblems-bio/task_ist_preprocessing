@@ -73,18 +73,13 @@ resources:
 engines:
   - type: docker
     image: openproblems/base_python:1
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
     setup:
       - type: python
         pypi: 
-          - spatialdata
           - sopa
-          - anndata
-          - pandas
-          - numpy
-          - xarray
-          - scikit-image
           - comseg
-          - scipy
 
   - type: native
 

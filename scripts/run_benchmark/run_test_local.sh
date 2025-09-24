@@ -32,9 +32,13 @@ default_methods:
   - no_correction
 segmentation_methods:
   - custom_segmentation
+  - cellpose
+  - binning
+  #- stardist
+  - watershed
 segmentation_assignment_methods:
   - basic_transcript_assignment
-  - baysor
+  #- baysor
   - clustermap
   - pciseq
   - comseg
@@ -53,7 +57,7 @@ direct_normalization_methods:
 celltype_annotation_methods:
   - ssam
   - tacco
-  - moscot
+  #- moscot
 expression_correction_methods:
   - no_correction
   - gene_efficiency_correction

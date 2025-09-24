@@ -84,9 +84,9 @@ engines:
           - openproblems-bio/core#subdirectory=packages/python/openproblems
       - type: python
         packages:
-           - spatialdata
-           - anndata<0.12.0 #TODO: Remove this line when https://github.com/gustaveroussy/sopa/issues/305 is resolved
+           #TODO: Add merge with setup_spatialdata_partial.yaml and solve anndata version conflict differently
            - sopa[baysor]
+           - anndata<0.12.0 #TODO: Remove this line when https://github.com/gustaveroussy/sopa/issues/305 is resolved
       - type: docker
         run:
           - wget https://github.com/kharchenkolab/Baysor/releases/download/v0.7.1/baysor-x86_x64-linux-v0.7.1_build.zip

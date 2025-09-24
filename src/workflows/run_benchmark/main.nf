@@ -105,7 +105,7 @@ workflow run_wf {
         checkRunMethod(
           comp.config.name,
           state.segmentation_methods,
-          state.steps.collect{it.component_id} + [comp.name],
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
       },
@@ -148,7 +148,7 @@ workflow run_wf {
         checkRunMethod(
           comp.config.name,
           state.segmentation_assignment_methods,
-          state.steps.collect{it.component_id} + [comp.name],
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
       },
@@ -221,7 +221,7 @@ workflow run_wf {
         checkRunMethod(
           comp.config.name,
           state.count_aggregation_methods,
-          state.steps.collect{it.component_id} + [comp.name],
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
       },
@@ -257,7 +257,7 @@ workflow run_wf {
         checkRunMethod(
           comp.config.name,
           state.qc_filtering_methods,
-          state.steps.collect{it.component_id} + [comp.name],
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
       },
@@ -293,7 +293,7 @@ workflow run_wf {
         checkRunMethod(
           comp.config.name,
           state.volume_calculation_methods,
-          state.steps.collect{it.component_id} + [comp.name],
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
       },
@@ -328,7 +328,7 @@ workflow run_wf {
         checkRunMethod(
           comp.config.name,
           state.volume_normalization_methods,
-          state.steps.collect{it.component_id} + [comp.name],
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
       },
@@ -368,7 +368,7 @@ workflow run_wf {
         checkRunMethod(
           comp.config.name,
           state.direct_normalization_methods,
-          state.steps.collect{it.component_id} + [comp.name],
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
       },
@@ -411,7 +411,7 @@ workflow run_wf {
         checkRunMethod(
           comp.config.name,
           state.celltype_annotation_methods,
-          state.steps.collect{it.component_id} + [comp.name],
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
       },
@@ -450,7 +450,7 @@ workflow run_wf {
         checkRunMethod(
           comp.config.name,
           state.expression_correction_methods,
-          state.steps.collect{it.component_id} + [comp.name],
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
           state.default_methods
         )
       },

@@ -26,7 +26,8 @@ adata_sp = ad.read_h5ad(par['input_spatial_normalized_counts'])
 transcripts = sd.SpatialData.read(par['input_transcript_assignments'])['transcripts']
 adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
 adata_sc.X = adata_sc.layers["normalized"]
-adata_sp = adata_sp[:,adata_sc.var_names] #TODO: do we want to do this earlier? Maybe not, thinking about transcripts related quality metrics
+shared_genes = [g for g in adata_sc.var_names if g in adata_sp.var_names]
+adata_sp = adata_sp[:,shared_genes] #TODO: do we want to do this earlier? Maybe not, thinking about transcripts related quality metrics
 
 # Annotate cell types
 print('Annotating cell types', flush=True)
