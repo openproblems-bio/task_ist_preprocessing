@@ -20,6 +20,16 @@ cat > /tmp/params.yaml << HERE
 id: mouse_brain_combined
 input_sc: resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad
 input_sp: resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr
+default_methods:
+  - custom_segmentation
+  - basic_transcript_assignment
+  - basic_count_aggregation
+  - basic_qc_filter
+  - alpha_shapes
+  - normalize_by_volume
+  - normalize_by_counts
+  - ssam
+  - no_correction
 segmentation_methods:
   - custom_segmentation
 segmentation_assignment_methods:

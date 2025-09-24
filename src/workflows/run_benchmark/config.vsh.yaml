@@ -46,7 +46,17 @@ argument_groups:
     description: |
       Use these arguments to select which methods are run for each processing
       step. Only the methods provided to these arguments will be run.
+
+      If a method is NOT in `default_methods` it will only be run in combination
+      with the default methods.
     arguments:
+      - name: "--default_methods"
+        description: |
+          A list of default methods that are always run in combination with all
+          other methods. If this is set it should contain a single method from
+          each step.
+        type: string
+        multiple: true
       - name: "--segmentation_methods"
         description: |
           A list of segmentation methods to run.
