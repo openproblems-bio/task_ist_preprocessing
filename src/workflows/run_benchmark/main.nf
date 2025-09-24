@@ -1,3 +1,5 @@
+include { checkItemAllowed } from "${meta.resources_dir}/helper.nf"
+
 workflow auto {
   findStates(params, meta.config)
     | meta.workflow.run(
@@ -80,6 +82,15 @@ workflow run_wf {
   segm_ch = init_ch
     | runEach(
       components: segm_methods,
+      filter: { id, state, comp ->
+        checkItemAllowed(
+          comp.config.name,
+          state.segmentation_methods,
+          null,
+          "segmentation_methods",
+          "NA"
+        )
+      },
       id: { id, state, comp ->
         id + "/segm_" + comp.name
       },
@@ -115,6 +126,15 @@ workflow run_wf {
   segm_ass_ch = segm_ch
     | runEach(
       components: segm_ass_methods,
+      filter: { id, state, comp ->
+        checkItemAllowed(
+          comp.config.name,
+          state.segmentation_assignment_methods,
+          null,
+          "segmentation_assignment_methods",
+          "NA"
+        )
+      },
       id: { id, state, comp ->
         id + "/ass_" + comp.name
       },
@@ -134,7 +154,7 @@ workflow run_wf {
         ]
       }
     )
-  
+
   /****************************************
    *         RUN DIRECT ASSIGNMENT        *
    ****************************************/
@@ -180,6 +200,15 @@ workflow run_wf {
   count_aggr_ch = assignment_ch
     | runEach(
       components: count_aggr_methods,
+      filter: { id, state, comp ->
+        checkItemAllowed(
+          comp.config.name,
+          state.count_aggregation_methods,
+          null,
+          "count_aggregation_methods",
+          "NA"
+        )
+      },
       id: { id, state, comp ->
         id + "/aggr_" + comp.name
       },
@@ -198,7 +227,7 @@ workflow run_wf {
       }
     )
 
-  
+
   /************************************
    *          QC FILTERING            *
    ************************************/
@@ -208,6 +237,15 @@ workflow run_wf {
   qc_filter_ch = count_aggr_ch
     | runEach(
       components: qc_filter_methods,
+      filter: { id, state, comp ->
+        checkItemAllowed(
+          comp.config.name,
+          state.qc_filtering_methods,
+          null,
+          "qc_filtering_methods",
+          "NA"
+        )
+      },
       id: { id, state, comp ->
         id + "/qc_filter_" + comp.name
       },
@@ -227,7 +265,6 @@ workflow run_wf {
     )
 
 
-
   /****************************************
    *          VOLUME CALCULATION          *
    ****************************************/
@@ -237,6 +274,15 @@ workflow run_wf {
   cell_vol_ch = qc_filter_ch
     | runEach(
       components: cell_vol_methods,
+      filter: { id, state, comp ->
+        checkItemAllowed(
+          comp.config.name,
+          state.volume_calculation_methods,
+          null,
+          "volume_calculation_methods",
+          "NA"
+        )
+      },
       id: { id, state, comp ->
         id + "/cell_vol_" + comp.name
       },
@@ -264,6 +310,15 @@ workflow run_wf {
   vol_norm_ch = cell_vol_ch
     | runEach(
       components: vol_norm_methods,
+      filter: { id, state, comp ->
+        checkItemAllowed(
+          comp.config.name,
+          state.volume_normalization_methods,
+          null,
+          "volume_normalization_methods",
+          "NA"
+        )
+      },
       id: { id, state, comp ->
         id + "/norm_" + comp.name
       },
@@ -282,7 +337,7 @@ workflow run_wf {
         ]
       }
     )
-  
+
 
   /****************************************
    *         DIRECT NORMALIZATION         *
@@ -294,27 +349,36 @@ workflow run_wf {
     spanorm
   ]
   //direct_norm_ch = Channel.empty()
-   direct_norm_ch = qc_filter_ch
-     | runEach(
-       components: direct_norm_methods,
-       id: { id, state, comp ->
-         id + "/norm_" + comp.name
-       },
-       fromState: [
+  direct_norm_ch = qc_filter_ch
+    | runEach(
+      components: direct_norm_methods,
+      filter: { id, state, comp ->
+        checkItemAllowed(
+          comp.config.name,
+          state.direct_normalization_methods,
+          null,
+          "direct_normalization_methods",
+          "NA"
+        )
+      },
+      id: { id, state, comp ->
+        id + "/norm_" + comp.name
+      },
+      fromState: [
         input_spatial_aggregated_counts: "output_count_aggregation",
-       ],
-       toState: { id, out_dict, state, comp ->
-         state + [
-           steps: state.steps + [[
+      ],
+      toState: { id, out_dict, state, comp ->
+        state + [
+          steps: state.steps + [[
             type: "normalization",
             component_id: comp.name,
             run_id: id
           ]],
           output_normalization: out_dict.output
-         ]
-       }
-     )
-  
+        ]
+      }
+    )
+
   /****************************************
    *          COMBINE NORMALIZATION        *
    ****************************************/
@@ -332,6 +396,15 @@ workflow run_wf {
   cta_ch = normalization_ch
     | runEach(
       components: cta_methods,
+      filter: { id, state, comp ->
+        checkItemAllowed(
+          comp.config.name,
+          state.celltype_annotation_methods,
+          null,
+          "celltype_annotation_methods",
+          "NA"
+        )
+      },
       id: { id, state, comp ->
         id + "/cta_" + comp.name
       },
@@ -351,7 +424,7 @@ workflow run_wf {
         ]
       }
     )
-  
+
   /****************************************
    *         EXPRESSION CORRECTION        *
    ****************************************/
@@ -363,6 +436,15 @@ workflow run_wf {
   expr_corr_ch = cta_ch
     | runEach(
       components: expr_corr_methods,
+      filter: { id, state, comp ->
+        checkItemAllowed(
+          comp.config.name,
+          state.expression_correction_methods,
+          null,
+          "expression_correction_methods",
+          "NA"
+        )
+      },
       id: { id, state, comp ->
         id + "/corr_" + comp.name
       },
@@ -438,7 +520,7 @@ workflow run_wf {
 
       // store the scores in a file
       def score_uns = states.collect{state ->
-        def method_ids = 
+        def method_ids =
           state.steps.collectMany{step ->
             step.type in ["dataset", "metric"] ? [] : [step.component_id]
           }
@@ -465,9 +547,9 @@ workflow run_wf {
    ******************************/
   // extract the dataset metadata
   meta_ch = init_ch
-  
+
     // store join id
-    | map{ id, state -> 
+    | map{ id, state ->
       [id, state + ["_meta": [join_id: id]]]
     }
 
