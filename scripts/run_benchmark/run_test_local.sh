@@ -15,13 +15,46 @@ echo "  Make sure to run 'scripts/project/build_all_docker_containers.sh'!"
 RUN_ID="testrun_$(date +%Y-%m-%d_%H-%M-%S)"
 publish_dir="temp/results/${RUN_ID}"
 
+# Write the parameters to file
+cat > /tmp/params.yaml << HERE
+id: mouse_brain_combined
+input_sc: resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad
+input_sp: resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr
+segmentation_methods:
+  - custom_segmentation
+segmentation_assignment_methods:
+  - basic_transcript_assignment
+  - baysor
+  - clustermap
+  - pciseq
+  - comseg
+  - proseg
+count_aggregation_methods:
+  - basic_count_aggregation
+qc_filtering_methods:
+  - basic_qc_filter
+volume_calculation_methods:
+  - alpha_shapes
+volume_normalization_methods:
+  - normalize_by_volume
+direct_normalization_methods:
+  - normalize_by_counts
+  - spanorm
+celltype_annotation_methods:
+  - ssam
+  - tacco
+  - moscot
+expression_correction_methods:
+  - no_correction
+  - gene_efficiency_correction
+  - resolvi_correction
+output_state: "state.yaml"
+publish_dir: "$publish_dir"
+HERE
+
 nextflow run . \
   -main-script target/nextflow/workflows/run_benchmark/main.nf \
   -profile docker \
   -resume \
   -c common/nextflow_helpers/labels_ci.config \
-  --id mouse_brain_combined \
-  --input_sc resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad \
-  --input_sp resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr \
-  --output_state state.yaml \
-  --publish_dir "$publish_dir"
+  -params-file /tmp/params.yaml
