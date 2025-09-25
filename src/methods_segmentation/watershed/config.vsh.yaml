@@ -164,10 +164,8 @@ resources:
 engines:
   - type: docker
     image: openproblems/base_python:1
-    setup:
-      - type: python
-        pypi: spatialdata
     __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
       - /src/base/setup_txsim_partial.yaml
   - type: native
 

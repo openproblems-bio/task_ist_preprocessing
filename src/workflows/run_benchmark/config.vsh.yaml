@@ -42,6 +42,69 @@ argument_groups:
         required: true
         direction: output
         default: task_info.yaml
+  - name: Method selection
+    description: |
+      Use these arguments to select which methods are run for each processing
+      step. Only the methods provided to these arguments will be run.
+
+      If a method is NOT in `default_methods` it will only be run in combination
+      with the default methods.
+    arguments:
+      - name: "--default_methods"
+        description: |
+          A list of default methods that are always run in combination with all
+          other methods. If this is set it should contain a single method from
+          each step.
+        type: string
+        multiple: true
+      - name: "--segmentation_methods"
+        description: |
+          A list of segmentation methods to run.
+        type: string
+        multiple: true
+        default: "custom_segmentation:cellpose:binning:stardist:watershed"
+      - name: "--transcript_assignment_methods"
+        description: |
+          A list of transcript assignment methods to run.
+        type: string
+        multiple: true
+        default: "basic_transcript_assignment:baysor:clustermap:pciseq:comseg:proseg"
+      - name: "--count_aggregation_methods"
+        description: |
+          A list of count aggregation methods to run.
+        type: string
+        multiple: true
+        default: "basic_count_aggregation"
+      - name: "--qc_filtering_methods"
+        description: |
+          A list of QC filtering methods to run.
+        type: string
+        multiple: true
+        default: "basic_qc_filter"
+      - name: "--volume_calculation_methods"
+        description: |
+          A list of volume calculation methods to run.
+        type: string
+        multiple: true
+        default: "alpha_shapes"
+      - name: "--normalization_methods"
+        description: |
+          A list of normalization methods to run.
+        type: string
+        multiple: true
+        default: "normalize_by_volume:normalize_by_counts:spanorm"
+      - name: "--celltype_annotation_methods"
+        description: |
+          A list of cell type annotation methods to run.
+        type: string
+        multiple: true
+        default: "ssam:tacco:moscot"
+      - name: "--expression_correction_methods"
+        description: |
+          A list of expression correction methods to run.
+        type: string
+        multiple: true
+        default: "no_correction:gene_efficiency_correction:resolvi_correction"
 
 resources:
   - type: nextflow_script
@@ -49,6 +112,7 @@ resources:
     entrypoint: run_wf
   - type: file
     path: /_viash.yaml
+  - path: /common/nextflow_helpers/helper.nf
 
 dependencies:
   - name: utils/extract_uns_metadata

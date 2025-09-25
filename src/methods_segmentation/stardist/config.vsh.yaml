@@ -25,9 +25,9 @@ engines:
   #       Installations can be done with pip (except tensorflow: use conda install -c conda-forge tensorflow)
   - type: docker
     image: openproblems/base_python:1
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
     setup:
-      - type: python
-        pypi: spatialdata
       - type: python
         pypi: stardist
       - type: python

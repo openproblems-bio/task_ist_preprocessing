@@ -82,10 +82,9 @@ engines:
     image: openproblems/base_python:1
     setup:
       - type: python
-        pypi: spatialdata
-      - type: python
         pypi: cellpose<4.0.0
     __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
       - /src/base/setup_txsim_partial.yaml
   - type: native
 
