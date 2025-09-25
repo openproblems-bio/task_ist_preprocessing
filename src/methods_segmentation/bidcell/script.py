@@ -13,7 +13,8 @@ from bidcell import BIDCellModel
 
 ## VIASH START
 par = {
-    'input': "../task_ist_preprocessing/resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr",
+    'input': "../task_ist_preprocessing/resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr",
+    'input_scrnaseq_reference': '..task_ist_preprocessing/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2',
     'temp': './temp/bidcell/',
     'output': 'output.zarr',
     'single_cell_ref': None,
@@ -186,7 +187,7 @@ config = {
     "model_params": {
         "name": "custom",
         "patch_size": 48,
-        "elongated": list(sc_ref["cell_type"]),
+        "elongated": [], #list(sc_ref["cell_type"]),
     },
     "training_params": {
         "total_epochs": 1,
