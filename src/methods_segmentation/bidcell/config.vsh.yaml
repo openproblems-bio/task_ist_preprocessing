@@ -74,8 +74,8 @@ engines:
         pypi: imgaug
       - type: python
         pypi: matplotlib
-      #- type: python
-        #pypi: pandas
+      - type: python
+        pypi: pandas
       - type: python
         pypi: scikit-learn
       - type: python
@@ -83,7 +83,7 @@ engines:
       - type: python
         pypi: pyyaml
       - type: python
-        pypi: cellpose==3.1.1.2
+        pypi: cellpose==3.1.1.2 
       - type: python
         pypi: bidcell
       - type: python
