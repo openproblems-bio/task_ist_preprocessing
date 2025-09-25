@@ -3668,6 +3668,117 @@ meta = [
           "multiple_sep" : ";"
         }
       ]
+    },
+    {
+      "name" : "Method selection",
+      "description" : "Use these arguments to select which methods are run for each processing\nstep. Only the methods provided to these arguments will be run.\n\nIf a method is NOT in `default_methods` it will only be run in combination\nwith the default methods.\n",
+      "arguments" : [
+        {
+          "type" : "string",
+          "name" : "--default_methods",
+          "description" : "A list of default methods that are always run in combination with all\nother methods. If this is set it should contain a single method from\neach step.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--segmentation_methods",
+          "description" : "A list of segmentation methods to run.\n",
+          "default" : [
+            "custom_segmentation:cellpose:binning:stardist:watershed"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--transcript_assignment_methods",
+          "description" : "A list of transcript assignment methods to run.\n",
+          "default" : [
+            "basic_transcript_assignment:baysor:clustermap:pciseq:comseg:proseg"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--count_aggregation_methods",
+          "description" : "A list of count aggregation methods to run.\n",
+          "default" : [
+            "basic_count_aggregation"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--qc_filtering_methods",
+          "description" : "A list of QC filtering methods to run.\n",
+          "default" : [
+            "basic_qc_filter"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--volume_calculation_methods",
+          "description" : "A list of volume calculation methods to run.\n",
+          "default" : [
+            "alpha_shapes"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--normalization_methods",
+          "description" : "A list of normalization methods to run.\n",
+          "default" : [
+            "normalize_by_volume:normalize_by_counts:spanorm"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--celltype_annotation_methods",
+          "description" : "A list of cell type annotation methods to run.\n",
+          "default" : [
+            "ssam:tacco:moscot"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--expression_correction_methods",
+          "description" : "A list of expression correction methods to run.\n",
+          "default" : [
+            "no_correction:gene_efficiency_correction:resolvi_correction"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        }
+      ]
     }
   ],
   "resources" : [
@@ -3680,6 +3791,10 @@ meta = [
     {
       "type" : "file",
       "path" : "/_viash.yaml"
+    },
+    {
+      "type" : "file",
+      "path" : "/common/nextflow_helpers/helper.nf"
     }
   ],
   "status" : "enabled",
@@ -3915,7 +4030,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "08816f040f996df1c2f879ea0ca29a4f70421e72",
+    "git_commit" : "31d57ec1c58bb1f17d6bcfead72c5f99eabade36",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4055,6 +4170,27 @@ include { similarity } from "${meta.resources_dir}/../../../nextflow/metrics/sim
 
 // inner workflow
 // user-provided Nextflow code
+include { checkItemAllowed } from "${meta.resources_dir}/helper.nf"
+
+Boolean checkDefaultMethods(List steps, List default_methods) {
+  if (!default_methods || default_methods.size() == 0) {
+    return true
+  }
+
+  if (!steps || steps.size() == 0) {
+    return true
+  }
+
+  def non_default_count = steps.findAll { !(it in default_methods) }.size()
+
+  return non_default_count <= 1
+}
+
+Boolean checkRunMethod(String method, List selected_methods, List steps, List default_methods) {
+  checkItemAllowed(method, selected_methods, null, "selected_methods", "NA") &&
+    checkDefaultMethods(steps, default_methods)
+}
+
 workflow auto {
   findStates(params, meta.config)
     | meta.workflow.run(
@@ -4137,6 +4273,14 @@ workflow run_wf {
   segm_ch = init_ch
     | runEach(
       components: segm_methods,
+      filter: { id, state, comp ->
+        checkRunMethod(
+          comp.config.name,
+          state.segmentation_methods,
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.default_methods
+        )
+      },
       id: { id, state, comp ->
         id + "/segm_" + comp.name
       },
@@ -4172,6 +4316,14 @@ workflow run_wf {
   segm_ass_ch = segm_ch
     | runEach(
       components: segm_ass_methods,
+      filter: { id, state, comp ->
+        checkRunMethod(
+          comp.config.name,
+          state.transcript_assignment_methods,
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.default_methods
+        )
+      },
       id: { id, state, comp ->
         id + "/ass_" + comp.name
       },
@@ -4191,7 +4343,7 @@ workflow run_wf {
         ]
       }
     )
-  
+
   /****************************************
    *         RUN DIRECT ASSIGNMENT        *
    ****************************************/
@@ -4237,6 +4389,14 @@ workflow run_wf {
   count_aggr_ch = assignment_ch
     | runEach(
       components: count_aggr_methods,
+      filter: { id, state, comp ->
+        checkRunMethod(
+          comp.config.name,
+          state.count_aggregation_methods,
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.default_methods
+        )
+      },
       id: { id, state, comp ->
         id + "/aggr_" + comp.name
       },
@@ -4255,7 +4415,7 @@ workflow run_wf {
       }
     )
 
-  
+
   /************************************
    *          QC FILTERING            *
    ************************************/
@@ -4265,6 +4425,14 @@ workflow run_wf {
   qc_filter_ch = count_aggr_ch
     | runEach(
       components: qc_filter_methods,
+      filter: { id, state, comp ->
+        checkRunMethod(
+          comp.config.name,
+          state.qc_filtering_methods,
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.default_methods
+        )
+      },
       id: { id, state, comp ->
         id + "/qc_filter_" + comp.name
       },
@@ -4284,7 +4452,6 @@ workflow run_wf {
     )
 
 
-
   /****************************************
    *          VOLUME CALCULATION          *
    ****************************************/
@@ -4294,6 +4461,14 @@ workflow run_wf {
   cell_vol_ch = qc_filter_ch
     | runEach(
       components: cell_vol_methods,
+      filter: { id, state, comp ->
+        checkRunMethod(
+          comp.config.name,
+          state.volume_calculation_methods,
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.default_methods
+        )
+      },
       id: { id, state, comp ->
         id + "/cell_vol_" + comp.name
       },
@@ -4321,6 +4496,14 @@ workflow run_wf {
   vol_norm_ch = cell_vol_ch
     | runEach(
       components: vol_norm_methods,
+      filter: { id, state, comp ->
+        checkRunMethod(
+          comp.config.name,
+          state.normalization_methods,
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.default_methods
+        )
+      },
       id: { id, state, comp ->
         id + "/norm_" + comp.name
       },
@@ -4339,7 +4522,7 @@ workflow run_wf {
         ]
       }
     )
-  
+
 
   /****************************************
    *         DIRECT NORMALIZATION         *
@@ -4350,28 +4533,35 @@ workflow run_wf {
     normalize_by_counts,
     spanorm
   ]
-  //direct_norm_ch = Channel.empty()
-   direct_norm_ch = qc_filter_ch
-     | runEach(
-       components: direct_norm_methods,
-       id: { id, state, comp ->
-         id + "/norm_" + comp.name
-       },
-       fromState: [
+  direct_norm_ch = qc_filter_ch
+    | runEach(
+      components: direct_norm_methods,
+      filter: { id, state, comp ->
+        checkRunMethod(
+          comp.config.name,
+          state.normalization_methods,
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.default_methods
+        )
+      },
+      id: { id, state, comp ->
+        id + "/norm_" + comp.name
+      },
+      fromState: [
         input_spatial_aggregated_counts: "output_count_aggregation",
-       ],
-       toState: { id, out_dict, state, comp ->
-         state + [
-           steps: state.steps + [[
+      ],
+      toState: { id, out_dict, state, comp ->
+        state + [
+          steps: state.steps + [[
             type: "normalization",
             component_id: comp.name,
             run_id: id
           ]],
           output_normalization: out_dict.output
-         ]
-       }
-     )
-  
+        ]
+      }
+    )
+
   /****************************************
    *          COMBINE NORMALIZATION        *
    ****************************************/
@@ -4389,6 +4579,14 @@ workflow run_wf {
   cta_ch = normalization_ch
     | runEach(
       components: cta_methods,
+      filter: { id, state, comp ->
+        checkRunMethod(
+          comp.config.name,
+          state.celltype_annotation_methods,
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.default_methods
+        )
+      },
       id: { id, state, comp ->
         id + "/cta_" + comp.name
       },
@@ -4408,7 +4606,7 @@ workflow run_wf {
         ]
       }
     )
-  
+
   /****************************************
    *         EXPRESSION CORRECTION        *
    ****************************************/
@@ -4420,6 +4618,14 @@ workflow run_wf {
   expr_corr_ch = cta_ch
     | runEach(
       components: expr_corr_methods,
+      filter: { id, state, comp ->
+        checkRunMethod(
+          comp.config.name,
+          state.expression_correction_methods,
+          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.default_methods
+        )
+      },
       id: { id, state, comp ->
         id + "/corr_" + comp.name
       },
@@ -4495,7 +4701,7 @@ workflow run_wf {
 
       // store the scores in a file
       def score_uns = states.collect{state ->
-        def method_ids = 
+        def method_ids =
           state.steps.collectMany{step ->
             step.type in ["dataset", "metric"] ? [] : [step.component_id]
           }
@@ -4522,9 +4728,9 @@ workflow run_wf {
    ******************************/
   // extract the dataset metadata
   meta_ch = init_ch
-  
+
     // store join id
-    | map{ id, state -> 
+    | map{ id, state ->
       [id, state + ["_meta": [join_id: id]]]
     }
 

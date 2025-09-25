@@ -3346,7 +3346,8 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "spatialdata"
+            "spatialdata",
+            "anndata>=0.12.0"
           ],
           "upgrade" : true
         }
@@ -3363,7 +3364,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_count_aggregation/basic_count_aggregation",
     "viash_version" : "0.9.4",
-    "git_commit" : "08816f040f996df1c2f879ea0ca29a4f70421e72",
+    "git_commit" : "31d57ec1c58bb1f17d6bcfead72c5f99eabade36",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

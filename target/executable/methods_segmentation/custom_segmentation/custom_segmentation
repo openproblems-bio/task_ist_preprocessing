@@ -446,12 +446,12 @@ function ViashDockerfile {
 FROM openproblems/base_python:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata"
+  pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation custom_segmentation"
-LABEL org.opencontainers.image.created="2025-09-23T11:51:39Z"
+LABEL org.opencontainers.image.created="2025-09-25T14:12:07Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="08816f040f996df1c2f879ea0ca29a4f70421e72"
+LABEL org.opencontainers.image.revision="31d57ec1c58bb1f17d6bcfead72c5f99eabade36"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

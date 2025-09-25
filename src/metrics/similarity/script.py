@@ -36,6 +36,10 @@ assert adata_sc.obs['cell_type'].notna().all(), "There are nan values in the cel
 assert (adata_sp.obs['cell_type'] != "None").all(), "There are None values in the cell type annotations of the spatial data"
 assert (adata_sc.obs['cell_type'] != "None").all(), "There are None values in the cell type annotations of the scRNAseq data"
 
+# Subset to shared genes #TODO: Check if some metrics are affected by this
+shared_genes = [g for g in adata_sc.var_names if g in adata_sp.var_names]
+adata_sp = adata_sp[:,shared_genes]
+adata_sc = adata_sc[:,shared_genes]
 
 print('Compute metrics', flush=True)
 df_filtered = tx.metrics.all_metrics(

@@ -486,6 +486,102 @@ argument_groups:
     direction: "output"
     multiple: false
     multiple_sep: ";"
+- name: "Method selection"
+  description: "Use these arguments to select which methods are run for each processing\n\
+    step. Only the methods provided to these arguments will be run.\n\nIf a method\
+    \ is NOT in `default_methods` it will only be run in combination\nwith the default\
+    \ methods.\n"
+  arguments:
+  - type: "string"
+    name: "--default_methods"
+    description: "A list of default methods that are always run in combination with\
+      \ all\nother methods. If this is set it should contain a single method from\n\
+      each step.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--segmentation_methods"
+    description: "A list of segmentation methods to run.\n"
+    info: null
+    default:
+    - "custom_segmentation:cellpose:binning:stardist:watershed"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--transcript_assignment_methods"
+    description: "A list of transcript assignment methods to run.\n"
+    info: null
+    default:
+    - "basic_transcript_assignment:baysor:clustermap:pciseq:comseg:proseg"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--count_aggregation_methods"
+    description: "A list of count aggregation methods to run.\n"
+    info: null
+    default:
+    - "basic_count_aggregation"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--qc_filtering_methods"
+    description: "A list of QC filtering methods to run.\n"
+    info: null
+    default:
+    - "basic_qc_filter"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--volume_calculation_methods"
+    description: "A list of volume calculation methods to run.\n"
+    info: null
+    default:
+    - "alpha_shapes"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--normalization_methods"
+    description: "A list of normalization methods to run.\n"
+    info: null
+    default:
+    - "normalize_by_volume:normalize_by_counts:spanorm"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--celltype_annotation_methods"
+    description: "A list of cell type annotation methods to run.\n"
+    info: null
+    default:
+    - "ssam:tacco:moscot"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--expression_correction_methods"
+    description: "A list of expression correction methods to run.\n"
+    info: null
+    default:
+    - "no_correction:gene_efficiency_correction:resolvi_correction"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
 resources:
 - type: "nextflow_script"
   path: "main.nf"
@@ -493,6 +589,8 @@ resources:
   entrypoint: "run_wf"
 - type: "file"
   path: "_viash.yaml"
+- type: "file"
+  path: "helper.nf"
 info: null
 status: "enabled"
 scope:
@@ -626,7 +724,7 @@ build_info:
   output: "target/nextflow/workflows/run_benchmark"
   executable: "target/nextflow/workflows/run_benchmark/main.nf"
   viash_version: "0.9.4"
-  git_commit: "08816f040f996df1c2f879ea0ca29a4f70421e72"
+  git_commit: "31d57ec1c58bb1f17d6bcfead72c5f99eabade36"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
   dependencies:
   - "target/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/utils/extract_uns_metadata"

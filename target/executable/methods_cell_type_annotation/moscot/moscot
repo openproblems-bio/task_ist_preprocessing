@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "numpy" "jax[cuda13]" "anndata" "scanpy" "moscot" "flax" "diffrax"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation moscot"
-LABEL org.opencontainers.image.created="2025-09-23T11:51:38Z"
+LABEL org.opencontainers.image.created="2025-09-25T14:12:05Z"
 LABEL org.opencontainers.image.source="https://github.com/theislab/moscot"
-LABEL org.opencontainers.image.revision="08816f040f996df1c2f879ea0ca29a4f70421e72"
+LABEL org.opencontainers.image.revision="31d57ec1c58bb1f17d6bcfead72c5f99eabade36"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

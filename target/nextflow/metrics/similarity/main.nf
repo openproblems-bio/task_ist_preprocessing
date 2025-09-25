@@ -3820,7 +3820,8 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "spatialdata"
+            "spatialdata",
+            "anndata>=0.12.0"
           ],
           "upgrade" : true
         }
@@ -3837,7 +3838,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/metrics/similarity",
     "viash_version" : "0.9.4",
-    "git_commit" : "08816f040f996df1c2f879ea0ca29a4f70421e72",
+    "git_commit" : "31d57ec1c58bb1f17d6bcfead72c5f99eabade36",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4013,6 +4014,10 @@ assert adata_sc.obs['cell_type'].notna().all(), "There are nan values in the cel
 assert (adata_sp.obs['cell_type'] != "None").all(), "There are None values in the cell type annotations of the spatial data"
 assert (adata_sc.obs['cell_type'] != "None").all(), "There are None values in the cell type annotations of the scRNAseq data"
 
+# Subset to shared genes #TODO: Check if some metrics are affected by this
+shared_genes = [g for g in adata_sc.var_names if g in adata_sp.var_names]
+adata_sp = adata_sp[:,shared_genes]
+adata_sc = adata_sc[:,shared_genes]
 
 print('Compute metrics', flush=True)
 df_filtered = tx.metrics.all_metrics(

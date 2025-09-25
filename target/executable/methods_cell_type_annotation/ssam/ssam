@@ -446,6 +446,9 @@ function ViashDockerfile {
 FROM openproblems/base_python:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
+  pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0"
+
+RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "squidpy" "rasterio" && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
@@ -453,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "planktonspace"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation ssam"
-LABEL org.opencontainers.image.created="2025-09-23T11:51:38Z"
+LABEL org.opencontainers.image.created="2025-09-25T14:12:04Z"
 LABEL org.opencontainers.image.source="https://github.com/HiDiHlabs/ssam"
-LABEL org.opencontainers.image.revision="08816f040f996df1c2f879ea0ca29a4f70421e72"
+LABEL org.opencontainers.image.revision="31d57ec1c58bb1f17d6bcfead72c5f99eabade36"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1188,7 +1191,8 @@ adata_sp = ad.read_h5ad(par['input_spatial_normalized_counts'])
 transcripts = sd.SpatialData.read(par['input_transcript_assignments'])['transcripts']
 adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
 adata_sc.X = adata_sc.layers["normalized"]
-adata_sp = adata_sp[:,adata_sc.var_names] #TODO: do we want to do this earlier? Maybe not, thinking about transcripts related quality metrics
+shared_genes = [g for g in adata_sc.var_names if g in adata_sp.var_names]
+adata_sp = adata_sp[:,shared_genes] #TODO: do we want to do this earlier? Maybe not, thinking about transcripts related quality metrics
 
 # Annotate cell types
 print('Annotating cell types', flush=True)

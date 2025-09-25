@@ -446,16 +446,16 @@ function ViashDockerfile {
 FROM openproblems/base_python:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
+  pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0"
+
+RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "squidpy" "rasterio" && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
-RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata"
-
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation watershed"
-LABEL org.opencontainers.image.created="2025-09-23T11:51:40Z"
+LABEL org.opencontainers.image.created="2025-09-25T14:12:06Z"
 LABEL org.opencontainers.image.source="https://github.com/theislab/txsim"
-LABEL org.opencontainers.image.revision="08816f040f996df1c2f879ea0ca29a4f70421e72"
+LABEL org.opencontainers.image.revision="31d57ec1c58bb1f17d6bcfead72c5f99eabade36"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
