@@ -3500,7 +3500,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/vizgen_merscope",
     "viash_version" : "0.9.4",
-    "git_commit" : "31d57ec1c58bb1f17d6bcfead72c5f99eabade36",
+    "git_commit" : "60c8dfdcfca2f9575f6b06cbe9b3d3a2c3ac9934",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3840,8 +3840,8 @@ for old_key, new_key in elements_renaming_map.items():
 print(datetime.now() - t0, "Renamed elements", flush=True)
 
 # Rename transcript column
-sdata["transcripts"] = sdata["transcripts"].rename(columns={"global_z": "z"})
-print(datetime.now() - t0, "Renamed transcripts column 'global_z' -> 'z'", flush=True)
+sdata["transcripts"] = sdata["transcripts"].rename(columns={"global_z": "z", "gene": "feature_name", "transcript_id": "ensembl_id"})
+print(datetime.now() - t0, "Renamed transcripts column 'global_z' -> 'z' and 'gene' -> 'feature_name' and 'transcript_id' -> 'ensembl_id'", flush=True)
 
 #########################################
 # Throw out all channels except of DAPI #
