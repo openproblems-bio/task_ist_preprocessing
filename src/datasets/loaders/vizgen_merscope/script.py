@@ -198,8 +198,8 @@ for old_key, new_key in elements_renaming_map.items():
 print(datetime.now() - t0, "Renamed elements", flush=True)
 
 # Rename transcript column
-sdata["transcripts"] = sdata["transcripts"].rename(columns={"global_z": "z"})
-print(datetime.now() - t0, "Renamed transcripts column 'global_z' -> 'z'", flush=True)
+sdata["transcripts"] = sdata["transcripts"].rename(columns={"global_z": "z", "gene": "feature_name", "transcript_id": "ensembl_id"})
+print(datetime.now() - t0, "Renamed transcripts column 'global_z' -> 'z' and 'gene' -> 'feature_name' and 'transcript_id' -> 'ensembl_id'", flush=True)
 
 #########################################
 # Throw out all channels except of DAPI #
