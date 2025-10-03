@@ -31,17 +31,17 @@ default_methods:
   - no_correction
 segmentation_methods:
   - custom_segmentation
-  - cellpose
+  # - cellpose
   - binning
-  #- stardist
-  - watershed
+  # - stardist
+  # - watershed
 transcript_assignment_methods:
   - basic_transcript_assignment
   #- baysor
-  - clustermap
-  - pciseq
-  - comseg
-  - proseg
+  # - clustermap
+  # - pciseq
+  # - comseg
+  # - proseg
 count_aggregation_methods:
   - basic_count_aggregation
 qc_filtering_methods:
@@ -50,18 +50,28 @@ volume_calculation_methods:
   - alpha_shapes
 normalization_methods:
   - normalize_by_volume
-  - normalize_by_counts
-  - spanorm
+  # - normalize_by_counts
+  # - spanorm
 celltype_annotation_methods:
   - ssam
-  - tacco
-  #- moscot
+  # - tacco
+  # - moscot
 expression_correction_methods:
   - no_correction
-  - gene_efficiency_correction
-  - resolvi_correction
+  # - gene_efficiency_correction
+  # - resolvi_correction
+method_parameters_yaml: /tmp/method_params.yaml
 output_state: "state.yaml"
 publish_dir: "$publish_dir"
+HERE
+
+cat > /tmp/method_params.yaml << HERE
+parameters:
+  binning:
+    default:
+      bin_size: 30
+    sweep:
+      bin_size: [20, 30, 40]
 HERE
 
 nextflow run . \

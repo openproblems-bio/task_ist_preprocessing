@@ -56,6 +56,56 @@ workflow run_wf {
       }
     )
 
+    // If a method_parameters_yaml is provided, load it and set params.method_parameters
+    if (params.containsKey("method_parameters_yaml") && params.method_parameters_yaml) {
+      def yaml_blob = readYaml(file(params.method_parameters_yaml))
+      if (yaml_blob instanceof Map && yaml_blob.containsKey('parameters')) {
+        params.method_parameters = yaml_blob.parameters
+      } else if (yaml_blob instanceof Map) {
+        // assume the file itself is the mapping
+        params.method_parameters = yaml_blob
+      }
+    }
+
+    // Expand a list of components into variants according to params.method_parameters
+    def expand_methods_with_parameter_sets = { methods, parameters_map ->
+      if (!parameters_map) {
+        return methods
+      }
+
+      def expanded = []
+
+      methods.each { comp ->
+        def comp_name = comp.config.name
+        def spec = parameters_map[comp_name]
+
+        if (!spec) {
+          expanded << comp
+        } else {
+          def default_args = spec['default'] ?: [:]
+
+          // include default variant
+          def default_key = "${comp_name}_default"
+          expanded << comp.run(key: default_key, args: default_args)
+
+          def sweep = spec['sweep']
+          if (sweep instanceof Map) {
+            // vary one parameter at a time
+            sweep.each { parName, parVals ->
+              if (!(parVals instanceof Collection)) parVals = [parVals]
+              parVals.each { val ->
+                def args = default_args + [(parName): val]
+                def k = "${comp_name}_${parName}_${val}"
+                expanded << comp.run(key: k, args: args)
+              }
+            }
+          }
+        }
+      }
+
+      return expanded
+    }
+
   /****************************************
    *        CONTROL METHODS               *
    ****************************************/
@@ -76,7 +126,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "control",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_correction: out_dict.output,
@@ -89,7 +140,8 @@ workflow run_wf {
   /****************************************
    *       RUN SEGMENTATION METHODS       *
    ****************************************/
-  segm_methods = [
+  // base segmentation methods
+  _segm_methods_base = [
     custom_segmentation.run(
       args: [labels_key: "cell_labels"]
     ),
@@ -98,6 +150,7 @@ workflow run_wf {
     stardist,
     watershed
   ]
+  segm_methods = expand_methods_with_parameter_sets(_segm_methods_base, params.method_parameters)
   segm_ch = init_ch
     | runEach(
       components: segm_methods,
@@ -117,7 +170,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "segmentation",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_segmentation: out_dict.output
@@ -128,7 +182,7 @@ workflow run_wf {
   /****************************************
    *   RUN ASSIGNMENT AFTER SEGMENTATION  *
    ****************************************/
-  segm_ass_methods = [
+  _segm_ass_methods_base = [
     basic_transcript_assignment.run(
       args: [
         transcripts_key: "transcripts",
@@ -141,6 +195,7 @@ workflow run_wf {
     comseg,
     proseg
   ]
+  segm_ass_methods = expand_methods_with_parameter_sets(_segm_ass_methods_base, params.method_parameters)
   segm_ass_ch = segm_ch
     | runEach(
       components: segm_ass_methods,
@@ -164,7 +219,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "assignment",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_assignment: out_dict.output
@@ -211,9 +267,10 @@ workflow run_wf {
   /****************************************
    *          COUNT AGGREGATION           *
    ****************************************/
-  count_aggr_methods = [
+  _count_aggr_methods_base = [
     basic_count_aggregation
   ]
+  count_aggr_methods = expand_methods_with_parameter_sets(_count_aggr_methods_base, params.method_parameters)
   count_aggr_ch = assignment_ch
     | runEach(
       components: count_aggr_methods,
@@ -235,7 +292,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "count_aggregation",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_count_aggregation: out_dict.output
@@ -247,9 +305,10 @@ workflow run_wf {
   /************************************
    *          QC FILTERING            *
    ************************************/
-  qc_filter_methods = [
+  _qc_filter_methods_base = [
     basic_qc_filter
   ]
+  qc_filter_methods = expand_methods_with_parameter_sets(_qc_filter_methods_base, params.method_parameters)
   qc_filter_ch = count_aggr_ch
     | runEach(
       components: qc_filter_methods,
@@ -271,7 +330,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "qc_filter",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_qc_filter: out_dict.output
@@ -283,9 +343,10 @@ workflow run_wf {
   /****************************************
    *          VOLUME CALCULATION          *
    ****************************************/
-  cell_vol_methods = [
+  _cell_vol_methods_base = [
     alpha_shapes
   ]
+  cell_vol_methods = expand_methods_with_parameter_sets(_cell_vol_methods_base, params.method_parameters)
   cell_vol_ch = qc_filter_ch
     | runEach(
       components: cell_vol_methods,
@@ -307,7 +368,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "calculate_cell_volume",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_cell_volume: out_dict.output
@@ -318,9 +380,10 @@ workflow run_wf {
   /****************************************
    *        NORMALIZATION BY VOLUME       *
    ****************************************/
-  vol_norm_methods = [
+  _vol_norm_methods_base = [
     normalize_by_volume
   ]
+  vol_norm_methods = expand_methods_with_parameter_sets(_vol_norm_methods_base, params.method_parameters)
   vol_norm_ch = cell_vol_ch
     | runEach(
       components: vol_norm_methods,
@@ -343,7 +406,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "normalization",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_normalization: out_dict.output
@@ -357,10 +421,11 @@ workflow run_wf {
    ****************************************/
 
    // TODO: implement this when direct normalization methods are added
-  direct_norm_methods = [
+  _direct_norm_methods_base = [
     normalize_by_counts,
     spanorm
   ]
+  direct_norm_methods = expand_methods_with_parameter_sets(_direct_norm_methods_base, params.method_parameters)
   direct_norm_ch = qc_filter_ch
     | runEach(
       components: direct_norm_methods,
@@ -382,7 +447,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "normalization",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_normalization: out_dict.output
@@ -399,11 +465,12 @@ workflow run_wf {
   /****************************************
    *         CELL TYPE ANNOTATION         *
    ****************************************/
-  cta_methods = [
+  _cta_methods_base = [
     ssam,
     tacco,
     moscot
   ]
+  cta_methods = expand_methods_with_parameter_sets(_cta_methods_base, params.method_parameters)
   cta_ch = normalization_ch
     | runEach(
       components: cta_methods,
@@ -427,7 +494,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "cell_type_assignment",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_cta: out_dict.output
@@ -438,11 +506,12 @@ workflow run_wf {
   /****************************************
    *         EXPRESSION CORRECTION        *
    ****************************************/
-  expr_corr_methods = [
+  _expr_corr_methods_base = [
     no_correction,
     gene_efficiency_correction,
     resolvi_correction
   ]
+  expr_corr_methods = expand_methods_with_parameter_sets(_expr_corr_methods_base, params.method_parameters)
   expr_corr_ch = cta_ch
     | runEach(
       components: expr_corr_methods,
@@ -465,7 +534,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "expression_correction",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_correction: out_dict.output
@@ -483,9 +553,10 @@ workflow run_wf {
   /****************************************
    *                METRICS               *
    ****************************************/
-  metrics = [
+  _metrics_base = [
     similarity
   ]
+  metrics = expand_methods_with_parameter_sets(_metrics_base, params.method_parameters)
   metric_ch = expr_corr_and_control_ch
     | runEach(
       components: metrics,
