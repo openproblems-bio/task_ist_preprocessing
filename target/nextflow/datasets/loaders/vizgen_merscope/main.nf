@@ -3500,7 +3500,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/vizgen_merscope",
     "viash_version" : "0.9.4",
-    "git_commit" : "73e823d662474ad2d39a327835adf2862dc53843",
+    "git_commit" : "de13072717826a99491639fa08c3de642f73d933",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3840,8 +3840,14 @@ for old_key, new_key in elements_renaming_map.items():
 print(datetime.now() - t0, "Renamed elements", flush=True)
 
 # Rename transcript column
-sdata["transcripts"] = sdata["transcripts"].rename(columns={"global_z": "z", "gene": "feature_name", "transcript_id": "ensembl_id"})
+sdata["transcripts"] = sdata["transcripts"].rename(columns={"global_z": "z", "transcript_id": "ensembl_id"})#, "gene": "feature_name"})
+if "gene" in sdata["transcripts"].columns: 
+    # No idea why, but somehow dask dataframe renaming for the 'gene' column ends up in a key error when assigning it to sdata["transcripts"].
+    sdata["transcripts"]["feature_name"] = sdata["transcripts"]["gene"]
+    del sdata["transcripts"]["gene"]
 print(datetime.now() - t0, "Renamed transcripts column 'global_z' -> 'z' and 'gene' -> 'feature_name' and 'transcript_id' -> 'ensembl_id'", flush=True)
+
+print(datetime.now() - t0, "Columns in sdata['transcripts']:", sdata["transcripts"].columns, flush=True)
 
 #########################################
 # Throw out all channels except of DAPI #
