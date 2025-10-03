@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "sopa"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders bruker_cosmx"
-LABEL org.opencontainers.image.created="2025-09-30T15:14:23Z"
+LABEL org.opencontainers.image.created="2025-10-03T15:34:50Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="60c8dfdcfca2f9575f6b06cbe9b3d3a2c3ac9934"
+LABEL org.opencontainers.image.revision="73e823d662474ad2d39a327835adf2862dc53843"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -576,14 +576,14 @@ function ViashHelp {
   echo ""
   echo "Inputs:"
   echo "    --input_raw"
-  echo "        type: file, file must exist"
-  echo "        example: https:/smi-public.objects.liquidweb.services/HalfBrain.zip"
+  echo "        type: string"
+  echo "        example: https://smi-public.objects.liquidweb.services/HalfBrain.zip"
   echo "        Download file url for the raw data"
   echo ""
   echo "    --input_flat_files"
-  echo "        type: file, file must exist"
+  echo "        type: string"
   echo "        example:"
-  echo "https:/smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
+  echo "https://smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
   echo "        Download file url for the flat files"
   echo ""
   echo "    --segmentation_id"
@@ -1027,16 +1027,6 @@ if [ -z ${VIASH_PAR_SEGMENTATION_ID+x} ]; then
   VIASH_PAR_SEGMENTATION_ID="cell"
 fi
 
-# check whether required files exist
-if [ ! -z "$VIASH_PAR_INPUT_RAW" ] && [ ! -e "$VIASH_PAR_INPUT_RAW" ]; then
-  ViashError "Input file '$VIASH_PAR_INPUT_RAW' does not exist."
-  exit 1
-fi
-if [ ! -z "$VIASH_PAR_INPUT_FLAT_FILES" ] && [ ! -e "$VIASH_PAR_INPUT_FLAT_FILES" ]; then
-  ViashError "Input file '$VIASH_PAR_INPUT_FLAT_FILES' does not exist."
-  exit 1
-fi
-
 # check whether parameters values are of the right type
 if [[ -n "$VIASH_META_CPUS" ]]; then
   if ! [[ "$VIASH_META_CPUS" =~ ^[-+]?[0-9]+$ ]]; then
@@ -1128,14 +1118,6 @@ fi
 if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   # detect volumes from file arguments
   VIASH_CHOWN_VARS=()
-if [ ! -z "$VIASH_PAR_INPUT_RAW" ]; then
-  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_INPUT_RAW")" )
-  VIASH_PAR_INPUT_RAW=$(ViashDockerAutodetectMount "$VIASH_PAR_INPUT_RAW")
-fi
-if [ ! -z "$VIASH_PAR_INPUT_FLAT_FILES" ]; then
-  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_INPUT_FLAT_FILES")" )
-  VIASH_PAR_INPUT_FLAT_FILES=$(ViashDockerAutodetectMount "$VIASH_PAR_INPUT_FLAT_FILES")
-fi
 if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_OUTPUT")" )
   VIASH_PAR_OUTPUT=$(ViashDockerAutodetectMount "$VIASH_PAR_OUTPUT")
@@ -1489,12 +1471,6 @@ VIASHEOF
 if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   # strip viash automount from file paths
   
-  if [ ! -z "$VIASH_PAR_INPUT_RAW" ]; then
-    VIASH_PAR_INPUT_RAW=$(ViashDockerStripAutomount "$VIASH_PAR_INPUT_RAW")
-  fi
-  if [ ! -z "$VIASH_PAR_INPUT_FLAT_FILES" ]; then
-    VIASH_PAR_INPUT_FLAT_FILES=$(ViashDockerStripAutomount "$VIASH_PAR_INPUT_FLAT_FILES")
-  fi
   if [ ! -z "$VIASH_PAR_OUTPUT" ]; then
     VIASH_PAR_OUTPUT=$(ViashDockerStripAutomount "$VIASH_PAR_OUTPUT")
   fi

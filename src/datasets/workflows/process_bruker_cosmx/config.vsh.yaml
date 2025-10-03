@@ -4,11 +4,11 @@ namespace: datasets/workflows
 argument_groups:
   - name: Inputs
     arguments:
-      - type: file
+      - type: string
         name: --input_raw
         example: "https://smi-public.objects.liquidweb.services/HalfBrain.zip"
         description: "Download file url for the raw data"
-      - type: file
+      - type: string
         name: --input_flat_files
         example: "https://smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
         description: "Download file url for the flat files"
