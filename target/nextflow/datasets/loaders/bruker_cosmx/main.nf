@@ -3443,7 +3443,7 @@ meta = [
       "id" : "nextflow",
       "directives" : {
         "label" : [
-          "highmem",
+          "veryhighmem",
           "midcpu",
           "midtime"
         ],
@@ -3510,7 +3510,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx",
     "viash_version" : "0.9.4",
-    "git_commit" : "de13072717826a99491639fa08c3de642f73d933",
+    "git_commit" : "701194974580a6c4e6d2f4c133a3ad69ac332fea",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3777,6 +3777,20 @@ os.system(f"wget {par['input_raw']} -O '{FILE_NAME_RAW}'")
 print(datetime.now() - t0, "Extract zip of raw files", flush=True)
 with zipfile.ZipFile(FILE_NAME_RAW, 'r') as zip_ref:
     zip_ref.extractall(TMP_DIR)
+
+# Print files and folders in TMP_DIR
+print(datetime.now() - t0, f"Files and folders in TMP_DIR ({TMP_DIR})", flush=True)
+print(os.listdir(TMP_DIR))
+if DATA_DIR.parent.exists():
+    print(datetime.now() - t0, f"Files and folders in {DATA_DIR.parent}", flush=True)
+    print(os.listdir(DATA_DIR.parent))
+else:
+    print(datetime.now() - t0, f"{DATA_DIR.parent} does not exist", flush=True)
+if DATA_DIR.exists():
+    print(datetime.now() - t0, f"Files and folders in {DATA_DIR}", flush=True)
+    print(os.listdir(DATA_DIR))
+else:
+    print(datetime.now() - t0, f"{DATA_DIR} does not exist", flush=True)
 
 # Download and extract flat files if they are not already present
 FLAT_FILES_ENDINGS = ["_exprMat_file.csv", "_fov_positions_file.csv", "_metadata_file.csv", "_tx_file.csv"] #, "polygons.csv"]
@@ -4283,7 +4297,7 @@ meta["defaults"] = [
     "tag" : "build_main"
   },
   "label" : [
-    "highmem",
+    "veryhighmem",
     "midcpu",
     "midtime"
   ],

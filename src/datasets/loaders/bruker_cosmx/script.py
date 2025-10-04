@@ -129,6 +129,20 @@ print(datetime.now() - t0, "Extract zip of raw files", flush=True)
 with zipfile.ZipFile(FILE_NAME_RAW, 'r') as zip_ref:
     zip_ref.extractall(TMP_DIR)
 
+# Print files and folders in TMP_DIR
+print(datetime.now() - t0, f"Files and folders in TMP_DIR ({TMP_DIR})", flush=True)
+print(os.listdir(TMP_DIR))
+if DATA_DIR.parent.exists():
+    print(datetime.now() - t0, f"Files and folders in {DATA_DIR.parent}", flush=True)
+    print(os.listdir(DATA_DIR.parent))
+else:
+    print(datetime.now() - t0, f"{DATA_DIR.parent} does not exist", flush=True)
+if DATA_DIR.exists():
+    print(datetime.now() - t0, f"Files and folders in {DATA_DIR}", flush=True)
+    print(os.listdir(DATA_DIR))
+else:
+    print(datetime.now() - t0, f"{DATA_DIR} does not exist", flush=True)
+
 # Download and extract flat files if they are not already present
 FLAT_FILES_ENDINGS = ["_exprMat_file.csv", "_fov_positions_file.csv", "_metadata_file.csv", "_tx_file.csv"] #, "polygons.csv"]
 flat_files_count = 0

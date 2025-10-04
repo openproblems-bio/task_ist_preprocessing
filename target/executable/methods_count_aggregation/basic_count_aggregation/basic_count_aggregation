@@ -453,9 +453,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_count_aggregation basic_count_aggregation"
-LABEL org.opencontainers.image.created="2025-10-03T17:05:32Z"
+LABEL org.opencontainers.image.created="2025-10-04T18:23:21Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="de13072717826a99491639fa08c3de642f73d933"
+LABEL org.opencontainers.image.revision="701194974580a6c4e6d2f4c133a3ad69ac332fea"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

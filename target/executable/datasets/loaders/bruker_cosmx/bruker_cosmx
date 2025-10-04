@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "sopa"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders bruker_cosmx"
-LABEL org.opencontainers.image.created="2025-10-03T17:05:29Z"
+LABEL org.opencontainers.image.created="2025-10-04T18:23:18Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="de13072717826a99491639fa08c3de642f73d933"
+LABEL org.opencontainers.image.revision="701194974580a6c4e6d2f4c133a3ad69ac332fea"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1340,6 +1340,20 @@ os.system(f"wget {par['input_raw']} -O '{FILE_NAME_RAW}'")
 print(datetime.now() - t0, "Extract zip of raw files", flush=True)
 with zipfile.ZipFile(FILE_NAME_RAW, 'r') as zip_ref:
     zip_ref.extractall(TMP_DIR)
+
+# Print files and folders in TMP_DIR
+print(datetime.now() - t0, f"Files and folders in TMP_DIR ({TMP_DIR})", flush=True)
+print(os.listdir(TMP_DIR))
+if DATA_DIR.parent.exists():
+    print(datetime.now() - t0, f"Files and folders in {DATA_DIR.parent}", flush=True)
+    print(os.listdir(DATA_DIR.parent))
+else:
+    print(datetime.now() - t0, f"{DATA_DIR.parent} does not exist", flush=True)
+if DATA_DIR.exists():
+    print(datetime.now() - t0, f"Files and folders in {DATA_DIR}", flush=True)
+    print(os.listdir(DATA_DIR))
+else:
+    print(datetime.now() - t0, f"{DATA_DIR} does not exist", flush=True)
 
 # Download and extract flat files if they are not already present
 FLAT_FILES_ENDINGS = ["_exprMat_file.csv", "_fov_positions_file.csv", "_metadata_file.csv", "_tx_file.csv"] #, "polygons.csv"]
