@@ -19,6 +19,44 @@ Boolean checkRunMethod(String method, List selected_methods, List steps, List de
     checkDefaultMethods(steps, default_methods)
 }
 
+// Expand a list of components into variants according to params.method_parameters
+def expand_methods_with_parameter_sets = { methods, parameters_map ->
+  if (!parameters_map) {
+    return methods
+  }
+
+  def expanded = []
+
+  methods.each { comp ->
+    def comp_name = comp.config.name
+    def spec = parameters_map[comp_name]
+
+    if (!spec) {
+      expanded << comp
+    } else {
+      def default_args = spec['default'] ?: [:]
+
+      // include default variant
+      expanded << comp.run(key: comp_name, args: default_args)
+
+      def sweep = spec['sweep']
+      if (sweep instanceof Map) {
+        // vary one parameter at a time
+        sweep.each { parName, parVals ->
+          if (!(parVals instanceof Collection)) parVals = [parVals]
+          parVals.each { val ->
+            def args = default_args + [(parName): val]
+            def k = "${comp_name}_${parName}_${val}"
+            expanded << comp.run(key: k, args: args)
+          }
+        }
+      }
+    }
+  }
+
+  return expanded
+}
+
 workflow auto {
   findStates(params, meta.config)
     | meta.workflow.run(
@@ -56,54 +94,16 @@ workflow run_wf {
       }
     )
 
-    // If a method_parameters_yaml is provided, load it and set params.method_parameters
-    if (params.containsKey("method_parameters_yaml") && params.method_parameters_yaml) {
-      def yaml_blob = readYaml(file(params.method_parameters_yaml))
-      if (yaml_blob instanceof Map && yaml_blob.containsKey('parameters')) {
-        params.method_parameters = yaml_blob.parameters
-      } else if (yaml_blob instanceof Map) {
-        // assume the file itself is the mapping
-        params.method_parameters = yaml_blob
-      }
+  // If a method_parameters_yaml is provided, load it and set params.method_parameters
+  if (params.containsKey("method_parameters_yaml") && params.method_parameters_yaml) {
+    def yaml_blob = readYaml(file(params.method_parameters_yaml))
+    if (yaml_blob instanceof Map && yaml_blob.containsKey('parameters')) {
+      params.method_parameters = yaml_blob.parameters
+    } else if (yaml_blob instanceof Map) {
+      // assume the file itself is the mapping
+      params.method_parameters = yaml_blob
     }
-
-    // Expand a list of components into variants according to params.method_parameters
-    def expand_methods_with_parameter_sets = { methods, parameters_map ->
-      if (!parameters_map) {
-        return methods
-      }
-
-      def expanded = []
-
-      methods.each { comp ->
-        def comp_name = comp.config.name
-        def spec = parameters_map[comp_name]
-
-        if (!spec) {
-          expanded << comp
-        } else {
-          def default_args = spec['default'] ?: [:]
-
-          // include default variant
-          expanded << comp.run(key: comp_name, args: default_args)
-
-          def sweep = spec['sweep']
-          if (sweep instanceof Map) {
-            // vary one parameter at a time
-            sweep.each { parName, parVals ->
-              if (!(parVals instanceof Collection)) parVals = [parVals]
-              parVals.each { val ->
-                def args = default_args + [(parName): val]
-                def k = "${comp_name}_${parName}_${val}"
-                expanded << comp.run(key: k, args: args)
-              }
-            }
-          }
-        }
-      }
-
-      return expanded
-    }
+  }
 
   /****************************************
    *        CONTROL METHODS               *
