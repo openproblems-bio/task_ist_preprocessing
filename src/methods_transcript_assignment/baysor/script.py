@@ -70,6 +70,7 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
+    
 cell_id_dask_series = dask.dataframe.from_dask_array(
     dask.array.from_array(
         label_image[y_coords, x_coords], chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
@@ -119,6 +120,9 @@ sopa.make_transcript_patches(sdata_sopa, patch_width=2000, patch_overlap=50, pri
 # sopa.settings.parallelization_backend = "dask" #NOTE: didn't lead to high speed, also I think workers kept dying, instead went with JULIA_NUM_THREADS
 n_threads = meta['cpus'] or os.cpu_count()
 n_threads = max(n_threads-2, 1)
+# NOTE: When testing locally on mac, don't set JULIA_NUM_THREADS, leads to an error when calling baysor
+#       (called with sopa -->) subprocess.CalledProcessError: Command 'baysor ...' returned non-zero exit status 139.
+#       When reproducing the error with `baysor ...` it reports a signal (11.1) Segmentation fault Allocations: 5017730 (Pool: 5013281; Big: 4449); GC: 8
 os.environ['JULIA_NUM_THREADS'] = str(n_threads)
 sopa.segmentation.baysor(sdata_sopa, config=str(CONFIG_TOML))
 
