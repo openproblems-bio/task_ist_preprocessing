@@ -85,8 +85,7 @@ workflow run_wf {
           def default_args = spec['default'] ?: [:]
 
           // include default variant
-          def default_key = "${comp_name}_default"
-          expanded << comp.run(key: default_key, args: default_args)
+          expanded << comp.run(key: comp_name, args: default_args)
 
           def sweep = spec['sweep']
           if (sweep instanceof Map) {
