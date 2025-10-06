@@ -3445,7 +3445,7 @@ meta = [
         "label" : [
           "veryhighmem",
           "midcpu",
-          "midtime"
+          "hightime"
         ],
         "tag" : "$id"
       },
@@ -3510,7 +3510,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx",
     "viash_version" : "0.9.4",
-    "git_commit" : "137f514038a9ac4a34b36b80d6676fa3ba8dd881",
+    "git_commit" : "8c2f68b5927aca235b5f09100bf2fca470239d08",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3764,7 +3764,6 @@ t0 = datetime.now()
 TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 FILE_NAME_RAW = TMP_DIR / par["input_raw"].split("/")[-1]
-DATA_DIR = FILE_NAME_RAW.parent / FILE_NAME_RAW.stem / "CellStatsDir"
 
 if par["input_flat_files"] is not None:
     FILE_NAME_FLAT = TMP_DIR / par["input_flat_files"].split("/")[-1].replace("%20", " ")
@@ -3772,6 +3771,10 @@ if par["input_flat_files"] is not None:
 # Download raw files
 print(datetime.now() - t0, "Download raw files", flush=True)
 os.system(f"wget {par['input_raw']} -O '{FILE_NAME_RAW}'")
+
+# Set DATA_DIR
+extracted_dir_name = zipfile.ZipFile(FILE_NAME_RAW).infolist()[0].filename.split("/")[0]
+DATA_DIR = TMP_DIR / extracted_dir_name / "CellStatsDir"
 
 # Extract zip files
 print(datetime.now() - t0, "Extract zip of raw files", flush=True)
@@ -4299,7 +4302,7 @@ meta["defaults"] = [
   "label" : [
     "veryhighmem",
     "midcpu",
-    "midtime"
+    "hightime"
   ],
   "tag" : "$id"
 }'''),
