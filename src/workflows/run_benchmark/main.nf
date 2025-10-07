@@ -1,22 +1,63 @@
 include { checkItemAllowed } from "${meta.resources_dir}/helper.nf"
 
-Boolean checkDefaultMethods(List steps, List default_methods) {
-  if (!default_methods || default_methods.size() == 0) {
-    return true
+/**
+ * Check if a component should be run based on method selection and constraint rules.
+ * 
+ * This function enforces three constraints for the benchmark workflow:
+ * 1. Method selection: The component must be in the selected_methods list (if provided)
+ * 2. Parameter set constraint: At most one non-default parameter set can be used across the entire pipeline
+ * 3. Default methods constraint: At most one non-default method can be used in the pipeline
+ * 
+ * A non-default parameter set is detected when comp.config.name != comp.getName(), which
+ * occurs when expandMethodsWithParameterSets creates variants with modified parameters.
+ * These variants are named "${comp_name}_${parName}_${val}" while the default variant
+ * keeps the original component name.
+ * 
+ * Default methods are those specified in the default_methods list. This constraint allows
+ * running all default methods together, or one non-default method with all defaults.
+ * 
+ * @param comp The component object to check, must have config.name and getName() methods
+ * @param selected_methods List of method names that are allowed to run (null means all allowed)
+ * @param steps List of step objects representing methods already in the pipeline, each with
+ *              component_id (original name) and component_variant (name after expansion)
+ * @param default_methods List of method names that are considered "default" methods
+ * @return true if the component should run, false if it violates any constraints
+ */
+Boolean checkMethodConstraints(comp, List selected_methods, List steps, List default_methods) {
+  // Constraint 1: Check if this method is in the selected methods list
+  if (!checkItemAllowed(comp.config.name, selected_methods, null, "selected_methods", "NA")) {
+    return false
   }
 
-  if (!steps || steps.size() == 0) {
-    return true
+  // Constraint 2: Check if this component uses a non-default parameter set
+  def is_non_default_parameterset = comp.config.name != comp.getName()
+  
+  if (is_non_default_parameterset) {
+    // Count how many non-default parameter sets are already in the steps
+    // A step uses a non-default parameter set if component_id != component_variant
+    def non_default_parameterset_count = steps.findAll { step ->
+      step.component_id != null && step.component_variant != null && 
+      step.component_id != step.component_variant
+    }.size()
+    
+    // Only allow this method if there are no other non-default parameter sets
+    if (non_default_parameterset_count > 0) {
+      return false
+    }
   }
-
-  def non_default_count = steps.findAll { !(it in default_methods) }.size()
-
-  return non_default_count <= 1
-}
-
-Boolean checkRunMethod(String method, List selected_methods, List steps, List default_methods) {
-  checkItemAllowed(method, selected_methods, null, "selected_methods", "NA") &&
-    checkDefaultMethods(steps, default_methods)
+  
+  // Constraint 3: Check the default methods constraint (at most one non-default method)
+  if (default_methods && default_methods.size() > 0 && steps && steps.size() > 0) {
+    // Extract component_ids from steps and count non-default methods
+    def component_ids = steps.collect{it.component_id}.findAll{it != null}
+    def non_default_count = component_ids.findAll { !(it in default_methods) }.size()
+    
+    if (non_default_count > 1) {
+      return false
+    }
+  }
+  
+  return true
 }
 
 // Expand a list of components into variants according to params.method_parameters
@@ -154,10 +195,10 @@ workflow run_wf {
     | runEach(
       components: segm_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
+        checkMethodConstraints(
+          comp,
           state.segmentation_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.steps,
           state.default_methods
         )
       },
@@ -199,10 +240,10 @@ workflow run_wf {
     | runEach(
       components: segm_ass_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
+        checkMethodConstraints(
+          comp,
           state.transcript_assignment_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.steps,
           state.default_methods
         )
       },
@@ -274,10 +315,10 @@ workflow run_wf {
     | runEach(
       components: count_aggr_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
+        checkMethodConstraints(
+          comp,
           state.count_aggregation_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.steps,
           state.default_methods
         )
       },
@@ -312,10 +353,10 @@ workflow run_wf {
     | runEach(
       components: qc_filter_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
+        checkMethodConstraints(
+          comp,
           state.qc_filtering_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.steps,
           state.default_methods
         )
       },
@@ -350,10 +391,10 @@ workflow run_wf {
     | runEach(
       components: cell_vol_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
+        checkMethodConstraints(
+          comp,
           state.volume_calculation_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.steps,
           state.default_methods
         )
       },
@@ -387,10 +428,10 @@ workflow run_wf {
     | runEach(
       components: vol_norm_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
+        checkMethodConstraints(
+          comp,
           state.normalization_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.steps,
           state.default_methods
         )
       },
@@ -429,10 +470,10 @@ workflow run_wf {
     | runEach(
       components: direct_norm_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
+        checkMethodConstraints(
+          comp,
           state.normalization_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.steps,
           state.default_methods
         )
       },
@@ -474,10 +515,10 @@ workflow run_wf {
     | runEach(
       components: cta_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
+        checkMethodConstraints(
+          comp,
           state.celltype_annotation_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.steps,
           state.default_methods
         )
       },
@@ -515,10 +556,10 @@ workflow run_wf {
     | runEach(
       components: expr_corr_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
+        checkMethodConstraints(
+          comp,
           state.expression_correction_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
+          state.steps,
           state.default_methods
         )
       },
