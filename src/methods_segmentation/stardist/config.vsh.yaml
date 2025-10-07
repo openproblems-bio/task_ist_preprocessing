@@ -24,6 +24,7 @@ engines:
   # NOTE: On mac the tensorflow install leads to an error. Develop the method in a conda env instead (and test docker via gh-actions). 
   #       Installations can be done with pip (except tensorflow: use conda install -c conda-forge tensorflow)
   - type: docker
+    #image: openproblems/base_tensorflow_nvidia:1 # TODO: ideally get gpu image to work
     image: openproblems/base_python:1
     __merge__: 
       - /src/base/setup_spatialdata_partial.yaml

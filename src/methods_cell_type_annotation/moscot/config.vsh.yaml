@@ -47,10 +47,10 @@ resources:
 
 engines:
   - type: docker
-    image: openproblems/base_python:1
+    image: openproblems/base_pytorch_nvidia:1.1.0
     setup:
       - type: python
-        pypi: [numpy, "jax[cuda13]", anndata, scanpy, moscot, flax, diffrax]
+        pypi: [numpy, "jax[cuda12]", anndata, scanpy, moscot, flax, diffrax]
   - type: native
 
 runners:
