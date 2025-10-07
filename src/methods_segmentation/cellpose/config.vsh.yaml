@@ -79,7 +79,7 @@ resources:
 
 engines:
   - type: docker
-    image: openproblems/base_python:1
+    image: openproblems/base_pytorch_nvidia:1
     setup:
       - type: python
         pypi: cellpose<4.0.0
