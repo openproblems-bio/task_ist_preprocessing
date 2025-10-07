@@ -20,7 +20,7 @@ Boolean checkRunMethod(String method, List selected_methods, List steps, List de
 }
 
 // Expand a list of components into variants according to params.method_parameters
-def expand_methods_with_parameter_sets = { methods, parameters_map ->
+List expandMethodsWithParameterSets(List methods, Map parameters_map) {
   if (!parameters_map) {
     return methods
   }
@@ -149,7 +149,7 @@ workflow run_wf {
     stardist,
     watershed
   ]
-  segm_methods = expand_methods_with_parameter_sets(_segm_methods_base, params.method_parameters)
+  segm_methods = expandMethodsWithParameterSets(_segm_methods_base, params.method_parameters)
   segm_ch = init_ch
     | runEach(
       components: segm_methods,
@@ -194,7 +194,7 @@ workflow run_wf {
     comseg,
     proseg
   ]
-  segm_ass_methods = expand_methods_with_parameter_sets(_segm_ass_methods_base, params.method_parameters)
+  segm_ass_methods = expandMethodsWithParameterSets(_segm_ass_methods_base, params.method_parameters)
   segm_ass_ch = segm_ch
     | runEach(
       components: segm_ass_methods,
@@ -269,7 +269,7 @@ workflow run_wf {
   _count_aggr_methods_base = [
     basic_count_aggregation
   ]
-  count_aggr_methods = expand_methods_with_parameter_sets(_count_aggr_methods_base, params.method_parameters)
+  count_aggr_methods = expandMethodsWithParameterSets(_count_aggr_methods_base, params.method_parameters)
   count_aggr_ch = assignment_ch
     | runEach(
       components: count_aggr_methods,
@@ -307,7 +307,7 @@ workflow run_wf {
   _qc_filter_methods_base = [
     basic_qc_filter
   ]
-  qc_filter_methods = expand_methods_with_parameter_sets(_qc_filter_methods_base, params.method_parameters)
+  qc_filter_methods = expandMethodsWithParameterSets(_qc_filter_methods_base, params.method_parameters)
   qc_filter_ch = count_aggr_ch
     | runEach(
       components: qc_filter_methods,
@@ -345,7 +345,7 @@ workflow run_wf {
   _cell_vol_methods_base = [
     alpha_shapes
   ]
-  cell_vol_methods = expand_methods_with_parameter_sets(_cell_vol_methods_base, params.method_parameters)
+  cell_vol_methods = expandMethodsWithParameterSets(_cell_vol_methods_base, params.method_parameters)
   cell_vol_ch = qc_filter_ch
     | runEach(
       components: cell_vol_methods,
@@ -382,7 +382,7 @@ workflow run_wf {
   _vol_norm_methods_base = [
     normalize_by_volume
   ]
-  vol_norm_methods = expand_methods_with_parameter_sets(_vol_norm_methods_base, params.method_parameters)
+  vol_norm_methods = expandMethodsWithParameterSets(_vol_norm_methods_base, params.method_parameters)
   vol_norm_ch = cell_vol_ch
     | runEach(
       components: vol_norm_methods,
@@ -424,7 +424,7 @@ workflow run_wf {
     normalize_by_counts,
     spanorm
   ]
-  direct_norm_methods = expand_methods_with_parameter_sets(_direct_norm_methods_base, params.method_parameters)
+  direct_norm_methods = expandMethodsWithParameterSets(_direct_norm_methods_base, params.method_parameters)
   direct_norm_ch = qc_filter_ch
     | runEach(
       components: direct_norm_methods,
@@ -469,7 +469,7 @@ workflow run_wf {
     tacco,
     moscot
   ]
-  cta_methods = expand_methods_with_parameter_sets(_cta_methods_base, params.method_parameters)
+  cta_methods = expandMethodsWithParameterSets(_cta_methods_base, params.method_parameters)
   cta_ch = normalization_ch
     | runEach(
       components: cta_methods,
@@ -510,7 +510,7 @@ workflow run_wf {
     gene_efficiency_correction,
     resolvi_correction
   ]
-  expr_corr_methods = expand_methods_with_parameter_sets(_expr_corr_methods_base, params.method_parameters)
+  expr_corr_methods = expandMethodsWithParameterSets(_expr_corr_methods_base, params.method_parameters)
   expr_corr_ch = cta_ch
     | runEach(
       components: expr_corr_methods,
@@ -555,7 +555,7 @@ workflow run_wf {
   _metrics_base = [
     similarity
   ]
-  metrics = expand_methods_with_parameter_sets(_metrics_base, params.method_parameters)
+  metrics = expandMethodsWithParameterSets(_metrics_base, params.method_parameters)
   metric_ch = expr_corr_and_control_ch
     | runEach(
       components: metrics,
