@@ -42,6 +42,7 @@ resources:
 
 engines:
   - type: docker
+    #image: openproblems/base_pytorch_nvidia:1 # TODO: ideally get gpu image to work
     image: openproblems/base_python:1
     __merge__: 
       - /src/base/setup_txsim_partial.yaml
