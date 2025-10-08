@@ -624,11 +624,12 @@ def expandChannelWithParameterSets(methods, method_type, selected_methods_key) {
             return
           }
           
-          // Check default methods constraint
-          def component_ids = state.steps.collect{it.component_id}.findAll{it != null}
-          def non_default_count = component_ids.findAll { !(it in default_methods) }.size()
-          if (default_methods && default_methods.size() > 0 && non_default_count > 1) {
-            return
+          // Check constraint: at most one non-default method or parameter set variant
+          // Count non-default items in previous steps (both non-default methods and variants)
+          def has_non_default = state.steps.any { step ->
+            step.component_id != null && 
+            (!(step.component_id in default_methods) || 
+             (step.component_variant != null && step.component_id != step.component_variant))
           }
           
           // Get parameter sets for this method from state
@@ -636,7 +637,15 @@ def expandChannelWithParameterSets(methods, method_type, selected_methods_key) {
           def spec = method_parameters ? method_parameters[comp_name] : null
           
           if (!spec) {
-            // No parameter sets defined, use default
+            // No parameter sets defined, check if this is a non-default method
+            def is_non_default_method = !(comp_name in default_methods)
+            
+            // Skip if we already have a non-default item and this would be another
+            if (has_non_default && is_non_default_method) {
+              return
+            }
+            
+            // Use default
             def new_id = "${id}/${method_type}_${comp_name}"
             def new_state = state + [
               current_method_id: comp_name,
@@ -646,6 +655,12 @@ def expandChannelWithParameterSets(methods, method_type, selected_methods_key) {
             results << [new_id, new_state]
           } else {
             def default_args = spec['default'] ?: [:]
+            def is_non_default_method = !(comp_name in default_methods)
+            
+            // Skip if we already have a non-default item and this is a non-default method
+            if (has_non_default && is_non_default_method) {
+              return
+            }
             
             // Add default variant
             def new_id = "${id}/${method_type}_${comp_name}"
@@ -656,29 +671,21 @@ def expandChannelWithParameterSets(methods, method_type, selected_methods_key) {
             ]
             results << [new_id, new_state]
             
-            // Add parameter sweep variants
+            // Add parameter sweep variants only if no non-default item exists yet
             def sweep = spec['sweep']
-            if (sweep instanceof Map) {
-              // Check if we can add non-default parameter sets
-              def has_non_default_parameterset = state.steps.any { step ->
-                step.component_id != null && step.component_variant != null && 
-                step.component_id != step.component_variant
-              }
-              
-              if (!has_non_default_parameterset) {
-                sweep.each { parName, parVals ->
-                  if (!(parVals instanceof Collection)) parVals = [parVals]
-                  parVals.each { val ->
-                    def args = default_args + [(parName): val]
-                    def variant_name = "${comp_name}_${parName}_${val}"
-                    def variant_id = "${id}/${method_type}_${variant_name}"
-                    def variant_state = state + [
-                      current_method_id: comp_name,
-                      current_method_variant: variant_name,
-                      current_method_args: args
-                    ]
-                    results << [variant_id, variant_state]
-                  }
+            if (sweep instanceof Map && !has_non_default) {
+              sweep.each { parName, parVals ->
+                if (!(parVals instanceof Collection)) parVals = [parVals]
+                parVals.each { val ->
+                  def args = default_args + [(parName): val]
+                  def variant_name = "${comp_name}_${parName}_${val}"
+                  def variant_id = "${id}/${method_type}_${variant_name}"
+                  def variant_state = state + [
+                    current_method_id: comp_name,
+                    current_method_variant: variant_name,
+                    current_method_args: args
+                  ]
+                  results << [variant_id, variant_state]
                 }
               }
             }
