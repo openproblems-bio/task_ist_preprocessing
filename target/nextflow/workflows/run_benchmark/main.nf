@@ -3779,6 +3779,23 @@ meta = [
           "multiple_sep" : ";"
         }
       ]
+    },
+    {
+      "name" : "Method parameters",
+      "description" : "Use these arguments to control the parameter sets that are run for each\nmethod\n",
+      "arguments" : [
+        {
+          "type" : "file",
+          "name" : "--method_parameters_yaml",
+          "description" : "Optional path to a YAML file that defines method parameter sets and sweeps.\nThe YAML should either contain a top-level `parameters:` mapping or be the\nmapping itself. Example structure:\n  parameters:\n    binning:\n      default:\n        bin_size: 30\n      sweep:\n        bin_size: [20, 30, 40]\n",
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
     }
   ],
   "resources" : [
@@ -4030,7 +4047,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "702ba3fd2864a98f25051dc19c8dc716243fcd24",
+    "git_commit" : "b4c1de6578b35f550bf3ea3d91daf9fa5b93505f",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4172,24 +4189,6 @@ include { similarity } from "${meta.resources_dir}/../../../nextflow/metrics/sim
 // user-provided Nextflow code
 include { checkItemAllowed } from "${meta.resources_dir}/helper.nf"
 
-Boolean checkDefaultMethods(List steps, List default_methods) {
-  if (!default_methods || default_methods.size() == 0) {
-    return true
-  }
-
-  if (!steps || steps.size() == 0) {
-    return true
-  }
-
-  def non_default_count = steps.findAll { !(it in default_methods) }.size()
-
-  return non_default_count <= 1
-}
-
-Boolean checkRunMethod(String method, List selected_methods, List steps, List default_methods) {
-  checkItemAllowed(method, selected_methods, null, "selected_methods", "NA") &&
-    checkDefaultMethods(steps, default_methods)
-}
 
 workflow auto {
   findStates(params, meta.config)
@@ -4209,11 +4208,28 @@ workflow run_wf {
    ****************************************/
   init_ch = input_ch
     | map { id, state ->
+      // Load method_parameters from YAML file if provided in state
+      def method_parameters = null
+      if (state.containsKey("method_parameters_yaml") && state.method_parameters_yaml) {
+        def yaml_blob = readYaml(state.method_parameters_yaml)
+        if (yaml_blob instanceof Map && yaml_blob.containsKey('parameters')) {
+          method_parameters = yaml_blob.parameters
+        } else if (yaml_blob instanceof Map) {
+          // assume the file itself is the mapping
+          method_parameters = yaml_blob
+        }
+      }
+
+      // Initialize steps
+      def steps = [
+        [type: "dataset", dataset_id: id]
+      ]
+
+      // Create new state
       def new_state = state + [
         orig_id: id,
-        steps: [
-          [type: "dataset", dataset_id: id]
-        ]
+        steps: steps,
+        method_parameters: method_parameters
       ]
       [id, new_state]
     }
@@ -4248,7 +4264,8 @@ workflow run_wf {
         state + [
           steps: state.steps + [[
             type: "control",
-            component_id: comp.name,
+            component_id: comp.config.name,
+            component_variant: comp.name,
             run_id: id
           ]],
           output_correction: out_dict.output,
@@ -4261,6 +4278,7 @@ workflow run_wf {
   /****************************************
    *       RUN SEGMENTATION METHODS       *
    ****************************************/
+  // base segmentation methods
   segm_methods = [
     custom_segmentation.run(
       args: [labels_key: "cell_labels"]
@@ -4270,26 +4288,23 @@ workflow run_wf {
     stardist,
     watershed
   ]
+  
   segm_ch = init_ch
+    | expandChannelWithParameterSets(segm_methods, "segm", "segmentation_methods")
     | runEach(
       components: segm_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
-          state.segmentation_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
-          state.default_methods
-        )
+        comp.config.name == state.current_method_id
       },
-      id: { id, state, comp ->
-        id + "/segm_" + comp.name
+      fromState: { id, state, comp ->
+        [input: state.input_sp] + state.current_method_args
       },
-      fromState: ["input": "input_sp"],
       toState: { id, out_dict, state, comp ->
-        state + [
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "segmentation",
-            component_id: comp.name,
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
             run_id: id
           ]],
           output_segmentation: out_dict.output
@@ -4313,30 +4328,27 @@ workflow run_wf {
     comseg,
     proseg
   ]
+  
   segm_ass_ch = segm_ch
+    | expandChannelWithParameterSets(segm_ass_methods, "ass", "transcript_assignment_methods")
     | runEach(
       components: segm_ass_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
-          state.transcript_assignment_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
-          state.default_methods
-        )
+        comp.config.name == state.current_method_id
       },
-      id: { id, state, comp ->
-        id + "/ass_" + comp.name
+      fromState: { id, state, comp ->
+        [
+          input_ist: state.input_sp,
+          input_scrnaseq: state.input_sc,
+          input_segmentation: state.output_segmentation
+        ] + state.current_method_args
       },
-      fromState: [
-        input_ist: "input_sp",
-        input_scrnaseq: "input_sc",
-        input_segmentation: "output_segmentation"
-      ],
       toState: { id, out_dict, state, comp ->
-        state + [
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "assignment",
-            component_id: comp.name,
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
             run_id: id
           ]],
           output_assignment: out_dict.output
@@ -4386,28 +4398,23 @@ workflow run_wf {
   count_aggr_methods = [
     basic_count_aggregation
   ]
+  
   count_aggr_ch = assignment_ch
+    | expandChannelWithParameterSets(count_aggr_methods, "aggr", "count_aggregation_methods")
     | runEach(
       components: count_aggr_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
-          state.count_aggregation_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
-          state.default_methods
-        )
+        comp.config.name == state.current_method_id
       },
-      id: { id, state, comp ->
-        id + "/aggr_" + comp.name
+      fromState: { id, state, comp ->
+        [input: state.output_assignment] + state.current_method_args
       },
-      fromState: [
-        input: "output_assignment"
-      ],
       toState: { id, out_dict, state, comp ->
-        state + [
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "count_aggregation",
-            component_id: comp.name,
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
             run_id: id
           ]],
           output_count_aggregation: out_dict.output
@@ -4422,28 +4429,23 @@ workflow run_wf {
   qc_filter_methods = [
     basic_qc_filter
   ]
+  
   qc_filter_ch = count_aggr_ch
+    | expandChannelWithParameterSets(qc_filter_methods, "qc_filter", "qc_filtering_methods")
     | runEach(
       components: qc_filter_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
-          state.qc_filtering_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
-          state.default_methods
-        )
+        comp.config.name == state.current_method_id
       },
-      id: { id, state, comp ->
-        id + "/qc_filter_" + comp.name
+      fromState: { id, state, comp ->
+        [input: state.output_count_aggregation] + state.current_method_args
       },
-      fromState: [
-        input: "output_count_aggregation"
-      ],
       toState: { id, out_dict, state, comp ->
-        state + [
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "qc_filter",
-            component_id: comp.name,
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
             run_id: id
           ]],
           output_qc_filter: out_dict.output
@@ -4458,28 +4460,23 @@ workflow run_wf {
   cell_vol_methods = [
     alpha_shapes
   ]
+  
   cell_vol_ch = qc_filter_ch
+    | expandChannelWithParameterSets(cell_vol_methods, "cell_vol", "volume_calculation_methods")
     | runEach(
       components: cell_vol_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
-          state.volume_calculation_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
-          state.default_methods
-        )
+        comp.config.name == state.current_method_id
       },
-      id: { id, state, comp ->
-        id + "/cell_vol_" + comp.name
+      fromState: { id, state, comp ->
+        [input: state.output_assignment] + state.current_method_args
       },
-      fromState: [
-        input: "output_assignment"
-      ],
       toState: { id, out_dict, state, comp ->
-        state + [
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "calculate_cell_volume",
-            component_id: comp.name,
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
             run_id: id
           ]],
           output_cell_volume: out_dict.output
@@ -4493,29 +4490,26 @@ workflow run_wf {
   vol_norm_methods = [
     normalize_by_volume
   ]
+  
   vol_norm_ch = cell_vol_ch
+    | expandChannelWithParameterSets(vol_norm_methods, "norm", "normalization_methods")
     | runEach(
       components: vol_norm_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
-          state.normalization_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
-          state.default_methods
-        )
+        comp.config.name == state.current_method_id
       },
-      id: { id, state, comp ->
-        id + "/norm_" + comp.name
+      fromState: { id, state, comp ->
+        [
+          input_spatial_aggregated_counts: state.output_count_aggregation,
+          input_cell_volumes: state.output_cell_volume
+        ] + state.current_method_args
       },
-      fromState: [
-        input_spatial_aggregated_counts: "output_count_aggregation",
-        input_cell_volumes: "output_cell_volume"
-      ],
       toState: { id, out_dict, state, comp ->
-        state + [
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "normalization",
-            component_id: comp.name,
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
             run_id: id
           ]],
           output_normalization: out_dict.output
@@ -4533,28 +4527,23 @@ workflow run_wf {
     normalize_by_counts,
     spanorm
   ]
+  
   direct_norm_ch = qc_filter_ch
+    | expandChannelWithParameterSets(direct_norm_methods, "norm", "normalization_methods")
     | runEach(
       components: direct_norm_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
-          state.normalization_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
-          state.default_methods
-        )
+        comp.config.name == state.current_method_id
       },
-      id: { id, state, comp ->
-        id + "/norm_" + comp.name
+      fromState: { id, state, comp ->
+        [input_spatial_aggregated_counts: state.output_count_aggregation] + state.current_method_args
       },
-      fromState: [
-        input_spatial_aggregated_counts: "output_count_aggregation",
-      ],
       toState: { id, out_dict, state, comp ->
-        state + [
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "normalization",
-            component_id: comp.name,
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
             run_id: id
           ]],
           output_normalization: out_dict.output
@@ -4576,30 +4565,27 @@ workflow run_wf {
     tacco,
     moscot
   ]
+  
   cta_ch = normalization_ch
+    | expandChannelWithParameterSets(cta_methods, "cta", "celltype_annotation_methods")
     | runEach(
       components: cta_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
-          state.celltype_annotation_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
-          state.default_methods
-        )
+        comp.config.name == state.current_method_id
       },
-      id: { id, state, comp ->
-        id + "/cta_" + comp.name
+      fromState: { id, state, comp ->
+        [
+          input_spatial_normalized_counts: state.output_normalization,
+          input_transcript_assignments: state.output_assignment,
+          input_scrnaseq_reference: state.input_sc
+        ] + state.current_method_args
       },
-      fromState: [
-        input_spatial_normalized_counts: "output_normalization",
-        input_transcript_assignments: "output_assignment",
-        input_scrnaseq_reference: "input_sc"
-      ],
       toState: { id, out_dict, state, comp ->
-        state + [
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "cell_type_assignment",
-            component_id: comp.name,
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
             run_id: id
           ]],
           output_cta: out_dict.output
@@ -4615,29 +4601,26 @@ workflow run_wf {
     gene_efficiency_correction,
     resolvi_correction
   ]
+  
   expr_corr_ch = cta_ch
+    | expandChannelWithParameterSets(expr_corr_methods, "corr", "expression_correction_methods")
     | runEach(
       components: expr_corr_methods,
       filter: { id, state, comp ->
-        checkRunMethod(
-          comp.config.name,
-          state.expression_correction_methods,
-          state.steps.collect{it.component_id}.findAll{it != null} + [comp.name],
-          state.default_methods
-        )
+        comp.config.name == state.current_method_id
       },
-      id: { id, state, comp ->
-        id + "/corr_" + comp.name
+      fromState: { id, state, comp ->
+        [
+          input_spatial_with_cell_types: state.output_cta,
+          input_scrnaseq_reference: state.input_sc
+        ] + state.current_method_args
       },
-      fromState: [
-        input_spatial_with_cell_types: "output_cta",
-        input_scrnaseq_reference: "input_sc"
-      ],
       toState: { id, out_dict, state, comp ->
-        state + [
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "expression_correction",
-            component_id: comp.name,
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
             run_id: id
           ]],
           output_correction: out_dict.output
@@ -4658,7 +4641,7 @@ workflow run_wf {
   metrics = [
     similarity
   ]
-  metric_ch = expr_corr_and_control_ch
+    metric_ch = expr_corr_and_control_ch
     | runEach(
       components: metrics,
       id: { id, state, comp ->
@@ -4784,6 +4767,127 @@ workflow run_wf {
 
   emit:
   output_ch
+}
+
+/**
+ * Remove specified keys from a map.
+ * 
+ * @param map The map to remove keys from
+ * @param keys List of keys to remove
+ * @return New map with specified keys removed
+ */
+def removeKeys(map, keys) {
+  def result = map.clone()
+  keys.each { key -> result.remove(key) }
+  return result
+}
+
+/**
+ * Expand a channel with parameter sets for each method.
+ * 
+ * This function returns a workflow that expands a channel by creating multiple variants
+ * for each method that has parameter sets defined in state.method_parameters.
+ * Each variant gets a unique ID and stores the method configuration in the state.
+ * 
+ * @param methods List of component objects to potentially expand
+ * @param method_type String identifying the method type (e.g., "segmentation")
+ * @param selected_methods_key Key in state containing the list of selected methods
+ * @return Workflow that takes a channel and emits expanded [id, state] tuples
+ */
+def expandChannelWithParameterSets(methods, method_type, selected_methods_key) {
+  workflow expand_ch_wf {
+    take: input_ch
+    
+    main:
+    output_ch = input_ch
+      | flatMap { id, state ->
+        def selected_methods = state[selected_methods_key]
+        def default_methods = state.default_methods ?: []
+        def results = []
+        
+        methods.each { comp ->
+          def comp_name = comp.config.name
+          
+          // Check if method is selected
+          if (!checkItemAllowed(comp_name, selected_methods, null, selected_methods_key, "NA")) {
+            return
+          }
+          
+          // Check constraint: at most one non-default method or parameter set variant
+          // Count non-default items in previous steps (both non-default methods and variants)
+          def has_non_default = state.steps.any { step ->
+            step.component_id != null && 
+            (!(step.component_id in default_methods) || 
+             (step.component_variant != null && step.component_id != step.component_variant))
+          }
+          
+          // Get parameter sets for this method from state
+          def method_parameters = state.method_parameters
+          def spec = method_parameters ? method_parameters[comp_name] : null
+          
+          if (!spec) {
+            // No parameter sets defined, check if this is a non-default method
+            def is_non_default_method = !(comp_name in default_methods)
+            
+            // Skip if we already have a non-default item and this would be another
+            if (has_non_default && is_non_default_method) {
+              return
+            }
+            
+            // Use default
+            def new_id = "${id}/${method_type}_${comp_name}"
+            def new_state = state + [
+              current_method_id: comp_name,
+              current_method_variant: comp_name,
+              current_method_args: [:]
+            ]
+            results << [new_id, new_state]
+          } else {
+            def default_args = spec['default'] ?: [:]
+            def is_non_default_method = !(comp_name in default_methods)
+            
+            // Skip if we already have a non-default item and this is a non-default method
+            if (has_non_default && is_non_default_method) {
+              return
+            }
+            
+            // Add default variant
+            def new_id = "${id}/${method_type}_${comp_name}"
+            def new_state = state + [
+              current_method_id: comp_name,
+              current_method_variant: comp_name,
+              current_method_args: default_args
+            ]
+            results << [new_id, new_state]
+            
+            // Add parameter sweep variants only if no non-default item exists yet
+            def sweep = spec['sweep']
+            if (sweep instanceof Map && !has_non_default) {
+              sweep.each { parName, parVals ->
+                if (!(parVals instanceof Collection)) parVals = [parVals]
+                parVals.each { val ->
+                  def args = default_args + [(parName): val]
+                  def variant_name = "${comp_name}_${parName}_${val}"
+                  def variant_id = "${id}/${method_type}_${variant_name}"
+                  def variant_state = state + [
+                    current_method_id: comp_name,
+                    current_method_variant: variant_name,
+                    current_method_args: args
+                  ]
+                  results << [variant_id, variant_state]
+                }
+              }
+            }
+          }
+        }
+        
+        return results
+      }
+    
+    emit:
+    output_ch
+  }
+  return expand_ch_wf.cloneWithName("expand_channel_for_" + method_type)
 }
 
 // inner workflow hook

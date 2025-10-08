@@ -582,6 +582,24 @@ argument_groups:
     direction: "input"
     multiple: true
     multiple_sep: ";"
+- name: "Method parameters"
+  description: "Use these arguments to control the parameter sets that are run for\
+    \ each\nmethod\n"
+  arguments:
+  - type: "file"
+    name: "--method_parameters_yaml"
+    description: "Optional path to a YAML file that defines method parameter sets\
+      \ and sweeps.\nThe YAML should either contain a top-level `parameters:` mapping\
+      \ or be the\nmapping itself. Example structure:\n  parameters:\n    binning:\n\
+      \      default:\n        bin_size: 30\n      sweep:\n        bin_size: [20,\
+      \ 30, 40]\n"
+    info: null
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 resources:
 - type: "nextflow_script"
   path: "main.nf"
@@ -724,7 +742,7 @@ build_info:
   output: "target/nextflow/workflows/run_benchmark"
   executable: "target/nextflow/workflows/run_benchmark/main.nf"
   viash_version: "0.9.4"
-  git_commit: "702ba3fd2864a98f25051dc19c8dc716243fcd24"
+  git_commit: "b4c1de6578b35f550bf3ea3d91daf9fa5b93505f"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
   dependencies:
   - "target/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/utils/extract_uns_metadata"
