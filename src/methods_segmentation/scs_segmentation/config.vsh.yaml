@@ -1,0 +1,48 @@
+name: scs_segmentation
+label: "SCS Segmentation"
+summary: "Output of the segmantation methot SCS"
+description: "Output of the segmantation methot SCS"
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1038/s41592-023-01939-3"
+
+__merge__: /src/api/comp_method_segmentation.yaml 
+
+arguments:
+  - name: --env_scs
+    type: string
+    default: "scs.yaml"
+
+
+resources:
+  - type: bash_script
+    path: orchestrator.sh
+  - type: python_script
+    path: input.py
+  - type: file
+    path: scs.yaml
+    dest: environment.yaml
+  - type: python_script
+    path: script.py
+  - type: python_script
+    path: output.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi: spatialdata
+      - type: apt
+        packages: ["git", "curl", "libglib2.0-0", "libgl1"]
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, highmem ]
