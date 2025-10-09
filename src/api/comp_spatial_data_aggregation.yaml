@@ -1,0 +1,35 @@
+info:
+  type: method
+  subtype: method_spatial_data_aggregation
+  type_info:
+    label: Spatial data aggregation
+    summary: Aggregate different files of the raw and processed spatial data to one zarr file.
+    description: |
+      This component aggregates different files of the raw and processed spatial data to one zarr file.
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--input_raw_sp"
+        __merge__: file_raw_ist.yaml
+        required: true
+        direction: input
+      - name: "--input_transcript_assignments"
+        __merge__: file_transcript_assignments.yaml
+        required: true
+        direction: input
+      - name: "--input_qc_col"
+        __merge__: file_spatial_qc_col.yaml
+        required: true
+        direction: input
+      - name: "--input_spatial_corrected_counts"
+        __merge__: file_spatial_corrected_counts.yaml
+        required: true
+        direction: input
+  - name: Outputs
+    arguments:
+      - name: "--output"
+        __merge__: file_spatial_processed_complete.yaml
+        required: true
+        direction: output
+        default: "$id/output.zarr"
