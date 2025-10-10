@@ -3557,7 +3557,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/travaglini_human_lung_sc",
     "viash_version" : "0.9.4",
-    "git_commit" : "02f6f55e7aced5f63aee156fdb3d6a80a7256dbc",
+    "git_commit" : "34ef0d3dd0fa37b54b9c2ae4a8d2bf3c236f29e7",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3797,6 +3797,7 @@ adata.var_names = adata.var["feature_name"]
 adata.var_names = adata.var_names.astype(str)
 adata.var_names_make_unique()
 adata.var.index.name = None
+adata.var["feature_name"] = adata.var_names.astype(str)
 
 # Uns
 for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism"]:

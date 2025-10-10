@@ -450,9 +450,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders lu_human_liver_cancer_sc"
-LABEL org.opencontainers.image.created="2025-10-10T06:25:01Z"
+LABEL org.opencontainers.image.created="2025-10-10T16:01:23Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="02f6f55e7aced5f63aee156fdb3d6a80a7256dbc"
+LABEL org.opencontainers.image.revision="34ef0d3dd0fa37b54b9c2ae4a8d2bf3c236f29e7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1317,6 +1317,7 @@ for key in adata.obs.columns:
 
 # Var
 adata.var["gene_symbol"] = adata.var_names
+adata.var["feature_name"] = adata.var_names
 # TODO: can we also get ensembl ids? (adata.var["feature_id"]) 
 
 # Uns

@@ -3557,7 +3557,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/zuani_human_nsclc_sc",
     "viash_version" : "0.9.4",
-    "git_commit" : "02f6f55e7aced5f63aee156fdb3d6a80a7256dbc",
+    "git_commit" : "34ef0d3dd0fa37b54b9c2ae4a8d2bf3c236f29e7",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3801,9 +3801,10 @@ for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "d
 
 # Add gene symbol column
 adata.var["gene_symbol"] = adata.var_names
+adata.var["feature_name"] = adata.var_names.astype(str)
 
 # Subset var columns
-var_cols = ["gene_symbol"]
+var_cols = ["gene_symbol", "feature_name"]
 adata.var = adata.var[var_cols]
 
 # Add layers
