@@ -107,9 +107,10 @@ for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "d
 
 # Add gene symbol column
 adata.var["gene_symbol"] = adata.var_names
+adata.var["feature_name"] = adata.var_names.astype(str)
 
 # Subset var columns
-var_cols = ["gene_symbol"]
+var_cols = ["gene_symbol", "feature_name"]
 adata.var = adata.var[var_cols]
 
 # Add layers

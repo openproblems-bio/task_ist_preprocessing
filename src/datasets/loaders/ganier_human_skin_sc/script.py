@@ -86,6 +86,7 @@ for key in adata.obs.columns:
 
 # Var
 adata.var["gene_symbol"] = adata.var_names
+adata.var["feature_name"] = adata.var_names
 # TODO: can we also get ensembl ids? (adata.var["feature_id"]) 
 
 # Uns
