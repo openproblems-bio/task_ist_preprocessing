@@ -439,6 +439,77 @@ workflow run_wf {
       }
     )
 
+
+  /****************************************
+   *   AGGREGATE PROCESSED SPATIAL DATA   *
+   ****************************************/
+
+  agg_spatial_data_methods = [
+    aggregate_spatial_data
+  ]
+  
+  agg_spatial_data_ch = expr_corr_ch
+    | runEach(
+      components: agg_spatial_data_methods,
+      //filter: { id, state, comp ->
+      //  comp.config.name == state.current_method_id
+      //},
+      id: { id, state, comp ->
+        id + "/agg_spatial_data_" + comp.name
+      },
+      fromState: { id, state, comp ->
+        [
+          input_raw_sp: state.input_sp,
+          input_transcript_assignments: state.output_assignment,
+          input_qc_col: state.output_qc_filter,
+          input_spatial_corrected_counts: state.output_correction,
+        ]
+      },
+      toState: { id, out_dict, state, comp ->
+        state + [
+          steps: state.steps + [[
+            type: "aggregate_spatial_data",
+            component_id: comp.name,
+            run_id: id
+          ]],
+          output_agg_spatial_data: out_dict.output
+        ]
+      }
+    )
+
+  /*****************************
+   *      QUALITY METRICS      *
+   *****************************/
+   
+  quality_metrics_methods = [
+    quality_metrics
+  ]
+  
+  quality_metrics_ch = agg_spatial_data_ch
+    | runEach(
+      components: quality_metrics_methods,
+      id: { id, state, comp ->
+        id + "/quality_metrics_" + comp.name
+      },
+      fromState: { id, state, comp ->
+        [
+          input: state.output_agg_spatial_data,
+        ]
+      },
+      toState: { id, out_dict, state, comp ->
+        state + [
+          steps: state.steps + [[
+            type: "quality_metrics",
+            component_id: comp.name,
+            run_id: id
+          ]],
+          output_quality_metrics: out_dict.output
+        ]
+      }
+    )
+
+
+
   /****************************************
    *          COMBINE WITH CONTROL        *
    ****************************************/

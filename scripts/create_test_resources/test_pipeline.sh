@@ -72,6 +72,19 @@ viash run src/methods_qc_filter/basic_qc_filter/config.vsh.yaml -- \
   --input $OUT_DIR/spatial_corrected_counts.h5ad \
   --output $OUT_DIR/spatial_qc_col.h5ad
 
+# run aggregation of spatial data files
+viash run src/methods_data_aggregation/aggregate_spatial_data/config.vsh.yaml -- \
+  --input_raw_sp $OUT_DIR/raw_ist.zarr \
+  --input_transcript_assignments $OUT_DIR/transcript_assignments.zarr \
+  --input_qc_col $OUT_DIR/spatial_qc_col.h5ad \
+  --input_spatial_corrected_counts $OUT_DIR/spatial_corrected_counts.h5ad \
+  --output $OUT_DIR/spatial_processed_complete.zarr
+  
+# run a quality metric
+viash run src/metrics/quality/config.vsh.yaml -- \
+  --input $OUT_DIR/spatial_processed_complete.zarr \
+  --output $OUT_DIR/quality_metrics.h5ad
+
 # run a metric
 viash run src/metrics/similarity/config.vsh.yaml -- \
   --input $OUT_DIR/spatial_corrected_counts.h5ad \
@@ -93,6 +106,8 @@ output_spatial_normalized_counts: !file spatial_normalized_counts.h5ad
 output_spatial_with_cell_types: !file spatial_with_cell_types.h5ad
 output_spatial_corrected_counts: !file spatial_corrected_counts.h5ad
 output_spatial_qc_col: !file spatial_qc_col.h5ad
+output_spatial_processed_complete: !file spatial_processed_complete.zarr
+output_quality_metrics: !file quality_metrics.h5ad
 output_score: !file score.h5ad
 EOL
 
