@@ -201,8 +201,10 @@ print(datetime.now() - t0, "Renamed elements", flush=True)
 sdata["transcripts"] = sdata["transcripts"].rename(columns={"global_z": "z", "transcript_id": "ensembl_id"})#, "gene": "feature_name"})
 if "gene" in sdata["transcripts"].columns: 
     # No idea why, but somehow dask dataframe renaming for the 'gene' column ends up in a key error when assigning it to sdata["transcripts"].
+    # update: see https://github.com/scverse/spatialdata/issues/996
     sdata["transcripts"]["feature_name"] = sdata["transcripts"]["gene"]
     del sdata["transcripts"]["gene"]
+    sdata['transcripts'].attrs["spatialdata_attrs"]["feature_key"] = "feature_name"
 print(datetime.now() - t0, "Renamed transcripts column 'global_z' -> 'z' and 'gene' -> 'feature_name' and 'transcript_id' -> 'ensembl_id'", flush=True)
 
 print(datetime.now() - t0, "Columns in sdata['transcripts']:", sdata["transcripts"].columns, flush=True)
