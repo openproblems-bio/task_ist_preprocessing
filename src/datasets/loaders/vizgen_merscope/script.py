@@ -188,7 +188,7 @@ elements_renaming_map = {
     f"{name}_z3": "morphology_mip",  # TODO: that is actually not the morphology_mip, i.e. either we should rename the label later, or we should actually project over z. But we also want to have 3d at some point anyway
     f"{name}_transcripts": "transcripts",
     f"{name}_polygons": "cell_boundaries",
-    "table": "metadata",
+    #"table": "metadata",
 }
 
 for old_key, new_key in elements_renaming_map.items():

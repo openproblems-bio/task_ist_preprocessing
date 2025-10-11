@@ -227,7 +227,7 @@ elements_renaming_map = {
     "stitched_labels"    : "cell_labels",
     "points"             : "transcripts",
     "cells_polygons"     : "cell_boundaries",
-    "table"              : "metadata",
+    #"table"              : "metadata",
 }
 
 for old_key, new_key in elements_renaming_map.items():
