@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "sopa"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders bruker_cosmx"
-LABEL org.opencontainers.image.created="2025-10-10T16:01:22Z"
+LABEL org.opencontainers.image.created="2025-10-11T12:34:57Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="34ef0d3dd0fa37b54b9c2ae4a8d2bf3c236f29e7"
+LABEL org.opencontainers.image.revision="d8a99ce75ef111066ed078c1eafc0d777589470b"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1439,7 +1439,7 @@ elements_renaming_map = {
     "stitched_labels"    : "cell_labels",
     "points"             : "transcripts",
     "cells_polygons"     : "cell_boundaries",
-    "table"              : "metadata",
+    #"table"              : "metadata",
 }
 
 for old_key, new_key in elements_renaming_map.items():

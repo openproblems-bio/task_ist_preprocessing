@@ -3687,7 +3687,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/cellpose",
     "viash_version" : "0.9.4",
-    "git_commit" : "34ef0d3dd0fa37b54b9c2ae4a8d2bf3c236f29e7",
+    "git_commit" : "d8a99ce75ef111066ed078c1eafc0d777589470b",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
