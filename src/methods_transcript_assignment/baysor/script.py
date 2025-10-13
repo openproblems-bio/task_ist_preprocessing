@@ -20,7 +20,7 @@ par = {
   'coordinate_system': 'global',
   'output': './temp/methods/baysor/baysor_assigned_transcripts.zarr',
 
-  'force_2d': 'false',
+  'force_2d': True, #'false',
   'min_molecules_per_cell': 50,
   'scale': -1.0, #NOTE: For parameter selection see https://github.com/gustaveroussy/sopa/tree/main/workflow/config
   'scale_std': "25%",
