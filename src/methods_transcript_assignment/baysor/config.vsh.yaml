@@ -21,11 +21,11 @@ arguments:
     default: global
 
   - name: --force_2d
-    type: string
+    type: boolean
     required: false
     description: "Ignores z-column in the data if it is provided"
     direction: input 
-    default: "false"
+    default: true
 
   - name: --min_molecules_per_cell
     type: integer
