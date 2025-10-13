@@ -3772,11 +3772,11 @@ meta = [
           "multiple_sep" : ";"
         },
         {
-          "type" : "string",
+          "type" : "boolean",
           "name" : "--force_2d",
           "description" : "Ignores z-column in the data if it is provided",
           "default" : [
-            "false"
+            true
           ],
           "required" : false,
           "direction" : "input",
@@ -4006,7 +4006,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.4",
-    "git_commit" : "776ac261d1308403f1803213047697264cc070c0",
+    "git_commit" : "de162423c969050e2dabc3df9582f1c0e8233da1",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4145,7 +4145,7 @@ par = {
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'transcripts_key': $( if [ ! -z ${VIASH_PAR_TRANSCRIPTS_KEY+x} ]; then echo "r'${VIASH_PAR_TRANSCRIPTS_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'coordinate_system': $( if [ ! -z ${VIASH_PAR_COORDINATE_SYSTEM+x} ]; then echo "r'${VIASH_PAR_COORDINATE_SYSTEM//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'force_2d': $( if [ ! -z ${VIASH_PAR_FORCE_2D+x} ]; then echo "r'${VIASH_PAR_FORCE_2D//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'force_2d': $( if [ ! -z ${VIASH_PAR_FORCE_2D+x} ]; then echo "r'${VIASH_PAR_FORCE_2D//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi ),
   'min_molecules_per_cell': $( if [ ! -z ${VIASH_PAR_MIN_MOLECULES_PER_CELL+x} ]; then echo "int(r'${VIASH_PAR_MIN_MOLECULES_PER_CELL//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'scale': $( if [ ! -z ${VIASH_PAR_SCALE+x} ]; then echo "float(r'${VIASH_PAR_SCALE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'scale_std': $( if [ ! -z ${VIASH_PAR_SCALE_STD+x} ]; then echo "r'${VIASH_PAR_SCALE_STD//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -4181,7 +4181,7 @@ dep = {
 TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 
-CONFIG_TOML = TMP_DIR / "config.toml"
+#CONFIG_TOML = TMP_DIR / "config.toml"
 
 
 ##############################
@@ -4214,7 +4214,7 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
-    
+
 cell_id_dask_series = dask.dataframe.from_dask_array(
     dask.array.from_array(
         label_image[y_coords, x_coords], chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
@@ -4235,26 +4235,43 @@ sdata_sopa = sd.SpatialData(
     },
 )
 
-# Write config to toml
-print('Writing config to toml', flush=True)
-toml_str = f"""[data]
-x = "x"
-y = "y"
-z = "z"
-gene = "feature_name" 
-force_2d = {par['force_2d']} 
-min_molecules_per_cell = {int(par['min_molecules_per_cell'])}
-exclude_genes = "" 
+## Write config to toml #NOTE: lead to an error since sopa v2.1.5, instead use config dict
+#print('Writing config to toml', flush=True)
+#toml_str = f"""[data]
+#x = "x"
+#y = "y"
+#z = "z"
+#gene = "feature_name" 
+#force_2d = {par['force_2d']} 
+#min_molecules_per_cell = {int(par['min_molecules_per_cell'])}
+#exclude_genes = "" 
+#
+#[segmentation]
+#scale = {float(par['scale'])} 
+#scale_std = "{par['scale_std']}"
+#n_clusters = {int(par['n_clusters'])}
+#prior_segmentation_confidence = {float(par['prior_segmentation_confidence'])}
+#"""
+#with open(CONFIG_TOML, "w") as toml_file:
+#    toml_file.write(toml_str)
 
-[segmentation]
-scale = {float(par['scale'])} 
-scale_std = "{par['scale_std']}"
-n_clusters = {int(par['n_clusters'])}
-prior_segmentation_confidence = {float(par['prior_segmentation_confidence'])}
-"""
-with open(CONFIG_TOML, "w") as toml_file:
-    toml_file.write(toml_str)
-
+config = {
+    "data": {
+        "x": "x",
+        "y": "y",
+        "z": "z",
+        "gene": "feature_name",
+        "force_2d": par['force_2d'],
+        "min_molecules_per_cell": int(par['min_molecules_per_cell']),
+        "exclude_genes": "",
+    },
+    "segmentation": {
+        "scale": float(par['scale']),
+        "scale_std": str(par['scale_std']),
+        "n_clusters": int(par['n_clusters']),
+        "prior_segmentation_confidence": float(par['prior_segmentation_confidence']),
+    },
+}
 
 
 # Make transcript patches
@@ -4268,7 +4285,7 @@ n_threads = max(n_threads-2, 1)
 #       (called with sopa -->) subprocess.CalledProcessError: Command 'baysor ...' returned non-zero exit status 139.
 #       When reproducing the error with \\`baysor ...\\` it reports a signal (11.1) Segmentation fault Allocations: 5017730 (Pool: 5013281; Big: 4449); GC: 8
 os.environ['JULIA_NUM_THREADS'] = str(n_threads)
-sopa.segmentation.baysor(sdata_sopa, config=str(CONFIG_TOML))
+sopa.segmentation.baysor(sdata_sopa, config=config) #str(CONFIG_TOML))
 
 # Assign transcripts to cell ids
 sopa.spatial.assign_transcript_to_cell(

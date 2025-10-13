@@ -4039,7 +4039,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/comseg",
     "viash_version" : "0.9.4",
-    "git_commit" : "776ac261d1308403f1803213047697264cc070c0",
+    "git_commit" : "de162423c969050e2dabc3df9582f1c0e8233da1",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4209,52 +4209,6 @@ dep = {
 
 ## VIASH END
 
-def fixed_count_transcripts_aligned(geo_df, points, value_key):
-    """
-    The same function as sopa.aggregation.transcripts._count_transcripts_aligned.
-    Minor change just the matrix X is converted to csr_matrix, to avoid bug error in comseg call
-
-    """
-    from scipy.sparse import csr_matrix
-    from anndata import AnnData
-    from dask.diagnostics import ProgressBar
-    from functools import partial
-    from sopa._settings import settings
-    import geopandas as gpd
-    def _add_csr(X_partitions, geo_df, partition, gene_column, gene_names ):
-        if settings.gene_exclude_pattern is not None:
-            partition = partition[~partition[gene_column].str.match(settings.gene_exclude_pattern, case=False, na=False)]
-        
-        points_gdf = gpd.GeoDataFrame(partition, geometry=gpd.points_from_xy(partition["x"], partition["y"]))
-        joined = geo_df.sjoin(points_gdf)
-        cells_indices, column_indices = joined.index, joined[gene_column].cat.codes
-        cells_indices = cells_indices[column_indices >= 0]
-        column_indices = column_indices[column_indices >= 0]
-        X_partition = csr_matrix((np.full(len(cells_indices), 1), (cells_indices, column_indices)),
-            shape=(len(geo_df), len(gene_names)),
-        )
-        X_partitions.append(X_partition)
-    
-    
-    points[value_key] = points[value_key].astype("category").cat.as_known()
-    gene_names = points[value_key].cat.categories.astype(str)
-    X = csr_matrix((len(geo_df), len(gene_names)), dtype=int)
-    adata = AnnData(X=X, var=pd.DataFrame(index=gene_names))
-    adata.obs_names = geo_df.index.astype(str)
-    geo_df = geo_df.reset_index()
-    X_partitions = []
-    with ProgressBar():
-        points.map_partitions(
-            partial(_add_csr, X_partitions, geo_df, gene_column=value_key, gene_names=gene_names),
-            meta=(),
-        ).compute()
-    for X_partition in X_partitions:
-        adata.X += X_partition
-    if settings.gene_exclude_pattern is not None:
-        adata = adata[:, ~adata.var_names.str.match(settings.gene_exclude_pattern, case=False, na=False)].copy()
-    return adata
-
-
 
 # Read input files
 print('Reading input files', flush=True)
@@ -4289,7 +4243,7 @@ config = {
     "gene_column": par["gene_column"],
 }
 
-sopa.aggregation.transcripts._count_transcripts_aligned = fixed_count_transcripts_aligned
+
 # sopa.settings.parallelization_backend = 'dask' #TODO: get parallelization running.
 sopa.segmentation.comseg(sdata, config)
 
