@@ -3719,7 +3719,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_expression_correction/gene_efficiency_correction",
     "viash_version" : "0.9.4",
-    "git_commit" : "d8a99ce75ef111066ed078c1eafc0d777589470b",
+    "git_commit" : "776ac261d1308403f1803213047697264cc070c0",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

@@ -273,7 +273,7 @@ del sdata["cell_labels"].attrs["label_index_to_category"]
 ##############################
 # Add info to metadata table #
 ##############################
-print(datetime.now() - t0, "Add info to metadata table", flush=True)
+print(datetime.now() - t0, "Add metadata to table", flush=True)
 
 # TODO: values as input variables
 for key in [
@@ -286,7 +286,7 @@ for key in [
     "dataset_organism",
     "segmentation_id",
 ]:
-    sdata["metadata"].uns[key] = par[key]
+    sdata["table"].uns[key] = par[key]
 
 print(datetime.now() - t0, "Metadata updated", flush=True)
 

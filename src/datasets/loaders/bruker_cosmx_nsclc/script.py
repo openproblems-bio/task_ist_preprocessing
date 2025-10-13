@@ -195,11 +195,11 @@ sdata["morphology_mip"] = sdata["morphology_mip"].sel(c=["DAPI"])
 ##############################
 # Add info to metadata table #
 ##############################
-print(datetime.now() - t0, "Add info to metadata table", flush=True)
+print(datetime.now() - t0, "Add metadata to table", flush=True)
 
 #TODO: values as input variables
 for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism", "segmentation_id"]:
-    sdata["metadata"].uns[key] = par[key]
+    sdata["table"].uns[key] = par[key]
 
 #########
 # Write #

@@ -3510,7 +3510,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx",
     "viash_version" : "0.9.4",
-    "git_commit" : "d8a99ce75ef111066ed078c1eafc0d777589470b",
+    "git_commit" : "776ac261d1308403f1803213047697264cc070c0",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3901,11 +3901,11 @@ sdata["morphology_mip"] = sdata["morphology_mip"].sel(c=["DNA"])
 ##############################
 # Add info to metadata table #
 ##############################
-print(datetime.now() - t0, "Add info to metadata table", flush=True)
+print(datetime.now() - t0, "Add metadata to table", flush=True)
 
 #TODO: values as input variables
 for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism", "segmentation_id"]:
-    sdata["metadata"].uns[key] = par[key]
+    sdata["table"].uns[key] = par[key]
 
 #########
 # Write #

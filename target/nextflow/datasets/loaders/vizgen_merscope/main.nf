@@ -3500,7 +3500,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/vizgen_merscope",
     "viash_version" : "0.9.4",
-    "git_commit" : "d8a99ce75ef111066ed078c1eafc0d777589470b",
+    "git_commit" : "776ac261d1308403f1803213047697264cc070c0",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3915,7 +3915,7 @@ del sdata["cell_labels"].attrs["label_index_to_category"]
 ##############################
 # Add info to metadata table #
 ##############################
-print(datetime.now() - t0, "Add info to metadata table", flush=True)
+print(datetime.now() - t0, "Add metadata to table", flush=True)
 
 # TODO: values as input variables
 for key in [
@@ -3928,7 +3928,7 @@ for key in [
     "dataset_organism",
     "segmentation_id",
 ]:
-    sdata["metadata"].uns[key] = par[key]
+    sdata["table"].uns[key] = par[key]
 
 print(datetime.now() - t0, "Metadata updated", flush=True)
 
