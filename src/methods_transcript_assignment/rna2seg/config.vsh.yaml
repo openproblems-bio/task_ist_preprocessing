@@ -1,0 +1,37 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
+name: rna2seg
+label: "RNA2Seg Transcript Assignment"
+summary: "Assign transcripts to cells using the RNA2Seg method"
+description: "RNA2seg is a deep learning-based segmentation model designed to improve cell segmentation in Imaging-based Spatial Transcriptomics (IST)."
+links:
+  documentation: "https://rna2seg.readthedocs.io/en/latest/index.html"
+  repository: "https://github.com/fish-quant/rna2seg"
+references:
+  doi: "10.1101/2025.03.03.641259"
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    description: The key of the transcripts within the points of the spatial data
+    default: transcripts
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
+    setup:
+      - type: python
+        pypi: [rna2seg]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ hightime, highcpu, midmem ]
