@@ -30,6 +30,47 @@ publish_dir="s3://openproblems-data/resources/task_ist_preprocessing/results/${R
 cat > /tmp/params.yaml << HERE
 input_states: s3://openproblems-data/resources/task_ist_preprocessing/datasets/**/state.yaml
 rename_keys: 'input_sc:output_sc;input_sp:output_sp'
+save_spatial_data: false
+default_methods:
+  - custom_segmentation
+  - basic_transcript_assignment
+  - basic_count_aggregation
+  - basic_qc_filter
+  - alpha_shapes
+  - normalize_by_volume
+  - ssam
+  - no_correction
+segmentation_methods:
+  - custom_segmentation
+  - cellpose
+  - binning
+  - stardist
+  - watershed
+transcript_assignment_methods:
+  - basic_transcript_assignment
+  - baysor
+  # - clustermap
+  - pciseq
+  - comseg
+  - proseg
+count_aggregation_methods:
+  - basic_count_aggregation
+qc_filtering_methods:
+  - basic_qc_filter
+volume_calculation_methods:
+  - alpha_shapes
+normalization_methods:
+  - normalize_by_volume
+  - normalize_by_counts
+  - spanorm
+celltype_annotation_methods:
+  - ssam
+  - tacco
+  - moscot
+expression_correction_methods:
+  - no_correction
+  - gene_efficiency_correction
+  - resolvi_correction
 output_state: "state.yaml"
 publish_dir: "$publish_dir"
 HERE
