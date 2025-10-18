@@ -1,4 +1,4 @@
-namespace: quality_metrics
+namespace: metrics
 info:
   type: metric
   type_info:

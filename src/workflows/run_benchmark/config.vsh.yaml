@@ -161,7 +161,9 @@ dependencies:
   - name: methods_expression_correction/no_correction
   - name: methods_expression_correction/gene_efficiency_correction
   - name: methods_expression_correction/resolvi_correction
+  - name: methods_data_aggregation/aggregate_spatial_data
   - name: metrics/similarity
-
+  - name: metrics/quality
+  
 runners:
   - type: nextflow

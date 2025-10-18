@@ -463,7 +463,7 @@ workflow run_wf {
    ****************************************/
   metrics = [
     similarity,
-    quality_metrics
+    quality
   ]
 
   metric_ch = expr_corr_and_control_ch
@@ -471,7 +471,7 @@ workflow run_wf {
       components: metrics,
       filter: { id, state, comp ->
         // only run quality metrics if they have been computed
-        if (comp.config.name == "quality_metrics" && !state.containsKey("output_agg_spatial_data")) {
+        if (comp.config.name == "quality" && !state.containsKey("output_agg_spatial_data")) {
           return false
         }
         return true
@@ -480,7 +480,7 @@ workflow run_wf {
         id + "/metric_" + comp.name
       },
       fromState: { id, state, comp ->
-        if (comp.config.name == "quality_metrics") {
+        if (comp.config.name == "quality") {
           return [
             input: state.output_agg_spatial_data,
             input_qc_col: state.output_qc_filter
@@ -493,7 +493,7 @@ workflow run_wf {
             input_transcript_assignments: state.output_assignment
           ]
         }
-      }
+      },
       toState: { id, out_dict, state, comp ->
         state + [
           steps: state.steps + [[

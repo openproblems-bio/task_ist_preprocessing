@@ -1,7 +1,7 @@
 __merge__: /src/api/comp_spatial_data_aggregation.yaml
 
 name: aggregate_spatial_data
-namespace: data_processors
+namespace: methods_data_aggregation
 label: "Spatial data aggregation"
 summary: "Aggregate different files of the raw and processed spatial data to one zarr file."
 description: |

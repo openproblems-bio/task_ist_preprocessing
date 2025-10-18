@@ -1,6 +1,6 @@
 __merge__: ../../api/comp_quality_metric.yaml
 
-name: quality_metrics
+name: quality
 
 # Metadata for your component
 info:
