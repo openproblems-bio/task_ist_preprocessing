@@ -28,8 +28,19 @@ def proportion_of_assigned_reads(
     prop_of_assigned_reads = float(((sdata['transcripts']['assigned']).sum() / len(sdata['transcripts'])).compute())
     
     # Proportion of assigned reads per gene
-    df = pd.crosstab(sdata['transcripts']['feature_name'], sdata['transcripts']['assigned'])
-    prop_of_assigned_reads_per_gene = df[True] / (df[False] + df[True])
+    if prop_of_assigned_reads == 1.0:
+        prop_of_assigned_reads_per_gene = pd.Series(
+            index=sdata['transcripts']['feature_name'].unique().compute().values,
+            data=1.0
+        )
+    elif prop_of_assigned_reads == 0.0:
+        prop_of_assigned_reads_per_gene = pd.Series(
+            index=sdata['transcripts']['feature_name'].unique().compute().values,
+            data=0.0
+        )
+    else:
+        df = pd.crosstab(sdata['transcripts']['feature_name'], sdata['transcripts']['assigned'])
+        prop_of_assigned_reads_per_gene = df[True] / (df[False] + df[True])
     
     return prop_of_assigned_reads, prop_of_assigned_reads_per_gene
     

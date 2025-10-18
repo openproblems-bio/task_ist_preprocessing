@@ -446,7 +446,14 @@ workflow run_wf {
         input_qc_col: "output_qc_filter",
         input_spatial_corrected_counts: "output_correction"
       ],
-      toState: [output_agg_spatial_data: "output"]
+      toState: [output_agg_spatial_data: "output"],
+      auto: params.save_spatial_data ? [publish: true] : [:],
+      directives: params.save_spatial_data ? [
+        publishDir: [
+          path: "${params.publish_dir}/spatial_data/",
+          mode: "copy"
+        ]
+      ] : [:]
     )
 
 

@@ -124,6 +124,16 @@ argument_groups:
         type: file
         direction: input
         required: false
+  - name: Output control
+    description: |
+      Control which outputs are saved
+    arguments:
+      - name: "--save_spatial_data"
+        description: |
+          Whether to save the aggregated spatial data (.zarr files) to the output directory.
+          When true, the output_agg_spatial_data files will be saved in subfolders according to run_id.
+        type: boolean
+        default: false
 
 resources:
   - type: nextflow_script
