@@ -1,0 +1,27 @@
+namespace: metrics
+info:
+  type: metric
+  type_info:
+    label: Quality Metric
+    summary: A quality metric for evaluating iST preprocessing methods
+    description: |
+      This metric evaluates the quality of the iST preprocessing without using a reference.
+arguments:
+  - name: --input
+    __merge__: file_spatial_processed_complete.yaml
+    required: true
+    direction: input
+  - name: --output
+    required: true
+    direction: output
+    __merge__: file_score.yaml
+
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py
+
+

@@ -1,0 +1,39 @@
+__merge__: /src/api/comp_spatial_data_aggregation.yaml
+
+name: aggregate_spatial_data
+namespace: methods_data_aggregation
+label: "Spatial data aggregation"
+summary: "Aggregate different files of the raw and processed spatial data to one zarr file."
+description: |
+  This component aggregates different files of the raw and processed spatial data to one zarr file.
+
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1101/2023.02.13.528102"
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, lowmem ]
+
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py
