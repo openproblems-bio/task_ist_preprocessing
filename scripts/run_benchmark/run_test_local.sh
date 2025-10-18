@@ -20,6 +20,7 @@ cat > /tmp/params.yaml << HERE
 id: mouse_brain_combined
 input_sc: resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad
 input_sp: resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr
+save_spatial_data: false
 default_methods:
   - custom_segmentation
   - basic_transcript_assignment

@@ -438,6 +438,25 @@ workflow run_wf {
         ]
       }
     )
+    // aggregate spatial data for quality metrics
+    | aggregate_spatial_data.run(
+      fromState: [
+        input_raw_sp: "input_sp",
+        input_transcript_assignments: "output_assignment",
+        input_qc_col: "output_qc_filter",
+        input_spatial_corrected_counts: "output_correction"
+      ],
+      toState: [output_agg_spatial_data: "output"],
+      auto: params.save_spatial_data ? [publish: true] : [:],
+      directives: params.save_spatial_data ? [
+        publishDir: [
+          path: "${params.publish_dir}/spatial_data/",
+          mode: "copy"
+        ]
+      ] : [:]
+    )
+
+
 
   /****************************************
    *          COMBINE WITH CONTROL        *
@@ -450,20 +469,38 @@ workflow run_wf {
    *                METRICS               *
    ****************************************/
   metrics = [
-    similarity
+    similarity,
+    quality
   ]
-    metric_ch = expr_corr_and_control_ch
+
+  metric_ch = expr_corr_and_control_ch
     | runEach(
       components: metrics,
+      filter: { id, state, comp ->
+        // only run quality metrics if they have been computed
+        if (comp.config.name == "quality" && !state.containsKey("output_agg_spatial_data")) {
+          return false
+        }
+        return true
+      },
       id: { id, state, comp ->
         id + "/metric_" + comp.name
       },
-      fromState: [
-        input: "output_correction",
-        input_qc_col: "output_qc_filter",
-        input_sc: "input_sc",
-        input_transcript_assignments: "output_assignment"
-      ],
+      fromState: { id, state, comp ->
+        if (comp.config.name == "quality") {
+          return [
+            input: state.output_agg_spatial_data,
+            input_qc_col: state.output_qc_filter
+          ]
+        } else {
+          return [
+            input: state.output_correction,
+            input_qc_col: state.output_qc_filter,
+            input_sc: state.input_sc,
+            input_transcript_assignments: state.output_assignment
+          ]
+        }
+      },
       toState: { id, out_dict, state, comp ->
         state + [
           steps: state.steps + [[

@@ -3796,6 +3796,24 @@ meta = [
           "multiple_sep" : ";"
         }
       ]
+    },
+    {
+      "name" : "Output control",
+      "description" : "Control which outputs are saved\n",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--save_spatial_data",
+          "description" : "Whether to save the aggregated spatial data (.zarr files) to the output directory.\nWhen true, the output_agg_spatial_data files will be saved in subfolders according to run_id.\n",
+          "default" : [
+            false
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
     }
   ],
   "resources" : [
@@ -3979,7 +3997,19 @@ meta = [
       }
     },
     {
+      "name" : "methods_data_aggregation/aggregate_spatial_data",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "metrics/similarity",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "metrics/quality",
       "repository" : {
         "type" : "local"
       }
@@ -4047,7 +4077,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "de162423c969050e2dabc3df9582f1c0e8233da1",
+    "git_commit" : "053663a0362b6ccb6f098bcec9bc23c2ad3c56dc",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4183,7 +4213,9 @@ include { moscot } from "${meta.resources_dir}/../../../nextflow/methods_cell_ty
 include { no_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/no_correction/main.nf"
 include { gene_efficiency_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/gene_efficiency_correction/main.nf"
 include { resolvi_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/resolvi_correction/main.nf"
+include { aggregate_spatial_data } from "${meta.resources_dir}/../../../nextflow/methods_data_aggregation/aggregate_spatial_data/main.nf"
 include { similarity } from "${meta.resources_dir}/../../../nextflow/metrics/similarity/main.nf"
+include { quality } from "${meta.resources_dir}/../../../nextflow/metrics/quality/main.nf"
 
 // inner workflow
 // user-provided Nextflow code
@@ -4627,6 +4659,25 @@ workflow run_wf {
         ]
       }
     )
+    // aggregate spatial data for quality metrics
+    | aggregate_spatial_data.run(
+      fromState: [
+        input_raw_sp: "input_sp",
+        input_transcript_assignments: "output_assignment",
+        input_qc_col: "output_qc_filter",
+        input_spatial_corrected_counts: "output_correction"
+      ],
+      toState: [output_agg_spatial_data: "output"],
+      auto: params.save_spatial_data ? [publish: true] : [:],
+      directives: params.save_spatial_data ? [
+        publishDir: [
+          path: "${params.publish_dir}/spatial_data/",
+          mode: "copy"
+        ]
+      ] : [:]
+    )
+
+
 
   /****************************************
    *          COMBINE WITH CONTROL        *
@@ -4639,20 +4690,38 @@ workflow run_wf {
    *                METRICS               *
    ****************************************/
   metrics = [
-    similarity
+    similarity,
+    quality
   ]
-    metric_ch = expr_corr_and_control_ch
+
+  metric_ch = expr_corr_and_control_ch
     | runEach(
       components: metrics,
+      filter: { id, state, comp ->
+        // only run quality metrics if they have been computed
+        if (comp.config.name == "quality" && !state.containsKey("output_agg_spatial_data")) {
+          return false
+        }
+        return true
+      },
       id: { id, state, comp ->
         id + "/metric_" + comp.name
       },
-      fromState: [
-        input: "output_correction",
-        input_qc_col: "output_qc_filter",
-        input_sc: "input_sc",
-        input_transcript_assignments: "output_assignment"
-      ],
+      fromState: { id, state, comp ->
+        if (comp.config.name == "quality") {
+          return [
+            input: state.output_agg_spatial_data,
+            input_qc_col: state.output_qc_filter
+          ]
+        } else {
+          return [
+            input: state.output_correction,
+            input_qc_col: state.output_qc_filter,
+            input_sc: state.input_sc,
+            input_transcript_assignments: state.output_assignment
+          ]
+        }
+      },
       toState: { id, out_dict, state, comp ->
         state + [
           steps: state.steps + [[
