@@ -1,0 +1,56 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
+name: fastreseg
+label: "fastReseg transcript assignment"
+summary: "Spatial segmentation correction using fastReseg method"
+description: |
+  fastReseg is an R package designed to enhance the precision of cell segmentation in spatial transcriptomics by 
+  leveraging transcriptomic data to correct and refine initial image-based segmentation results.
+links:
+  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+references:
+  doi: "10.1038/s41598-025-08733-5"
+
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    default: "transcripts"
+    description: "Key for transcripts in the points layer"
+  - name: --coordinate_system
+    type: string
+    default: "global"
+    description: "Coordinate system for the transcripts"
+
+
+resources:
+  - type: bash_script
+    path: orchestrator.sh
+  - type: python_script
+    path: input.py
+  - type: file
+    path: fastreseg.yml
+    dest: environment.yml
+  - type: r_script
+    path: script.R
+  - type: python_script
+    path: output.py
+
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi: 
+          - spatialdata
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem ]
