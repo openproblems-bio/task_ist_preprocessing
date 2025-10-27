@@ -446,7 +446,7 @@ function ViashDockerfile {
 FROM openproblems/base_python:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0"
+  pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0" "pyarrow<22.0.0"
 
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "sopa"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment proseg"
-LABEL org.opencontainers.image.created="2025-10-21T09:50:09Z"
+LABEL org.opencontainers.image.created="2025-10-27T19:39:24Z"
 LABEL org.opencontainers.image.source="https://github.com/dcjones/proseg"
-LABEL org.opencontainers.image.revision="7d956faaf6164168645b756013d34cf339122e50"
+LABEL org.opencontainers.image.revision="1888fdb53e1c3f9aaabfc03acf2e50354f87d662"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1392,7 +1392,7 @@ sdata_sopa = sd.SpatialData(
 )
 
 # Make transcript patches
-sopa.make_transcript_patches(sdata_sopa, patch_width=2000, patch_overlap=50, prior_shapes_key="cell_id")
+sopa.make_transcript_patches(sdata_sopa, patch_width=None, patch_overlap=50, prior_shapes_key="cell_id")
 sdata_sopa['transcripts'].attrs['spatialdata_attrs'] = {}
 sdata_sopa['transcripts'].attrs['spatialdata_attrs']['feature_key'] = 'feature_name'
 

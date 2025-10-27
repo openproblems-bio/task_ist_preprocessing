@@ -446,7 +446,7 @@ function ViashDockerfile {
 FROM openproblems/base_python:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0"
+  pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0" "pyarrow<22.0.0"
 
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "stardist"
@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "tensorflow"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation stardist"
-LABEL org.opencontainers.image.created="2025-10-21T09:50:10Z"
+LABEL org.opencontainers.image.created="2025-10-27T19:39:25Z"
 LABEL org.opencontainers.image.source="https://github.com/stardist/stardist"
-LABEL org.opencontainers.image.revision="7d956faaf6164168645b756013d34cf339122e50"
+LABEL org.opencontainers.image.revision="1888fdb53e1c3f9aaabfc03acf2e50354f87d662"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

@@ -3698,7 +3698,8 @@ meta = [
           "user" : false,
           "pypi" : [
             "spatialdata",
-            "anndata>=0.12.0"
+            "anndata>=0.12.0",
+            "pyarrow<22.0.0"
           ],
           "upgrade" : true
         }
@@ -3711,7 +3712,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/control_methods/identity",
     "viash_version" : "0.9.4",
-    "git_commit" : "7d956faaf6164168645b756013d34cf339122e50",
+    "git_commit" : "1888fdb53e1c3f9aaabfc03acf2e50354f87d662",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

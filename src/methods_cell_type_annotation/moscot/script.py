@@ -24,6 +24,31 @@ meta = {
 }
  ## VIASH END
 
+# --- Fix for CuDNN version mismatch ------------------------------------------
+# JAX wheels (e.g. jax[cuda12]) come with their own CUDA/cuDNN libraries.
+# However, some systems set LD_LIBRARY_PATH to point to an older system-wide
+# CUDA/cuDNN (e.g. 9.1). That can override JAX's bundled libraries and cause
+# errors like:
+#   "Loaded runtime CuDNN library: 9.1.0 but source was compiled with: 9.8.0"
+#
+# To prevent that, we remove LD_LIBRARY_PATH before importing JAX so it uses
+# its own compatible, built-in CUDA/cuDNN stack.
+# -----------------------------------------------------------------------------
+import os
+print("LD_LIBRARY_PATH before unset:", os.environ.get("LD_LIBRARY_PATH"), flush=True)
+os.environ.pop("LD_LIBRARY_PATH", None)
+
+# gpu check
+import jax 
+import jaxlib
+print("GPU check", flush=True)
+print("jax:", jax.__version__, flush=True)
+print("jaxlib:", jaxlib.__version__, flush=True)
+print("backend:", jax.default_backend(), flush=True)
+print("devices:", jax.devices(), flush=True)
+print("LD_LIBRARY_PATH:", os.environ.get("LD_LIBRARY_PATH"), flush=True)
+
+
 # Optional parameter check: For this specific annotation method the par['input_spatial_normalized_counts'] and par['input_scrnaseq_reference'] are required
 assert par['input_spatial_normalized_counts'] is not None, 'Spatial input is required for this annotation method.'
 assert par['input_scrnaseq_reference'] is not None, 'Single cell input is required for this annotation method.'
