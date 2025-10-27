@@ -25,7 +25,7 @@ arguments:
     description: "Coordinate system for the transcripts"
   - name: --patch_width
     type: integer
-    default: 1200
+    default: 2000
     description: "Width of image patches for processing"
   - name: --patch_overlap
     type: integer
