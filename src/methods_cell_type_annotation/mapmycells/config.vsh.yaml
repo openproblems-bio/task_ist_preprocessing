@@ -11,10 +11,19 @@ references:
 __merge__: /src/api/comp_method_cell_type_annotation.yaml
 
 arguments:
+  - name: --input
+    type: string
+    default: './resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr'
+    description: "Path to raw counts"
   - name: --temp
     type: string
-    default: './temp/mapmycells/'
+    default: './task_ist_preprocessing/temp/mapmycells/'
     description: "Temporary directory for mapmycells intermediate files"
+  - name: --cell_type_column
+    type: string
+    default: 'celltype'
+    description: "Column with cell type labels"
+   
   
 resources:
   - type: python_script
