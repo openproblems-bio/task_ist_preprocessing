@@ -12,7 +12,7 @@ par = {
     "coordinate_system": "global",
     "output": "temp/comseg/transcripts.zarr",
     
-    "patch_width": 1200,
+    "patch_width": 2000,
     "patch_overlap": 50,
     "transcript_patch_width": 200,
     "mean_cell_diameter": 15.0,

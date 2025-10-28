@@ -86,7 +86,7 @@ sdata_sopa = sd.SpatialData(
 )
 
 # Make transcript patches
-sopa.make_transcript_patches(sdata_sopa, patch_width=2000, patch_overlap=50, prior_shapes_key="cell_id")
+sopa.make_transcript_patches(sdata_sopa, patch_width=None, patch_overlap=50, prior_shapes_key="cell_id")
 sdata_sopa['transcripts'].attrs['spatialdata_attrs'] = {}
 sdata_sopa['transcripts'].attrs['spatialdata_attrs']['feature_key'] = 'feature_name'
 
