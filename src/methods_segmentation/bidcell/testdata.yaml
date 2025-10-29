@@ -1,0 +1,56 @@
+src/methods_segmentation/bidcell/testdata.yaml
+
+cpus: 8 # number of CPUs for multiprocessing
+files:
+  data_dir: ./temp/bidcell # data directory for processed/output data
+  fp_dapi: ./temp/bidcell/morphology_mip_pyramidal.tiff # path of DAPI image
+  fp_transcripts: ./temp/bidcell/transcript.csv.gz # path of transcripts file
+  fp_ref: ./temp/bidcell/scref.csv # file path of reference data
+  fp_pos_markers: ./temp/bidcell/pos_marker.csv # file path of positive markers
+  fp_neg_markers: ./temp/bidcell/neg_marker.csv # file path of negative markers
+nuclei_fovs:
+  stitch_nuclei_fovs: False # set True to stitch separate FOVs of DAPI together in 1 image
+nuclei:
+  diameter: # estimated diameter of nuclei for Cellpose; leave as None to automatically compute
+transcripts:
+  shift_to_origin: True # shift to origin
+  x_col: x_location # name of x location column in transcripts file
+  y_col: y_location # name of y location column in transcripts file
+  gene_col: feature_name # name of genes column in transcripts file
+  transcripts_to_filter:
+    - NegControlProbe_
+    - antisense_
+    - NegControlCodeword_
+    - BLANK_
+    - Blank-
+    - NegPrb
+affine:
+  target_pix_um: 1.0 # microns per pixel for segmentation
+  base_pix_x: 0.2125 # microns per pixel in width
+  base_pix_y: 0.2125 # microns per pixel in height
+  base_ts_x: 1.0 # convert transcripts locations to target pixels width
+  base_ts_y: 1.0 # convert transcripts locations to target pixels height
+  global_shift_x: 0 # adjustment aligning transcripts to DAPI in width
+  global_shift_y: 0 # adjustment aligning transcripts to DAPI in height
+model_params:
+  name: custom # segmentation model to use: custom or set encoder name from segmentation_models_pytorch
+  patch_size: 48 # size of transcriptomic image patches for input to DL model
+  elongated: # list of elongated cell types in the single-cell reference
+    - Endothelial
+    - Fibroblasts
+    - Myofibroblasts
+    - SMC
+training_params:
+  total_epochs: 1 # number of training epochs
+  total_steps: 60 # number of training steps
+  ne_weight: 1.0 # nuclei encapsulation loss weight
+  os_weight: 1.0 # oversegmentation loss weight
+  cc_weight: 1.0 # cell-calling loss weight
+  ov_weight: 1.0 # oversegmentation loss weight
+  pos_weight: 1.0 # positive marker loss weight
+  neg_weight: 1.0 # negative marker loss weight
+testing_params:
+  test_epoch: 1 # epoch to test
+  test_step: 60 # step number to test
+experiment_dirs:
+  dir_id: last # specify timestamp of output dir or leave blank to use latest dir
