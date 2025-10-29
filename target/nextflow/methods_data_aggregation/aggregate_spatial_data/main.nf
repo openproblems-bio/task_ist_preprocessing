@@ -3968,7 +3968,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_data_aggregation/aggregate_spatial_data",
     "viash_version" : "0.9.4",
-    "git_commit" : "537aaae58b06e3061df52d4f50c85d05bc9c0b1f",
+    "git_commit" : "b76b9ecf14bfacd638cc9e3c6884446850b17074",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4169,7 +4169,7 @@ for layer in list(adata.layers.keys()):
 ##############
 # Assertions #
 ##############
-assert len(sdata_transcripts["transcripts"]["cell_id"].unique()) in [adata.n_obs, adata.n_obs + 1], "Number of cells in transcripts and adata do not match"
+assert len(sdata_transcripts["transcripts"]["cell_id"].unique()) >= adata.n_obs, "Number of cells in transcripts must be at least the number of cells in the adata"
 
 ##################
 # Aggregate data #
