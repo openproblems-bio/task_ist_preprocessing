@@ -15,12 +15,7 @@ echo "  Make sure to run 'scripts/project/build_all_docker_containers.sh'!"
 RUN_ID="testrun_$(date +%Y-%m-%d_%H-%M-%S)"
 publish_dir="temp/results/${RUN_ID}"
 
-# Write the parameters to file
-cat > /tmp/params.yaml << HERE
-id: mouse_brain_combined
-input_sc: resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad
-input_sp: resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr
-save_spatial_data: false
+cat > /tmp/params_settings.yaml << HERE
 default_methods:
   - custom_segmentation
   - basic_transcript_assignment
@@ -62,9 +57,29 @@ expression_correction_methods:
   # - gene_efficiency_correction
   # - resolvi_correction
 method_parameters_yaml: /tmp/method_params.yaml
+HERE
+
+# Write the parameters to file (input_states version, NOTE: enable `-entry auto` for this)
+cat > /tmp/params.yaml << HERE
+input_states: resources_test/task_ist_preprocessing/**/state.yaml
+rename_keys: 'input_sc:output_sc;input_sp:output_sp'
+save_spatial_data: false
+settings: '$(yq -o json /tmp/params_settings.yaml | jq -c .)'
 output_state: "state.yaml"
 publish_dir: "$publish_dir"
 HERE
+
+# #Write the parameters to file (specific id version, NOTE: disable `-entry auto` for this)
+# cat > /tmp/params.yaml << HERE
+# id: mouse_brain_combined
+# input_sc: resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad
+# input_sp: resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr
+# save_spatial_data: true
+# $(cat /tmp/params_settings.yaml)
+# output_state: "state.yaml"
+# publish_dir: "$publish_dir"
+# HERE
+
 
 cat > /tmp/method_params.yaml << HERE
 parameters:
@@ -79,5 +94,6 @@ nextflow run . \
   -main-script target/nextflow/workflows/run_benchmark/main.nf \
   -profile docker \
   -resume \
+  -entry auto \
   -c common/nextflow_helpers/labels_ci.config \
   -params-file /tmp/params.yaml
