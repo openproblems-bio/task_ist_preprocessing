@@ -1,24 +1,24 @@
-import spatialdata as sd
 import anndata as ad
 import os
 import subprocess
 import json
 import pandas as pd
+from pathlib import Path 
 ## VIASH START
 par = {
     'input_spatial_normalized_counts': 'resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_normalized_counts.h5ad',
-    'input_scrnaseq_reference': './resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad',
-    "temp": './task_ist_preprocessing/temp/mapmycells/',
-    'cell_type_column': 'celltype',
+    'input_scrnaseq_reference': 'resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/dataset.h5ad',
+    'cell_type_column': 'cell_type',
     "output": 'output.h5ad'
 }
+meta = { "temp_dir": './tmp/'}
+
 ## VIASH END
 
+TMP_DIR = Path(meta["temp_dir"] or "/tmp/")
+TMP_DIR.mkdir(parents=True, exist_ok=True)
 
-if not os.path.exists(par["temp"]):
-    os.makedirs(par["temp"])
-
-sdata= ad.read_h5ad(par['input_spatial_normalized_counts'])
+sdata = ad.read_h5ad(par['input_spatial_normalized_counts'])
 adata = ad.read_h5ad(par['input_scrnaseq_reference'])
 
 if "counts" in adata.layers:
@@ -32,93 +32,75 @@ sdata.var_names_make_unique()
 common_genes = list(set(sdata.var.index).intersection(adata.var.index))
 
 adata = adata[:, common_genes]
-
-
-
-sc_path = f'{par["temp"]}sc_adata_processed.h5ad'
-if os.path.exists(sc_path):
-    os.remove(sc_path)
+sc_path = os.path.join(meta["temp_dir"],"sc_adata_processed.h5ad")
 adata.write_h5ad(sc_path)
-
-# 🧹 Check before writing sp_processed.h5ad
-sp_path = f'{par["temp"]}sp_processed.h5ad'
-if os.path.exists(sp_path):
-    os.remove(sp_path)
+sp_path = os.path.join(meta["temp_dir"],"sp_processed.h5ad")
 sdata[:, common_genes].write_h5ad(sp_path)
 
 
 
-hierarchy_string = '["cell_type"]'
-
-precomputed_path = f'{par["temp"]}precomputed_stats.h5ad'
-if os.path.exists(precomputed_path):
-    os.remove(precomputed_path)
+precomputed_path = os.path.join(meta["temp_dir"],"precomputed_stats.h5ad")
 
 command = [
         "python",
         "-m",
         "cell_type_mapper.cli.precompute_stats_scrattch",
         "--h5ad_path",
-        f'{par["temp"]}sc_adata_processed.h5ad',  
+        sc_path,  
         "--hierarchy",
-        hierarchy_string,
+        "['cell_type']",
         "--output_path",
-        f'{par["temp"]}precomputed_stats.h5ad'
+       precomputed_path
     ]
 
 subprocess.run(command)
 
-
-
 data = {"None": common_genes}
-genes_file_path = os.path.join(par["temp"],"genes.json")
-if os.path.exists(genes_file_path):
-    os.remove(genes_file_path)
-
+genes_file_path = os.path.join(meta["temp_dir"],"genes.json")
 with open(genes_file_path, "w") as json_file:
         json.dump(data, json_file, indent=2)
-
-
 command = [
         "python",
         "-m",
         "cell_type_mapper.cli.from_specified_markers",
         "--query_path",
-        f'{par["temp"]}sp_processed.h5ad',  
+        sp_path,  
         "--type_assignment.normalization",
         "log2CPM", 
         "--precomputed_stats.path",
-        f'{par["temp"]}precomputed_stats.h5ad',
+        precomputed_path,
         "--query_markers.serialized_lookup",
         genes_file_path,
         "--csv_result_path",
-        os.path.join(par["temp"],"results.csv"),
+        os.path.join(meta["temp_dir"],"results.csv"),
         "--extended_result_path",
-        os.path.join(par["temp"], "extended_results.json"),
-        #mapping onto a tree with only one taxonomic level; no bootstrapping
+        os.path.join(meta["temp_dir"], "extended_results.json"),
         "--flatten",
         "True",
         "--type_assignment.bootstrap_iteration", 
         "1",
         "--type_assignment.bootstrap_factor",
         "1.0"
- 
+
     ]
 
-results_csv = os.path.join(par["temp"], "results.csv")
-if os.path.exists(results_csv):
-    os.remove(results_csv)
-
-extended_json = os.path.join(par["temp"], "extended_results.json")
-if os.path.exists(extended_json):
-    os.remove(extended_json)
-
-    
 subprocess.run(command)
+annotation_df = pd.read_csv(os.path.join(meta["temp_dir"],"results.csv"), skiprows=3)
+sdata.obs[par['cell_type_column']] = list(annotation_df['cell_type_label'])
 
-label_name = 'cell_type'
-annotation_df = pd.read_csv(f'{par["temp"]}results.csv', skiprows=3)
 
-sdata.obs[par['cell_type_column']] = annotation_df['cell_type_name']
+
+# Loop through all files in the folder
+for file_path in [
+     sc_path,
+     sp_path,
+     precomputed_path,
+     genes_file_path,
+     os.path.join(meta["temp_dir"],"results.csv"),
+     os.path.join(meta["temp_dir"], "extended_results.json")
+]:
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
 
 sdata.write_h5ad(par['output'])

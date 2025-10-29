@@ -15,13 +15,9 @@ arguments:
     type: string
     default: './resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr'
     description: "Path to raw counts"
-  - name: --temp
-    type: string
-    default: './task_ist_preprocessing/temp/mapmycells/'
-    description: "Temporary directory for mapmycells intermediate files"
   - name: --cell_type_column
     type: string
-    default: 'celltype'
+    default: 'cell_type'
     description: "Column with cell type labels"
    
   
