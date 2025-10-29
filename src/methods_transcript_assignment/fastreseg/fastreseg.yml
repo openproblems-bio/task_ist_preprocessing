@@ -1,0 +1,13 @@
+name: fastreseg
+channels:
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - r-base=4.5.1
+  - r-devtools
+  - pip
+  - ipykernel
+  - jupyter_client
+  - r-irkernel
+prefix: /opt/miniconda3/envs/fastreseg
