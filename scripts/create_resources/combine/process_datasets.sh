@@ -326,8 +326,6 @@ param_list:
     dataset_description: "Spatial data: Bruker CosMx Human Lung Cancer Lung13; Single cell data: 2024Zuani_human_nsclc_sc"
     dataset_organism: "homo_sapiens"
 
-
-
 output_sc: "\$id/output_sc.h5ad"
 output_sp: "\$id/output_sp.zarr"
 output_state: "\$id/state.yaml"

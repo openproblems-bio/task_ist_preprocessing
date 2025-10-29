@@ -12,25 +12,7 @@ set -e
 RUN_ID="run_$(date +%Y-%m-%d_%H-%M-%S)"
 publish_dir="s3://openproblems-data/resources/task_ist_preprocessing/results/${RUN_ID}"
 
-# input_dir="s3://openproblems-data/resources/task_ist_preprocessing/datasets"
-# cat > /tmp/params.yaml << HERE
-# param_list:
-
-#   - id: "mouse_brain_combined/rep1"
-#     input_sp: "$input_dir/mouse_brain_combined/rep1/output_sp.zarr"
-#     input_sc: "$input_dir/mouse_brain_combined/rep1/output_sc.h5ad"
-
-# output_sc: "\$id/output_sc.h5ad"
-# output_sp: "\$id/output_sp.zarr"
-# output_state: "\$id/state.yaml"
-# publish_dir: "$publish_dir"
-# HERE
-
-# write the parameters to file
-cat > /tmp/params.yaml << HERE
-input_states: s3://openproblems-data/resources/task_ist_preprocessing/datasets/**/state.yaml
-rename_keys: 'input_sc:output_sc;input_sp:output_sp'
-save_spatial_data: false
+cat > /tmp/params_settings.yaml << HERE
 default_methods:
   - custom_segmentation
   - basic_transcript_assignment
@@ -49,7 +31,7 @@ segmentation_methods:
 transcript_assignment_methods:
   - basic_transcript_assignment
   - baysor
-  # - clustermap
+  - clustermap
   - pciseq
   - comseg
   - proseg
@@ -71,8 +53,28 @@ expression_correction_methods:
   - no_correction
   - gene_efficiency_correction
   - resolvi_correction
+method_parameters_yaml: /tmp/method_params.yaml
+HERE
+
+# write the parameters to file
+cat > /tmp/params.yaml << HERE
+input_states: s3://openproblems-data/resources/task_ist_preprocessing/datasets/**/state.yaml
+rename_keys: 'input_sc:output_sc;input_sp:output_sp'
+save_spatial_data: false
+settings: '$(yq -o json /tmp/params_settings.yaml | jq -c .)'
 output_state: "state.yaml"
 publish_dir: "$publish_dir"
+HERE
+
+# NOTE: this file needs to be made available on the seqera cloud workspace and the 
+#       path needs to be added above (method_parameters_yaml)
+cat > /tmp/method_params.yaml << HERE
+parameters:
+  binning:
+    default:
+      bin_size: 30
+    sweep:
+      bin_size: [20, 30, 40]
 HERE
 
 tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
