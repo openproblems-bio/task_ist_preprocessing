@@ -11,9 +11,9 @@ par_transcripts_key='transcripts'
 par_coordinate_system='global'
 meta_name='fastreseg'
 meta_functionality_name='fastreseg'
-meta_resources_dir='/private/tmp/viash_inject_fastreseg314756503172152491'
-meta_executable='/private/tmp/viash_inject_fastreseg314756503172152491/fastreseg'
-meta_config='/private/tmp/viash_inject_fastreseg314756503172152491/.config.vsh.yaml'
+meta_resources_dir='/private/tmp/viash_inject_fastreseg18170326436127140412'
+meta_executable='/private/tmp/viash_inject_fastreseg18170326436127140412/fastreseg'
+meta_config='/private/tmp/viash_inject_fastreseg18170326436127140412/.config.vsh.yaml'
 meta_temp_dir='/var/folders/fq/ymt0vml175s4yvqxzbmlmpz80000gn/T/'
 meta_cpus='123'
 meta_memory_b='123'
@@ -53,40 +53,36 @@ head $par_intermediate_dir/cell_types.tsv
 
 # Step 2: RunFastReseg
 ## making conda environment with r-base and fastReseg
-export CONDA_DIR=/opt/conda
-wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -b -p /opt/conda
+#export CONDA_DIR=/opt/conda
+#wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+#    /bin/bash ~/miniconda.sh -b -p /opt/conda
 # Put conda in path so we can use conda activate
-export PATH=$CONDA_DIR/bin:$PATH
+#export PATH=$CONDA_DIR/bin:$PATH
 
 # Create and activate the second Python environment
 # Initialize conda for bash
-eval "$(/opt/conda/bin/conda shell.bash hook)"
-conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
-conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
-conda env create -f $CONDA_ENV_FILE
+#eval "$(/opt/conda/bin/conda shell.bash hook)"
+#conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+#conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+#conda env create -f $CONDA_ENV_FILE
 
-conda activate fastreseg
-conda install conda-forge::r-concaveman conda-forge::r-data.table conda-forge::r-ggplot2 conda-forge::r-devtools conda-forge::r-terra
-conda install conda-forge::r-codetools conda-forge::r-matrix conda-forge::r-dbscan install conda-forge::r-igraph  conda-forge::r-matrixstats
+#conda activate fastreseg
+#conda install conda-forge::r-concaveman conda-forge::r-data.table conda-forge::r-ggplot2 conda-forge::r-devtools conda-forge::r-terra
+#conda install conda-forge::r-codetools conda-forge::r-matrix conda-forge::r-dbscan conda-forge::r-igraph  conda-forge::r-matrixstats
 
 ##running the R script
 Rscript script.R "$par_intermediate_dir/counts.tsv" \
   "$par_intermediate_dir/transcripts.tsv" \
   "$par_intermediate_dir/cell_types.tsv" \
   "$par_intermediate_dir/cell_ids.csv" \
-  "$par_intermediate_dir/gene_names.csv" \
+ "$par_intermediate_dir/gene_names.csv" \
   "$par_intermediate_dir/transcripts_out.csv"
 
 ## python output
-/usr/local/bin/python "output.py" \
+python "output.py" \
   "$par_intermediate_dir/cell_ids.csv" \
   "$par_intermediate_dir/gene_names.csv" \
   "$par_intermediate_dir/transcripts_out.csv" \
   "$par_output"
 
 echo $(date +%T)
-#cd ../
-# Step 3: Run output reformatting in thePython environmen
-#/usr/local/bin/python "output.py" \t
-#"$par_input" "SCS/results/spot2cell_0:0:0:0.txt" "$par_output"

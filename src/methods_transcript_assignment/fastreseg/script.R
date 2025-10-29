@@ -1,4 +1,5 @@
-devtools::install_github("Nanostring-Biostats/FastReseg", build_vignettes = FALSE, ref = "main")
+#install.packages("devtools")
+#devtools::install_github("Nanostring-Biostats/FastReseg", build_vignettes = FALSE, ref = "main")
 
 library(FastReseg)
 library(data.table)

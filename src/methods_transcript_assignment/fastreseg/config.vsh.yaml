@@ -37,16 +37,38 @@ resources:
   - type: python_script
     path: output.py
 
-
 engines:
   - type: docker
     image: openproblems/base_python:1
     setup:
-      - type: python
-        pypi: 
-          - spatialdata
+      - type: apt
+        packages:
+          - libv8-dev
+          - libudunits2-dev
+          - libabsl-dev
+          - gdal-bin
+          - libgdal-dev
+          - r-base
+      - type: r
+        packages:
+          - devtools
+          - terra
+          - Matrix
+          - dbscan
+          - igraph
+          - matrixStats
+          - codetools
+          - data.table
+          # Add other CRAN packages here
+        github:
+          # Add GitHub packages here if needed
+          - Nanostring-Biostats/FastReseg
+      #- type: python
+      #  github:
+      #    - openproblems-bio/core#subdirectory=packages/python/openproblems
     __merge__: 
       - /src/base/setup_txsim_partial.yaml
+      - /src/base/setup_spatialdata_partial.yaml
   - type: native
 
 runners:
@@ -54,3 +76,6 @@ runners:
   - type: nextflow
     directives:
       label: [ midtime, midcpu, midmem ]
+
+
+##macOS workaround: export DOCKER_DEFAULT_PLATFORM=linux/amd64
