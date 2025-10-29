@@ -1,29 +1,5 @@
 #!/usr/bin/env python3
 
-import numpy as np
-import anndata as ad
-import scanpy as sc
-
-import moscot as mt
-from moscot.problems.space import MappingProblem
-
-## VIASH START
-par = {
-   'input_spatial_normalized_counts': 'resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_normalized_counts.h5ad',
-   'input_scrnaseq_reference': 'resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad',
-   'output': 'spatial_with_celltypes.h5ad',
-   'celltype_key': 'cell_type',
-   'alpha': 0.8,
-   'epsilon': 0.01,
-   'tau': 1.0,
-   'rank': 5000,
-   'mapping_mode': 'max',
-}
-meta = {
-   'name': 'moscot',
-}
- ## VIASH END
-
 # --- Fix for CuDNN version mismatch ------------------------------------------
 # JAX wheels (e.g. jax[cuda12]) come with their own CUDA/cuDNN libraries.
 # However, some systems set LD_LIBRARY_PATH to point to an older system-wide
@@ -47,6 +23,30 @@ print("jaxlib:", jaxlib.__version__, flush=True)
 print("backend:", jax.default_backend(), flush=True)
 print("devices:", jax.devices(), flush=True)
 print("LD_LIBRARY_PATH:", os.environ.get("LD_LIBRARY_PATH"), flush=True)
+
+import numpy as np
+import anndata as ad
+import scanpy as sc
+
+import moscot as mt
+from moscot.problems.space import MappingProblem
+
+## VIASH START
+par = {
+   'input_spatial_normalized_counts': 'resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_normalized_counts.h5ad',
+   'input_scrnaseq_reference': 'resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad',
+   'output': 'spatial_with_celltypes.h5ad',
+   'celltype_key': 'cell_type',
+   'alpha': 0.8,
+   'epsilon': 0.01,
+   'tau': 1.0,
+   'rank': 5000,
+   'mapping_mode': 'max',
+}
+meta = {
+   'name': 'moscot',
+}
+ ## VIASH END
 
 
 # Optional parameter check: For this specific annotation method the par['input_spatial_normalized_counts'] and par['input_scrnaseq_reference'] are required

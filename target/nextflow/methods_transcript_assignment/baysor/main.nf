@@ -3961,6 +3961,16 @@ meta = [
       "namespace_separator" : "/",
       "setup" : [
         {
+          "type" : "python",
+          "user" : false,
+          "pypi" : [
+            "spatialdata",
+            "anndata>=0.12.0",
+            "pyarrow<22.0.0"
+          ],
+          "upgrade" : true
+        },
+        {
           "type" : "apt",
           "packages" : [
             "procps"
@@ -3979,8 +3989,7 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "sopa[baysor]",
-            "anndata>=0.12.0"
+            "sopa[baysor]"
           ],
           "upgrade" : true
         },
@@ -4006,7 +4015,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.4",
-    "git_commit" : "bc7cc8c9313468374947949fab37399bc8b31d6a",
+    "git_commit" : "537aaae58b06e3061df52d4f50c85d05bc9c0b1f",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
