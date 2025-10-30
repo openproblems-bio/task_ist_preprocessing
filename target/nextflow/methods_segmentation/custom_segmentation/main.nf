@@ -3492,7 +3492,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/custom_segmentation",
     "viash_version" : "0.9.4",
-    "git_commit" : "b76b9ecf14bfacd638cc9e3c6884446850b17074",
+    "git_commit" : "66813a5513174fdea0b28949a255492e58b9176c",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3656,13 +3656,13 @@ print(f"Copy segmentation from '{par['labels_key']}'", flush=True)
 sdata_segmentation_only = sd.SpatialData(
   labels={
     "segmentation": sdata[par["labels_key"]]
-  },
-  tables={
-    "table": ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
-      var=sdata.tables["table"].var[[]]
-    )
-  }
+  }#,
+  #tables={
+  #  "table": ad.AnnData(
+  #    obs=sdata.tables["table"].obs[["cell_id", "region"]],
+  #    var=sdata.tables["table"].var[[]]
+  #  )
+  #}
 )
 
 print("Writing output", flush=True)

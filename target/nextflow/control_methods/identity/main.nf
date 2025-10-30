@@ -3657,7 +3657,7 @@ meta = [
       "directives" : {
         "label" : [
           "midtime",
-          "midmem",
+          "highmem",
           "lowcpu"
         ],
         "tag" : "$id"
@@ -3712,7 +3712,7 @@ meta = [
     "engine" : "docker",
     "output" : "target/nextflow/control_methods/identity",
     "viash_version" : "0.9.4",
-    "git_commit" : "b76b9ecf14bfacd638cc9e3c6884446850b17074",
+    "git_commit" : "66813a5513174fdea0b28949a255492e58b9176c",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4285,7 +4285,7 @@ meta["defaults"] = [
   },
   "label" : [
     "midtime",
-    "midmem",
+    "highmem",
     "lowcpu"
   ],
   "tag" : "$id"

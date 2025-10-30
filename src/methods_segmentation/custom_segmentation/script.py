@@ -23,13 +23,13 @@ print(f"Copy segmentation from '{par['labels_key']}'", flush=True)
 sdata_segmentation_only = sd.SpatialData(
   labels={
     "segmentation": sdata[par["labels_key"]]
-  },
-  tables={
-    "table": ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
-      var=sdata.tables["table"].var[[]]
-    )
-  }
+  }#,
+  #tables={
+  #  "table": ad.AnnData(
+  #    obs=sdata.tables["table"].obs[["cell_id", "region"]],
+  #    var=sdata.tables["table"].var[[]]
+  #  )
+  #}
 )
 
 print("Writing output", flush=True)

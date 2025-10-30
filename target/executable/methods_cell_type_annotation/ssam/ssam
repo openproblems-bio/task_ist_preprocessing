@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "planktonspace"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation ssam"
-LABEL org.opencontainers.image.created="2025-10-29T16:26:53Z"
+LABEL org.opencontainers.image.created="2025-10-30T17:06:43Z"
 LABEL org.opencontainers.image.source="https://github.com/HiDiHlabs/ssam"
-LABEL org.opencontainers.image.revision="b76b9ecf14bfacd638cc9e3c6884446850b17074"
+LABEL org.opencontainers.image.revision="66813a5513174fdea0b28949a255492e58b9176c"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
