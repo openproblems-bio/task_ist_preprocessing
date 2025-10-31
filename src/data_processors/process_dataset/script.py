@@ -41,6 +41,13 @@ for col in metadata_uns_cols:
         sdata.table.uns[orig_col] = sdata.table.uns[col]
     sdata.table.uns[col] = par[col]
 
+# Correct the feature_key attribute in sdata if needed
+# NOTE: it would have been better to do this in the loader scripts, but this way the datasets don't need to be re-downloaded
+if "feature_key" in sdata['transcripts'].attrs["spatialdata_attrs"]:
+    feature_key = sdata['transcripts'].attrs["spatialdata_attrs"]["feature_key"]
+    if feature_key != "feature_name":
+        sdata['transcripts'].attrs["spatialdata_attrs"]["feature_key"] = "feature_name"
+
 # Save the single-cell data
 adata.write_h5ad(par["output_sc"], compression="gzip")
 
