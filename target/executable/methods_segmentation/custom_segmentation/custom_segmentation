@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0" "pyarrow<22.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation custom_segmentation"
-LABEL org.opencontainers.image.created="2025-10-31T16:30:59Z"
+LABEL org.opencontainers.image.created="2025-10-31T23:25:21Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="b0f6ea76e7f5be7df54896f355986e8988d330cf"
+LABEL org.opencontainers.image.revision="9f6ede97ab5d4bc50e3f46b0268fc8ba78cbcdc6"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

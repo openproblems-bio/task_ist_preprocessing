@@ -56,6 +56,34 @@ def get_crop_coords(sdata, max_n_pixels=50000*50000):
         
     return crop
 
+def rechunk_sdata(sdata, CHUNK_SIZE=1024):
+    """Rechunk the sdata to the given chunk size
+    
+    Arguments
+    ---------
+    sdata: spatialdata.SpatialData
+        The spatial data to rechunk
+    CHUNK_SIZE: int
+        The chunk size to rechunk to
+        
+    """
+    
+    for key in list(sdata.images.keys()):
+        image = sdata.images[key]
+        coords = list(image["scale0"].coords.keys())
+        rechunk_strategy = {c: CHUNK_SIZE for c in coords}
+        if "c" in coords:
+            rechunk_strategy["c"] = image["scale0"]["image"].chunks[0][0]
+        image = image.chunk(rechunk_strategy)
+        sdata.images[key] = image
+        
+    for key in list(sdata.labels.keys()):
+        label_image = sdata.labels[key]
+        coords = list(label_image.coords.keys())
+        rechunk_strategy = {c: CHUNK_SIZE for c in coords}
+        label_image = label_image.chunk(rechunk_strategy)
+        sdata.labels[key] = label_image
+
 
 # Load the single-cell data
 adata = ad.read_h5ad(par["input_sc"])
@@ -102,6 +130,7 @@ if crop_coords is not None:
         target_coordinate_system="global",
         filter_table=True,
     )
+    rechunk_sdata(sdata_output) #NOTE: rechunking currently needed (https://github.com/scverse/spatialdata/issues/929)
 else:
     sdata_output = sdata
     
