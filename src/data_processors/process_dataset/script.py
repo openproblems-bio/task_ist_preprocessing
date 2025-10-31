@@ -130,7 +130,7 @@ if crop_coords is not None:
         target_coordinate_system="global",
         filter_table=True,
     )
-    rechunk_sdata(sdata_output)
+    rechunk_sdata(sdata_output) #NOTE: rechunking currently needed (https://github.com/scverse/spatialdata/issues/929)
 else:
     sdata_output = sdata
     
