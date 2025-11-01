@@ -4371,7 +4371,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.4",
-    "git_commit" : "9f6ede97ab5d4bc50e3f46b0268fc8ba78cbcdc6",
+    "git_commit" : "31a351ffbb815f48ae1d1f4c930288196246c54d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4536,7 +4536,7 @@ dep = {
 ### VIASH END
 
 
-def get_crop_coords(sdata, max_n_pixels=50000*50000):
+def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000): 
     """Get the crop coordinates to subset the sdata to max_n_pixels
     
     Arguments

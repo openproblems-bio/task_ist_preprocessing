@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0" "pyarrow<22.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2025-10-31T23:25:20Z"
+LABEL org.opencontainers.image.created="2025-11-01T11:42:37Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="9f6ede97ab5d4bc50e3f46b0268fc8ba78cbcdc6"
+LABEL org.opencontainers.image.revision="31a351ffbb815f48ae1d1f4c930288196246c54d"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1274,7 +1274,7 @@ dep = {
 ### VIASH END
 
 
-def get_crop_coords(sdata, max_n_pixels=50000*50000):
+def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000): 
     """Get the crop coordinates to subset the sdata to max_n_pixels
     
     Arguments
