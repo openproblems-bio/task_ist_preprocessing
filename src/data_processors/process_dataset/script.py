@@ -14,7 +14,7 @@ par = {
 ### VIASH END
 
 
-def get_crop_coords(sdata, max_n_pixels=50000*50000):
+def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000): 
     """Get the crop coordinates to subset the sdata to max_n_pixels
     
     Arguments
