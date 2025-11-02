@@ -166,7 +166,6 @@ assert 0 not in cell_types['cell_id'], "Found '0' in cell_id column of assingmen
 
 output_table = ad.AnnData(
       obs=cell_types[['cell_id','cell_type','cell_type_prob']],
-      var=sdata.tables["table"].var[[]]
     )
 
 # TODO: Also take care of the following cases:
