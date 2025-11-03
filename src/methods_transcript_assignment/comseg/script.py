@@ -36,7 +36,7 @@ sdata["segmentation_boundaries"] = sd.to_polygons(sdata_segm["segmentation"])
 del sdata["segmentation_boundaries"]["label"] # make_transcript_patches will create a new label column and fails if one exists.
 
 # Make patches
-sopa.make_image_patches(sdata, patch_width=par["patch_width"], patch_overlap=par["patch_overlap"])
+sopa.make_image_patches(sdata, image_key="morphology_mip", patch_width=par["patch_width"], patch_overlap=par["patch_overlap"])
 
 transcript_patch_args = {
     "sdata": sdata,
