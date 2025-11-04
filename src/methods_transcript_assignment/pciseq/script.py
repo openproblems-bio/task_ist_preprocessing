@@ -123,9 +123,11 @@ else:
 
 # There might be spots at the border of the image, pciseq runs into an error if this is the case
 transcripts_at_border = transcripts_dataframe['x'] > (label_image.shape[1]-0.5)
+transcripts_at_border = transcripts_at_border | (transcripts_dataframe['y'] > (label_image.shape[0]-0.5))
 transcripts_dataframe = transcripts_dataframe.loc[~transcripts_at_border]
-transcripts_at_border = transcripts_dataframe['y'] > (label_image.shape[0]-0.5)
-transcripts_dataframe = transcripts_dataframe.loc[~transcripts_at_border]
+transcripts_at_border_dask = transcripts.x > (label_image.shape[1]-0.5)
+transcripts_at_border_dask = transcripts_at_border_dask | (transcripts.y > (label_image.shape[0]-0.5))
+sdata[par['transcripts_key']] = sdata[par['transcripts_key']].loc[~transcripts_at_border_dask]
 
 # Grab all the pciSeq parameters
 opts_keys = [#'exclude_genes',
