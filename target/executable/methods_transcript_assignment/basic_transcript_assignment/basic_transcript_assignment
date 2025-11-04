@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0" "pyarrow<22.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment basic_transcript_assignment"
-LABEL org.opencontainers.image.created="2025-11-01T11:42:39Z"
+LABEL org.opencontainers.image.created="2025-11-04T14:52:35Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="31a351ffbb815f48ae1d1f4c930288196246c54d"
+LABEL org.opencontainers.image.revision="46db08eee6699af5cef19deb73e6ac6deb76cd7a"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1253,7 +1253,6 @@ sdata_transcripts_only = sd.SpatialData(
   tables={
     "table": ad.AnnData(
       obs=pd.DataFrame(cell_id_col),
-      var=sdata.tables["table"].var[[]]
     )
   }
 )

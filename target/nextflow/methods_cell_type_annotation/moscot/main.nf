@@ -3668,7 +3668,7 @@ meta = [
           "type" : "double",
           "name" : "--tau",
           "default" : [
-            1.0
+            0.3
           ],
           "required" : false,
           "direction" : "input",
@@ -3679,7 +3679,7 @@ meta = [
           "type" : "integer",
           "name" : "--rank",
           "default" : [
-            5000
+            500
           ],
           "required" : false,
           "direction" : "input",
@@ -3846,7 +3846,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/moscot",
     "viash_version" : "0.9.4",
-    "git_commit" : "31a351ffbb815f48ae1d1f4c930288196246c54d",
+    "git_commit" : "46db08eee6699af5cef19deb73e6ac6deb76cd7a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4049,6 +4049,8 @@ adata_sp = ad.read_h5ad(par['input_spatial_normalized_counts'])
 if adata_sp.n_obs < 10000:
     print('Adjusting rank to -1 since data set is small (n_obs < 10k)', flush=True)
     par['rank'] = -1
+    print("Also, adjusting tau to 1.0 since data set is small", flush=True)
+    par['tau'] = 1.0
 
 # Check for normalized layer and centroid information
 assert "normalized" in adata_sc.layers.keys(), 'Layer "normalized" is required for single-cell anndata'

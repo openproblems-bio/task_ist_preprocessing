@@ -1,7 +1,7 @@
 library(SpaNorm)
 library(SingleCellExperiment)
 library(SpatialExperiment)
-library(zellkonverter)
+library(anndataR)
 
 ## VIASH START
 par <- list(
@@ -11,7 +11,7 @@ par <- list(
 ## VIASH END
 
 # Read the input h5ad file and convert to SingleCellExperiment
-sce <- readH5AD(par$input_spatial_aggregated_counts)
+sce <- read_h5ad(par$input_spatial_aggregated_counts, as = "SingleCellExperiment")
 # Convert to SpatialExperiment for SpaNorm
 sce <- as(sce, "SpatialExperiment")
 
@@ -52,4 +52,5 @@ final_sce <- SingleCellExperiment(
 assay(final_sce, "normalized") <- normalized_matrix
 
 # Write the final object to h5ad format
-zellkonverter::writeH5AD(final_sce, par$output)
+dir.create(dirname(par$output), showWarnings = FALSE, recursive = TRUE)
+write_h5ad(final_sce, par$output)

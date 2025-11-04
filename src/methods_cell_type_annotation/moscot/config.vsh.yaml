@@ -28,12 +28,12 @@ arguments:
     required: false
     direction: input
     type: double
-    default: 1.0
+    default: 0.3
   - name: --rank
     required: false
     direction: input
     type: integer
-    default: 5000
+    default: 500 #5000
   - name: --mapping_mode
     required: false
     direction: input

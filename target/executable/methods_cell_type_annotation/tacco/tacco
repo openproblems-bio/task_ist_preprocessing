@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "anndata" "numpy" "tacco"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation tacco"
-LABEL org.opencontainers.image.created="2025-11-01T11:42:36Z"
+LABEL org.opencontainers.image.created="2025-11-04T14:52:32Z"
 LABEL org.opencontainers.image.source="https://github.com/simonwm/tacco"
-LABEL org.opencontainers.image.revision="31a351ffbb815f48ae1d1f4c930288196246c54d"
+LABEL org.opencontainers.image.revision="46db08eee6699af5cef19deb73e6ac6deb76cd7a"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

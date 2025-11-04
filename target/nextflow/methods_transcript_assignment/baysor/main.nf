@@ -4015,7 +4015,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.4",
-    "git_commit" : "31a351ffbb815f48ae1d1f4c930288196246c54d",
+    "git_commit" : "46db08eee6699af5cef19deb73e6ac6deb76cd7a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4330,7 +4330,6 @@ sdata_transcripts_only = sd.SpatialData(
     tables={
         "table": ad.AnnData(
           obs=pd.DataFrame(cell_id_col),
-          var=sdata.tables["table"].var[[]]
         )
     }
 )

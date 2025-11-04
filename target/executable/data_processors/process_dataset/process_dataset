@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0" "pyarrow<22.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2025-11-01T11:42:37Z"
+LABEL org.opencontainers.image.created="2025-11-04T14:52:33Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="31a351ffbb815f48ae1d1f4c930288196246c54d"
+LABEL org.opencontainers.image.revision="46db08eee6699af5cef19deb73e6ac6deb76cd7a"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1345,11 +1345,92 @@ def rechunk_sdata(sdata, CHUNK_SIZE=1024):
         sdata.labels[key] = label_image
 
 
+def subsample_adata_group_balanced(adata, group_key, n_samples, seed=0):
+    """Subsample adata to a given number of samples, removing cells from large groups first
+    
+    Arguments
+    ---------
+    adata: anndata.AnnData
+        The adata to subsample
+    group_key: str
+        The key in adata.obs to group by
+    n_samples: int
+        The number of samples to subsample to
+    seed: int
+        The seed to use for the random subsampling
+        
+    Returns
+    -------
+    pd.Series
+        The series with the subsample information (boolean, True if the cell is in the subsample). 
+        Series index is the same as adata.obs_names.
+    """
+    
+    np.random.seed(seed)
+    
+    # Get the number of cells per group
+    n_cells = adata.obs[group_key].value_counts().sort_values(ascending=True)
+    
+    if n_cells.sum() <= n_samples:
+        all_obs_df = adata.obs.copy()
+        all_obs_df["in_subsample"] = True
+        return all_obs_df["in_subsample"]
+    
+    n_celltypes = len(n_cells)
+    
+    # Find out which groups to subsample from
+    df = pd.DataFrame({"n_cells": n_cells, "sum": 0, "n_samples":0}, dtype=int)
+    subsample_from_idx = n_celltypes
+    tmp = np.zeros(n_celltypes, dtype=int)
+    for i in range(n_celltypes):
+        tmp[i] = df.iloc[:i]["n_cells"].sum()
+        tmp[i] += (n_celltypes - i) * df.iloc[i]["n_cells"]
+        if tmp[i] >= n_samples:
+            subsample_from_idx = i
+            break
+    df["sum"] = tmp
+    
+    # Get number of samples per group
+    n_samples_no_sampling = df.iloc[:subsample_from_idx]["n_cells"].sum()
+    n_samples_to_subsample = n_samples - n_samples_no_sampling
+    n_samples_per_group = n_samples_to_subsample // (n_celltypes - subsample_from_idx)
+    n_samples_per_group_remainder = n_samples_to_subsample % (n_celltypes - subsample_from_idx)
+    n_samples = np.zeros(n_celltypes, dtype=int)
+    for i in range(subsample_from_idx):
+        n_samples[i] = df.iloc[i]["n_cells"]
+    for i in range(subsample_from_idx, n_celltypes):
+        n_samples[i] = n_samples_per_group
+        if n_samples_per_group_remainder > 0:
+            n_samples[i] += 1
+            n_samples_per_group_remainder -= 1
+    df["n_samples"] = n_samples
+    
+    # Subsample from the selected groups
+    mask_df = adata.obs[[group_key]].copy()
+    mask_df["in_subsample"] = False
+    for i in range(subsample_from_idx):
+        ct = df.index[i]
+        mask_df.loc[mask_df[group_key] == ct, "in_subsample"] = True
+    for i in range(subsample_from_idx, n_celltypes):
+        ct = df.index[i]
+        ct_obs = mask_df.loc[mask_df[group_key] == ct].index
+        ct_obs_subsample = np.random.choice(ct_obs, size=df.iloc[i]["n_samples"], replace=False)
+        mask_df.loc[ct_obs_subsample, "in_subsample"] = True
+    
+    return mask_df["in_subsample"]
+
+
+
 # Load the single-cell data
 adata = ad.read_h5ad(par["input_sc"])
 
 # Load the spatial data
 sdata = sd.read_zarr(par["input_sp"])
+
+# Subset single-cell data if it is too large
+N_MAX_SC = 120000
+if adata.n_obs > N_MAX_SC:
+    adata = adata[subsample_adata_group_balanced(adata, "cell_type", N_MAX_SC, seed=0)]
 
 # Subset single-cell and spatial data to shared genes
 sp_genes = sdata['transcripts']['feature_name'].unique().compute().tolist()
@@ -1369,9 +1450,11 @@ for col in metadata_uns_cols:
     if orig_col in adata.uns:
         adata.uns[orig_col] = adata.uns[col]
     adata.uns[col] = par[col]
-    if orig_col in sdata.table.uns:
-        sdata.table.uns[orig_col] = sdata.table.uns[col]
-    sdata.table.uns[col] = par[col]
+    if not ("table" in sdata.tables):
+        sdata["table"] = ad.AnnData(uns={})
+    if orig_col in sdata["table"].uns:
+        sdata["table"].uns[orig_col] = sdata["table"].uns[col]
+    sdata["table"].uns[col] = par[col]
 
 # Correct the feature_key attribute in sdata if needed
 # NOTE: it would have been better to do this in the loader scripts, but this way the datasets don't need to be re-downloaded

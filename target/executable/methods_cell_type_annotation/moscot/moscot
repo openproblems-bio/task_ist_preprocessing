@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "numpy" "jax[cuda12]" "anndata" "scanpy" "moscot" "flax" "diffrax"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation moscot"
-LABEL org.opencontainers.image.created="2025-11-01T11:42:38Z"
+LABEL org.opencontainers.image.created="2025-11-04T14:52:33Z"
 LABEL org.opencontainers.image.source="https://github.com/theislab/moscot"
-LABEL org.opencontainers.image.revision="31a351ffbb815f48ae1d1f4c930288196246c54d"
+LABEL org.opencontainers.image.revision="46db08eee6699af5cef19deb73e6ac6deb76cd7a"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -616,11 +616,11 @@ function ViashHelp {
   echo ""
   echo "    --tau"
   echo "        type: double"
-  echo "        default: 1.0"
+  echo "        default: 0.3"
   echo ""
   echo "    --rank"
   echo "        type: integer"
-  echo "        default: 5000"
+  echo "        default: 500"
   echo ""
   echo "    --mapping_mode"
   echo "        type: string"
@@ -1003,10 +1003,10 @@ if [ -z ${VIASH_PAR_EPSILON+x} ]; then
   VIASH_PAR_EPSILON="0.01"
 fi
 if [ -z ${VIASH_PAR_TAU+x} ]; then
-  VIASH_PAR_TAU="1.0"
+  VIASH_PAR_TAU="0.3"
 fi
 if [ -z ${VIASH_PAR_RANK+x} ]; then
-  VIASH_PAR_RANK="5000"
+  VIASH_PAR_RANK="500"
 fi
 if [ -z ${VIASH_PAR_MAPPING_MODE+x} ]; then
   VIASH_PAR_MAPPING_MODE="max"
@@ -1324,6 +1324,8 @@ adata_sp = ad.read_h5ad(par['input_spatial_normalized_counts'])
 if adata_sp.n_obs < 10000:
     print('Adjusting rank to -1 since data set is small (n_obs < 10k)', flush=True)
     par['rank'] = -1
+    print("Also, adjusting tau to 1.0 since data set is small", flush=True)
+    par['tau'] = 1.0
 
 # Check for normalized layer and centroid information
 assert "normalized" in adata_sc.layers.keys(), 'Layer "normalized" is required for single-cell anndata'

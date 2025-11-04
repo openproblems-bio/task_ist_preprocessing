@@ -4,8 +4,11 @@ import dask
 import spatialdata as sd
 import anndata as ad
 import pandas as pd
+import sys
 import os
 import shutil
+
+sys.path.insert(0, os.path.abspath("/ClusterMap"))
 
 import time
 from datetime import timedelta
@@ -76,7 +79,7 @@ def run_clustermap_over_chunks(
     ):
     """
     """
-
+    
     # Infer parameters
     num_gene=np.max(spots['gene'])
     num_dims = len(dapi.shape)
@@ -102,7 +105,7 @@ def run_clustermap_over_chunks(
         
         if spots_tile.shape[0] < 20:
             continue
-    
+        
         # Instantiate model for tile
         t0_model = time.time()
         model_tile = ClusterMap(
@@ -111,14 +114,14 @@ def run_clustermap_over_chunks(
         )
         time_model = timedelta(seconds=(time.time() - t0_model))
         
-    
+        
         # Preprocessing
         t0_prepro = time.time()
         model_tile.preprocess(
             dapi_grid_interval=dapi_grid_interval, pct_filter=pct_filter, LOF=LOF, contamination=contamination
         )
         time_prepro = timedelta(seconds=(time.time() - t0_prepro))
-    
+        
         # Segmentation
         model_tile.min_spot_per_cell=min_spot_per_cell
         t0_segment = time.time()
@@ -143,7 +146,7 @@ def run_clustermap_over_chunks(
             flush=True
         )
         #TODO: include an assertion for an expected_time < 24 h? And a recommendation to decrease dapi_grid_interval?/data_size
-        
+    
     
     return model.spots
 
@@ -164,7 +167,7 @@ def run_clustermap(
         spots=spots, dapi=dapi, gene_list=gene_list, num_dims=num_dims, xy_radius=xy_radius, z_radius=z_radius, 
         fast_preprocess=fast_preprocess, gauss_blur=gauss_blur, sigma=sigma
     )
-
+    
     # Preprocessing
     model.preprocess(dapi_grid_interval=dapi_grid_interval, pct_filter=pct_filter, LOF=LOF, contamination=contamination)
     
@@ -174,7 +177,7 @@ def run_clustermap(
         cell_num_threshold=cell_num_threshold, dapi_grid_interval=dapi_grid_interval, add_dapi=add_dapi, 
         use_genedis=use_genedis
     )
-
+    
     return model.spots
 
 
@@ -208,7 +211,8 @@ print('Assigning transcripts to cell ids', flush=True)
 if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
 else:
-     label_image = sdata_segm["segmentation"].to_numpy()
+    label_image = sdata_segm["segmentation"].to_numpy()
+
 dapi_image = np.squeeze(sdata['morphology_mip']['scale0']['image'].compute())
 
 # Extract coordinates and feature names (= gene names) from SpatialData
@@ -290,7 +294,6 @@ sdata_transcripts_only = sd.SpatialData(
   tables={
     "table": ad.AnnData(
       obs=pd.DataFrame(cell_id_col),
-      var=sdata.tables["table"].var[[]]
     )
   }
 )
@@ -298,4 +301,5 @@ sdata_transcripts_only = sd.SpatialData(
 print('Write transcripts with cell ids', flush=True)
 if os.path.exists(par["output"]):
   shutil.rmtree(par["output"])
+
 sdata_transcripts_only.write(par['output'])

@@ -121,6 +121,14 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
 else:
      label_image = sdata_segm["segmentation"].to_numpy()
 
+# There might be spots at the border of the image, pciseq runs into an error if this is the case
+transcripts_at_border = transcripts_dataframe['x'] > (label_image.shape[1]-0.5)
+transcripts_at_border = transcripts_at_border | (transcripts_dataframe['y'] > (label_image.shape[0]-0.5))
+transcripts_dataframe = transcripts_dataframe.loc[~transcripts_at_border]
+transcripts_at_border_dask = transcripts.x > (label_image.shape[1]-0.5)
+transcripts_at_border_dask = transcripts_at_border_dask | (transcripts.y > (label_image.shape[0]-0.5))
+sdata[par['transcripts_key']] = sdata[par['transcripts_key']].loc[~transcripts_at_border_dask]
+
 # Grab all the pciSeq parameters
 opts_keys = [#'exclude_genes',
   'max_iter',
@@ -166,7 +174,6 @@ assert 0 not in cell_types['cell_id'], "Found '0' in cell_id column of assingmen
 
 output_table = ad.AnnData(
       obs=cell_types[['cell_id','cell_type','cell_type_prob']],
-      var=sdata.tables["table"].var[[]]
     )
 
 # TODO: Also take care of the following cases:

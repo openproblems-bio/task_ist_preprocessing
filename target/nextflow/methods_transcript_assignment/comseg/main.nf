@@ -4040,7 +4040,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/comseg",
     "viash_version" : "0.9.4",
-    "git_commit" : "31a351ffbb815f48ae1d1f4c930288196246c54d",
+    "git_commit" : "46db08eee6699af5cef19deb73e6ac6deb76cd7a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4221,7 +4221,7 @@ sdata["segmentation_boundaries"] = sd.to_polygons(sdata_segm["segmentation"])
 del sdata["segmentation_boundaries"]["label"] # make_transcript_patches will create a new label column and fails if one exists.
 
 # Make patches
-sopa.make_image_patches(sdata, patch_width=par["patch_width"], patch_overlap=par["patch_overlap"])
+sopa.make_image_patches(sdata, image_key="morphology_mip", patch_width=par["patch_width"], patch_overlap=par["patch_overlap"])
 
 transcript_patch_args = {
     "sdata": sdata,
@@ -4277,7 +4277,6 @@ sdata_transcripts_only = sd.SpatialData(
     tables={
         "table": ad.AnnData(
           obs=pd.DataFrame(cell_id_col),
-          var=sdata.tables["table"].var[[]]
         )
     }
 )
