@@ -39,8 +39,8 @@ par = {
    'celltype_key': 'cell_type',
    'alpha': 0.8,
    'epsilon': 0.01,
-   'tau': 1.0,
-   'rank': 5000,
+   'tau': 0.3,
+   'rank': 500, #5000
    'mapping_mode': 'max',
 }
 meta = {
@@ -61,6 +61,8 @@ adata_sp = ad.read_h5ad(par['input_spatial_normalized_counts'])
 if adata_sp.n_obs < 10000:
     print('Adjusting rank to -1 since data set is small (n_obs < 10k)', flush=True)
     par['rank'] = -1
+    print("Also, adjusting tau to 1.0 since data set is small", flush=True)
+    par['tau'] = 1.0
 
 # Check for normalized layer and centroid information
 assert "normalized" in adata_sc.layers.keys(), 'Layer "normalized" is required for single-cell anndata'
