@@ -4371,7 +4371,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.4",
-    "git_commit" : "46db08eee6699af5cef19deb73e6ac6deb76cd7a",
+    "git_commit" : "e8ff4460bd84f004eb4f1c25d61c499eb991b9e5",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4489,6 +4489,7 @@ def innerWorkflowFactory(args) {
 tempscript=".viash_script.py"
 cat > "$tempscript" << VIASHMAIN
 import numpy as np
+import pandas as pd
 import anndata as ad
 import spatialdata as sd
 import os

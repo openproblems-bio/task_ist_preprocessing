@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata" "anndata>=0.12.0" "pyarrow<22.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment basic_transcript_assignment"
-LABEL org.opencontainers.image.created="2025-11-04T14:52:35Z"
+LABEL org.opencontainers.image.created="2025-11-04T15:41:33Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="46db08eee6699af5cef19deb73e6ac6deb76cd7a"
+LABEL org.opencontainers.image.revision="e8ff4460bd84f004eb4f1c25d61c499eb991b9e5"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
