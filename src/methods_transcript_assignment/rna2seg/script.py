@@ -9,6 +9,7 @@ import anndata as ad
 import spatialdata as sd
 import sopa
 import cv2
+import torch
 
 from rna2seg.dataset_zarr.patches import create_patch_rna2seg
 import albumentations as A
@@ -27,11 +28,18 @@ par = {
   'input_segmentation': 'resources_test/task_ist_preprocessing/mouse_brain_combined/segmentation.zarr',
   'transcripts_key': 'transcripts',
   'coordinate_system': 'global',
-  'output': './temp/sopa_testing/rna2seg_transcripts.zarr'
+  'output': './temp/sopa_testing/rna2seg_transcripts.zarr',
+  'flow_threshold': 0.9,
+  'cellbound_flow_threshold': 0.4,
+  'create_cytoplasm_image': False,
+  'cytoplasm_min_threshold': 0.25,
+  'cytoplasm_max_threshold': 0.75,
+  'patch_width': 1000,
+  'patch_overlap': 50,
 }
 meta = {
   'name': 'rna2seg',
-  'temp_dir': "/Users/habib/Projects/txsim_project/task_ist_preprocessing/temp/sopa",
+  'temp_dir': "/Users/habib/Projects/txsim_project/task_ist_preprocessing/temp/rna2seg",
   'cpus': 10
 }
 ## VIASH END
@@ -43,24 +51,52 @@ TMP_ZARR = TMP_DIR / 'rna2seg_sdata.zarr'
 # Read input
 print('Reading input files', flush=True)
 sdata = sd.read_zarr(par['input_ist'])
-sdata_segm = sd.read_zarr(par['input_segmentation'])
+# sdata_segm = sd.read_zarr(par['input_segmentation'])
 
 # Check if coordinate system is available in input data
 transcripts_coord_systems = sd.transformations.get_transformation(sdata[par["transcripts_key"]], get_all=True).keys()
 assert par['coordinate_system'] in transcripts_coord_systems, f"Coordinate system '{par['coordinate_system']}' not found in input data."
-segmentation_coord_systems = sd.transformations.get_transformation(sdata_segm["segmentation"], get_all=True).keys()
-assert par['coordinate_system'] in segmentation_coord_systems, f"Coordinate system '{par['coordinate_system']}' not found in input data."
+# segmentation_coord_systems = sd.transformations.get_transformation(sdata_segm["segmentation"], get_all=True).keys()
+# assert par['coordinate_system'] in segmentation_coord_systems, f"Coordinate system '{par['coordinate_system']}' not found in input data."
 
-# Transform transcript coordinates to the coordinate system
-print('Transforming transcripts coordinates', flush=True)
-transcripts = sd.transform(sdata[par['transcripts_key']], to_coordinate_system=par['coordinate_system'])
-
-# In case of a translation transformation of the segmentation (e.g. crop of the data), we need to adjust the transcript coordinates
-trans = sd.transformations.get_transformation(sdata_segm["segmentation"], get_all=True)[par['coordinate_system']].inverse()
-transcripts = sd.transform(transcripts, trans, par['coordinate_system'])
 
 ### Run RNA2seg with sopa
 
+
+### CREATE CYTOPLASM IMAGE FUNCTION
+# TODO define this function somewhere else and import
+def get_nuclear_outline(nuclear_image, threshold_min = 0.25, threshold_max = 0.75):
+    threshold_image = np.clip(nuclear_image, np.quantile(nuclear_image, threshold_min), np.quantile(nuclear_image, threshold_max))
+    # get the nuclear values (over a nuclear mask)
+    nuclear_mask = (nuclear_image > np.quantile(nuclear_image, threshold_max)) * nuclear_image
+    # scale nuclear values to whole cell values
+    scaling_factor = (np.max(threshold_image) - np.min(threshold_image)) / np.max(nuclear_mask)
+    # subtract nucleus from whole cell to get cytoplasm
+    cyto_image = threshold_image - (nuclear_mask * scaling_factor)
+    cyto_image = np.clip(cyto_image, 0 ,np.inf).astype(nuclear_image.dtype)
+    return cyto_image
+
+
+#create composite image with 2nd channel as either 0s or generated cytoplasm image
+nuclear_image = sdata['morphology_mip']['scale0'].image.compute().to_numpy()
+composite = np.zeros([2, nuclear_image.shape[1], nuclear_image.shape[2]], dtype=nuclear_image.dtype)
+composite[0,:,:] = nuclear_image 
+
+if par['create_cytoplasm_image']:
+    cyto_image = get_nuclear_outline(nuclear_image=nuclear_image, 
+                                     threshold_min=par['cytoplasm_min_threshold'], 
+                                     threshold_max=par['cytoplasm_max_threshold'])
+    composite[1,:,:] = cyto_image
+# else: # redundant since the matrix is initialized to zeros
+#     composite[1,:,:] = 0 
+morphology_mip = sd.models.Image2DModel.parse(data=composite, 
+                                            scale_factors=[2]*(len(sdata['morphology_mip'].groups)-2), 
+                                            dims=['c','y','x'],
+                                            chunks=composite.shape) 
+
+#make sure image is transformed correctly
+img_trans=sd.transformations.get_transformation(sdata['morphology_mip'], to_coordinate_system=par['coordinate_system'])
+sd.transformations.set_transformation(morphology_mip, img_trans, to_coordinate_system=par['coordinate_system'])  
 
 # Create reduced sdata
 print("Creating sopa SpatialData object")
@@ -69,17 +105,19 @@ sdata_sopa = sd.SpatialData(
         "transcripts": sdata[par['transcripts_key']]
     },
     images={
-        "morphology_mip": sdata['morphology_mip']
+        "morphology_mip": morphology_mip
     }
 )
+
 sdata_sopa.write(TMP_ZARR, overwrite=True)
 
+print("Running RNA2Seg")
 # create patch in the sdata and precompute transcipt.csv for each patch with sopa
 image_key = 'morphology_mip'
 points_key = par["transcripts_key"]
 gene_column_name="feature_name" # typically "feature_name" for Xenium
-patch_width = 2000
-patch_overlap = 150
+patch_width = par['patch_width']
+patch_overlap = par['patch_overlap']
 min_points_per_patch = 1
 folder_patch_rna2seg = Path(TMP_ZARR / f".rna2seg_{patch_width}_{patch_overlap}")
 create_patch_rna2seg(sdata=sdata_sopa,
@@ -99,7 +137,7 @@ transform_resize  = A.Compose([
 dataset = RNA2segDataset(
     sdata=sdata_sopa,
     channels_dapi=[0],
-    channels_cellbound=[0], #TODO idk
+    channels_cellbound=[1],
     patch_width = patch_width,
     patch_overlap = patch_overlap,
     gene_column=gene_column_name,
@@ -107,15 +145,14 @@ dataset = RNA2segDataset(
     patch_dir=folder_patch_rna2seg
 )
 
-#TODO how to fix
-device = "cpu"
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Set up RNA2Seg model
 rna2seg = RNA2seg(
     device,
     net='unet',
-    flow_threshold = 0.9,
-    cellbound_flow_threshold = 0.4,
+    flow_threshold = par['flow_threshold'],
+    cellbound_flow_threshold = par['cellbound_flow_threshold'],
     pretrained_model = "default_pretrained"
 )
 
@@ -135,11 +172,23 @@ save_shapes2zarr(dataset=dataset,
                  overwrite= True
                  )
 
+# ONLY IF TESTING/USING CROP
+# for whatever reason the cropping breaks the rna2seg transformation
+# this fixes it, somehow
+transcript_min = sd.transform(sdata_sopa['transcripts'],to_coordinate_system=par['coordinate_system']).compute()['x'].min()
+shapes_max = sd.transform(sdata_sopa['rna2seg_boundaries'],to_coordinate_system=par['coordinate_system']).bounds['maxx'].max()
+if transcript_min > shapes_max:
+    print(f"crop detected ({transcript_min} > {shapes_max}), reformatting")
+    trans = sd.transformations.get_transformation(sdata_sopa['morphology_mip'], to_coordinate_system=par['coordinate_system'])
+    sd.transformations.set_transformation(sdata_sopa['rna2seg_boundaries'], trans, to_coordinate_system=par['coordinate_system'])
+    # print(sd.transform(sdata_sopa['rna2seg_boundaries'],to_coordinate_system=par['coordinate_system']).bounds['maxx'].max())
+
+
 # Assign transcripts based on shapes
 sopa.spatial.assign_transcript_to_cell(
     sdata_sopa,
     points_key="transcripts",
-    shapes_key="rna2seg_boundaries", #TODO what is the key
+    shapes_key="rna2seg_boundaries",
     key_added="cell_id",
     unassigned_value=0
 )
@@ -148,6 +197,7 @@ sopa.spatial.assign_transcript_to_cell(
 print('Creating objects for cells table', flush=True)
 #create new .obs for cells based on the segmentation output (corresponding with the transcripts 'cell_id')
 unique_cells = np.unique(sdata_sopa["transcripts"]["cell_id"])
+# print(unique_cells)
 
 # check if a '0' (noise/background) cell is in cell_id and remove
 zero_idx = np.where(unique_cells == 0)

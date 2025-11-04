@@ -16,6 +16,47 @@ arguments:
     description: The key of the transcripts within the points of the spatial data
     default: transcripts
 
+  - name: --coordinate_system
+    type: string
+    description: The key of the pixel space coordinate system within the spatial data
+    default: global
+    
+  - name: --flow_threshold
+    type: double
+    description: Flow threshold for detecting cells
+    default: 0.9
+
+  - name: --cellbound_flow_threshold
+    type: double
+    description: Cell boundary flow threshold for detecting cells
+    default: 0.4
+
+  - name: --create_cytoplasm_image
+    type: boolean
+    description: Whether to create an artificial cytoplasm image based on thresholding the nuclear stain image
+    default: False
+
+  - name: --cytoplasm_min_threshold
+    type: double
+    description: Minimum percentile for cytoplasm image thresholding
+    default: 0.25
+
+  - name: --cytoplasm_max_threshold
+    type: double
+    description: Maximum percentile for cytoplasm image thresholding
+    default: 0.75
+
+  - name: patch_width
+    type: integer
+    description: Size of sopa patches to tile over image for parallelization. May affect segmentation output.
+    default: 1000
+
+  - name: patch_overlap
+    type: integer
+    description: Overlap of sopa patches to tile over image for parallelization.
+    default: 50
+
+
 resources:
   - type: python_script
     path: script.py
@@ -26,6 +67,11 @@ engines:
     __merge__: 
       - /src/base/setup_spatialdata_partial.yaml
     setup:
+      - type: docker
+        # env:
+        #   - PATH="/root/.cargo/bin:${PATH}"
+        run:
+          - apt-get update && apt-get install libgl1 -y
       - type: python
         pypi: [rna2seg]
   - type: native
