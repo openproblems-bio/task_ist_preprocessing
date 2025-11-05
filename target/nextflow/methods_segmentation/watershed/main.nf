@@ -3989,9 +3989,10 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "spatialdata",
+            "spatialdata==0.5.0",
             "anndata>=0.12.0",
-            "pyarrow<22.0.0"
+            "pyarrow<22.0.0",
+            "zarr<3.0.0"
           ],
           "upgrade" : true
         },
@@ -4020,7 +4021,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/watershed",
     "viash_version" : "0.9.4",
-    "git_commit" : "e8ff4460bd84f004eb4f1c25d61c499eb991b9e5",
+    "git_commit" : "39218d61234ed6966228dde2f88a992abf4a90e0",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
