@@ -4041,7 +4041,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/comseg",
     "viash_version" : "0.9.4",
-    "git_commit" : "39218d61234ed6966228dde2f88a992abf4a90e0",
+    "git_commit" : "93c2914a1bff5805823036241f2a452416b082e6",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4229,6 +4229,7 @@ transcript_patch_args = {
     "write_cells_centroids": True,
     "patch_width": par["transcript_patch_width"],
     "prior_shapes_key": "segmentation_boundaries",
+    "points_key": par["transcripts_key"],
 }
 
 sopa.make_transcript_patches(**transcript_patch_args)

@@ -43,6 +43,7 @@ transcript_patch_args = {
     "write_cells_centroids": True,
     "patch_width": par["transcript_patch_width"],
     "prior_shapes_key": "segmentation_boundaries",
+    "points_key": par["transcripts_key"],
 }
 
 sopa.make_transcript_patches(**transcript_patch_args)

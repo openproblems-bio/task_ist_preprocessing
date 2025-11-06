@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "sopa" "comseg"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment comseg"
-LABEL org.opencontainers.image.created="2025-11-05T13:28:43Z"
+LABEL org.opencontainers.image.created="2025-11-06T21:52:34Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="39218d61234ed6966228dde2f88a992abf4a90e0"
+LABEL org.opencontainers.image.revision="93c2914a1bff5805823036241f2a452416b082e6"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1470,6 +1470,7 @@ transcript_patch_args = {
     "write_cells_centroids": True,
     "patch_width": par["transcript_patch_width"],
     "prior_shapes_key": "segmentation_boundaries",
+    "points_key": par["transcripts_key"],
 }
 
 sopa.make_transcript_patches(**transcript_patch_args)
