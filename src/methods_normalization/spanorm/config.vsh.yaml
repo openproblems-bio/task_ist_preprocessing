@@ -18,8 +18,11 @@ engines:
   - type: docker
     image: openproblems/base_r:1
     setup:
+      #- type: docker
+      #  run: |
+      #    apt-get update && apt-get install -y wget
       - type: r
-        bioc: [SpaNorm, zellkonverter]
+        bioc: [SpaNorm, anndataR, rhdf5]
       #- type: r
       #  bioc: [SummarizedExperiment,SingleCellExperiment,SpatialExperiment]
       #  bioc_force_install: true

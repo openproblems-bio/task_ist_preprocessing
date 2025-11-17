@@ -1,0 +1,189 @@
+type: file
+example: "resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_processed_complete.zarr"
+label: "Spatial Processed Complete"
+summary: A spatial transcriptomics dataset that includes all raw and processed data.
+description: |
+  This dataset contains images, points with cell ids, and an anndata table with processed counts and cell type annotations.
+  
+info:
+  format:
+    type: spatialdata_zarr
+    images:
+      - type: object
+        name: image
+        description: The raw image data
+        required: true
+      - type: object
+        name: image_3D
+        description: The raw 3D image data
+        required: false
+      - type: object
+        name: he_image
+        description: H&E image data
+        required: false 
+    points:
+      - type: dataframe
+        name: transcripts
+        description: Point cloud data of transcripts
+        required: true
+        columns:
+          - type: float
+            name: "x"
+            required: true
+            description: x-coordinate of the point
+          - type: float
+            name: "y"
+            required: true
+            description: y-coordinate of the point
+          - type: float
+            name: "z"
+            required: false
+            description: z-coordinate of the point
+          - type: categorical
+            name: feature_name
+            required: true
+            description: Name of the feature
+          - type: integer
+            name: "cell_id"
+            required: true
+            description: Unique identifier of the cell
+          - type: long
+            name: transcript_id
+            required: true
+            description: Unique identifier of the transcript
+    shapes:
+      - type: dataframe
+        name: "cell_boundaries"
+        description: Cell boundaries
+        required: false
+        columns:
+          - type: object
+            name: "geometry"
+            required: true
+            description: Geometry of the cell boundary
+    tables:
+      - type: anndata
+        name: "counts"
+        description: Counts of the transcripts
+        required: true
+        layers: 
+          - type: integer
+            name: counts
+            description: Raw counts
+            required: true
+          - type: integer
+            name: normalized
+            description: Normalized counts
+            required: true
+          - type: double
+            name: normalized_uncorrected
+            description: Uncorrected normalized expression
+            required: false
+        obs:
+          - type: string
+            name: cell_id
+            description: Unique identifier for the cell (from assignment step)
+            required: true
+          - type: string
+            name: centroid_x
+            description: X coordinate of the cell
+            required: true
+          - type: string
+            name: centroid_y
+            description: Y coordinate of the cell
+            required: true
+          - type: string
+            name: centroid_z
+            description: Z coordinate of the cell
+            required: false
+          - type: string
+            name: n_counts
+            description: Number of counts in the cell
+            required: true
+          - type: string
+            name: n_genes
+            description: Number of genes in the cell
+            required: true
+          - type: string
+            name: volume
+            description: Volume of the cell
+            required: true
+          - type: string
+            name: cell_type
+            description: Cell type of the cell
+            required: true
+        var:
+          - type: string
+            name: gene_name
+            description: Name of the gene
+            required: true
+          - type: string
+            name: n_counts
+            description: Number of counts of the gene
+            required: true
+          - type: string
+            name: n_cells
+            description: Number of cells expressing the gene
+            required: true
+      - type: anndata
+        name: "metadata"
+        description: Metadata of spatial dataset
+        required: true
+        uns:
+          - type: string
+            name: dataset_id
+            required: true
+            description: A unique identifier for the dataset
+          - type: string
+            name: dataset_name
+            required: true
+            description: A human-readable name for the dataset
+          - type: string
+            name: dataset_url
+            required: true
+            description: Link to the original source of the dataset
+          - type: string
+            name: dataset_reference
+            required: true
+            description: Bibtex reference of the paper in which the dataset was published
+          - type: string
+            name: dataset_summary
+            required: true
+            description: Short description of the dataset
+          - type: string
+            name: dataset_description
+            required: true
+            description: Long description of the dataset
+          - type: string
+            name: dataset_organism
+            required: true
+            description: The organism of the sample in the dataset
+          - type: string
+            name: segmentation_id
+            required: true
+            multiple: true
+            description: A unique identifier for the segmentation
+        obs:
+          - type: string
+            name: cell_id
+            required: true
+            description: A unique identifier for the cell
+        var:
+          - type: string
+            name: gene_ids
+            required: true
+            description: Unique identifier for the gene
+          - type: string
+            name: feature_types
+            required: true
+            description: Type of the feature
+        obsm:
+          - type: double
+            name: spatial
+            required: true
+            description: Spatial coordinates of the cell
+    coordinate_systems:
+      - type: object
+        name: global
+        description: Coordinate system of the replicate
+        required: true

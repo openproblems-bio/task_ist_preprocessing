@@ -38,6 +38,53 @@ meta = {
 }
 ## VIASH END
 
+########
+# NOTE: Issue https://github.com/acycliq/pciSeq/issues/14 still occurs on some datasets.
+#       To tackle this we overwrite the class method with a version that skips the assertion.
+
+def eta_update_no_assert(self):
+    """
+    Calcs the expected eta
+    Implements equation (5) of the Qian paper
+    """
+    
+    #NOTE: assertion removed
+    #grand_total = self.cells.background_counts.sum() + self.cells.total_counts.sum()
+    #assert round(grand_total) == self.spots.data.shape[0], \
+    #  'The sum of the background spots and the total gene counts should be equal to the number of spots' 
+        
+    classProb = self.cells.classProb
+    mu = self.single_cell.mean_expression
+    area_factor = self.cells.ini_cell_props['area_factor']
+    gamma_bar = self.spots.gamma_bar.compute()
+    
+    zero_prob = classProb[:, -1]  # probability a cell being a zero expressing cell
+    zero_class_counts = self.spots.zero_class_counts(self.spots.gene_id, zero_prob)
+    
+    # Calcs the sum in the Gamma distribution (equation 5). The zero class
+    # is excluded from the sum, hence the arrays in the einsum below stop at :-1
+    # Note. I also think we should exclude the "cell" that is meant to keep the
+    # misreads, ie exclude the background
+    class_total_counts = np.einsum(
+        'ck, gk, c, cgk -> g',
+        classProb[:, :-1],
+        mu.values[:, :-1],
+        area_factor,
+        gamma_bar[:, :, :-1]
+    )
+    background_counts = self.cells.background_counts
+    alpha = self.config['rGene'] + self.spots.counts_per_gene - background_counts - zero_class_counts
+    beta = self.config['rGene'] / self.config['Inefficiency'] + class_total_counts
+    
+    # Finally, update gene_gamma
+    self.genes.calc_eta(alpha, beta)
+
+import pciSeq
+pciSeq.src.core.main.VarBayes.eta_upd = eta_update_no_assert
+
+########
+
+
 # Read input
 print('Reading input files', flush=True)
 sdata = sd.read_zarr(par['input_ist'])
@@ -73,6 +120,14 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
 else:
      label_image = sdata_segm["segmentation"].to_numpy()
+
+# There might be spots at the border of the image, pciseq runs into an error if this is the case
+transcripts_at_border = transcripts_dataframe['x'] > (label_image.shape[1]-0.5)
+transcripts_at_border = transcripts_at_border | (transcripts_dataframe['y'] > (label_image.shape[0]-0.5))
+transcripts_dataframe = transcripts_dataframe.loc[~transcripts_at_border]
+transcripts_at_border_dask = transcripts.x > (label_image.shape[1]-0.5)
+transcripts_at_border_dask = transcripts_at_border_dask | (transcripts.y > (label_image.shape[0]-0.5))
+sdata[par['transcripts_key']] = sdata[par['transcripts_key']].loc[~transcripts_at_border_dask]
 
 # Grab all the pciSeq parameters
 opts_keys = [#'exclude_genes',
@@ -119,7 +174,6 @@ assert 0 not in cell_types['cell_id'], "Found '0' in cell_id column of assingmen
 
 output_table = ad.AnnData(
       obs=cell_types[['cell_id','cell_type','cell_type_prob']],
-      var=sdata.tables["table"].var[[]]
     )
 
 # TODO: Also take care of the following cases:

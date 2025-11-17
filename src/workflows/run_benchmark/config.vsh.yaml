@@ -105,6 +105,35 @@ argument_groups:
         type: string
         multiple: true
         default: "no_correction:gene_efficiency_correction:resolvi_correction"
+  - name: Method parameters
+    description: |
+      Use these arguments to control the parameter sets that are run for each
+      method
+    arguments:
+      - name: "--method_parameters_yaml"
+        description: |
+          Optional path to a YAML file that defines method parameter sets and sweeps.
+          The YAML should either contain a top-level `parameters:` mapping or be the
+          mapping itself. Example structure:
+            parameters:
+              binning:
+                default:
+                  bin_size: 30
+                sweep:
+                  bin_size: [20, 30, 40]
+        type: file
+        direction: input
+        required: false
+  - name: Output control
+    description: |
+      Control which outputs are saved
+    arguments:
+      - name: "--save_spatial_data"
+        description: |
+          Whether to save the aggregated spatial data (.zarr files) to the output directory.
+          When true, the output_agg_spatial_data files will be saved in subfolders according to run_id.
+        type: boolean
+        default: false
 
 resources:
   - type: nextflow_script
@@ -142,7 +171,9 @@ dependencies:
   - name: methods_expression_correction/no_correction
   - name: methods_expression_correction/gene_efficiency_correction
   - name: methods_expression_correction/resolvi_correction
+  - name: methods_data_aggregation/aggregate_spatial_data
   - name: metrics/similarity
-
+  - name: metrics/quality
+  
 runners:
   - type: nextflow

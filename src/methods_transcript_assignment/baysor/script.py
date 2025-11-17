@@ -20,7 +20,7 @@ par = {
   'coordinate_system': 'global',
   'output': './temp/methods/baysor/baysor_assigned_transcripts.zarr',
 
-  'force_2d': 'false',
+  'force_2d': True, #'false',
   'min_molecules_per_cell': 50,
   'scale': -1.0, #NOTE: For parameter selection see https://github.com/gustaveroussy/sopa/tree/main/workflow/config
   'scale_std': "25%",
@@ -37,7 +37,7 @@ meta = {
 TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 
-CONFIG_TOML = TMP_DIR / "config.toml"
+#CONFIG_TOML = TMP_DIR / "config.toml"
 
 
 ##############################
@@ -70,7 +70,7 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
-    
+
 cell_id_dask_series = dask.dataframe.from_dask_array(
     dask.array.from_array(
         label_image[y_coords, x_coords], chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
@@ -91,26 +91,43 @@ sdata_sopa = sd.SpatialData(
     },
 )
 
-# Write config to toml
-print('Writing config to toml', flush=True)
-toml_str = f"""[data]
-x = "x"
-y = "y"
-z = "z"
-gene = "feature_name" 
-force_2d = {par['force_2d']} 
-min_molecules_per_cell = {int(par['min_molecules_per_cell'])}
-exclude_genes = "" 
+## Write config to toml #NOTE: lead to an error since sopa v2.1.5, instead use config dict
+#print('Writing config to toml', flush=True)
+#toml_str = f"""[data]
+#x = "x"
+#y = "y"
+#z = "z"
+#gene = "feature_name" 
+#force_2d = {par['force_2d']} 
+#min_molecules_per_cell = {int(par['min_molecules_per_cell'])}
+#exclude_genes = "" 
+#
+#[segmentation]
+#scale = {float(par['scale'])} 
+#scale_std = "{par['scale_std']}"
+#n_clusters = {int(par['n_clusters'])}
+#prior_segmentation_confidence = {float(par['prior_segmentation_confidence'])}
+#"""
+#with open(CONFIG_TOML, "w") as toml_file:
+#    toml_file.write(toml_str)
 
-[segmentation]
-scale = {float(par['scale'])} 
-scale_std = "{par['scale_std']}"
-n_clusters = {int(par['n_clusters'])}
-prior_segmentation_confidence = {float(par['prior_segmentation_confidence'])}
-"""
-with open(CONFIG_TOML, "w") as toml_file:
-    toml_file.write(toml_str)
-
+config = {
+    "data": {
+        "x": "x",
+        "y": "y",
+        "z": "z",
+        "gene": "feature_name",
+        "force_2d": par['force_2d'],
+        "min_molecules_per_cell": int(par['min_molecules_per_cell']),
+        "exclude_genes": "",
+    },
+    "segmentation": {
+        "scale": float(par['scale']),
+        "scale_std": str(par['scale_std']),
+        "n_clusters": int(par['n_clusters']),
+        "prior_segmentation_confidence": float(par['prior_segmentation_confidence']),
+    },
+}
 
 
 # Make transcript patches
@@ -124,7 +141,7 @@ n_threads = max(n_threads-2, 1)
 #       (called with sopa -->) subprocess.CalledProcessError: Command 'baysor ...' returned non-zero exit status 139.
 #       When reproducing the error with `baysor ...` it reports a signal (11.1) Segmentation fault Allocations: 5017730 (Pool: 5013281; Big: 4449); GC: 8
 os.environ['JULIA_NUM_THREADS'] = str(n_threads)
-sopa.segmentation.baysor(sdata_sopa, config=str(CONFIG_TOML))
+sopa.segmentation.baysor(sdata_sopa, config=config) #str(CONFIG_TOML))
 
 # Assign transcripts to cell ids
 sopa.spatial.assign_transcript_to_cell(
@@ -160,7 +177,6 @@ sdata_transcripts_only = sd.SpatialData(
     tables={
         "table": ad.AnnData(
           obs=pd.DataFrame(cell_id_col),
-          var=sdata.tables["table"].var[[]]
         )
     }
 )

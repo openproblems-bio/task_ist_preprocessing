@@ -1,5 +1,29 @@
 #!/usr/bin/env python3
 
+# --- Fix for CuDNN version mismatch ------------------------------------------
+# JAX wheels (e.g. jax[cuda12]) come with their own CUDA/cuDNN libraries.
+# However, some systems set LD_LIBRARY_PATH to point to an older system-wide
+# CUDA/cuDNN (e.g. 9.1). That can override JAX's bundled libraries and cause
+# errors like:
+#   "Loaded runtime CuDNN library: 9.1.0 but source was compiled with: 9.8.0"
+#
+# To prevent that, we remove LD_LIBRARY_PATH before importing JAX so it uses
+# its own compatible, built-in CUDA/cuDNN stack.
+# -----------------------------------------------------------------------------
+import os
+print("LD_LIBRARY_PATH before unset:", os.environ.get("LD_LIBRARY_PATH"), flush=True)
+os.environ.pop("LD_LIBRARY_PATH", None)
+
+# gpu check
+import jax 
+import jaxlib
+print("GPU check", flush=True)
+print("jax:", jax.__version__, flush=True)
+print("jaxlib:", jaxlib.__version__, flush=True)
+print("backend:", jax.default_backend(), flush=True)
+print("devices:", jax.devices(), flush=True)
+print("LD_LIBRARY_PATH:", os.environ.get("LD_LIBRARY_PATH"), flush=True)
+
 import numpy as np
 import anndata as ad
 import scanpy as sc
@@ -15,14 +39,15 @@ par = {
    'celltype_key': 'cell_type',
    'alpha': 0.8,
    'epsilon': 0.01,
-   'tau': 1.0,
-   'rank': 5000,
+   'tau': 0.3,
+   'rank': 500, #5000
    'mapping_mode': 'max',
 }
 meta = {
    'name': 'moscot',
 }
  ## VIASH END
+
 
 # Optional parameter check: For this specific annotation method the par['input_spatial_normalized_counts'] and par['input_scrnaseq_reference'] are required
 assert par['input_spatial_normalized_counts'] is not None, 'Spatial input is required for this annotation method.'
@@ -36,6 +61,8 @@ adata_sp = ad.read_h5ad(par['input_spatial_normalized_counts'])
 if adata_sp.n_obs < 10000:
     print('Adjusting rank to -1 since data set is small (n_obs < 10k)', flush=True)
     par['rank'] = -1
+    print("Also, adjusting tau to 1.0 since data set is small", flush=True)
+    par['tau'] = 1.0
 
 # Check for normalized layer and centroid information
 assert "normalized" in adata_sc.layers.keys(), 'Layer "normalized" is required for single-cell anndata'

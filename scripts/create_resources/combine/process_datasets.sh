@@ -84,6 +84,17 @@ param_list:
     dataset_description: "Spatial data: Xenium V1 hSkin nondiseased section 1 FFPE; Single cell data: 2024Ganier_human_skin_sc"
     dataset_organism: "homo_sapiens"
 
+  - id: "2024_10x_human_liver_xenium_combined"
+    input_sp: "$input_dir/10x_xenium/2024_10x_human_liver_xenium/dataset.zarr"
+    input_sc: "$input_dir/scrnaseq_for_ist/2022Andrews_human_liver_sc/dataset.h5ad"
+    dataset_id: "2024_10x_human_liver_xenium_combined"
+    dataset_name: "Human liver combined 2024 tenx Xenium 2022 Andrews scRNAseq"
+    dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/human-liver-rna-ffpe-dataset/;https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE185477"
+    dataset_reference: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/human-liver-rna-ffpe-dataset/;https://doi.org/10.1002/hep4.1854"
+    dataset_summary: "Spatial data: Bruker CosMx Human Liver; Single cell data: 2022Andrews_human_liver_sc"
+    dataset_description: "Spatial data: Bruker CosMx Human Liver; Single cell data: 2022Andrews_human_liver_sc"
+    dataset_organism: "homo_sapiens"
+
   - id: "2024_10x_human_liver_cancer_xenium_combined"
     input_sp: "$input_dir/10x_xenium/2024_10x_human_liver_cancer_xenium/dataset.zarr"
     input_sc: "$input_dir/scrnaseq_for_ist/2022Lu_human_liver_cancer_sc/dataset.h5ad"
@@ -205,6 +216,17 @@ param_list:
     dataset_description: "Spatial data: Bruker CosMx Mouse Brain; Single cell data: ABCA Mouse Brain scRNAseq"
     dataset_organism: "mus_musculus"
 
+  - id: "bruker_human_liver_cosmx_combined"
+    input_sp: "$input_dir/bruker_cosmx/bruker_human_liver_cosmx/dataset.zarr"
+    input_sc: "$input_dir/scrnaseq_for_ist/2022Andrews_human_liver_sc/dataset.h5ad"
+    dataset_id: "bruker_human_liver_cosmx_combined"
+    dataset_name: "Human liver combined Bruker CosMx 2022 Andrews scRNAseq"
+    dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/human-liver-rna-ffpe-dataset/;https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE185477"
+    dataset_reference: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/human-liver-rna-ffpe-dataset/;https://doi.org/10.1002/hep4.1854"
+    dataset_summary: "Spatial data: Bruker CosMx Human Liver; Single cell data: 2022Andrews_human_liver_sc"
+    dataset_description: "Spatial data: Bruker CosMx Human Liver; Single cell data: 2022Andrews_human_liver_sc"
+    dataset_organism: "homo_sapiens"
+
   - id: "bruker_human_liver_cancer_cosmx_combined"
     input_sp: "$input_dir/bruker_cosmx/bruker_human_liver_cancer_cosmx/dataset.zarr"
     input_sc: "$input_dir/scrnaseq_for_ist/2022Lu_human_liver_cancer_sc/dataset.h5ad"
@@ -303,8 +325,6 @@ param_list:
     dataset_summary: "Spatial data: Bruker CosMx Human Lung Cancer Lung13; Single cell data: 2024Zuani_human_nsclc_sc"
     dataset_description: "Spatial data: Bruker CosMx Human Lung Cancer Lung13; Single cell data: 2024Zuani_human_nsclc_sc"
     dataset_organism: "homo_sapiens"
-
-
 
 output_sc: "\$id/output_sc.h5ad"
 output_sp: "\$id/output_sp.zarr"

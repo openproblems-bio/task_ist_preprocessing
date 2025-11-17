@@ -12,7 +12,7 @@ par = {
     "coordinate_system": "global",
     "output": "temp/comseg/transcripts.zarr",
     
-    "patch_width": 1200,
+    "patch_width": 2000,
     "patch_overlap": 50,
     "transcript_patch_width": 200,
     "mean_cell_diameter": 15.0,
@@ -25,52 +25,6 @@ par = {
 }
 ## VIASH END
 
-def fixed_count_transcripts_aligned(geo_df, points, value_key):
-    """
-    The same function as sopa.aggregation.transcripts._count_transcripts_aligned.
-    Minor change just the matrix X is converted to csr_matrix, to avoid bug error in comseg call
-
-    """
-    from scipy.sparse import csr_matrix
-    from anndata import AnnData
-    from dask.diagnostics import ProgressBar
-    from functools import partial
-    from sopa._settings import settings
-    import geopandas as gpd
-    def _add_csr(X_partitions, geo_df, partition, gene_column, gene_names ):
-        if settings.gene_exclude_pattern is not None:
-            partition = partition[~partition[gene_column].str.match(settings.gene_exclude_pattern, case=False, na=False)]
-        
-        points_gdf = gpd.GeoDataFrame(partition, geometry=gpd.points_from_xy(partition["x"], partition["y"]))
-        joined = geo_df.sjoin(points_gdf)
-        cells_indices, column_indices = joined.index, joined[gene_column].cat.codes
-        cells_indices = cells_indices[column_indices >= 0]
-        column_indices = column_indices[column_indices >= 0]
-        X_partition = csr_matrix((np.full(len(cells_indices), 1), (cells_indices, column_indices)),
-            shape=(len(geo_df), len(gene_names)),
-        )
-        X_partitions.append(X_partition)
-    
-    
-    points[value_key] = points[value_key].astype("category").cat.as_known()
-    gene_names = points[value_key].cat.categories.astype(str)
-    X = csr_matrix((len(geo_df), len(gene_names)), dtype=int)
-    adata = AnnData(X=X, var=pd.DataFrame(index=gene_names))
-    adata.obs_names = geo_df.index.astype(str)
-    geo_df = geo_df.reset_index()
-    X_partitions = []
-    with ProgressBar():
-        points.map_partitions(
-            partial(_add_csr, X_partitions, geo_df, gene_column=value_key, gene_names=gene_names),
-            meta=(),
-        ).compute()
-    for X_partition in X_partitions:
-        adata.X += X_partition
-    if settings.gene_exclude_pattern is not None:
-        adata = adata[:, ~adata.var_names.str.match(settings.gene_exclude_pattern, case=False, na=False)].copy()
-    return adata
-
-
 
 # Read input files
 print('Reading input files', flush=True)
@@ -82,13 +36,14 @@ sdata["segmentation_boundaries"] = sd.to_polygons(sdata_segm["segmentation"])
 del sdata["segmentation_boundaries"]["label"] # make_transcript_patches will create a new label column and fails if one exists.
 
 # Make patches
-sopa.make_image_patches(sdata, patch_width=par["patch_width"], patch_overlap=par["patch_overlap"])
+sopa.make_image_patches(sdata, image_key="morphology_mip", patch_width=par["patch_width"], patch_overlap=par["patch_overlap"])
 
 transcript_patch_args = {
     "sdata": sdata,
     "write_cells_centroids": True,
     "patch_width": par["transcript_patch_width"],
     "prior_shapes_key": "segmentation_boundaries",
+    "points_key": par["transcripts_key"],
 }
 
 sopa.make_transcript_patches(**transcript_patch_args)
@@ -105,7 +60,7 @@ config = {
     "gene_column": par["gene_column"],
 }
 
-sopa.aggregation.transcripts._count_transcripts_aligned = fixed_count_transcripts_aligned
+
 # sopa.settings.parallelization_backend = 'dask' #TODO: get parallelization running.
 sopa.segmentation.comseg(sdata, config)
 
@@ -138,7 +93,6 @@ sdata_transcripts_only = sd.SpatialData(
     tables={
         "table": ad.AnnData(
           obs=pd.DataFrame(cell_id_col),
-          var=sdata.tables["table"].var[[]]
         )
     }
 )

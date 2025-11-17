@@ -15,11 +15,7 @@ echo "  Make sure to run 'scripts/project/build_all_docker_containers.sh'!"
 RUN_ID="testrun_$(date +%Y-%m-%d_%H-%M-%S)"
 publish_dir="temp/results/${RUN_ID}"
 
-# Write the parameters to file
-cat > /tmp/params.yaml << HERE
-id: mouse_brain_combined
-input_sc: resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad
-input_sp: resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr
+cat > /tmp/params_settings.yaml << HERE
 default_methods:
   - custom_segmentation
   - basic_transcript_assignment
@@ -31,17 +27,17 @@ default_methods:
   - no_correction
 segmentation_methods:
   - custom_segmentation
-  - cellpose
+  # - cellpose
   - binning
-  #- stardist
-  - watershed
+  # - stardist
+  # - watershed
 transcript_assignment_methods:
   - basic_transcript_assignment
   #- baysor
-  - clustermap
-  - pciseq
-  - comseg
-  - proseg
+  # - clustermap
+  # - pciseq
+  # - comseg
+  # - proseg
 count_aggregation_methods:
   - basic_count_aggregation
 qc_filtering_methods:
@@ -50,23 +46,54 @@ volume_calculation_methods:
   - alpha_shapes
 normalization_methods:
   - normalize_by_volume
-  - normalize_by_counts
-  - spanorm
+  # - normalize_by_counts
+  # - spanorm
 celltype_annotation_methods:
   - ssam
-  - tacco
-  #- moscot
+  # - tacco
+  # - moscot
 expression_correction_methods:
   - no_correction
-  - gene_efficiency_correction
-  - resolvi_correction
+  # - gene_efficiency_correction
+  # - resolvi_correction
+method_parameters_yaml: /tmp/method_params.yaml
+HERE
+
+# Write the parameters to file (input_states version, NOTE: enable `-entry auto` for this)
+cat > /tmp/params.yaml << HERE
+input_states: resources_test/task_ist_preprocessing/**/state.yaml
+rename_keys: 'input_sc:output_sc;input_sp:output_sp'
+save_spatial_data: false
+settings: '$(yq -o json /tmp/params_settings.yaml | jq -c .)'
 output_state: "state.yaml"
 publish_dir: "$publish_dir"
+HERE
+
+# #Write the parameters to file (specific id version, NOTE: disable `-entry auto` for this)
+# cat > /tmp/params.yaml << HERE
+# id: mouse_brain_combined
+# input_sc: resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad
+# input_sp: resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr
+# save_spatial_data: true
+# $(cat /tmp/params_settings.yaml)
+# output_state: "state.yaml"
+# publish_dir: "$publish_dir"
+# HERE
+
+
+cat > /tmp/method_params.yaml << HERE
+parameters:
+  binning:
+    default:
+      bin_size: 30
+    sweep:
+      bin_size: [20, 30, 40]
 HERE
 
 nextflow run . \
   -main-script target/nextflow/workflows/run_benchmark/main.nf \
   -profile docker \
   -resume \
+  -entry auto \
   -c common/nextflow_helpers/labels_ci.config \
   -params-file /tmp/params.yaml

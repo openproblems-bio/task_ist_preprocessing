@@ -1,4 +1,13 @@
 setup:
   - type: python
-    pypi: [spatialdata, "anndata>=0.12.0", "pyarrow<22.0.0"]
-    # remove pyarrow when https://github.com/scverse/spatialdata/issues/1007 is fixed
+    pypi: ["spatialdata==0.5.0", "anndata>=0.12.0", "pyarrow<22.0.0", "zarr<3.0.0"]
+    # 1. remove pyarrow when https://github.com/scverse/spatialdata/issues/1007 is fixed.
+    #    This is actually fixed now with the spatialdata release 0.6.0. However, the new
+    #    release now comes with zarr 3.0.0. When reading a zarr file that was saved with
+    #    zarr 3.0.0 we can not load it with zarr<3.0.0. (PathNotFoundError: nothing found at path '')
+    # 2. Currently sopa enforces zarr<3.0.0. Therefore we need to save all our data with zarr<3.0.0.
+    #    As soon as this is fixed (https://github.com/gustaveroussy/sopa/issues/347):
+    #    - remove restriction on spatialdata
+    #    - remove zarr<3.0.0
+    #    - remove pyarrow<22.0.0
+    #    - Recreate all the datasets (scripts/create_resources/combine/process_datasets.sh)

@@ -28,12 +28,12 @@ arguments:
     required: false
     direction: input
     type: double
-    default: 1.0
+    default: 0.3
   - name: --rank
     required: false
     direction: input
     type: integer
-    default: 5000
+    default: 500 #5000
   - name: --mapping_mode
     required: false
     direction: input
@@ -47,10 +47,10 @@ resources:
 
 engines:
   - type: docker
-    image: openproblems/base_python:1
+    image: openproblems/base_pytorch_nvidia:1.1.0
     setup:
       - type: python
-        pypi: [numpy, "jax[cuda13]", anndata, scanpy, moscot, flax, diffrax]
+        pypi: [numpy, "jax[cuda12]", anndata, scanpy, moscot, flax, diffrax]
   - type: native
 
 runners:

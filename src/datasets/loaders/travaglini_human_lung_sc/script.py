@@ -99,6 +99,7 @@ adata.var_names = adata.var["feature_name"]
 adata.var_names = adata.var_names.astype(str)
 adata.var_names_make_unique()
 adata.var.index.name = None
+adata.var["feature_name"] = adata.var_names.astype(str)
 
 # Uns
 for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism"]:

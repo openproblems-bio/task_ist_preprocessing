@@ -12,26 +12,69 @@ set -e
 RUN_ID="run_$(date +%Y-%m-%d_%H-%M-%S)"
 publish_dir="s3://openproblems-data/resources/task_ist_preprocessing/results/${RUN_ID}"
 
-# input_dir="s3://openproblems-data/resources/task_ist_preprocessing/datasets"
-# cat > /tmp/params.yaml << HERE
-# param_list:
-
-#   - id: "mouse_brain_combined/rep1"
-#     input_sp: "$input_dir/mouse_brain_combined/rep1/output_sp.zarr"
-#     input_sc: "$input_dir/mouse_brain_combined/rep1/output_sc.h5ad"
-
-# output_sc: "\$id/output_sc.h5ad"
-# output_sp: "\$id/output_sp.zarr"
-# output_state: "\$id/state.yaml"
-# publish_dir: "$publish_dir"
-# HERE
+cat > /tmp/params_settings.yaml << HERE
+default_methods:
+  - custom_segmentation
+  - basic_transcript_assignment
+  - basic_count_aggregation
+  - basic_qc_filter
+  - alpha_shapes
+  - normalize_by_volume
+  - ssam
+  - no_correction
+segmentation_methods:
+  - custom_segmentation
+  - cellpose
+  - binning
+  - stardist
+  - watershed
+transcript_assignment_methods:
+  - basic_transcript_assignment
+  - baysor
+  - clustermap
+  - pciseq
+  - comseg
+  - proseg
+count_aggregation_methods:
+  - basic_count_aggregation
+qc_filtering_methods:
+  - basic_qc_filter
+volume_calculation_methods:
+  - alpha_shapes
+normalization_methods:
+  - normalize_by_volume
+  - normalize_by_counts
+  - spanorm
+celltype_annotation_methods:
+  - ssam
+  - tacco
+  - moscot
+expression_correction_methods:
+  - no_correction
+  - gene_efficiency_correction
+  - resolvi_correction
+method_parameters_yaml: /tmp/method_params.yaml
+HERE
 
 # write the parameters to file
 cat > /tmp/params.yaml << HERE
 input_states: s3://openproblems-data/resources/task_ist_preprocessing/datasets/**/state.yaml
 rename_keys: 'input_sc:output_sc;input_sp:output_sp'
+save_spatial_data: false
+settings: '$(yq -o json /tmp/params_settings.yaml | jq -c .)'
 output_state: "state.yaml"
 publish_dir: "$publish_dir"
+HERE
+
+# NOTE: this file needs to be made available on the seqera cloud workspace and the 
+#       path needs to be added above (method_parameters_yaml)
+cat > /tmp/method_params.yaml << HERE
+parameters:
+  binning:
+    default:
+      bin_size: 30
+    sweep:
+      bin_size: [20, 30, 40]
 HERE
 
 tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
