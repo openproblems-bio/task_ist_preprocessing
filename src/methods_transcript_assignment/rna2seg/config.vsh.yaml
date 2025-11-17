@@ -73,7 +73,7 @@ engines:
         run:
           - apt-get update && apt-get install libgl1 -y
       - type: python
-        pypi: [rna2seg]
+        pypi: [rna2seg, "numcodecs==0.15.1"]
   - type: native
 
 runners:

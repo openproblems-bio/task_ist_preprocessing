@@ -45,7 +45,7 @@ meta = {
 ## VIASH END
 
 TMP_DIR = Path(meta["temp_dir"] or "/tmp")
-TMP_ZARR = TMP_DIR / 'rna2seg_sdata.zarr'
+TMP_ZARR = TMP_DIR / 'temp_rna2seg_sdata.zarr'
 
 
 # Read input
