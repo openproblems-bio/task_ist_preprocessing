@@ -48,7 +48,7 @@ engines:
       - /src/base/setup_txsim_partial.yaml
     setup:
         - type: python
-          pypi: [scvi-tools]
+          pypi: ["anndata>=0.12.0", scvi-tools]
   - type: native
 
 runners:
