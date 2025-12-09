@@ -23,6 +23,7 @@ print('Compute metrics', flush=True)
 metrics = {
     "proportion_of_assigned_reads": proportion_of_assigned_reads(sdata)[0],
     "proportion_of_annotated_cells": proportion_of_annotated_cells(sdata),
+    "number_of_cells": sdata['counts'].n_obs,
 }
 
 print("Write output AnnData to file", flush=True)
