@@ -3659,7 +3659,7 @@ meta = [
         "label" : [
           "midtime",
           "lowcpu",
-          "lowmem"
+          "midmem"
         ],
         "tag" : "$id"
       },
@@ -3727,7 +3727,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_expression_correction/gene_efficiency_correction",
     "viash_version" : "0.9.4",
-    "git_commit" : "0e9e3ad988e0b19f56f90a45fed5a293f3adec4f",
+    "git_commit" : "9ecf0f2fa58c73c5e0fbe84ff4a40dca6d5046e4",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4296,7 +4296,7 @@ meta["defaults"] = [
   "label" : [
     "midtime",
     "lowcpu",
-    "lowmem"
+    "midmem"
   ],
   "tag" : "$id"
 }'''),

@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "sopa" "comseg"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment comseg"
-LABEL org.opencontainers.image.created="2025-12-10T12:54:49Z"
+LABEL org.opencontainers.image.created="2025-12-10T16:56:00Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="0e9e3ad988e0b19f56f90a45fed5a293f3adec4f"
+LABEL org.opencontainers.image.revision="9ecf0f2fa58c73c5e0fbe84ff4a40dca6d5046e4"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
