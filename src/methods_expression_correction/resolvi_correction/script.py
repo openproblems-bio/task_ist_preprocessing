@@ -80,6 +80,22 @@ adata_sp.obsm["X_resolVI"] = supervised_resolvi.get_latent_representation()
 adata_sp.layers["corrected_counts"] = adata_sp.layers['counts'].multiply((samples_corr.loc['post_sample_q50', 'px_rate'] / (
     1.0 + samples_corr.loc['post_sample_q50', 'px_rate'] + samples.loc['post_sample_means', 'mean_poisson']))).tocsr()
 
+# Normalize the corrected counts #TODO: see NOTE below
+size_factors = np.array(adata_sp.layers['counts'].sum(axis=1) / adata_sp.layers['normalized'].expm1().sum(axis=1))[:,0]
+adata_sp.layers["normalized"] = adata_sp.layers['corrected_counts'].multiply(1/size_factors[:,None]).log1p().toarray()
+adata_sp.layers["counts"] = adata_sp.layers['corrected_counts']
+del adata_sp.layers['corrected_counts']
+# NOTE: this way of normalizing is not ideal. The problem is that we would need to apply the same normalization method
+# to the corrected counts again. However, the pipeline setup runs the normalization step before expression correction.
+# One solution would have been to move resolVI correction after the count aggregation. However, in that case we could
+# only apply the unsupervised version of resolVI since ct annotation is required. In tutorials the supervised one is recommended.
+# Possible future solutions (all quite some work):
+# - Add an additional compute step that runs the normalization step after expression correction in case of running resolVI.
+# - Feed the output of the resolVI correction back into the normalization step (this would then also run ct annotation)
+#   and it would also run the correction step again (which would be problematic and need some workaround)
+# - Move resolVI correction after the count aggregation but include a generic cell type annotation step (either a workflow step
+#   or an annotation within the resolVI script)
+
 # Write output
 print('Writing output', flush=True)
 adata_sp.write(par['output'])

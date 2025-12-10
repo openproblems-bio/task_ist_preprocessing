@@ -3425,6 +3425,17 @@ meta = [
         "min" : 0,
         "max" : 1,
         "maximize" : true
+      },
+      {
+        "name" : "number_of_cells",
+        "label" : "Number of Cells",
+        "summary" : "The number of cells in the spatial dataset.",
+        "description" : "The number of cells in the spatial dataset.\n",
+        "references" : {
+          "doi" : "10.1101/2023.02.13.528102"
+        },
+        "min" : 0,
+        "maximize" : true
       }
     ],
     "type" : "metric",
@@ -3530,7 +3541,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/metrics/quality",
     "viash_version" : "0.9.4",
-    "git_commit" : "93c2914a1bff5805823036241f2a452416b082e6",
+    "git_commit" : "85c56abb11994334a6f7b5b2fb4e52ff1b393d14",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3693,6 +3704,7 @@ print('Compute metrics', flush=True)
 metrics = {
     "proportion_of_assigned_reads": proportion_of_assigned_reads(sdata)[0],
     "proportion_of_annotated_cells": proportion_of_annotated_cells(sdata),
+    "number_of_cells": sdata['counts'].n_obs,
 }
 
 print("Write output AnnData to file", flush=True)
