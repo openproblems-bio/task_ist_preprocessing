@@ -1,0 +1,43 @@
+__merge__: /src/api/comp_method_cell_type_annotation.yaml
+
+name: tangram
+label: "Tangram"
+summary: "Annotate cell types using Tangram"
+description: "Annotate cell types using Tangram"
+links:
+  documentation: "https://tangram-sc.readthedocs.io"
+  repository: "https://github.com/broadinstitute/Tangram"
+references:
+  doi: "10.1038/s41592-021-01264-7"
+
+arguments:
+  - name: --mode
+    required: false
+    direction: input
+    type: string
+    default: "cells"
+  - name: --num_epochs
+    required: false
+    direction: input
+    type: integer
+    default: 1000
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    #image: openproblems/base_pytorch_nvidia:1 #NOTE: leads to dependency issues.
+    # TODO: could try some other base image with pytorch and cuda installed.
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi: [tangram-sc]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem, gpu ]
