@@ -181,6 +181,7 @@ if adata.n_obs > N_MAX_SC:
     adata = adata[subsample_adata_group_balanced(adata, "cell_type", N_MAX_SC, seed=0)]
 
 # Make the single-cell data gene names unique
+adata.var_names = adata.var_names.astype(str)
 adata.var_names_make_unique()
 
 # Subset single-cell and spatial data to shared genes
