@@ -374,7 +374,9 @@ workflow run_wf {
   cta_methods = [
     ssam,
     tacco,
-    moscot
+    moscot,
+    mapmycells,
+    tangram
   ]
   
   cta_ch = normalization_ch

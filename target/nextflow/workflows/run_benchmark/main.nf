@@ -3759,7 +3759,7 @@ meta = [
           "name" : "--celltype_annotation_methods",
           "description" : "A list of cell type annotation methods to run.\n",
           "default" : [
-            "ssam:tacco:moscot"
+            "ssam:tacco:moscot:mapmycells:tangram"
           ],
           "required" : false,
           "direction" : "input",
@@ -3979,6 +3979,18 @@ meta = [
       }
     },
     {
+      "name" : "methods_cell_type_annotation/mapmycells",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_cell_type_annotation/tangram",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "methods_expression_correction/no_correction",
       "repository" : {
         "type" : "local"
@@ -4077,7 +4089,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "9ecf0f2fa58c73c5e0fbe84ff4a40dca6d5046e4",
+    "git_commit" : "34b79083689ddd993fde256868565e0ac8d77789",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4210,6 +4222,8 @@ include { spanorm } from "${meta.resources_dir}/../../../nextflow/methods_normal
 include { ssam } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/ssam/main.nf"
 include { tacco } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/tacco/main.nf"
 include { moscot } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/moscot/main.nf"
+include { mapmycells } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/mapmycells/main.nf"
+include { tangram } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/tangram/main.nf"
 include { no_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/no_correction/main.nf"
 include { gene_efficiency_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/gene_efficiency_correction/main.nf"
 include { resolvi_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/resolvi_correction/main.nf"
@@ -4595,7 +4609,9 @@ workflow run_wf {
   cta_methods = [
     ssam,
     tacco,
-    moscot
+    moscot,
+    mapmycells,
+    tangram
   ]
   
   cta_ch = normalization_ch

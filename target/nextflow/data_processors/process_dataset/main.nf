@@ -4372,7 +4372,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.4",
-    "git_commit" : "9ecf0f2fa58c73c5e0fbe84ff4a40dca6d5046e4",
+    "git_commit" : "34b79083689ddd993fde256868565e0ac8d77789",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4697,6 +4697,7 @@ if adata.n_obs > N_MAX_SC:
     adata = adata[subsample_adata_group_balanced(adata, "cell_type", N_MAX_SC, seed=0)]
 
 # Make the single-cell data gene names unique
+adata.var_names = adata.var_names.astype(str)
 adata.var_names_make_unique()
 
 # Subset single-cell and spatial data to shared genes

@@ -1,0 +1,35 @@
+name: mapmycells
+label: "mapmycells"
+summary: "Mapping of annotations from single-cell to spatial using moscot"
+description: "Mapping of annotations from single-cell to spatial using moscot"
+links:
+  documentation: 'https://github.com/AllenInstitute/cell_type_mapper'
+  repository: 'https://github.com/AllenInstitute/cell_type_mapper'
+references:
+  doi: "10.1038/s41586-023-06812-z"
+
+__merge__: /src/api/comp_method_cell_type_annotation.yaml
+   
+  
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
+      - /src/base/setup_txsim_partial.yaml
+    setup:
+      - type: python
+        pypi: 
+          - numpy
+          - git+https://github.com/AllenInstitute/cell_type_mapper.git
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ hightime, midcpu, highmem]
