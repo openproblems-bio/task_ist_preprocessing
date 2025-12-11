@@ -53,6 +53,7 @@ celltype_annotation_methods:
   # - tacco
   # - moscot
   # - mapmycells
+  # - tangram
 expression_correction_methods:
   - no_correction
   # - gene_efficiency_correction

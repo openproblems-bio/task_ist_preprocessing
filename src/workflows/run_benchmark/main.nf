@@ -375,7 +375,8 @@ workflow run_wf {
     ssam,
     tacco,
     moscot,
-    mapmycells
+    mapmycells,
+    tangram
   ]
   
   cta_ch = normalization_ch
