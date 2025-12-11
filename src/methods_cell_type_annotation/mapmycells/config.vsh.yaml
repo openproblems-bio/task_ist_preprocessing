@@ -9,16 +9,6 @@ references:
   doi: "10.1038/s41586-023-06812-z"
 
 __merge__: /src/api/comp_method_cell_type_annotation.yaml
-
-arguments:
-  - name: --input
-    type: string
-    default: './resources_test/common/2023_10x_mouse_brain_xenium_rep1/dataset.zarr'
-    description: "Path to raw counts"
-  - name: --cell_type_column
-    type: string
-    default: 'cell_type'
-    description: "Column with cell type labels"
    
   
 resources:
@@ -42,4 +32,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [ hightime, midcpu, veryhighmem, gpu ]
+      label: [ hightime, midcpu, highmem]
