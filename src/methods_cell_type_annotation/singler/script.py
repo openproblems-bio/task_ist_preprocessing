@@ -17,23 +17,7 @@ par = {
 }
 meta = {
   'name': r'singleR',
-  'functionality_name': r'singleR',
-  'resources_dir': r'/private/tmp/viash_inject_singleR6465161111175259990',
-  'executable': r'/private/tmp/viash_inject_singleR6465161111175259990/singleR',
-  'config': r'/private/tmp/viash_inject_singleR6465161111175259990/.config.vsh.yaml',
-  'temp_dir': r'/var/folders/fq/ymt0vml175s4yvqxzbmlmpz80000gn/T/',
-  'cpus': int(r'123'),
-  'memory_b': int(r'123'),
-  'memory_kb': int(r'123'),
-  'memory_mb': int(r'123'),
-  'memory_gb': int(r'123'),
-  'memory_tb': int(r'123'),
-  'memory_pb': int(r'123'),
-  'memory_kib': int(r'123'),
-  'memory_mib': int(r'123'),
-  'memory_gib': int(r'123'),
-  'memory_tib': int(r'123'),
-  'memory_pib': int(r'123')
+  'functionality_name': r'singleR'
 }
 dep = {
   
