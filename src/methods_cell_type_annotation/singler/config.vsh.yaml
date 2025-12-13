@@ -1,0 +1,38 @@
+__merge__: /src/api/comp_method_cell_type_annotation.yaml
+
+name: singler
+label: "singler"
+summary: "Cell type annotations using single-cell reference with SingleR"
+description: "Cell type annotations using single-cell reference with SingleR"
+
+links:
+  documentation: "https://github.com/SingleR-inc/singler-py"
+  repository: "https://github.com/SingleR-inc/singler-py"
+references:
+  doi: "10.1038/s41590-018-0276-y"
+
+arguments:
+  - name: --labels_key
+    type: string
+    description: The key of the cell labels in the input data.
+    default: cell_labels
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+    - type: python
+      pypi: [singler]
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem ]
