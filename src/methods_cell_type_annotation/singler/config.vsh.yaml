@@ -6,8 +6,8 @@ summary: "Cell type annotations using single-cell reference with SingleR"
 description: "Cell type annotations using single-cell reference with SingleR"
 
 links:
-  documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
-  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  documentation: "https://github.com/SingleR-inc/singler-py"
+  repository: "https://github.com/SingleR-inc/singler-py"
 references:
   doi: "10.1038/s41590-018-0276-y"
 
