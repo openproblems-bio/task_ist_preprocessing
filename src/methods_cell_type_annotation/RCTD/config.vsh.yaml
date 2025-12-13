@@ -1,0 +1,45 @@
+__merge__: /src/api/comp_method_cell_type_annotation.yaml
+
+name: rctd
+label: "RCTD"
+summary: "Annotate cells using the RCTD method"
+description: "Robust Cell Type Decomposition (RCTD) inputs a spatial transcriptomics dataset, which consists of a set of pixels, which are spatial locations that measure RNA counts across many genes. RCTD additionally uses a single cell RNA-seq (scRNA-seq) dataset, which is labeled for cell types. RCTD learns cell type profiles from the scRNA-seq dataset, and uses these to label the spatial transcriptomics pixels as cell types."
+links:
+  documentation: "https://github.com/dmcable/spacexr"
+  repository: "https://github.com/dmcable/spacexr"
+references:
+  doi: "10.1038/s41587-021-00830-w"
+
+resources:
+  - type: r_script
+    path: script.R
+
+engines:
+  - type: docker
+    image: openproblems/base_r:1
+    setup:
+      #- type: docker
+      #  run: |
+      #    apt-get update && apt-get install -y wget
+      - type: r
+        bioc: [anndataR, rhdf5, devtools]
+      #- type: r
+      #  bioc: [SummarizedExperiment,SingleCellExperiment,SpatialExperiment]
+      #  bioc_force_install: true
+      - type: docker
+        run: |
+          Rscript -e "BiocManager::install('SingleCellExperiment', type = 'source', force = TRUE, ask = FALSE); devtools::install_github('dmcable/spacexr', build_vignettes = FALSE)"
+
+      # This can probably be left out again in the future. It currently fixes a bug described in these issues:
+      # https://github.com/drighelli/SpatialExperiment/issues/171
+      # https://github.com/satijalab/seurat/issues/9889
+      # The reinstall of SingleCellExperiment triggers the correct re-install of SpatialExperiment.
+
+      # spacexr -> is there a better way to install an r package from github?
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ hightime, midcpu, highmem ]
