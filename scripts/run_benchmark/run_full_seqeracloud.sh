@@ -49,6 +49,9 @@ celltype_annotation_methods:
   - ssam
   - tacco
   - moscot
+  - mapmycells
+  - tangram
+  - singler
 expression_correction_methods:
   - no_correction
   - gene_efficiency_correction

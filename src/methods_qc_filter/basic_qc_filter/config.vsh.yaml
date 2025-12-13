@@ -31,6 +31,9 @@ engines:
     image: openproblems/base_python:1
     __merge__: 
       - /src/base/setup_txsim_partial.yaml
+    setup:
+        - type: python
+          pypi: ["anndata>=0.12.0"]
   - type: native
 
 runners:
