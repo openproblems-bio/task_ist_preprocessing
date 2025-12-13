@@ -51,6 +51,7 @@ celltype_annotation_methods:
   - mapmycells
   - tangram
   - singler
+  - rctd
 expression_correction_methods:
   - no_correction
   - gene_efficiency_correction
