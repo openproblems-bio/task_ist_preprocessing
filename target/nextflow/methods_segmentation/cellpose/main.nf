@@ -3649,10 +3649,11 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "spatialdata==0.5.0",
-            "anndata>=0.12.0",
-            "pyarrow<22.0.0",
-            "zarr<3.0.0"
+            "squidpy",
+            "rasterio"
+          ],
+          "github" : [
+            "theislab/txsim@dev"
           ],
           "upgrade" : true
         },
@@ -3660,11 +3661,10 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "squidpy",
-            "rasterio"
-          ],
-          "github" : [
-            "theislab/txsim@dev"
+            "spatialdata==0.5.0",
+            "anndata>=0.12.0",
+            "pyarrow<22.0.0",
+            "zarr<3.0.0"
           ],
           "upgrade" : true
         },
@@ -3689,7 +3689,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/cellpose",
     "viash_version" : "0.9.4",
-    "git_commit" : "1f8e6966fecf25e422e13e005aa2476d5c422015",
+    "git_commit" : "050fa15e1797b904277846e72b420fb9eb004c37",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
