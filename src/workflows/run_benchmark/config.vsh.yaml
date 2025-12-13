@@ -98,7 +98,7 @@ argument_groups:
           A list of cell type annotation methods to run.
         type: string
         multiple: true
-        default: "ssam:tacco:moscot:mapmycells:tangram"
+        default: "ssam:tacco:moscot:mapmycells:tangram:singler"
       - name: "--expression_correction_methods"
         description: |
           A list of expression correction methods to run.
@@ -170,6 +170,7 @@ dependencies:
   - name: methods_cell_type_annotation/moscot
   - name: methods_cell_type_annotation/mapmycells
   - name: methods_cell_type_annotation/tangram
+  - name: methods_cell_type_annotation/singler
   - name: methods_expression_correction/no_correction
   - name: methods_expression_correction/gene_efficiency_correction
   - name: methods_expression_correction/resolvi_correction

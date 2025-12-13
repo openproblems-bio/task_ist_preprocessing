@@ -3759,7 +3759,7 @@ meta = [
           "name" : "--celltype_annotation_methods",
           "description" : "A list of cell type annotation methods to run.\n",
           "default" : [
-            "ssam:tacco:moscot:mapmycells:tangram"
+            "ssam:tacco:moscot:mapmycells:tangram:singler"
           ],
           "required" : false,
           "direction" : "input",
@@ -3991,6 +3991,12 @@ meta = [
       }
     },
     {
+      "name" : "methods_cell_type_annotation/singler",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "methods_expression_correction/no_correction",
       "repository" : {
         "type" : "local"
@@ -4089,7 +4095,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "34b79083689ddd993fde256868565e0ac8d77789",
+    "git_commit" : "142e0f54427885ad0277ce4b4bc76f8e8ae587d8",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4224,6 +4230,7 @@ include { tacco } from "${meta.resources_dir}/../../../nextflow/methods_cell_typ
 include { moscot } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/moscot/main.nf"
 include { mapmycells } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/mapmycells/main.nf"
 include { tangram } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/tangram/main.nf"
+include { singler } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/singler/main.nf"
 include { no_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/no_correction/main.nf"
 include { gene_efficiency_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/gene_efficiency_correction/main.nf"
 include { resolvi_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/resolvi_correction/main.nf"
@@ -4611,7 +4618,8 @@ workflow run_wf {
     tacco,
     moscot,
     mapmycells,
-    tangram
+    tangram,
+    singler
   ]
   
   cta_ch = normalization_ch
