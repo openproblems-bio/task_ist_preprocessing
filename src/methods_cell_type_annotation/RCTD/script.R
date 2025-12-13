@@ -63,5 +63,6 @@ colData(sce)$cell_type <- "None_sp"
 colData(sce)[names(spatial_cell_types),"cell_type"] <- as.character(spatial_cell_types)
 
 # Write the final object to h5ad format
+# set to 'w', is this ok?
 dir.create(dirname(par$output), showWarnings = FALSE, recursive = TRUE)
-write_h5ad(sce, par$output)
+write_h5ad(sce, par$output, mode = "w")
