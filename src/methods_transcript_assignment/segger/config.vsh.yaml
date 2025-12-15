@@ -1,0 +1,101 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
+name: segger
+label: "Segger Transcript Assignment"
+summary: "Assign transcripts to cells using the Segger method"
+description: "Segger is a tool for cell segmentation in single-molecule spatial omics datasets that leverages graph neural networks (GNNs) and heterogeneous graphs."
+links:
+  documentation: "https://elihei2.github.io/segger_dev/"
+  repository: "https://github.com/EliHei2/segger_dev"
+references:
+  doi: "10.1101/2025.03.14.643160"
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    description: The key of the transcripts within the points of the spatial data
+    default: transcripts
+  - name: --coordinate_system
+    type: string
+    description: The key of the pixel space coordinate system within the spatial data
+    default: global
+
+#  - name: --force_2d
+#    type: string
+#    required: false
+#    description: "Ignores z-column in the data if it is provided"
+#    direction: input 
+#    default: "false"
+#
+#  - name: --min_molecules_per_cell
+#    type: integer
+#    required: false
+#    description: "Minimal number of molecules per cell"
+#    direction: input 
+#    default: 50
+#  
+#  - name: --scale
+#    type: double
+#    required: false
+#    description: |
+#      "Scale parameter, which suggest approximate cell radius for the algorithm. Must be in the same units as 
+#      x and y molecule coordinates. Negative values mean it must be estimated from `min_molecules_per_cell`."
+#    direction: input 
+#    default: -1.0
+#
+#  - name: --scale_std
+#    type: string
+#    required: false
+#    description: "Standard deviation of scale across cells relative to `scale`"
+#    direction: input 
+#    default: "25%"
+#
+#  - name: --n_clusters
+#    type: integer
+#    required: false
+#    description: "Number of molecule clusters, i.e. major cell types."
+#    direction: input 
+#    default: 4
+#
+#  - name: --prior_segmentation_confidence
+#    type: double
+#    required: false
+#    description: "Confidence of the prior segmentation"
+#    direction: input 
+#    default: 0.8
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+#  - type: docker
+#    image: openproblems/base_python:1
+#    __merge__: 
+#      - /src/base/setup_spatialdata_partial.yaml
+#    setup:
+#      - type: python
+#        pypi: [torch, pytorch-lightning, lightning]
+#      - type: docker
+#        run:
+#          - git clone https://github.com/EliHei2/segger_dev.git
+#          - cd segger_dev && pip install .[cuda12]
+engines:
+  - type: docker
+    image: danielunyi42/segger_dev:cuda121
+    setup:
+      - type: apt
+        packages: procps
+      - type: python
+        github:
+          - openproblems-bio/core#subdirectory=packages/python/openproblems
+      - type: python
+        packages:
+          - spatialdata
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, midmem, gpu ]
