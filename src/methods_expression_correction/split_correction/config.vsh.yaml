@@ -10,12 +10,13 @@ links:
 references:
   doi: "10.1101/2025.04.23.649965"
 
-# arguments:
-#   - name: --celltype_key
-#     required: false
-#     direction: input
-#     type: string
-#     default: cell_type
+arguments:
+  - name: --keep_all_cells
+    required: false
+    direction: input
+    type: boolean
+    default: false
+    description: Whether to keep cells with 0 counts (may cause errors if set to TRUE)
 
 resources:
   - type: r_script
