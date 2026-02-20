@@ -3557,7 +3557,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/zuani_human_nsclc_sc",
     "viash_version" : "0.9.4",
-    "git_commit" : "d156d39000f08ffb6bf07bda425c9f5b8f52ee41",
+    "git_commit" : "f995cb8eaed262d89c7a18fc3d08c9395b5b973c",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
