@@ -19,7 +19,7 @@ default_methods:
   - basic_qc_filter
   - alpha_shapes
   - normalize_by_volume
-  - ssam
+  - tacco
   - no_correction
 segmentation_methods:
   - custom_segmentation
