@@ -26,14 +26,11 @@ engines:
   - type: docker
     image: openproblems/base_r:1
     setup:
-      #- type: docker
-      #  run: |
-      #    apt-get update && apt-get install -y wget
+      - type: docker
+        run: |
+          apt-get update
       - type: r
         bioc: [anndataR, rhdf5, devtools, scater]
-      #- type: r
-      #  bioc: [SummarizedExperiment,SingleCellExperiment,SpatialExperiment]
-      #  bioc_force_install: true
       - type: docker
         run: |
           Rscript -e "BiocManager::install('SingleCellExperiment', type = 'source', force = TRUE, ask = FALSE); options(timeout = 600000000); devtools::install_github('dmcable/spacexr', build_vignettes = FALSE); devtools::install_github('bdsc-tds/SPLIT')"
@@ -43,8 +40,7 @@ engines:
       # https://github.com/satijalab/seurat/issues/9889
       # The reinstall of SingleCellExperiment triggers the correct re-install of SpatialExperiment.
 
-      # Is there a better way to install an r package from github?
-      # The 6 million timeout thing stops it from breaking
+      # Using a large timeout here to reduce failures during GitHub package installation.
 
   - type: native
 

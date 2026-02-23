@@ -8,7 +8,7 @@ library(scuttle)
 
 ## VIASH START
 par <- list(
-  "input_spatial_with_cell_types" = "task_ist_preprocessing/resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad",
+  "input_spatial_with_cell_types" = "task_ist_preprocessing/resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_with_celltypes.h5ad",
   "input_scrnaseq_reference"= "task_ist_preprocessing/resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad",
   "output" = "task_ist_preprocessing/tmp/split_corrected.h5ad",
   "keep_all_cells" = FALSE,
@@ -85,6 +85,9 @@ res_split <- SPLIT::purify(
 
 # create corrected counts layer in original SingleCell object
 cat("Normalizing counts\n")
+
+# Preserve original normalized values before overwriting with corrected normalization
+assay(sce, "normalized_uncorrected") <- assay(sce, "normalized")
 
 # First copy in counts
 assay(sce, "corrected_counts") <- assay(sce, "counts")
