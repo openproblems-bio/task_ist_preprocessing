@@ -414,7 +414,8 @@ workflow run_wf {
   expr_corr_methods = [
     no_correction,
     gene_efficiency_correction,
-    resolvi_correction
+    resolvi_correction,
+    split
   ]
   
   expr_corr_ch = cta_ch

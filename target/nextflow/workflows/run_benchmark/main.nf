@@ -3771,7 +3771,7 @@ meta = [
           "name" : "--expression_correction_methods",
           "description" : "A list of expression correction methods to run.\n",
           "default" : [
-            "no_correction:gene_efficiency_correction:resolvi_correction"
+            "no_correction:gene_efficiency_correction:resolvi_correction:split"
           ],
           "required" : false,
           "direction" : "input",
@@ -4021,6 +4021,12 @@ meta = [
       }
     },
     {
+      "name" : "methods_expression_correction/split",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "methods_data_aggregation/aggregate_spatial_data",
       "repository" : {
         "type" : "local"
@@ -4101,7 +4107,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.4",
-    "git_commit" : "f995cb8eaed262d89c7a18fc3d08c9395b5b973c",
+    "git_commit" : "f64ec27595473e12bd1816bf6347d8699ae99a33",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4241,6 +4247,7 @@ include { rctd } from "${meta.resources_dir}/../../../nextflow/methods_cell_type
 include { no_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/no_correction/main.nf"
 include { gene_efficiency_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/gene_efficiency_correction/main.nf"
 include { resolvi_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/resolvi_correction/main.nf"
+include { split } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/split/main.nf"
 include { aggregate_spatial_data } from "${meta.resources_dir}/../../../nextflow/methods_data_aggregation/aggregate_spatial_data/main.nf"
 include { similarity } from "${meta.resources_dir}/../../../nextflow/metrics/similarity/main.nf"
 include { quality } from "${meta.resources_dir}/../../../nextflow/metrics/quality/main.nf"
@@ -4663,7 +4670,8 @@ workflow run_wf {
   expr_corr_methods = [
     no_correction,
     gene_efficiency_correction,
-    resolvi_correction
+    resolvi_correction,
+    split
   ]
   
   expr_corr_ch = cta_ch

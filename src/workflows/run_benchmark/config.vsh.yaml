@@ -104,7 +104,7 @@ argument_groups:
           A list of expression correction methods to run.
         type: string
         multiple: true
-        default: "no_correction:gene_efficiency_correction:resolvi_correction"
+        default: "no_correction:gene_efficiency_correction:resolvi_correction:split"
   - name: Method parameters
     description: |
       Use these arguments to control the parameter sets that are run for each
@@ -175,6 +175,7 @@ dependencies:
   - name: methods_expression_correction/no_correction
   - name: methods_expression_correction/gene_efficiency_correction
   - name: methods_expression_correction/resolvi_correction
+  - name: methods_expression_correction/split
   - name: methods_data_aggregation/aggregate_spatial_data
   - name: metrics/similarity
   - name: metrics/quality
