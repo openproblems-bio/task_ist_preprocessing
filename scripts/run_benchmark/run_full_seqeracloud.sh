@@ -57,6 +57,7 @@ expression_correction_methods:
   - no_correction
   - gene_efficiency_correction
   - resolvi_correction
+  - split
 method_parameters_yaml: /tmp/method_params.yaml
 HERE
 

@@ -1,6 +1,6 @@
 __merge__: /src/api/comp_method_expression_correction.yaml
 
-name: split_correction
+name: split
 label: "SPLIT"
 summary: "Correct doublet/misegmented cells using SPLIT"
 description: "SPLIT (Spatial Purification of Layered Intracellular Transcripts) is a novel method that integrates snRNA-seq with RCTD deconvolution to enhance signal purity. SPLIT effectively resolves mixed transcriptomic signals, improving background correction and cell-type resolution."
