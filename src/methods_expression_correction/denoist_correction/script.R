@@ -4,12 +4,13 @@ library(SpatialExperiment)
 library(SingleCellExperiment)
 library(anndataR)
 library(scuttle)
+library(arrow)
 
 ## VIASH START
 par <- list(
   "input_spatial_with_cell_types" = "task_ist_preprocessing/resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad",
-  "input_tx" = "mouse_combined_transcripts.csv",
-  "output" = "task_ist_preprocessing/tmp/split_corrected.h5ad",
+  "input_ist" = "task_ist_preprocessing/resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
+  "output" = "task_ist_preprocessing/tmp/denoist_corrected.h5ad",
 #   "keep_all_cells" = FALSE,
   "distance" = 50,
   "nbins" = 200,
@@ -22,21 +23,29 @@ meta <- list(
 ## VIASH END
 
 # Read the input h5ad file and convert to SingleCellExperiment and Seurat
+cat("Reading input files\n")
 sce <- read_h5ad(par$input_spatial_with_cell_types, as = "SingleCellExperiment")
+
+# filter out 0 cells
+if (!par$keep_all_cells) {
+  cat("Filtering cells with 0 counts\n")
+  sce <- sce[, colSums(counts(sce)) > 0]
+}
+
 spe <- SpatialExperiment(
     assay = counts(sce),
     colData = colData(sce),
     spatialCoordsNames = c("centroid_x", "centroid_y"))
 
-tx <- read.csv(par$input_tx)
+# Read in transcripts
+tx_dataset <- arrow::open_dataset(file.path(par$input_ist, "points/transcripts/points.parquet"))
+tx <- as.data.frame((tx_dataset))
 
-# filter out 0 cells
-# if (!par$keep_all_cells) {
-#   cat("Filtering cells with 0 counts\n")
-#   sce <- sce[, colSums(counts(sce)) > 0]
-#   xe <- subset(xe, subset = nCount_RNA > 0)
-# }
-
+#If no QV column
+if(!("qv" %in% names(tx))) {
+  cat("QV column not found, adding dummy column of 20 (should be unecessary in future updates?)")
+  tx["qv"] <- 20
+}
 
 # check cores
 cores <- 1
