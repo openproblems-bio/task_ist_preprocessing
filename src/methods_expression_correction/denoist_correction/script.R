@@ -11,7 +11,7 @@ par <- list(
   "input_spatial_with_cell_types" = "task_ist_preprocessing/resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad",
   "input_ist" = "task_ist_preprocessing/resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
   "output" = "task_ist_preprocessing/tmp/denoist_corrected.h5ad",
-#   "keep_all_cells" = FALSE,
+  "keep_all_cells" = FALSE,
   "distance" = 50,
   "nbins" = 200,
 )
@@ -22,7 +22,7 @@ meta <- list(
 
 ## VIASH END
 
-# Read the input h5ad file and convert to SingleCellExperiment and Seurat
+# Read the input h5ad file and convert to SingleCellExperiment -> SpatialExperiment
 cat("Reading input files\n")
 sce <- read_h5ad(par$input_spatial_with_cell_types, as = "SingleCellExperiment")
 
@@ -58,7 +58,7 @@ res <- denoist(mat = spe,
               tx = tx,
               feature_label = "feature_name",
               coords = NULL,
-              distance = par$distance, nbins = par$nbins, cl = cores) #TODO add in params
+              distance = par$distance, nbins = par$nbins, cl = cores)
 
 # format name
 corrected_counts <- res$adjusted_counts

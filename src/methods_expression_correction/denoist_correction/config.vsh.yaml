@@ -12,11 +12,6 @@ references:
   doi: "10.1101/2025.11.13.688387"
 
 arguments:
-  - name: --input_ist
-    direction: input
-    required: true
-    type: file
-
   - name: --celltype_key
     required: false
     direction: input
