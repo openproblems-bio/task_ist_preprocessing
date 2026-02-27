@@ -31,9 +31,7 @@ meta_memory_pib='123'
 ## VIASH END
 
 par_intermediate_dir=$(mktemp -d -p "$(pwd)" tmp-processing-XXXXXXXX)
-# Access the YAML file
-CONDA_ENV_FILE="$meta_resources_dir/environment.yml"
-echo $CONDA_ENV_FILE
+
 echo "running FastReseg orchestrator"
 
 # Create intermediate directory
@@ -52,23 +50,6 @@ python "input.py" \
 head $par_intermediate_dir/cell_types.tsv
 
 # Step 2: RunFastReseg
-## making conda environment with r-base and fastReseg
-#export CONDA_DIR=/opt/conda
-#wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-#    /bin/bash ~/miniconda.sh -b -p /opt/conda
-# Put conda in path so we can use conda activate
-#export PATH=$CONDA_DIR/bin:$PATH
-
-# Create and activate the second Python environment
-# Initialize conda for bash
-#eval "$(/opt/conda/bin/conda shell.bash hook)"
-#conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
-#conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
-#conda env create -f $CONDA_ENV_FILE
-
-#conda activate fastreseg
-#conda install conda-forge::r-concaveman conda-forge::r-data.table conda-forge::r-ggplot2 conda-forge::r-devtools conda-forge::r-terra
-#conda install conda-forge::r-codetools conda-forge::r-matrix conda-forge::r-dbscan conda-forge::r-igraph  conda-forge::r-matrixstats
 
 ##running the R script
 Rscript script.R "$par_intermediate_dir/counts.tsv" \

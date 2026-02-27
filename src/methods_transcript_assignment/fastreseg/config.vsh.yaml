@@ -13,15 +13,15 @@ references:
   doi: "10.1038/s41598-025-08733-5"
 
 
-arguments:
-  - name: --transcripts_key
-    type: string
-    default: "transcripts"
-    description: "Key for transcripts in the points layer"
-  - name: --coordinate_system
-    type: string
-    default: "global"
-    description: "Coordinate system for the transcripts"
+#arguments:
+#  - name: --transcripts_key
+#    type: string
+#    default: "transcripts"
+#    description: "Key for transcripts in the points layer"
+#  - name: --coordinate_system
+#    type: string
+#    default: "global"
+#    description: "Coordinate system for the transcripts"
 
 
 resources:
@@ -29,9 +29,6 @@ resources:
     path: orchestrator.sh
   - type: python_script
     path: input.py
-  - type: file
-    path: fastreseg.yml
-    dest: environment.yml
   - type: r_script
     path: script.R
   - type: python_script
