@@ -1,0 +1,83 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
+name: rna2seg
+label: "RNA2Seg Transcript Assignment"
+summary: "Assign transcripts to cells using the RNA2Seg method"
+description: "RNA2seg is a deep learning-based segmentation model designed to improve cell segmentation in Imaging-based Spatial Transcriptomics (IST)."
+links:
+  documentation: "https://rna2seg.readthedocs.io/en/latest/index.html"
+  repository: "https://github.com/fish-quant/rna2seg"
+references:
+  doi: "10.1101/2025.03.03.641259"
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    description: The key of the transcripts within the points of the spatial data
+    default: transcripts
+
+  - name: --coordinate_system
+    type: string
+    description: The key of the pixel space coordinate system within the spatial data
+    default: global
+    
+  - name: --flow_threshold
+    type: double
+    description: Flow threshold for detecting cells
+    default: 0.9
+
+  - name: --cellbound_flow_threshold
+    type: double
+    description: Cell boundary flow threshold for detecting cells
+    default: 0.4
+
+  - name: --create_cytoplasm_image
+    type: boolean
+    description: Whether to create an artificial cytoplasm image based on thresholding the nuclear stain image
+    default: False
+
+  - name: --cytoplasm_min_threshold
+    type: double
+    description: Minimum percentile for cytoplasm image thresholding
+    default: 0.25
+
+  - name: --cytoplasm_max_threshold
+    type: double
+    description: Maximum percentile for cytoplasm image thresholding
+    default: 0.75
+
+  - name: patch_width
+    type: integer
+    description: Size of sopa patches to tile over image for parallelization. May affect segmentation output.
+    default: 1000
+
+  - name: patch_overlap
+    type: integer
+    description: Overlap of sopa patches to tile over image for parallelization.
+    default: 50
+
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    __merge__: 
+      - /src/base/setup_spatialdata_partial.yaml
+    setup:
+      - type: docker
+        # env:
+        #   - PATH="/root/.cargo/bin:${PATH}"
+        run:
+          - apt-get update && apt-get install libgl1 -y
+      - type: python
+        pypi: [rna2seg, "numcodecs==0.15.1"]
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ hightime, highcpu, midmem ]
