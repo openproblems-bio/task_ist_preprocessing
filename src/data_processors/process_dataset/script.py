@@ -38,7 +38,7 @@ def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
         The crop coordinates
     """
     
-    _, h, w = sdata['morphology_mip']["scale0"].image.shape
+    _, h, w = sdata['image']["scale0"].image.shape
     #h, w = sdata
     
     # Check if the image is already below the maximum number of pixels
@@ -214,6 +214,11 @@ if "feature_key" in sdata['transcripts'].attrs["spatialdata_attrs"]:
     feature_key = sdata['transcripts'].attrs["spatialdata_attrs"]["feature_key"]
     if feature_key != "feature_name":
         sdata['transcripts'].attrs["spatialdata_attrs"]["feature_key"] = "feature_name"
+
+# Rename image key to match API spec (file_common_ist.yaml expects "image")
+if "morphology_mip" in sdata.images:
+    sdata["image"] = sdata["morphology_mip"]
+    del sdata.images["morphology_mip"]
 
 # Crop datasets that are too large
 crop_coords = get_crop_coords(sdata)
