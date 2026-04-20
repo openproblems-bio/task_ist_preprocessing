@@ -195,6 +195,13 @@ adata = adata[:,adata.var["feature_name"].isin(shared_genes)].copy()
 adata.var.reset_index(inplace=True, drop=True)
 adata.var_names = adata.var["feature_name"].values.astype(str).tolist()
 
+# Ensure the metadata table exists in sdata (rename "table" -> "metadata" if needed)
+if "metadata" not in sdata.tables:
+    if "table" in sdata.tables:
+        sdata["metadata"] = sdata["table"]
+    else:
+        sdata["metadata"] = ad.AnnData(uns={})
+
 # store metadata to adata and sdata uns
 metadata_uns_cols = ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism"]
 for col in metadata_uns_cols:
@@ -202,11 +209,9 @@ for col in metadata_uns_cols:
     if orig_col in adata.uns:
         adata.uns[orig_col] = adata.uns[col]
     adata.uns[col] = par[col]
-    if not ("table" in sdata.tables):
-        sdata["table"] = ad.AnnData(uns={})
-    if orig_col in sdata["table"].uns:
-        sdata["table"].uns[orig_col] = sdata["table"].uns[col]
-    sdata["table"].uns[col] = par[col]
+    if orig_col in sdata["metadata"].uns:
+        sdata["metadata"].uns[orig_col] = sdata["metadata"].uns[col]
+    sdata["metadata"].uns[col] = par[col]
 
 # Correct the feature_key attribute in sdata if needed
 # NOTE: it would have been better to do this in the loader scripts, but this way the datasets don't need to be re-downloaded
