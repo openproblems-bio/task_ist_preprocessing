@@ -1,6 +1,7 @@
 library(spacexr)
 library(Matrix)
 library(SingleCellExperiment)
+# library(SpatialExperiment)
 library(anndataR)
 
 ## VIASH START

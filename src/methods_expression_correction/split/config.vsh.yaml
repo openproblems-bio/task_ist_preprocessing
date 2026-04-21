@@ -29,11 +29,14 @@ engines:
       - type: docker
         run: |
           apt-get update
+      # - type: r
+      #   packages: [fs, rlang, lifecycle]
       - type: r
-        bioc: [anndataR, rhdf5, devtools, scater]
+        bioc: [SingleCellExperiment, anndataR, rhdf5, devtools, scater]
+        # bioc: [SpatialExperiment, anndataR, rhdf5, devtools, scater]
       - type: docker
         run: |
-          Rscript -e "BiocManager::install('SingleCellExperiment', type = 'source', force = TRUE, ask = FALSE); options(timeout = 600000000); devtools::install_github('dmcable/spacexr', build_vignettes = FALSE); devtools::install_github('bdsc-tds/SPLIT')"
+          Rscript -e "options(timeout = 600000000); devtools::install_github('dmcable/spacexr', build_vignettes = FALSE); devtools::install_github('bdsc-tds/SPLIT')"
 
       # SingleCellExperiment part can probably be left out again in the future. It currently fixes a bug described in these issues:
       # https://github.com/drighelli/SpatialExperiment/issues/171
