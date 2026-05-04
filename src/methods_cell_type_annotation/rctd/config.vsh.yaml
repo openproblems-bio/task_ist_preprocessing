@@ -22,14 +22,13 @@ engines:
       #  run: |
       #    apt-get update && apt-get install -y wget
       - type: r
-        bioc: [anndataR, rhdf5, devtools]
-      #- type: r
-      #  bioc: [SummarizedExperiment,SingleCellExperiment,SpatialExperiment]
-      #  bioc_force_install: true
+        bioc: [SingleCellExperiment, anndataR, rhdf5, devtools]
+        # bioc_force_install: true
       - type: docker
         run: |
-          Rscript -e "BiocManager::install('SingleCellExperiment', type = 'source', force = TRUE, ask = FALSE); devtools::install_github('dmcable/spacexr', build_vignettes = FALSE)"
-
+          Rscript -e "options(timeout = 600000000); devtools::install_github('dmcable/spacexr', build_vignettes = FALSE)"
+# Rscript -e "BiocManager::install('SingleCellExperiment', type = 'source', force = TRUE, ask = FALSE); devtools::install_github('dmcable/spacexr', build_vignettes = FALSE)"
+        
       # This can probably be left out again in the future. It currently fixes a bug described in these issues:
       # https://github.com/drighelli/SpatialExperiment/issues/171
       # https://github.com/satijalab/seurat/issues/9889

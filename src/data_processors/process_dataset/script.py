@@ -38,7 +38,7 @@ def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
         The crop coordinates
     """
     
-    _, h, w = sdata['morphology_mip']["scale0"].image.shape
+    _, h, w = sdata['image']["scale0"].image.shape
     #h, w = sdata
     
     # Check if the image is already below the maximum number of pixels
@@ -195,6 +195,13 @@ adata = adata[:,adata.var["feature_name"].isin(shared_genes)].copy()
 adata.var.reset_index(inplace=True, drop=True)
 adata.var_names = adata.var["feature_name"].values.astype(str).tolist()
 
+# Ensure the metadata table exists in sdata (rename "table" -> "metadata" if needed)
+if "metadata" not in sdata.tables:
+    if "table" in sdata.tables:
+        sdata["metadata"] = sdata["table"]
+    else:
+        sdata["metadata"] = ad.AnnData(uns={})
+
 # store metadata to adata and sdata uns
 metadata_uns_cols = ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism"]
 for col in metadata_uns_cols:
@@ -202,11 +209,9 @@ for col in metadata_uns_cols:
     if orig_col in adata.uns:
         adata.uns[orig_col] = adata.uns[col]
     adata.uns[col] = par[col]
-    if not ("table" in sdata.tables):
-        sdata["table"] = ad.AnnData(uns={})
-    if orig_col in sdata["table"].uns:
-        sdata["table"].uns[orig_col] = sdata["table"].uns[col]
-    sdata["table"].uns[col] = par[col]
+    if orig_col in sdata["metadata"].uns:
+        sdata["metadata"].uns[orig_col] = sdata["metadata"].uns[col]
+    sdata["metadata"].uns[col] = par[col]
 
 # Correct the feature_key attribute in sdata if needed
 # NOTE: it would have been better to do this in the loader scripts, but this way the datasets don't need to be re-downloaded
@@ -214,6 +219,11 @@ if "feature_key" in sdata['transcripts'].attrs["spatialdata_attrs"]:
     feature_key = sdata['transcripts'].attrs["spatialdata_attrs"]["feature_key"]
     if feature_key != "feature_name":
         sdata['transcripts'].attrs["spatialdata_attrs"]["feature_key"] = "feature_name"
+
+# Rename image key to match API spec (file_common_ist.yaml expects "image")
+if "morphology_mip" in sdata.images:
+    sdata["image"] = sdata["morphology_mip"]
+    del sdata.images["morphology_mip"]
 
 # Crop datasets that are too large
 crop_coords = get_crop_coords(sdata)
