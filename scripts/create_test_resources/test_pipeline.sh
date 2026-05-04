@@ -55,7 +55,7 @@ viash run src/methods_normalization/normalize_by_volume/config.vsh.yaml -- \
   --output $OUT_DIR/spatial_normalized_counts.h5ad
 
 # run a cell type annotation method
-viash run src/methods_cell_type_annotation/ssam/config.vsh.yaml -- \
+viash run src/methods_cell_type_annotation/tacco/config.vsh.yaml -- \
   --input_spatial_normalized_counts $OUT_DIR/spatial_normalized_counts.h5ad \
   --input_transcript_assignments $OUT_DIR/transcript_assignments.zarr \
   --input_scrnaseq_reference $OUT_DIR/scrnaseq_reference.h5ad \
