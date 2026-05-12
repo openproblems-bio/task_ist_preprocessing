@@ -39,12 +39,10 @@ del hyperparameters['input']
 del hyperparameters['output']
 
 sdata = sd.read_zarr(par["input"])
-image = sdata['morphology_mip']['scale0'].image.compute().to_numpy()
-transformation = sdata['morphology_mip']['scale0'].image.transform.copy()
 
 sd_output = sd.SpatialData()
-image = sdata['morphology_mip']['scale0'].image.compute().to_numpy()
-transformation = sdata['morphology_mip']['scale0'].image.transform.copy()
+image = sdata['image']['scale0'].image.compute().to_numpy()
+transformation = sdata['image']['scale0'].image.transform.copy()
 img_arr = tx.preprocessing.segment_binning(image[0], hyperparameters['bin_size'])   ### TOdo find the optimal bin_size
 image = convert_to_lower_dtype(img_arr)
 data_array = xr.DataArray(image, name=f'segmentation', dims=('y', 'x'))
