@@ -11,15 +11,17 @@ set -e
 if [ ! -d temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1 ]; then
   mkdir -p temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1
 fi
-if [ ! -f temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip ]; then
+if [ ! -f temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs ]; then
   wget -O temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip \
     https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
+  unzip temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip \
+    -d temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs
 fi
 
 cat > /tmp/params.yaml << HERE
 param_list:
   - id: 2023_10x_mouse_brain_xenium_rep1
-    input: temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
+    input: temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs
     segmentation_id:
       - cell
       - nucleus
