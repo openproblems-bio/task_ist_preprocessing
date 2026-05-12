@@ -34,16 +34,15 @@ engines:
       - type: r
         bioc: [SingleCellExperiment, anndataR, rhdf5, devtools, scater]
         # bioc: [SpatialExperiment, anndataR, rhdf5, devtools, scater]
-      - type: docker
-        run: |
-          Rscript -e "options(timeout = 600000000); devtools::install_github('dmcable/spacexr', build_vignettes = FALSE); devtools::install_github('bdsc-tds/SPLIT')"
 
-      # SingleCellExperiment part can probably be left out again in the future. It currently fixes a bug described in these issues:
-      # https://github.com/drighelli/SpatialExperiment/issues/171
-      # https://github.com/satijalab/seurat/issues/9889
-      # The reinstall of SingleCellExperiment triggers the correct re-install of SpatialExperiment.
-
-      # Using a large timeout here to reduce failures during GitHub package installation.
+        # SingleCellExperiment part can probably be left out again in the future. It currently fixes a bug described in these issues:
+        # https://github.com/drighelli/SpatialExperiment/issues/171
+        # https://github.com/satijalab/seurat/issues/9889
+        # The reinstall of SingleCellExperiment triggers the correct re-install of SpatialExperiment.
+      - type: r
+        github: dmcable/spacexr
+      - type: r
+        github: bdsc-tds/SPLIT
 
   - type: native
 
