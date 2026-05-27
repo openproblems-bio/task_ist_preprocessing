@@ -11,7 +11,7 @@ par = {
 ## VIASH END
 
 print('Reading input files', flush=True)
-adata = ad.read(par['input_spatial_aggregated_counts'])
+adata = ad.read_h5ad(par['input_spatial_aggregated_counts'])
 
 print('Normalizing by total counts', flush=True)
 adata.layers['normalized'] = adata.layers['counts'].copy()
