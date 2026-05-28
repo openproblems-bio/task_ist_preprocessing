@@ -1,7 +1,9 @@
 import numpy as np
 import xarray as xr
 import dask
+import dask.dataframe as dd
 import spatialdata as sd
+from spatialdata.models import PointsModel
 import txsim as tx
 import anndata as ad
 import os
@@ -156,14 +158,10 @@ assignments, cell_types = tx.preprocessing.run_pciSeq(
 )
 
 #assign transcript -> cell
-cell_id_dask_series = dask.dataframe.from_dask_array(
-    dask.array.from_array(
-        assignments['cell'].to_numpy(), chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
-    ), 
-    index=sdata[par['transcripts_key']].index
-)
-
-sdata[par['transcripts_key']]["cell_id"] = cell_id_dask_series 
+transformations = sd.transformations.get_transformation(sdata[par['transcripts_key']], get_all=True)
+transcripts_pd = sdata[par['transcripts_key']].compute().copy()
+transcripts_pd["cell_id"] = assignments['cell'].to_numpy()
+sdata[par['transcripts_key']] = PointsModel.parse(transcripts_pd, transformations=transformations)
 
 # create new .obs for cells based on the segmentation output (corresponding with the transcripts 'cell_id')
 cell_types['type'] = cell_types['type'].replace({'None':'None_sp'})
