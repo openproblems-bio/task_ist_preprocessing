@@ -4,7 +4,7 @@ namespace: datasets/loaders
 argument_groups:
   - name: Inputs
     arguments:
-      - type: string
+      - type: file
         name: --input
         required: true
         description: A 10x xenium directory or zip file or download url

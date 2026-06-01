@@ -11,15 +11,17 @@ set -e
 if [ ! -d temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1 ]; then
   mkdir -p temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1
 fi
-if [ ! -f temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip ]; then
+if [ ! -d temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs ]; then
   wget -O temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip \
     https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_MultiSection_1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
+  unzip temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip \
+    -d temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs
 fi
 
 cat > /tmp/params.yaml << HERE
 param_list:
   - id: 2023_10x_mouse_brain_xenium_rep1
-    input: temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs.zip
+    input: temp/datasets/10x_xenium/2023_10x_mouse_brain_xenium_rep1/Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs
     segmentation_id:
       - cell
       - nucleus
@@ -28,6 +30,7 @@ param_list:
     dataset_summary: Demonstration of gene expression profiling for fresh frozen mouse brain on the Xenium platform.
     dataset_description: Demonstration of gene expression profiling for fresh frozen mouse brain on the Xenium platform using the pre-designed Mouse Brain Gene Expression Panel (v1).
     dataset_organism: mus_musculus
+    dataset_reference: NA
     crop_region_min_x: 10000
     crop_region_max_x: 11000
     crop_region_min_y: 10000

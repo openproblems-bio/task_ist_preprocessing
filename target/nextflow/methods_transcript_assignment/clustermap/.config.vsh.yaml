@@ -795,10 +795,9 @@ engines:
   - type: "python"
     user: false
     pypi:
-    - "spatialdata==0.5.0"
+    - "spatialdata>=0.7.3"
     - "anndata>=0.12.0"
-    - "pyarrow<22.0.0"
-    - "zarr<3.0.0"
+    - "zarr>=3.0.0"
     upgrade: true
   - type: "python"
     user: false
@@ -828,6 +827,11 @@ engines:
     - "apt-get update && \\\napt-get install -y libgl1-mesa-glx libglib2.0-0 && \\\
       \ngit clone https://github.com/wanglab-broad/ClusterMap.git && \\\ncd ClusterMap\
       \ && \\\npip install -e .\n"
+  - type: "python"
+    user: false
+    github:
+    - "openproblems-bio/core#subdirectory=packages/python/openproblems"
+    upgrade: true
   entrypoint: []
   cmd: null
 - type: "native"
@@ -838,8 +842,8 @@ build_info:
   engine: "docker|native"
   output: "target/nextflow/methods_transcript_assignment/clustermap"
   executable: "target/nextflow/methods_transcript_assignment/clustermap/main.nf"
-  viash_version: "0.9.4"
-  git_commit: "f64ec27595473e12bd1816bf6347d8699ae99a33"
+  viash_version: "0.9.7"
+  git_commit: "639b18b42d23485c9c48fa50acbbdc5b0ceb1cc7"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"
@@ -876,7 +880,7 @@ package_config:
     name: "datasets"
     repo: "openproblems-bio/datasets"
     tag: "build/main"
-  viash_version: "0.9.4"
+  viash_version: "0.9.7"
   source: "src"
   target: "target"
   config_mods:

@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import xarray as xr
 import spatialdata as sd
+import anndata as ad
 #from csbdeep.utils import normalize
 from csbdeep.data import Normalizer, normalize_mi_ma
 from stardist.models import StarDist2D
@@ -35,8 +36,8 @@ par = {
 
 # Read image and its transformation
 sdata = sd.read_zarr(par["input"])
-image = sdata['morphology_mip']['scale0'].image.compute().to_numpy()
-transformation = sdata['morphology_mip']['scale0'].image.transform.copy()
+image = sdata['image']['scale0'].image.compute().to_numpy()
+transformation = sdata['image']['scale0'].image.transform.copy()
 
 # Segment image
 
@@ -75,6 +76,11 @@ labels = convert_to_lower_dtype(labels)
 labels_array = xr.DataArray(labels, name=f'segmentation', dims=('y', 'x'))
 parsed_labels = sd.models.Labels2DModel.parse(labels_array, transformations=transformation)
 sd_output.labels['segmentation'] = parsed_labels
+
+sd_output.tables['table'] = ad.AnnData(
+      obs=sdata.tables["table"].obs[["cell_id", "region"]],
+      var=sdata.tables["table"].var[[]]
+    )
 
 print("Writing output", flush=True)
 Path(par["output"]).parent.mkdir(parents=True, exist_ok=True)
