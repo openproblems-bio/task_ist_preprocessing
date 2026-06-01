@@ -144,6 +144,9 @@ engines:
           git clone https://github.com/wanglab-broad/ClusterMap.git && \
           cd ClusterMap && \
           pip install -e .
+      - type: python
+        github:
+          - openproblems-bio/core#subdirectory=packages/python/openproblems
       #  #github: [wanglab-broad/ClusterMap]
   - type: native
 

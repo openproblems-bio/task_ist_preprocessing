@@ -213,7 +213,7 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
 
-dapi_image = np.squeeze(sdata['morphology_mip']['scale0']['image'].compute())
+dapi_image = np.squeeze(sdata['image']['scale0']['image'].compute())
 
 # Extract coordinates and feature names (= gene names) from SpatialData
 # and convert into the ClusterMap format

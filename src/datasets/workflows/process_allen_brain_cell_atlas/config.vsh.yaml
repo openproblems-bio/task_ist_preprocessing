@@ -29,7 +29,7 @@ argument_groups:
     arguments:
       - type: boolean
         name: --keep_files
-        required: true
+        default: true
         description: Whether to remove the downloaded files after processing.
   - name: Metadata
     arguments:
