@@ -4,6 +4,8 @@ import anndata as ad
 import spatialdata as sd
 import os
 import shutil
+import tempfile
+from pathlib import Path
 
 ### VIASH START
 par = {
@@ -172,8 +174,22 @@ def subsample_adata_group_balanced(adata, group_key, n_samples, seed=0):
 # Load the single-cell data
 adata = ad.read_h5ad(par["input_sc"])
 
+# Migrate zarr v2 stores to v3 before reading (zarr v2 uses .zattrs; zarr v3 uses zarr.json)
+input_sp = par["input_sp"]
+_tmp_dir = None
+if Path(input_sp, ".zattrs").exists():
+    print(f"Detected zarr v2 store at {input_sp}, migrating to zarr v3...")
+    _tmp_dir = tempfile.mkdtemp()
+    _tmp_path = os.path.join(_tmp_dir, "dataset.zarr")
+    _sdata_v2 = sd.read_zarr(input_sp)
+    _sdata_v2.write(_tmp_path)
+    del _sdata_v2
+    input_sp = _tmp_path
+
 # Load the spatial data
-sdata = sd.read_zarr(par["input_sp"])
+sdata = sd.read_zarr(input_sp)
+if _tmp_dir is not None:
+    shutil.rmtree(_tmp_dir)
 
 # Subset single-cell data if it is too large
 N_MAX_SC = 120000
