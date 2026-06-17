@@ -29,7 +29,7 @@ engines:
       - /src/base/setup_txsim_partial.yaml
     setup:
       - type: python
-        pypi: [planktonspace]
+        pypi: [planktonspace, "matplotlib<3.9"]
   - type: native
 
 runners:
