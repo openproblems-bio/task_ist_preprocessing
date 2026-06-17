@@ -3806,7 +3806,8 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "planktonspace"
+            "planktonspace",
+            "matplotlib<3.9"
           ],
           "upgrade" : true
         }
@@ -3823,7 +3824,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/ssam",
     "viash_version" : "0.9.7",
-    "git_commit" : "15727608fb07c0505f3b4511c3031165f2db9853",
+    "git_commit" : "80c18d704d05fadb168c972b1ad5043c3fccdcf1",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
