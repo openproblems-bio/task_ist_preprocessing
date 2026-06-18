@@ -32,8 +32,8 @@ engines:
       # - type: r
       #   packages: [fs, rlang, lifecycle]
       - type: r
-        bioc: [SingleCellExperiment, anndataR, rhdf5, devtools, scater]
-        # bioc: [SpatialExperiment, anndataR, rhdf5, devtools, scater]
+        bioc: [SingleCellExperiment, anndataR, rhdf5, scater]
+        # bioc: [SpatialExperiment, anndataR, rhdf5, scater]
 
         # SingleCellExperiment part can probably be left out again in the future. It currently fixes a bug described in these issues:
         # https://github.com/drighelli/SpatialExperiment/issues/171
