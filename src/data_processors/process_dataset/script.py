@@ -188,8 +188,6 @@ if Path(input_sp, ".zattrs").exists():
 
 # Load the spatial data
 sdata = sd.read_zarr(input_sp)
-if _tmp_dir is not None:
-    shutil.rmtree(_tmp_dir)
 
 # Subset single-cell data if it is too large
 N_MAX_SC = 120000
@@ -264,3 +262,7 @@ if os.path.exists(par["output_sp"]):
 
 # Save the spatial data
 sdata_output.write(par["output_sp"], overwrite=True)
+
+# Clean up zarr v2 migration temp dir only after all writes are complete
+if _tmp_dir is not None:
+    shutil.rmtree(_tmp_dir)
