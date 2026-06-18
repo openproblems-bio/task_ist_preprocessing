@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata>=0.7.3" "anndata>=0.12.0" "zarr>=3.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2026-06-17T16:55:26Z"
+LABEL org.opencontainers.image.created="2026-06-18T15:10:50Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="80c18d704d05fadb168c972b1ad5043c3fccdcf1"
+LABEL org.opencontainers.image.revision="436b166838cc847398aa2ea8cb3a8aa91c774571"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1517,6 +1517,10 @@ if os.path.exists(par["output_sp"]):
 
 # Save the spatial data
 sdata_output.write(par["output_sp"], overwrite=True)
+
+# Clean up zarr v2 migration temp dir only after all writes are complete
+if _tmp_dir is not None:
+    shutil.rmtree(_tmp_dir)
 VIASHMAIN
 python -B "\$tempscript" &
 wait "\$!"

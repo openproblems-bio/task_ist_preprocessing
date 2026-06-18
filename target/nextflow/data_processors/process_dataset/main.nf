@@ -4381,7 +4381,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.7",
-    "git_commit" : "80c18d704d05fadb168c972b1ad5043c3fccdcf1",
+    "git_commit" : "436b166838cc847398aa2ea8cb3a8aa91c774571",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4789,6 +4789,10 @@ if os.path.exists(par["output_sp"]):
 
 # Save the spatial data
 sdata_output.write(par["output_sp"], overwrite=True)
+
+# Clean up zarr v2 migration temp dir only after all writes are complete
+if _tmp_dir is not None:
+    shutil.rmtree(_tmp_dir)
 VIASHMAIN
 python -B "$tempscript"
 '''
