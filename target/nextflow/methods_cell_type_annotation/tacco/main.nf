@@ -3792,7 +3792,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/tacco",
     "viash_version" : "0.9.7",
-    "git_commit" : "302dba227fdd44c7a9c26b8145fd4959e147bf2b",
+    "git_commit" : "de53b913deaaff34d0860593ed7cb2181e9669de",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

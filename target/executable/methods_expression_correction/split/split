@@ -451,7 +451,6 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("BiocManager", quietly 
   Rscript -e 'options(warn = 2); if (!requireNamespace("SingleCellExperiment", quietly = TRUE)) BiocManager::install("SingleCellExperiment")' && \
   Rscript -e 'options(warn = 2); if (!requireNamespace("anndataR", quietly = TRUE)) BiocManager::install("anndataR")' && \
   Rscript -e 'options(warn = 2); if (!requireNamespace("rhdf5", quietly = TRUE)) BiocManager::install("rhdf5")' && \
-  Rscript -e 'options(warn = 2); if (!requireNamespace("devtools", quietly = TRUE)) BiocManager::install("devtools")' && \
   Rscript -e 'options(warn = 2); if (!requireNamespace("scater", quietly = TRUE)) BiocManager::install("scater")'
 
 RUN Rscript -e 'options(warn = 2); if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")' && \
@@ -460,9 +459,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("remotes", quietly = TR
 RUN Rscript -e 'remotes::install_github("bdsc-tds/SPLIT")'
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_expression_correction split"
-LABEL org.opencontainers.image.created="2026-06-18T21:31:53Z"
+LABEL org.opencontainers.image.created="2026-06-18T22:40:44Z"
 LABEL org.opencontainers.image.source="https://github.com/bdsc-tds/SPLIT"
-LABEL org.opencontainers.image.revision="302dba227fdd44c7a9c26b8145fd4959e147bf2b"
+LABEL org.opencontainers.image.revision="de53b913deaaff34d0860593ed7cb2181e9669de"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
