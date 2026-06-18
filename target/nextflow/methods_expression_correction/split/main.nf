@@ -3708,7 +3708,7 @@ meta = [
         {
           "type" : "docker",
           "run" : [
-            "apt-get update\n"
+            "apt-get update && apt-get install -y libcurl4-openssl-dev libssl-dev libgit2-dev libxml2-dev\n"
           ]
         },
         {
@@ -3732,12 +3732,10 @@ meta = [
           "warnings_as_errors" : true
         },
         {
-          "type" : "r",
-          "github" : [
-            "bdsc-tds/SPLIT"
-          ],
-          "bioc_force_install" : false,
-          "warnings_as_errors" : true
+          "type" : "docker",
+          "run" : [
+            "Rscript -e 'remotes::install_github(\\"bdsc-tds/SPLIT\\")'\n"
+          ]
         }
       ]
     },
@@ -3752,7 +3750,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_expression_correction/split",
     "viash_version" : "0.9.7",
-    "git_commit" : "4d9359f8a1b13009e865e57d3e4d71661567c3e1",
+    "git_commit" : "302dba227fdd44c7a9c26b8145fd4959e147bf2b",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
