@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "sopa"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment proseg"
-LABEL org.opencontainers.image.created="2026-06-18T15:48:02Z"
+LABEL org.opencontainers.image.created="2026-06-18T16:55:30Z"
 LABEL org.opencontainers.image.source="https://github.com/dcjones/proseg"
-LABEL org.opencontainers.image.revision="c5cb4254087b0c898b0fd30be5710d429c2a9bd1"
+LABEL org.opencontainers.image.revision="4d9359f8a1b13009e865e57d3e4d71661567c3e1"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
