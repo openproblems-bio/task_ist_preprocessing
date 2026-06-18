@@ -28,7 +28,7 @@ engines:
     setup:
       - type: docker
         run: |
-          apt-get update
+          apt-get update && apt-get install -y libcurl4-openssl-dev libssl-dev libgit2-dev libxml2-dev
       # - type: r
       #   packages: [fs, rlang, lifecycle]
       - type: r
@@ -41,8 +41,9 @@ engines:
         # The reinstall of SingleCellExperiment triggers the correct re-install of SpatialExperiment.
       - type: r
         github: dmcable/spacexr
-      - type: r
-        github: bdsc-tds/SPLIT
+      - type: docker
+        run: |
+          Rscript -e 'remotes::install_github("bdsc-tds/SPLIT")'
 
   - type: native
 
