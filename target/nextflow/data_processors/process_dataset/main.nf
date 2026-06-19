@@ -4322,7 +4322,7 @@ meta = [
       "directives" : {
         "label" : [
           "lowcpu",
-          "midmem",
+          "highmem",
           "hightime"
         ],
         "tag" : "$id"
@@ -4381,7 +4381,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.7",
-    "git_commit" : "aaf20812f18e036273286ce61f4286e3b17fc1be",
+    "git_commit" : "de608a52d001a3da9d1ce1ca6b70ef77ebcef46e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -5177,7 +5177,7 @@ meta["defaults"] = [
   },
   "label" : [
     "lowcpu",
-    "midmem",
+    "highmem",
     "hightime"
   ],
   "tag" : "$id"
