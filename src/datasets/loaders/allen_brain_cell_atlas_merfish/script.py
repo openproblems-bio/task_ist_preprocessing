@@ -155,7 +155,7 @@ def download_fov_image(fov_idx, n_format, prefix, suffix, base_url, frames, stai
     reader = DaxReader(str(dax_path))
     img = np.array([reader.load_frame(f) for f in frames])
     reader.close()
-    tifffile.imsave(tif_path, img)
+    tifffile.imwrite(tif_path, img)
     return img
 
 
