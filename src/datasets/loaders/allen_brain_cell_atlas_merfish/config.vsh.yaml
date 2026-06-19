@@ -1,0 +1,94 @@
+name: allen_brain_cell_atlas_merfish
+namespace: datasets/loaders
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - type: string
+        name: --mouse
+        description: "Mouse identifier. One of: mouse1_coronal, mouse2_coronal, mouse3_sagittal, mouse4_sagittal."
+        required: true
+        choices:
+          - mouse1_coronal
+          - mouse2_coronal
+          - mouse3_sagittal
+          - mouse4_sagittal
+      - type: string
+        name: --experiment_id
+        description: "Experiment identifier (brain section). Must match an entry in the experiment_metadata.csv for the selected mouse."
+        required: true
+      - type: string
+        name: --abca_version
+        description: "Version tag for the Allen Brain Cell Atlas cell metadata release."
+        required: false
+        default: "20231215"
+      - type: string
+        name: --segmentation_id
+        default: ["cell"]
+        description: The segmentation identifier.
+        multiple: true
+  - name: Caching settings
+    arguments:
+      - type: boolean
+        name: --keep_files
+        default: true
+        description: "Keep downloaded intermediate files after processing."
+  - name: Metadata
+    arguments:
+      - type: string
+        name: --dataset_id
+        description: "A unique identifier for the dataset."
+        required: true
+      - name: --dataset_name
+        type: string
+        description: Nicely formatted name.
+        required: true
+      - type: string
+        name: --dataset_url
+        description: Link to the original source of the dataset.
+        required: false
+      - name: --dataset_reference
+        type: string
+        description: Bibtex reference of the paper in which the dataset was published.
+        required: false
+      - name: --dataset_summary
+        type: string
+        description: Short description of the dataset.
+        required: true
+      - name: --dataset_description
+        type: string
+        description: Long description of the dataset.
+        required: true
+      - name: --dataset_organism
+        type: string
+        description: The organism of the sample in the dataset.
+        required: false
+  - name: Outputs
+    arguments:
+      - name: "--output"
+        __merge__: /src/api/file_common_ist.yaml
+        direction: output
+        required: true
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    __merge__:
+      - /src/base/setup_spatialdata_partial.yaml
+    setup:
+      - type: python
+        pypi:
+          - geopandas
+          - tifffile
+          - shapely
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [midmem, midcpu, hightime]
