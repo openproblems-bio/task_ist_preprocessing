@@ -344,7 +344,9 @@ for fov in range(n_fovs):
         fov_img = fov_img[:, OVERLAP_SIZE:, :]
         xp += OVERLAP_SIZE
 
-    complete_img[:, xp:xp + fov_img.shape[1], yp:yp + fov_img.shape[2]] = fov_img
+    h = min(fov_img.shape[1], complete_img.shape[1] - xp)
+    w = min(fov_img.shape[2], complete_img.shape[2] - yp)
+    complete_img[:, xp:xp + h, yp:yp + w] = fov_img[:, :h, :w]
 
     if fov % 10 == 0:
         delete_dax_files()
