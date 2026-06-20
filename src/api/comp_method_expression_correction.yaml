@@ -15,6 +15,10 @@ arguments:
     required: false
     direction: input
     __merge__: /src/api/file_scrnaseq_reference.yaml
+  - name: --input_ist
+    direction: input
+    required: false
+    __merge__: /src/api/file_transcript_assignments.yaml
   - name: --output
     required: true
     direction: output
