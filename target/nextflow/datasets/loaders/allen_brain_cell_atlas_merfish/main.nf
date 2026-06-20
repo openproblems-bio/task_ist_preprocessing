@@ -3482,7 +3482,7 @@ meta = [
       "id" : "nextflow",
       "directives" : {
         "label" : [
-          "midmem",
+          "highmem",
           "midcpu",
           "hightime"
         ],
@@ -3552,7 +3552,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas_merfish",
     "viash_version" : "0.9.7",
-    "git_commit" : "2c3aa11321f7ba91334cc355f7a4af05b0a5cc42",
+    "git_commit" : "897afa933984f3d13d7d740db9c6ea87c247e1b2",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4039,7 +4039,9 @@ for fov in range(n_fovs):
         fov_img = fov_img[:, OVERLAP_SIZE:, :]
         xp += OVERLAP_SIZE
 
-    complete_img[:, xp:xp + fov_img.shape[1], yp:yp + fov_img.shape[2]] = fov_img
+    h = min(fov_img.shape[1], complete_img.shape[1] - xp)
+    w = min(fov_img.shape[2], complete_img.shape[2] - yp)
+    complete_img[:, xp:xp + h, yp:yp + w] = fov_img[:, :h, :w]
 
     if fov % 10 == 0:
         delete_dax_files()
@@ -4595,7 +4597,7 @@ meta["defaults"] = [
     "tag" : "build_main"
   },
   "label" : [
-    "midmem",
+    "highmem",
     "midcpu",
     "hightime"
   ],

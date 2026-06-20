@@ -3986,7 +3986,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_data_aggregation/aggregate_spatial_data",
     "viash_version" : "0.9.7",
-    "git_commit" : "2c3aa11321f7ba91334cc355f7a4af05b0a5cc42",
+    "git_commit" : "897afa933984f3d13d7d740db9c6ea87c247e1b2",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
