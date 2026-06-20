@@ -1,0 +1,102 @@
+name: bidcell
+label: "BIDCell Segmentation"
+summary: "Cell segmentation using BIDCell deep learning approach"
+description: "BIDCell is a deep learning method for cell segmentation in spatial transcriptomics data that uses both morphology and transcript information."
+links:
+  documentation: "https://github.com/SydneyBioX/BIDCell"
+  repository: "https://github.com/SydneyBioX/BIDCell"
+references:
+  doi: "10.1038/s41467-023-44560-w"
+
+__merge__: /src/api/comp_method_segmentation.yaml
+
+arguments:
+  - name: --input_scrnaseq_reference
+    __merge__: /src/api/file_scrnaseq_reference.yaml
+    required: false
+    direction: input
+  - name: --temp
+    type: string
+    default: "./temp_bidcell/"
+    description: "Temporary directory for BIDCell intermediate files"
+  - name: --max_overlaps_pos
+    type: integer
+    default: 4
+    description: "Maximum number of cell types that can share a positive marker"
+  - name: --max_overlaps_neg
+    type: integer
+    default: 15
+    description: "Maximum number of cell types that can share a negative marker"
+  - name: --model_epochs
+    type: integer
+    default: 10
+    description: "Number of training epochs for BIDCell model"
+  - name: --min_cell_size
+    type: integer
+    default: 15
+    description: "Minimum cell size in pixels"
+
+resources:
+  - type: python_script
+    path: script.py
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, lowcpu, highmem, gpu ]
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: apt
+        packages:
+            - libgl1
+            - libgl1-mesa-dri
+            - libglib2.0-0
+            - libsm6
+            - libxext6
+            - libfontconfig1
+            - libxrender1
+            - build-essential
+            - git
+
+      - type: python
+        pip:  scikit-image
+      - type: python
+        pypi: tifffile
+      - type: python
+        pypi: natsort
+      - type: python
+        pypi: opencv-python-headless
+      - type: python
+        pypi: imgaug
+      - type: python
+        pypi: matplotlib
+      - type: python
+        pypi: pandas
+      - type: python
+        pypi: scikit-learn
+      - type: python
+        pypi: tqdm
+      - type: python
+        pypi: pyyaml
+      - type: python
+        pypi: cellpose==3.1.1.2 
+      - type: python
+        pypi: bidcell
+      - type: python
+        pypi: spatialdata
+      - type: python
+        pypi: scanpy
+      - type: python
+        pypi: dask[dataframe]
+      - type: python
+        pypi: spatialdata-plot
+      - type: python
+        pypi: numpy >=1.24.4,<2.0.0
+    __merge__: 
+      - /src/base/setup_txsim_partial.yaml
+  - type: native
+
