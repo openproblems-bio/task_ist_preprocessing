@@ -49,8 +49,8 @@ data_array = xr.DataArray(image, name=f'segmentation', dims=('y', 'x'))
 parsed_data = Labels2DModel.parse(data_array, transformations=transformation)
 sd_output.labels['segmentation'] = parsed_data
 sd_output.tables['table'] = ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
-      var=sdata.tables["table"].var[[]]
+      obs=sdata.tables["metadata"].obs[["cell_id", "region"]],
+      var=sdata.tables["metadata"].var[[]]
     )
 
 print("Writing output", flush=True)
