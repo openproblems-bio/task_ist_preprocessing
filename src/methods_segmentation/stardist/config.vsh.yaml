@@ -30,15 +30,14 @@ engines:
       - /src/base/setup_spatialdata_partial.yaml
     setup:
       - type: python
-        pypi: stardist
-      - type: python
-        pypi: numpy<2.0.0
-      - type: python
-        pypi: tensorflow
+        pypi:
+          - stardist
+          - tensorflow==2.17.0
+          - numpy<2.0.0
   - type: native
 
 runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [ midtime, midcpu, gpu ]
+      label: [ hightime, midcpu, highmem, gpu ]
