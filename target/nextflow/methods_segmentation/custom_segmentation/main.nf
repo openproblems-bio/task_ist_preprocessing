@@ -3502,7 +3502,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/custom_segmentation",
     "viash_version" : "0.9.7",
-    "git_commit" : "897afa933984f3d13d7d740db9c6ea87c247e1b2",
+    "git_commit" : "374204a84f09bd7e3c65d08431bd5d44149332a4",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3669,8 +3669,8 @@ sdata_segmentation_only = sd.SpatialData(
   },
   tables={
     "table": ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
-      var=sdata.tables["table"].var[[]]
+      obs=sdata.tables["metadata"].obs[["cell_id", "region"]],
+      var=sdata.tables["metadata"].var[[]]
     )
   }
 )

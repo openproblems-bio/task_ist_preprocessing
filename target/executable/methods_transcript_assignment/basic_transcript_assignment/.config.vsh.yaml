@@ -657,7 +657,7 @@ build_info:
   output: "target/executable/methods_transcript_assignment/basic_transcript_assignment"
   executable: "target/executable/methods_transcript_assignment/basic_transcript_assignment/basic_transcript_assignment"
   viash_version: "0.9.7"
-  git_commit: "897afa933984f3d13d7d740db9c6ea87c247e1b2"
+  git_commit: "374204a84f09bd7e3c65d08431bd5d44149332a4"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

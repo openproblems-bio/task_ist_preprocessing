@@ -443,7 +443,7 @@ function ViashDockerfile {
 
   if [[ "$engine_id" == "docker" ]]; then
     cat << 'VIASHDOCKER'
-FROM openproblems/base_python:1
+FROM openproblems/base_pytorch_nvidia:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "squidpy" "rasterio" && \
@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "cellpose<4.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation cellpose"
-LABEL org.opencontainers.image.created="2026-06-20T07:06:27Z"
+LABEL org.opencontainers.image.created="2026-06-21T10:54:47Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="897afa933984f3d13d7d740db9c6ea87c247e1b2"
+LABEL org.opencontainers.image.revision="374204a84f09bd7e3c65d08431bd5d44149332a4"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1516,8 +1516,8 @@ parsed_data = Labels2DModel.parse(data_array, transformations=transformation)
 sd_output.labels['segmentation'] = parsed_data
 
 sd_output.tables['table'] = ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
-      var=sdata.tables["table"].var[[]]
+      obs=sdata.tables["metadata"].obs[["cell_id", "region"]],
+      var=sdata.tables["metadata"].var[[]]
     )
 
 print("Writing output", flush=True)

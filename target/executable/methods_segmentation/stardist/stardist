@@ -443,24 +443,18 @@ function ViashDockerfile {
 
   if [[ "$engine_id" == "docker" ]]; then
     cat << 'VIASHDOCKER'
-FROM openproblems/base_python:1
+FROM openproblems/base_tensorflow_nvidia:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata>=0.7.3" "anndata>=0.12.0" "zarr>=3.0.0"
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "stardist"
-
-RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "numpy<2.0.0"
-
-RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "tensorflow"
+  pip install --upgrade --no-cache-dir "stardist" "tensorflow==2.17.0" "numpy<2.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation stardist"
-LABEL org.opencontainers.image.created="2026-06-20T07:06:26Z"
+LABEL org.opencontainers.image.created="2026-06-21T10:54:46Z"
 LABEL org.opencontainers.image.source="https://github.com/stardist/stardist"
-LABEL org.opencontainers.image.revision="897afa933984f3d13d7d740db9c6ea87c247e1b2"
+LABEL org.opencontainers.image.revision="374204a84f09bd7e3c65d08431bd5d44149332a4"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1171,8 +1165,8 @@ parsed_labels = sd.models.Labels2DModel.parse(labels_array, transformations=tran
 sd_output.labels['segmentation'] = parsed_labels
 
 sd_output.tables['table'] = ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
-      var=sdata.tables["table"].var[[]]
+      obs=sdata.tables["metadata"].obs[["cell_id", "region"]],
+      var=sdata.tables["metadata"].var[[]]
     )
 
 print("Writing output", flush=True)

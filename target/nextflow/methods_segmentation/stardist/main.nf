@@ -3441,7 +3441,7 @@ meta = [
       "id" : "nextflow",
       "directives" : {
         "label" : [
-          "midtime",
+          "hightime",
           "midcpu",
           "highmem",
           "gpu"
@@ -3476,7 +3476,7 @@ meta = [
     {
       "type" : "docker",
       "id" : "docker",
-      "image" : "openproblems/base_python:1",
+      "image" : "openproblems/base_tensorflow_nvidia:1",
       "namespace_separator" : "/",
       "setup" : [
         {
@@ -3493,23 +3493,9 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "stardist"
-          ],
-          "upgrade" : true
-        },
-        {
-          "type" : "python",
-          "user" : false,
-          "pypi" : [
+            "stardist",
+            "tensorflow==2.17.0",
             "numpy<2.0.0"
-          ],
-          "upgrade" : true
-        },
-        {
-          "type" : "python",
-          "user" : false,
-          "pypi" : [
-            "tensorflow"
           ],
           "upgrade" : true
         }
@@ -3526,7 +3512,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/stardist",
     "viash_version" : "0.9.7",
-    "git_commit" : "897afa933984f3d13d7d740db9c6ea87c247e1b2",
+    "git_commit" : "374204a84f09bd7e3c65d08431bd5d44149332a4",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3747,8 +3733,8 @@ parsed_labels = sd.models.Labels2DModel.parse(labels_array, transformations=tran
 sd_output.labels['segmentation'] = parsed_labels
 
 sd_output.tables['table'] = ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
-      var=sdata.tables["table"].var[[]]
+      obs=sdata.tables["metadata"].obs[["cell_id", "region"]],
+      var=sdata.tables["metadata"].var[[]]
     )
 
 print("Writing output", flush=True)
@@ -4141,7 +4127,7 @@ meta["defaults"] = [
     "tag" : "build_main"
   },
   "label" : [
-    "midtime",
+    "hightime",
     "midcpu",
     "highmem",
     "gpu"

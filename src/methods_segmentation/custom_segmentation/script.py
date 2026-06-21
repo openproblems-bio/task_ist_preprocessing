@@ -26,8 +26,8 @@ sdata_segmentation_only = sd.SpatialData(
   },
   tables={
     "table": ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
-      var=sdata.tables["table"].var[[]]
+      obs=sdata.tables["metadata"].obs[["cell_id", "region"]],
+      var=sdata.tables["metadata"].var[[]]
     )
   }
 )
