@@ -213,6 +213,7 @@ adata.var_names = adata.var["feature_name"].values.astype(str).tolist()
 if "metadata" not in sdata.tables:
     if "table" in sdata.tables:
         sdata["metadata"] = sdata["table"]
+        del sdata["table"]
     else:
         sdata["metadata"] = ad.AnnData(uns={})
 

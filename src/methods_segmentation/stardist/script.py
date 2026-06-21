@@ -78,8 +78,8 @@ parsed_labels = sd.models.Labels2DModel.parse(labels_array, transformations=tran
 sd_output.labels['segmentation'] = parsed_labels
 
 sd_output.tables['table'] = ad.AnnData(
-      obs=sdata.tables["table"].obs[["cell_id", "region"]],
-      var=sdata.tables["table"].var[[]]
+      obs=sdata.tables["metadata"].obs[["cell_id", "region"]],
+      var=sdata.tables["metadata"].var[[]]
     )
 
 print("Writing output", flush=True)
