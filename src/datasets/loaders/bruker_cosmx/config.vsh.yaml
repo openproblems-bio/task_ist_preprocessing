@@ -11,7 +11,8 @@ argument_groups:
       - type: file
         name: --input_flat_files
         example: "https://smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
-        description: "Download file url for the flat files"
+        description: "Download file url for the flat files. Optional: only needed when flat files are not already present in the raw zip (e.g. mouse brain dataset)."
+        required: false
       - type: string
         name: --segmentation_id
         default: ["cell"]
