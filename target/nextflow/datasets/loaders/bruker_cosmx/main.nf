@@ -3048,24 +3048,28 @@ meta = [
       "name" : "Inputs",
       "arguments" : [
         {
-          "type" : "string",
+          "type" : "file",
           "name" : "--input_raw",
           "description" : "Download file url for the raw data",
           "example" : [
-            "https://smi-public.objects.liquidweb.services/HalfBrain.zip"
+            "https:/smi-public.objects.liquidweb.services/HalfBrain.zip"
           ],
+          "must_exist" : true,
+          "create_parent" : true,
           "required" : false,
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
         },
         {
-          "type" : "string",
+          "type" : "file",
           "name" : "--input_flat_files",
           "description" : "Download file url for the flat files",
           "example" : [
-            "https://smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
+            "https:/smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
           ],
+          "must_exist" : true,
+          "create_parent" : true,
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3521,7 +3525,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx",
     "viash_version" : "0.9.7",
-    "git_commit" : "bc9ce4b9cfa1e4c79402fd8cc8c2ffdc18a53cdb",
+    "git_commit" : "69cf858f614c5922c56e944ec969283c41514366",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3771,99 +3775,96 @@ assert ("cell" in par["segmentation_id"]) and (len(par["segmentation_id"]) == 1)
 
 t0 = datetime.now()
 
+def log(msg):
+    print(datetime.now() - t0, msg, flush=True)
+
 # Define temp dir and file names
 TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 TMP_DIR.mkdir(parents=True, exist_ok=True)
-FILE_NAME_RAW = TMP_DIR / par["input_raw"].split("/")[-1]
 
-if par["input_flat_files"] is not None:
-    FILE_NAME_FLAT = TMP_DIR / par["input_flat_files"].split("/")[-1].replace("%20", " ")
+def extract_zip(input_zip: Path, output_dir: Path, strip_root: bool = False):
+    """
+    Extracts the input zip file to the specified output directory.
 
-# Download raw files
-print(datetime.now() - t0, "Download raw files", flush=True)
-os.system(f"wget {par['input_raw']} -O '{FILE_NAME_RAW}'")
+    Arguments:
+    
+    - input_zip: Path to the input zip file.
+    - output_dir: Path to the directory where the contents of the zip file will be extracted
+    - strip_root: If True, and if all entries in the zip file share exactly one top-level directory, then this top-level directory will be stripped when extracting. 
+    """
+    output_dir = Path(output_dir)
+    with zipfile.ZipFile(input_zip, 'r') as zip_ref:
+        members = zip_ref.infolist()
 
-# Set DATA_DIR
-extracted_dir_name = zipfile.ZipFile(FILE_NAME_RAW).infolist()[0].filename.split("/")[0]
-DATA_DIR = TMP_DIR / extracted_dir_name / "CellStatsDir"
+        # only strip when all entries share exactly one top-level directory
+        roots = {Path(m.filename).parts[0] for m in members if m.filename.strip("/") and not m.filename.startswith("__MACOSX/")}
+        if not (strip_root and len(roots) == 1):
+            zip_ref.extractall(output_dir)
+            return
+
+        for member in members:
+            if member.filename.startswith("__MACOSX/"):
+                continue  # skip macOS resource-fork entries, don't recreate them
+            parts = Path(member.filename).parts[1:]
+            if not parts:
+                continue  # the wrapper directory entry itself
+            target = output_dir.joinpath(*parts)
+            if member.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+            else:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with zip_ref.open(member) as src, open(target, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
 
 # Extract zip files
-print(datetime.now() - t0, "Extract zip of raw files", flush=True)
-with zipfile.ZipFile(FILE_NAME_RAW, 'r') as zip_ref:
-    zip_ref.extractall(TMP_DIR)
+log("Extract zip of raw files")
+INPUT_RAW_EXTRACTED = TMP_DIR / "input_raw"
+extract_zip(par["input_raw"], INPUT_RAW_EXTRACTED, strip_root=True)
 
-# Print files and folders in TMP_DIR
-print(datetime.now() - t0, f"Files and folders in TMP_DIR ({TMP_DIR})", flush=True)
-print(os.listdir(TMP_DIR))
-if DATA_DIR.parent.exists():
-    print(datetime.now() - t0, f"Files and folders in {DATA_DIR.parent}", flush=True)
-    print(os.listdir(DATA_DIR.parent))
-else:
-    print(datetime.now() - t0, f"{DATA_DIR.parent} does not exist", flush=True)
-if DATA_DIR.exists():
-    print(datetime.now() - t0, f"Files and folders in {DATA_DIR}", flush=True)
-    print(os.listdir(DATA_DIR))
-else:
-    print(datetime.now() - t0, f"{DATA_DIR} does not exist", flush=True)
+log(f"Files and folders in input_raw_extracted ({INPUT_RAW_EXTRACTED})")
+print(os.listdir(INPUT_RAW_EXTRACTED))
 
-# Download and extract flat files if they are not already present
-FLAT_FILES_ENDINGS = ["_exprMat_file.csv", "_fov_positions_file.csv", "_metadata_file.csv", "_tx_file.csv"] #, "polygons.csv"]
-flat_files_count = 0
-for ending in FLAT_FILES_ENDINGS:
-    if any(f.endswith(ending) for f in os.listdir(DATA_DIR)):
-        print(f"Flat file with ending {ending} already present in extracted raw files", flush=True)
-        flat_files_count += 1
+log("Detect CellStatsDir directory inside extracted raw files")
+DATA_DIR = INPUT_RAW_EXTRACTED / "CellStatsDir"
+assert DATA_DIR.is_dir(), (
+    f"Expected CellStatsDir at {DATA_DIR}, but it does not exist. "
+    f"Contents of {INPUT_RAW_EXTRACTED}: {os.listdir(INPUT_RAW_EXTRACTED)}"
+)
 
-if flat_files_count == len(FLAT_FILES_ENDINGS):
-    print(datetime.now() - t0, "All flat files already present in extracted raw files", flush=True)
-else:
-    print(datetime.now() - t0, "Download and extract flat files", flush=True)
-    os.system(f"wget {par['input_flat_files']} -O '{FILE_NAME_FLAT}'")
-    
-    with zipfile.ZipFile(FILE_NAME_FLAT, 'r') as zip_ref:
-        zip_ref.extractall(TMP_DIR)
-    
-    print(datetime.now() - t0, f"Move flat files to {DATA_DIR}", flush=True)
-    source_dir = FILE_NAME_FLAT.parent / FILE_NAME_FLAT.stem
-    
-    file_names = os.listdir(source_dir)
-    for file_name in file_names:
-        if not (DATA_DIR / file_name).exists():
-            shutil.move(source_dir / file_name, DATA_DIR)
-        else:
-            print(datetime.now() - t0, f"File {file_name} already present in {DATA_DIR}", flush=True)
+log("Extract zip of flat files")
+INPUT_FLAT_FILES_EXTRACTED = TMP_DIR / "input_flat_files"
+extract_zip(par["input_flat_files"], INPUT_FLAT_FILES_EXTRACTED, strip_root=True)
 
+log("Symlink csvs from flat files to data dir")
+for path in INPUT_FLAT_FILES_EXTRACTED.glob("*.csv"):
+    target = DATA_DIR / path.name
+    if not target.exists():
+        log(f"Symlink file {path.name} to {DATA_DIR}")
+        os.symlink(path.resolve(), target)
+    else:
+        log(f"File {path.name} already present in {DATA_DIR}")
 
-# Move CellLabels_FXXX.tif files to CellLabels folder if they are not already present
+# sopa expects a CellLabels/ folder, but some CosMx exports only ship the per-FOV
+# label tifs (inside FOV* folders). When that's the case, gather them into a
+# CellLabels/ folder. See https://github.com/gustaveroussy/sopa/issues/285
 labels_dir = DATA_DIR / "CellLabels"
+fov_label_tifs = sorted(DATA_DIR.glob("FOV*/CellLabels_F*.tif"))
 
-if not labels_dir.exists():
-    print(datetime.now() - t0, "Create CellLabels folder with CellLabels tif", flush=True)
-    # Create CellLabels folder with CellLabels tif (somehow this folder name is expected and this is not always present)
-    # see e.g. late discussion in https://github.com/gustaveroussy/sopa/issues/285
-    
+if fov_label_tifs:
+    log(f"Symlink {len(fov_label_tifs)} per-FOV CellLabels tifs into {labels_dir}")
     labels_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Get all folders in data_dir that start with "FOV" and move the CellLabels_FXXX.tif file to the CellLabels folder
-    print(datetime.now() - t0, "Move CellLabels_FXXX.tif files to CellLabels folder", flush=True)
-    for fov_dir in DATA_DIR.glob("FOV*"):
-        fov_id = str(fov_dir)[-3:]
-        shutil.copy(fov_dir / f"CellLabels_F{fov_id}.tif", labels_dir / f"CellLabels_F{fov_id}.tif")
+    for tif in fov_label_tifs:
+        os.symlink(tif.resolve(), labels_dir / tif.name)
+elif labels_dir.is_dir():
+    log("CellLabels folder already present in raw data")
 else:
-    print(datetime.now() - t0, "CellLabels folder already present", flush=True)
-
-
+    raise AssertionError(f"No CellLabels folder and no per-FOV CellLabels tifs found in {DATA_DIR}")
 
 #########################################
 # Convert raw files to spatialdata zarr #
 #########################################
 
-
-#from pathlib import Path
-#import sopa
-#data_dir = Path("/Volumes/Sandisk2TB/G3_temp/bruker_cosmx/HalfBrain/CellStatsDir")
-
-print(datetime.now() - t0, "Convert raw files to spatialdata zarr", flush=True)
+log("Convert raw files to spatialdata zarr")
 
 sdata = sopa.io.cosmx(
     DATA_DIR, 
@@ -3880,8 +3881,7 @@ sdata = sopa.io.cosmx(
 ###############
 # Rename keys #
 ###############
-print(datetime.now() - t0, "Rename keys", flush=True)
-
+log("Rename keys")
 elements_renaming_map = {
     "stitched_image"     : "morphology_mip", 
     "stitched_labels"    : "cell_labels",
@@ -3894,15 +3894,14 @@ for old_key, new_key in elements_renaming_map.items():
     sdata[new_key] = sdata[old_key]
     del sdata[old_key]
 
-# Rename transcript column (somehow overwriting the 'target' column leads to an error, so instead we add a duplicate with the right name)
-#sdata['transcripts'] = sdata['transcripts'].rename(columns={"global_cell_id":"cell_id", "target":"feature_name"})
-sdata['transcripts'] = sdata['transcripts'].rename(columns={"global_cell_id":"cell_id"})
+# Add transcript columns with the names expected downstream.
+sdata['transcripts']["cell_id"] = sdata['transcripts']["global_cell_id"]
 sdata['transcripts']["feature_name"] = sdata['transcripts']["target"]
 
 #########################################
 # Throw out all channels except of DAPI #
 ######################################### NOTE: We assume the "DNA" stain is comparable to DAPI.
-print(datetime.now() - t0, "Throw out all channels except of 'DNA' (DAPI?)", flush=True)
+log("Throw out all channels except of 'DNA' (DAPI?)")
 
 # TODO: in the future we want to keep PolyT and Cellbound1/2/3 stains. Note however, that somehow saving or plotting the sdata fails when
 #       these channels aren't excluded, not sure why...
@@ -3912,20 +3911,18 @@ sdata["morphology_mip"] = sdata["morphology_mip"].sel(c=["DNA"])
 ##############################
 # Add info to metadata table #
 ##############################
-print(datetime.now() - t0, "Add metadata to table", flush=True)
-
-#TODO: values as input variables
+log("Add metadata to table")
 for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism", "segmentation_id"]:
     sdata["table"].uns[key] = par[key]
 
 #########
 # Write #
 #########
-print(datetime.now() - t0, f"Writing to {par['output']}", flush=True)
+log(f"Writing to {par['output']}")
 
 sdata.write(par["output"])
 
-print(datetime.now() - t0, "Done", flush=True)
+log(f"Done in {datetime.now() - t0}")
 VIASHMAIN
 python -B "$tempscript"
 '''

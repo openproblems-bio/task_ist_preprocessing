@@ -3048,24 +3048,28 @@ meta = [
       "name" : "Inputs",
       "arguments" : [
         {
-          "type" : "string",
+          "type" : "file",
           "name" : "--input_raw",
           "description" : "Download file url for the raw data",
           "example" : [
-            "https://smi-public.objects.liquidweb.services/HalfBrain.zip"
+            "https:/smi-public.objects.liquidweb.services/HalfBrain.zip"
           ],
+          "must_exist" : true,
+          "create_parent" : true,
           "required" : false,
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
         },
         {
-          "type" : "string",
+          "type" : "file",
           "name" : "--input_flat_files",
           "description" : "Download file url for the flat files",
           "example" : [
-            "https://smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
+            "https:/smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
           ],
+          "must_exist" : true,
+          "create_parent" : true,
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3550,7 +3554,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_bruker_cosmx",
     "viash_version" : "0.9.7",
-    "git_commit" : "bc9ce4b9cfa1e4c79402fd8cc8c2ffdc18a53cdb",
+    "git_commit" : "69cf858f614c5922c56e944ec969283c41514366",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
