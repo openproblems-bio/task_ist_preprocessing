@@ -3064,7 +3064,7 @@ meta = [
         {
           "type" : "file",
           "name" : "--input_flat_files",
-          "description" : "Download file url for the flat files",
+          "description" : "Download file url for the flat files. Optional: only needed when flat files are not already present in the raw zip (e.g. mouse brain dataset).",
           "example" : [
             "https:/smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
           ],
@@ -3525,7 +3525,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx",
     "viash_version" : "0.9.7",
-    "git_commit" : "402f56c6f62765e425ad882eff0c70e3ea736479",
+    "git_commit" : "f22b58cc72db170f1d1113aa7a24615ecc9a9f3e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3831,18 +3831,21 @@ assert DATA_DIR.is_dir(), (
     f"Contents of {INPUT_RAW_EXTRACTED}: {os.listdir(INPUT_RAW_EXTRACTED)}"
 )
 
-log("Extract zip of flat files")
-INPUT_FLAT_FILES_EXTRACTED = TMP_DIR / "input_flat_files"
-extract_zip(par["input_flat_files"], INPUT_FLAT_FILES_EXTRACTED, strip_root=True)
+if par["input_flat_files"]:
+    log("Extract zip of flat files")
+    INPUT_FLAT_FILES_EXTRACTED = TMP_DIR / "input_flat_files"
+    extract_zip(par["input_flat_files"], INPUT_FLAT_FILES_EXTRACTED, strip_root=True)
 
-log("Symlink csvs from flat files to data dir")
-for path in INPUT_FLAT_FILES_EXTRACTED.glob("*.csv"):
-    target = DATA_DIR / path.name
-    if not target.exists():
-        log(f"Symlink file {path.name} to {DATA_DIR}")
-        os.symlink(path.resolve(), target)
-    else:
-        log(f"File {path.name} already present in {DATA_DIR}")
+    log("Symlink csvs from flat files to data dir")
+    for path in INPUT_FLAT_FILES_EXTRACTED.glob("*.csv"):
+        target = DATA_DIR / path.name
+        if not target.exists():
+            log(f"Symlink file {path.name} to {DATA_DIR}")
+            os.symlink(path.resolve(), target)
+        else:
+            log(f"File {path.name} already present in {DATA_DIR}")
+else:
+    log("No flat files zip provided; assuming flat files are already present in the raw zip")
 
 # sopa expects a CellLabels/ folder, but some CosMx exports only ship the per-FOV
 # label tifs (inside FOV* folders). When that's the case, gather them into a
