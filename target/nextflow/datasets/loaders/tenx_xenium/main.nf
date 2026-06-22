@@ -3495,7 +3495,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/tenx_xenium",
     "viash_version" : "0.9.7",
-    "git_commit" : "69cf858f614c5922c56e944ec969283c41514366",
+    "git_commit" : "402f56c6f62765e425ad882eff0c70e3ea736479",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3674,7 +3674,12 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         print(f"Extracting input zip to {tmpdirname}", flush=True)
         with zipfile.ZipFile(par_input, "r") as zip_ref:
             zip_ref.extractall(tmpdirname)
-            par_input = tmpdirname
+        # find the directory containing the Xenium output files (may be nested)
+        par_input = tmpdirname
+        for root, dirs, files in os.walk(tmpdirname):
+            if "cell_feature_matrix.h5" in files:
+                par_input = root
+                break
 
     # read the data
     sdata = xenium(

@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders tenx_xenium"
-LABEL org.opencontainers.image.created="2026-06-22T14:58:44Z"
+LABEL org.opencontainers.image.created="2026-06-22T15:18:08Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="69cf858f614c5922c56e944ec969283c41514366"
+LABEL org.opencontainers.image.revision="402f56c6f62765e425ad882eff0c70e3ea736479"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1243,7 +1243,12 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         print(f"Extracting input zip to {tmpdirname}", flush=True)
         with zipfile.ZipFile(par_input, "r") as zip_ref:
             zip_ref.extractall(tmpdirname)
-            par_input = tmpdirname
+        # find the directory containing the Xenium output files (may be nested)
+        par_input = tmpdirname
+        for root, dirs, files in os.walk(tmpdirname):
+            if "cell_feature_matrix.h5" in files:
+                par_input = root
+                break
 
     # read the data
     sdata = xenium(
