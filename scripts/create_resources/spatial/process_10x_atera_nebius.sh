@@ -14,7 +14,7 @@ cat > /tmp/params_atera.yaml << HERE
 param_list:
 
   - id: "10x_atera/2026_10x_human_breast_cancer_atera"
-    input: https://s3-us-west-2.amazonaws.com/10x.files/samples/atera/dev/WTA_Preview_FFPE_Breast_Cancer/WTA_Preview_FFPE_Breast_Cancer_xe_outs.zip
+    input:  https://s3-us-west-2.amazonaws.com/10x.files/samples/atera/dev/WTA_Preview_FFPE_Breast_Cancer/WTA_Preview_FFPE_Breast_Cancer_outs.zip
     dataset_name: "Atera WTA FFPE Human Breast Cancer"
     dataset_url: "https://www.10xgenomics.com/datasets/atera-wta-ffpe-human-breast-cancer"
     dataset_summary: "Preview dataset showcasing the pre-commercial Atera Whole Transcriptome Assay (WTA) applied to FFPE human breast cancer tissue, profiling 18,028 genes and detecting 170,057 cells."
