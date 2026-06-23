@@ -450,9 +450,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders ganier_human_skin_sc"
-LABEL org.opencontainers.image.created="2026-06-22T22:16:03Z"
+LABEL org.opencontainers.image.created="2026-06-23T11:22:07Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="f22b58cc72db170f1d1113aa7a24615ecc9a9f3e"
+LABEL org.opencontainers.image.revision="fca5928a19b5e1d4a109afd51ae217cad80029c7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

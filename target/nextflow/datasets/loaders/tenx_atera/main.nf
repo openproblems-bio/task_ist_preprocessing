@@ -3478,7 +3478,8 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "spatialdata-io"
+            "spatialdata-io==0.6.0",
+            "spatialdata==0.7.2"
           ],
           "upgrade" : true
         }
@@ -3495,7 +3496,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/tenx_atera",
     "viash_version" : "0.9.7",
-    "git_commit" : "f22b58cc72db170f1d1113aa7a24615ecc9a9f3e",
+    "git_commit" : "fca5928a19b5e1d4a109afd51ae217cad80029c7",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
