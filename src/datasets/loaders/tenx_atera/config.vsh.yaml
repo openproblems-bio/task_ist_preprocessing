@@ -60,7 +60,8 @@ engines:
     setup:
       - type: python
         pypi:
-          - spatialdata-io
+          - spatialdata-io==0.6.0
+          - spatialdata==0.7.2
   - type: native
 
 runners:
