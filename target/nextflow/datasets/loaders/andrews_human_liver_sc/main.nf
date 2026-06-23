@@ -3567,7 +3567,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/andrews_human_liver_sc",
     "viash_version" : "0.9.7",
-    "git_commit" : "fca5928a19b5e1d4a109afd51ae217cad80029c7",
+    "git_commit" : "74586901d67ee6c8a4a0089d6802abf4585a3da6",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

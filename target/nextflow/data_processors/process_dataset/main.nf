@@ -4381,7 +4381,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.7",
-    "git_commit" : "fca5928a19b5e1d4a109afd51ae217cad80029c7",
+    "git_commit" : "74586901d67ee6c8a4a0089d6802abf4585a3da6",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4776,6 +4776,9 @@ if crop_coords is not None:
         filter_table=True,
     )
     rechunk_sdata(sdata_output) #NOTE: rechunking currently needed (https://github.com/scverse/spatialdata/issues/929)
+    # metadata is dataset-level, not spatial — re-add it if the bounding_box query dropped it
+    if "metadata" in sdata.tables and "metadata" not in sdata_output.tables:
+        sdata_output["metadata"] = sdata.tables["metadata"]
 else:
     sdata_output = sdata
     

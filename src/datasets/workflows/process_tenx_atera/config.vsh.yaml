@@ -82,4 +82,4 @@ dependencies:
 runners:
   - type: nextflow
     directives:
-      label: [highcpu, midmem, hightime]
+      label: [highcpu, highmem, hightime]

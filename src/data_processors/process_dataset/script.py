@@ -251,6 +251,9 @@ if crop_coords is not None:
         filter_table=True,
     )
     rechunk_sdata(sdata_output) #NOTE: rechunking currently needed (https://github.com/scverse/spatialdata/issues/929)
+    # metadata is dataset-level, not spatial — re-add it if the bounding_box query dropped it
+    if "metadata" in sdata.tables and "metadata" not in sdata_output.tables:
+        sdata_output["metadata"] = sdata.tables["metadata"]
 else:
     sdata_output = sdata
     
