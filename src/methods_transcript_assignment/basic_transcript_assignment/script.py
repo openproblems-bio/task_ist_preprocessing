@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
 import dask
+import dask.dataframe as dd
 import spatialdata as sd
 import anndata as ad
 import pandas as pd
@@ -33,14 +34,14 @@ segmentation_coord_systems = sd.transformations.get_transformation(sdata_segm["s
 assert par['coordinate_system'] in segmentation_coord_systems, f"Coordinate system '{par['coordinate_system']}' not found in input data."
 
 print('Transforming transcripts coordinates', flush=True)
-# Parquet partitions each start from index 0, causing duplicate index values in the
-# combined dask DataFrame. sd.transform() internally builds pd.Series(..., index=transformed.index)
-# which fails with "cannot reindex on an axis with duplicate labels".
-# Fix: reset to a global monotonic index before transforming; restore attrs explicitly
-# because reset_index() drops them, which would break spatialdata's PointsModel check.
+# Multi-partition parquet files each start with a 0-based index, producing duplicate index
+# values in the combined dask DataFrame. sd.transform() internally creates a pd.Series with
+# index=transformed.index; when that dask index is computed it triggers an assign expression
+# that fails on duplicate/lazy indices. Fix: materialize to pandas and rebuild as a single
+# dask partition with a clean RangeIndex before transforming.
 # The original sdata[transcripts_key] is left unchanged so lines below remain consistent.
 transcripts_input = sdata[par['transcripts_key']]
-transcripts_reset = transcripts_input.reset_index(drop=True)
+transcripts_reset = dd.from_pandas(transcripts_input.compute().reset_index(drop=True), npartitions=1)
 transcripts_reset.attrs.update(transcripts_input.attrs)
 transcripts = sd.transform(transcripts_reset, to_coordinate_system=par['coordinate_system'])
 
