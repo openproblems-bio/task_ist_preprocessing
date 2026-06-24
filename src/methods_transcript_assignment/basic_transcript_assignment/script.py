@@ -33,6 +33,8 @@ segmentation_coord_systems = sd.transformations.get_transformation(sdata_segm["s
 assert par['coordinate_system'] in segmentation_coord_systems, f"Coordinate system '{par['coordinate_system']}' not found in input data."
 
 print('Transforming transcripts coordinates', flush=True)
+# reset_index avoids materializing the parquet-backed dask index inside sd.transform
+sdata[par['transcripts_key']] = sdata[par['transcripts_key']].reset_index(drop=True)
 transcripts = sd.transform(sdata[par['transcripts_key']], to_coordinate_system=par['coordinate_system'])
 
 # In case of a translation transformation of the segmentation (e.g. crop of the data), we need to adjust the transcript coordinates
