@@ -3921,7 +3921,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/basic_transcript_assignment",
     "viash_version" : "0.9.7",
-    "git_commit" : "5058466a7914beabb7708a15ce382e577ba0da5a",
+    "git_commit" : "810e153c969b8e380f42a42954e80a4125e7cfb9",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4120,16 +4120,14 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
 else:
      label_image = sdata_segm["segmentation"].to_numpy()
-cell_id_dask_series = dask.dataframe.from_dask_array(
-    dask.array.from_array(
-        label_image[y_coords, x_coords], chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
-    ), 
-    index=sdata[par['transcripts_key']].index
-)
-sdata[par['transcripts_key']]["cell_id"] = cell_id_dask_series 
+# Assign cell ids directly to transcripts_reset (clean-index single-partition dask DataFrame).
+# Using sdata[par['transcripts_key']] here would reintroduce the duplicate parquet index,
+# causing the same "cannot reindex on an axis with duplicate labels" error at write time.
+cell_ids = label_image[y_coords, x_coords]
+transcripts_reset["cell_id"] = pd.Series(cell_ids)
 
 #create new .obs for cells based on the segmentation output (corresponding with the transcripts 'cell_id')
-unique_cells = np.unique(cell_id_dask_series)
+unique_cells = np.unique(cell_ids)
 
 # check if a '0' (noise/background) cell is in cell_id and remove
 zero_idx = np.where(unique_cells == 0)
@@ -4147,7 +4145,7 @@ assert 0 not in cell_id_col, "Found '0' in cell_id column of assingment output c
 print('Subsetting to transcripts cell id data', flush=True)
 sdata_transcripts_only = sd.SpatialData(
   points={
-    "transcripts": sdata[par['transcripts_key']]
+    "transcripts": transcripts_reset
   },
   tables={
     "table": ad.AnnData(

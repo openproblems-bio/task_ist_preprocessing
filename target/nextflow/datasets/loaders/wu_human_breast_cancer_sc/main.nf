@@ -3586,7 +3586,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/wu_human_breast_cancer_sc",
     "viash_version" : "0.9.7",
-    "git_commit" : "5058466a7914beabb7708a15ce382e577ba0da5a",
+    "git_commit" : "810e153c969b8e380f42a42954e80a4125e7cfb9",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
