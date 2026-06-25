@@ -227,6 +227,7 @@ download_if_missing(
 
 raw_adata = anndata.read_h5ad(matrix_path)
 sample_adata = raw_adata[raw_adata.obs["sample_id"] == sample_id].copy()
+del raw_adata
 
 fov_df = sample_adata.obs[["fov", "fov_x", "fov_y"]].drop_duplicates().copy()
 n_fovs = int(sample_adata.obs["fov"].max())
@@ -274,7 +275,9 @@ for xi in range(FRAME_SIZE_PIXELS):
                 0.00001, compute_weight([xi, yi], [FRAME_SIZE_PIXELS, FRAME_SIZE_PIXELS], PERCENT_SCALING)
             )
 
-complete_img = np.zeros((n_z_planes, img_w, img_h), dtype="uint16")
+# Store only the max-projection (MIP) rather than all z-planes to avoid a
+# (n_z × H × W) array that can exceed 30+ GB for whole-brain datasets.
+dapi_mip = np.zeros((img_w, img_h), dtype="uint16")
 
 for fov in range(n_fovs):
     if fov in missing_fovs:
@@ -337,25 +340,22 @@ for fov in range(n_fovs):
             )
 
     # Skip overlap region already filled by a previously placed FOV
-    if np.any(complete_img[:, xp:xp_max, yp:yp + OVERLAP_SIZE] != 0):
+    if np.any(dapi_mip[xp:xp_max, yp:yp + OVERLAP_SIZE] != 0):
         fov_img = fov_img[:, :, OVERLAP_SIZE:]
         yp += OVERLAP_SIZE
-    if np.any(complete_img[:, xp:xp + OVERLAP_SIZE, yp:yp_max - OVERLAP_SIZE] != 0):
+    if np.any(dapi_mip[xp:xp + OVERLAP_SIZE, yp:yp_max - OVERLAP_SIZE] != 0):
         fov_img = fov_img[:, OVERLAP_SIZE:, :]
         xp += OVERLAP_SIZE
 
-    h = min(fov_img.shape[1], complete_img.shape[1] - xp)
-    w = min(fov_img.shape[2], complete_img.shape[2] - yp)
-    complete_img[:, xp:xp + h, yp:yp + w] = fov_img[:, :h, :w]
+    h = min(fov_img.shape[1], dapi_mip.shape[0] - xp)
+    w = min(fov_img.shape[2], dapi_mip.shape[1] - yp)
+    np.maximum(dapi_mip[xp:xp + h, yp:yp + w], fov_img[:, :h, :w].max(axis=0), out=dapi_mip[xp:xp + h, yp:yp + w])
 
     if fov % 10 == 0:
         delete_dax_files()
         print(datetime.now() - t0, f"Stitched {fov}/{n_fovs} FOVs", flush=True)
 
 print(datetime.now() - t0, "Image stitching complete", flush=True)
-
-dapi_mip = complete_img.max(axis=0)  # (img_w, img_h) max-projection over z
-del complete_img
 
 # ─── Step 4: Load and pixel-register transcripts ──────────────────────────────
 
