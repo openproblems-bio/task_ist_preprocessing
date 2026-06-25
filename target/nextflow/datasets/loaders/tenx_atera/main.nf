@@ -3496,7 +3496,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/tenx_atera",
     "viash_version" : "0.9.7",
-    "git_commit" : "810e153c969b8e380f42a42954e80a4125e7cfb9",
+    "git_commit" : "f0c084dda7e236588f0f6d4f18fbc5c50c462bc8",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3619,6 +3619,7 @@ import os
 import zipfile
 import tempfile
 from pathlib import Path
+import zarr
 from spatialdata_io import xenium
 
 ## VIASH START
@@ -3729,6 +3730,7 @@ print(f"Writing to '{par['output']}'", flush=True)
 if os.path.exists(par["output"]):
     shutil.rmtree(par["output"])
 
+zarr.config.set({"array.rectilinear_chunks": True})
 sdata.write(par["output"])
 
 print("Done", flush=True)

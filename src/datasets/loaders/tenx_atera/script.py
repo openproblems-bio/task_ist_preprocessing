@@ -4,6 +4,7 @@ import os
 import zipfile
 import tempfile
 from pathlib import Path
+import zarr
 from spatialdata_io import xenium
 
 ## VIASH START
@@ -97,6 +98,7 @@ print(f"Writing to '{par['output']}'", flush=True)
 if os.path.exists(par["output"]):
     shutil.rmtree(par["output"])
 
+zarr.config.set({"array.rectilinear_chunks": True})
 sdata.write(par["output"])
 
 print("Done", flush=True)

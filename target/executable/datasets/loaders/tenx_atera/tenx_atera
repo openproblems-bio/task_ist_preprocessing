@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io==0.6.0" "spatialdata==0.7.2"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders tenx_atera"
-LABEL org.opencontainers.image.created="2026-06-24T19:45:25Z"
+LABEL org.opencontainers.image.created="2026-06-25T13:57:01Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="810e153c969b8e380f42a42954e80a4125e7cfb9"
+LABEL org.opencontainers.image.revision="f0c084dda7e236588f0f6d4f18fbc5c50c462bc8"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1187,6 +1187,7 @@ import os
 import zipfile
 import tempfile
 from pathlib import Path
+import zarr
 from spatialdata_io import xenium
 
 ## VIASH START
@@ -1297,6 +1298,7 @@ print(f"Writing to '{par['output']}'", flush=True)
 if os.path.exists(par["output"]):
     shutil.rmtree(par["output"])
 
+zarr.config.set({"array.rectilinear_chunks": True})
 sdata.write(par["output"])
 
 print("Done", flush=True)

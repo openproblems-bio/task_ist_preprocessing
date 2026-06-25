@@ -3612,7 +3612,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_travaglini_human_lung_sc",
     "viash_version" : "0.9.7",
-    "git_commit" : "810e153c969b8e380f42a42954e80a4125e7cfb9",
+    "git_commit" : "f0c084dda7e236588f0f6d4f18fbc5c50c462bc8",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
