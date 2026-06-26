@@ -3812,7 +3812,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/singler",
     "viash_version" : "0.9.7",
-    "git_commit" : "f0c084dda7e236588f0f6d4f18fbc5c50c462bc8",
+    "git_commit" : "aa12d73fc06cfbd7046e03d1eccba3d61d66d98f",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
