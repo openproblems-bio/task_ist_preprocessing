@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "singler"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation singler"
-LABEL org.opencontainers.image.created="2026-06-26T14:20:28Z"
+LABEL org.opencontainers.image.created="2026-06-29T08:40:22Z"
 LABEL org.opencontainers.image.source="https://github.com/SingleR-inc/singler-py"
-LABEL org.opencontainers.image.revision="aa12d73fc06cfbd7046e03d1eccba3d61d66d98f"
+LABEL org.opencontainers.image.revision="7ba9235130d8ff71049f05ebbe2f559428174220"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
