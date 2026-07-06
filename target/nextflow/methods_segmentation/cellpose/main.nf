@@ -3620,7 +3620,7 @@ meta = [
           "midtime",
           "midcpu",
           "highmem",
-          "gpu"
+          "gpuhighmem"
         ],
         "tag" : "$id"
       },
@@ -3698,7 +3698,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/cellpose",
     "viash_version" : "0.9.7",
-    "git_commit" : "d21090aa8c3cdbb2f3480d38a49a8caf2e0ac462",
+    "git_commit" : "6b63e6c5f82b0960995cdd9cd49df535e9436ec9",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4302,7 +4302,7 @@ meta["defaults"] = [
     "midtime",
     "midcpu",
     "highmem",
-    "gpu"
+    "gpuhighmem"
   ],
   "tag" : "$id"
 }'''),
