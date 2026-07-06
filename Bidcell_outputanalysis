@@ -1,0 +1,84 @@
+#Analysis and visualisation of BIDcell output
+#resizing BIDcell segmentation .tiff w.r.t DAPI image
+dapi_image = tiff.imread("morphology_mip_pyramidal.tiff")
+
+# Load the BIDCell segmentation mask (ensure the BIDCell segmentation is in the correct path;e.g., 'epoch_10_step_60.tif' or similar)
+segmentation_mask = tiff.imread("epoch_10_step_60_connected.tif")
+# Get the dimensions of the DAPI image (width and height)
+h_dapi, w_dapi = dapi_image.shape
+
+# Resize the BIDCell segmentation mask to match the DAPI image dimensions
+segmentation_mask_resized = cv2.resize(segmentation_mask.astype('float32'), (w_dapi, h_dapi), interpolation=cv2.INTER_NEAREST)
+
+# Convert the resized segmentation mask back to uint32 for storing the cell IDs
+segmentation_mask_resized = segmentation_mask_resized.astype(np.uint32)
+segmentation_mask_resized = segmentation_mask_resized.transpose(1, 0)
+# Save the resized segmentation mask to a .tif file
+tiff.imwrite("bidcellresult_resized.tif", segmentation_mask_resized)
+
+
+#creating bidcelloutput.zarr
+
+# Load the image
+image = tifffile.imread("morphology_mip_pyramidal.tiff")
+# Add a fake channel dimension (1 channel)
+image_with_channel = np.expand_dims(image, axis=0)
+# Parse the image with 'c', 'x', and 'y' dimensions
+# Load the image
+label_image = tifffile.imread("bidcellresult_resized.tif")
+labels = sd.models.Labels2DModel.parse(label_image, dims=('y', 'x'))
+# Convert 'x', 'y', and 'z' columns to float
+# Check the columns in transcript
+transcript_processed=pd.read_csv("/Volumes/Tejas_Kumar/testrunbidcell5/model_outputs/2025_03_17_09_36_19/test_output/transcript.csv.gz")
+transcript_processed['x'] = transcript_processed['x'].astype(float)
+transcript_processed['y'] = transcript_processed['y'].astype(float)
+transcript_processed['z'] = transcript_processed['z'].astype(float)
+transcript_processed['feature_name'] = transcript_processed['feature_name'].astype(str)
+transcript_processed=pd.DataFrame(transcript_processed)
+
+
+#creating images,labels and points for the bidcelloutput.zarr
+images = sd.models.Image2DModel.parse(image_with_channel, dims=('c', 'x', 'y'))
+labels = sd.models.Labels2DModel.parse(label_image, dims=('y', 'x'))
+points = sd.models.PointsModel.parse(transcript_processed)
+
+
+outputsdata = sd.SpatialData(
+    images={'DAPI': images},
+    labels={'segmentation_mask_labels': labels},  
+    points={'transcripts': points}  
+)
+outputsdata.write("Bidcelloutput.zarr",overwrite=True)
+
+
+#read the output zarr file and visualise segmentations 
+outdata=sd.read_zarr("Bidcelloutput.zarr")
+extents = sd.get_extent(outdata)
+# Crop a specific region for visualization
+crop0 = lambda x: sd.bounding_box_query(
+    x,
+    min_coordinate=[400,500],  # Min coordinates
+    max_coordinate=[900,1000],  # Max coordinates
+    #min_coordinate=[extents["x"][0], extents["y"][0]],  # Min coordinates
+    #max_coordinate=[extents["x"][1], extents["y"][1]],  # Max coordinates
+    #min_coordinate=[2125, 2125],  # Min coordinates
+    #max_coordinate=[2550, 2550],  # Max coordinates
+    axes=("x", "y"),  # Include the z-axis
+    target_coordinate_system="global",
+)
+# NOTE: this solves the error, somehow the cropping currently doesn't support sdata tables
+if "table" in outdata.tables:
+    del outdata.tables["table"]
+# Apply the cropping function to the spatial data
+sdata_crop = crop0(outdata)
+fig, axs = plt.subplots(ncols=3, figsize=(12, 3))
+sdata_crop.pl.render_images().pl.show(ax=axs[0])
+axs[0].set_title('Raw_DAPI_image')
+sdata_crop.pl.render_images().pl.render_labels(color="cell_id").pl.show(ax=axs[1])
+axs[1].set_title('BIDcell segmentations overlaid on DAPI')
+sdata_crop.pl.render_labels(color="cell_id").pl.show(ax=axs[2])
+axs[2].set_title('BIDcell segmentations')
+plt.tight_layout()
+plt.show()
+
+
