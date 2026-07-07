@@ -62,7 +62,7 @@ argument_groups:
           A list of segmentation methods to run.
         type: string
         multiple: true
-        default: "custom_segmentation:cellpose:binning:stardist:watershed"
+        default: "custom_segmentation:cellpose:cellposev4:binning:stardist:watershed"
       - name: "--transcript_assignment_methods"
         description: |
           A list of transcript assignment methods to run.
@@ -150,6 +150,7 @@ dependencies:
   - name: control_methods/permute_celltype_annotations
   - name: methods_segmentation/custom_segmentation
   - name: methods_segmentation/cellpose
+  - name: methods_segmentation/cellposev4
   - name: methods_segmentation/binning
   - name: methods_segmentation/stardist
   - name: methods_segmentation/watershed

@@ -95,6 +95,7 @@ workflow run_wf {
       args: [labels_key: "cell_labels"]
     ),
     cellpose,
+    cellposev4,
     binning,
     stardist,
     watershed

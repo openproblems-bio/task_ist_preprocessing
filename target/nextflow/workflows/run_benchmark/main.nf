@@ -3697,7 +3697,7 @@ meta = [
           "name" : "--segmentation_methods",
           "description" : "A list of segmentation methods to run.\n",
           "default" : [
-            "custom_segmentation:cellpose:binning:stardist:watershed"
+            "custom_segmentation:cellpose:cellposev4:binning:stardist:watershed"
           ],
           "required" : false,
           "direction" : "input",
@@ -3876,6 +3876,12 @@ meta = [
     },
     {
       "name" : "methods_segmentation/cellpose",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_segmentation/cellposev4",
       "repository" : {
         "type" : "local"
       }
@@ -4117,7 +4123,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.7",
-    "git_commit" : "d951ef409ec34622d7b0f30de11bd310207f175e",
+    "git_commit" : "041ab3e2312ca7184f9f6abc545d4c77f2d3206e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4232,6 +4238,7 @@ include { identity } from "${meta.resources_dir}/../../../nextflow/control_metho
 include { permute_celltype_annotations } from "${meta.resources_dir}/../../../nextflow/control_methods/permute_celltype_annotations/main.nf"
 include { custom_segmentation } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/custom_segmentation/main.nf"
 include { cellpose } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/cellpose/main.nf"
+include { cellposev4 } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/cellposev4/main.nf"
 include { binning } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/binning/main.nf"
 include { stardist } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/stardist/main.nf"
 include { watershed } from "${meta.resources_dir}/../../../nextflow/methods_segmentation/watershed/main.nf"
@@ -4361,6 +4368,7 @@ workflow run_wf {
       args: [labels_key: "cell_labels"]
     ),
     cellpose,
+    cellposev4,
     binning,
     stardist,
     watershed

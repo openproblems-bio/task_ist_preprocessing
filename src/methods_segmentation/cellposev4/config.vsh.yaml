@@ -1,0 +1,61 @@
+name: cellposev4
+label: "Cellpose 4 Segmentation"
+summary: "Cell segmentation with Cellpose 4 (CellposeModel / cpsam)."
+description: |
+  Cellpose predicts, for every pixel, a vector pointing toward the center of the cell it belongs to
+  together with a probability of being part of a cell. These per-pixel vectors form a flow field;
+  at inference each pixel follows the flow to a fixed point, and pixels converging to the same point
+  are grouped into a shared mask. This is the Cellpose 4 (cellpose>=4.0.0) implementation, which uses
+  the built-in CellposeModel (cpsam) network via model.eval, adapted from
+  openproblems-bio/task_spatial_segmentation.
+links:
+  documentation: "https://cellpose.readthedocs.io/en/latest/"
+  repository: "https://github.com/mouseland/cellpose"
+references:
+  doi: "10.1038/s41592-020-01018-x"
+
+__merge__: /src/api/comp_method_segmentation.yaml
+
+arguments:
+  - name: --diameter
+    type: double
+    default: 30.0
+    description: "Cell diameter in pixels. If not set, cellpose runs a size model to estimate it (slower)."
+  - name: --flow_threshold
+    type: double
+    default: 0.0
+    description: "Flow error threshold. Set to 0 to skip flow quality check for faster execution."
+  - name: --niter
+    type: integer
+    default: 10
+    description: "Number of iterations for dynamics. Lower values are faster but less accurate."
+  - name: --min_size
+    type: integer
+    default: -1
+    description: "Minimum number of pixels per mask. Set to -1 to skip small mask removal."
+  - name: --resample
+    type: boolean
+    default: false
+    description: "Whether to run dynamics at original image size. Disabling is faster."
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_pytorch_nvidia:1
+    setup:
+      - type: python
+        pypi: cellpose>=4.0.0
+      - type: python
+        script: from cellpose.models import CellposeModel; model = CellposeModel()
+    __merge__:
+      - /src/base/setup_spatialdata_partial.yaml
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ midtime, midcpu, highmem, gpuhighmem ]

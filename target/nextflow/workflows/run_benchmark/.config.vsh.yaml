@@ -507,7 +507,7 @@ argument_groups:
     description: "A list of segmentation methods to run.\n"
     info: null
     default:
-    - "custom_segmentation:cellpose:binning:stardist:watershed"
+    - "custom_segmentation:cellpose:cellposev4:binning:stardist:watershed"
     required: false
     direction: "input"
     multiple: true
@@ -647,6 +647,9 @@ dependencies:
 - name: "methods_segmentation/cellpose"
   repository:
     type: "local"
+- name: "methods_segmentation/cellposev4"
+  repository:
+    type: "local"
 - name: "methods_segmentation/binning"
   repository:
     type: "local"
@@ -778,7 +781,7 @@ build_info:
   output: "target/nextflow/workflows/run_benchmark"
   executable: "target/nextflow/workflows/run_benchmark/main.nf"
   viash_version: "0.9.7"
-  git_commit: "d951ef409ec34622d7b0f30de11bd310207f175e"
+  git_commit: "041ab3e2312ca7184f9f6abc545d4c77f2d3206e"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
   dependencies:
   - "target/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/utils/extract_uns_metadata"
@@ -786,6 +789,7 @@ build_info:
   - "target/nextflow/control_methods/permute_celltype_annotations"
   - "target/nextflow/methods_segmentation/custom_segmentation"
   - "target/nextflow/methods_segmentation/cellpose"
+  - "target/nextflow/methods_segmentation/cellposev4"
   - "target/nextflow/methods_segmentation/binning"
   - "target/nextflow/methods_segmentation/stardist"
   - "target/nextflow/methods_segmentation/watershed"
