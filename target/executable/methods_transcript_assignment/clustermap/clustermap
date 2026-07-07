@@ -461,9 +461,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/openproblems-bio/core#subdirectory=packages/python/openproblems"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment clustermap"
-LABEL org.opencontainers.image.created="2026-07-06T19:35:28Z"
+LABEL org.opencontainers.image.created="2026-07-07T00:38:36Z"
 LABEL org.opencontainers.image.source="https://github.com/wanglab-broad/ClusterMap"
-LABEL org.opencontainers.image.revision="6b63e6c5f82b0960995cdd9cd49df535e9436ec9"
+LABEL org.opencontainers.image.revision="827f8f192a234142ea80595b2454382feb84852b"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
