@@ -15,7 +15,7 @@ print('Reading input files', flush=True)
 sdata = sd.read_zarr(par['input'])
 
 print('Determine cell ids', flush=True)
-cell_ids = sorted(sdata["transcripts"]["cell_id"].unique())
+cell_ids = sorted(sdata["transcripts"]["cell_id"].unique().compute())
 if cell_ids[0] == 0:
     cell_ids = cell_ids[1:]
 
