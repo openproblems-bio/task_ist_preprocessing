@@ -3338,7 +3338,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_calculate_cell_volume/alpha_shapes",
     "viash_version" : "0.9.7",
-    "git_commit" : "827f8f192a234142ea80595b2454382feb84852b",
+    "git_commit" : "d951ef409ec34622d7b0f30de11bd310207f175e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3497,7 +3497,7 @@ print('Reading input files', flush=True)
 sdata = sd.read_zarr(par['input'])
 
 print('Determine cell ids', flush=True)
-cell_ids = sorted(sdata["transcripts"]["cell_id"].unique())
+cell_ids = sorted(sdata["transcripts"]["cell_id"].unique().compute())
 if cell_ids[0] == 0:
     cell_ids = cell_ids[1:]
 
