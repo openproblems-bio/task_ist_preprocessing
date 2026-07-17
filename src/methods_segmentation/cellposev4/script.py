@@ -1,13 +1,31 @@
-import txsim as tx
+import anndata as ad
 import numpy as np
 import os
-import yaml
-import spatialdata as sd
-import anndata as ad
 import shutil
-import numpy as np
-from spatialdata.models import Labels2DModel
+import spatialdata as sd
 import xarray as xr
+from cellpose.models import CellposeModel
+from spatialdata.models import Labels2DModel
+import torch
+
+# Check whether a GPU is available
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print('Using device:', device, flush=True)
+
+## VIASH START
+par = {
+  "input": "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
+  "output": "segmentation.zarr",
+  "diameter": 30.0,
+  "flow_threshold": 0.0,
+  "niter": 10,
+  "min_size": -1,
+  "resample": False,
+}
+meta = {
+  "name": "cellposev4",
+}
+## VIASH END
 
 
 def convert_to_lower_dtype(arr):
@@ -23,28 +41,26 @@ def convert_to_lower_dtype(arr):
 
     return arr.astype(new_dtype)
 
-## VIASH START
-par = {
-  "input": "../task_ist_preprocessing/resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr",
-  "output": "segmentation.zarr"
-}
 
-## VIASH END
-
-hyperparameters = par.copy()
-
-hyperparameters = {k:(v if v != "None" else None) for k,v in hyperparameters.items()}
-del hyperparameters['input']
-del hyperparameters['output']
-
+print('Reading input', flush=True)
 sdata = sd.read_zarr(par["input"])
-sd_output = sd.SpatialData()
 image = sdata['image']['scale0'].image.compute().to_numpy()
 transformation = sdata['image']['scale0'].image.transform.copy()
-img_arr = tx.preprocessing.segment_cellpose(image[0], hyperparameters) 
-image = convert_to_lower_dtype(img_arr)
-data_array = xr.DataArray(image, name=f'segmentation', dims=('y', 'x'))
+
+print('Initializing Cellpose model', flush=True)
+model = CellposeModel(gpu=torch.cuda.is_available())
+
+eval_params = {k: par[k] for k in ("diameter", "flow_threshold", "niter", "min_size", "resample") if par.get(k) is not None}
+print('Running Cellpose segmentation with parameters:', eval_params, flush=True)
+masks, _, _ = model.eval(image[0], progress=True, **eval_params)
+
+print('Cellpose segmentation finished, post-processing results', flush=True)
+masks = convert_to_lower_dtype(masks)
+
+data_array = xr.DataArray(masks, name='segmentation', dims=('y', 'x'))
 parsed_data = Labels2DModel.parse(data_array, transformations=transformation)
+
+sd_output = sd.SpatialData()
 sd_output.labels['segmentation'] = parsed_data
 
 metadata = sdata.tables["metadata"]
@@ -70,6 +86,5 @@ sd_output.tables['table'] = ad.AnnData(
 
 print("Writing output", flush=True)
 if os.path.exists(par["output"]):
-  shutil.rmtree(par["output"])
+    shutil.rmtree(par["output"])
 sd_output.write(par["output"])
-

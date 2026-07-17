@@ -1,6 +1,7 @@
 import math
 import os
 import re
+import time
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -137,8 +138,38 @@ class DaxReader:
         self.fileptr.close()
 
 
+def robust_urlretrieve(url, path, retries=5, backoff=5):
+    """urlretrieve that retries on transient network errors.
+
+    Returns True on success, False if the file is genuinely absent (404) or
+    every retry was exhausted. Partial downloads are cleaned up so a later
+    ``.exists()`` check does not treat a truncated file as complete.
+    """
+    for attempt in range(1, retries + 1):
+        try:
+            urllib.request.urlretrieve(url, path)
+            return True
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                print(datetime.now() - t0, f"Not found (404): {url}", flush=True)
+                return False
+            print(datetime.now() - t0,
+                  f"HTTP {e.code} (attempt {attempt}/{retries}) for {url}", flush=True)
+        except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
+            print(datetime.now() - t0,
+                  f"Download failed (attempt {attempt}/{retries}) for {url}: {e}", flush=True)
+        Path(path).unlink(missing_ok=True)
+        if attempt < retries:
+            time.sleep(backoff * attempt)
+    return False
+
+
 def download_fov_image(fov_idx, n_format, prefix, suffix, base_url, frames, stain):
-    """Download one FOV dax file and return a (n_z, px, py) uint16 array."""
+    """Download one FOV dax file and return a (n_z, px, py) uint16 array.
+
+    Returns None if the FOV image cannot be fetched (missing file or persistent
+    network failure) so the caller can skip it instead of crashing the run.
+    """
     fmt = f"{fov_idx:03d}" if n_format == 3 else f"{fov_idx:04d}"
     stem = prefix + fmt + suffix
     dax_path = TMP_DIR / (stem + ".dax")
@@ -149,8 +180,11 @@ def download_fov_image(fov_idx, n_format, prefix, suffix, base_url, frames, stai
         return tifffile.imread(tif_path)
 
     if not dax_path.exists():
-        urllib.request.urlretrieve(base_url + stem + ".dax", dax_path)
-        urllib.request.urlretrieve(base_url + stem + ".inf", inf_path)
+        if not robust_urlretrieve(base_url + stem + ".dax", dax_path):
+            return None
+        if not robust_urlretrieve(base_url + stem + ".inf", inf_path):
+            dax_path.unlink(missing_ok=True)
+            return None
 
     reader = DaxReader(str(dax_path))
     img = np.array([reader.load_frame(f) for f in frames])
@@ -227,6 +261,7 @@ download_if_missing(
 
 raw_adata = anndata.read_h5ad(matrix_path)
 sample_adata = raw_adata[raw_adata.obs["sample_id"] == sample_id].copy()
+del raw_adata
 
 fov_df = sample_adata.obs[["fov", "fov_x", "fov_y"]].drop_duplicates().copy()
 n_fovs = int(sample_adata.obs["fov"].max())
@@ -274,7 +309,9 @@ for xi in range(FRAME_SIZE_PIXELS):
                 0.00001, compute_weight([xi, yi], [FRAME_SIZE_PIXELS, FRAME_SIZE_PIXELS], PERCENT_SCALING)
             )
 
-complete_img = np.zeros((n_z_planes, img_w, img_h), dtype="uint16")
+# Store only the max-projection (MIP) rather than all z-planes to avoid a
+# (n_z × H × W) array that can exceed 30+ GB for whole-brain datasets.
+dapi_mip = np.zeros((img_w, img_h), dtype="uint16")
 
 for fov in range(n_fovs):
     if fov in missing_fovs:
@@ -285,6 +322,9 @@ for fov in range(n_fovs):
     yp, yp_max = int(row["y_min"]), int(row["y_max"])
 
     fov_img = download_fov_image(fov, n_format, dapi_file_prefix, download_suffix, image_base_url, dapi_frames, "DAPI")
+    if fov_img is None:
+        print(datetime.now() - t0, f"Skipping FOV {fov}: image unavailable", flush=True)
+        continue
 
     # Find neighbors for linear blending at overlaps
     fov_right = fov_df[
@@ -301,8 +341,11 @@ for fov in range(n_fovs):
     right = len(fov_right) > 0 and fov_right[0] not in missing_fovs
     bottom = len(fov_bottom) > 0 and fov_bottom[0] not in missing_fovs
 
+    bot_img = right_img = None
     if bottom:
         bot_img = download_fov_image(int(fov_bottom[0]), n_format, dapi_file_prefix, download_suffix, image_base_url, dapi_frames, "DAPI")
+        bottom = bot_img is not None
+    if bottom:
         fov_img[:, FRAME_SIZE_PIXELS - OVERLAP_SIZE:, :] = (
             np.multiply(fov_img[:, FRAME_SIZE_PIXELS - OVERLAP_SIZE:, :], w1) +
             np.multiply(bot_img[:, :OVERLAP_SIZE, :], w2)
@@ -310,13 +353,17 @@ for fov in range(n_fovs):
 
     if right:
         right_img = download_fov_image(int(fov_right[0]), n_format, dapi_file_prefix, download_suffix, image_base_url, dapi_frames, "DAPI")
+        right = right_img is not None
+    if right:
         fov_img[:, :, FRAME_SIZE_PIXELS - OVERLAP_SIZE:] = (
             np.multiply(fov_img[:, :, FRAME_SIZE_PIXELS - OVERLAP_SIZE:], w1.T) +
             np.multiply(right_img[:, :, :OVERLAP_SIZE], w2.T)
         ) / (w1.T + w2.T)
 
+    br_img = None
     if len(fov_br) > 0 and fov_br[0] not in missing_fovs:
         br_img = download_fov_image(int(fov_br[0]), n_format, dapi_file_prefix, download_suffix, image_base_url, dapi_frames, "DAPI")
+    if br_img is not None:
         sl_x = slice(FRAME_SIZE_PIXELS - OVERLAP_SIZE, None)
         sl_y = slice(FRAME_SIZE_PIXELS - OVERLAP_SIZE, None)
         if bottom and right:
@@ -337,25 +384,22 @@ for fov in range(n_fovs):
             )
 
     # Skip overlap region already filled by a previously placed FOV
-    if np.any(complete_img[:, xp:xp_max, yp:yp + OVERLAP_SIZE] != 0):
+    if np.any(dapi_mip[xp:xp_max, yp:yp + OVERLAP_SIZE] != 0):
         fov_img = fov_img[:, :, OVERLAP_SIZE:]
         yp += OVERLAP_SIZE
-    if np.any(complete_img[:, xp:xp + OVERLAP_SIZE, yp:yp_max - OVERLAP_SIZE] != 0):
+    if np.any(dapi_mip[xp:xp + OVERLAP_SIZE, yp:yp_max - OVERLAP_SIZE] != 0):
         fov_img = fov_img[:, OVERLAP_SIZE:, :]
         xp += OVERLAP_SIZE
 
-    h = min(fov_img.shape[1], complete_img.shape[1] - xp)
-    w = min(fov_img.shape[2], complete_img.shape[2] - yp)
-    complete_img[:, xp:xp + h, yp:yp + w] = fov_img[:, :h, :w]
+    h = min(fov_img.shape[1], dapi_mip.shape[0] - xp)
+    w = min(fov_img.shape[2], dapi_mip.shape[1] - yp)
+    np.maximum(dapi_mip[xp:xp + h, yp:yp + w], fov_img[:, :h, :w].max(axis=0), out=dapi_mip[xp:xp + h, yp:yp + w])
 
     if fov % 10 == 0:
         delete_dax_files()
         print(datetime.now() - t0, f"Stitched {fov}/{n_fovs} FOVs", flush=True)
 
 print(datetime.now() - t0, "Image stitching complete", flush=True)
-
-dapi_mip = complete_img.max(axis=0)  # (img_w, img_h) max-projection over z
-del complete_img
 
 # ─── Step 4: Load and pixel-register transcripts ──────────────────────────────
 
