@@ -2,6 +2,12 @@ import os
 import shutil
 from pathlib import Path
 import numpy as np
+# numpy>=1.24 removed the deprecated `np.long` alias, but stardist/csbdeep
+# still reference it. TensorFlow 2.17 forces numpy>=1.26, so we can't
+# downgrade numpy far enough to get it back — restore the alias instead
+# (`np.long` was always just Python's built-in `int` on py3).
+if not hasattr(np, "long"):
+    np.long = int
 import xarray as xr
 import spatialdata as sd
 import anndata as ad
@@ -77,9 +83,25 @@ labels_array = xr.DataArray(labels, name=f'segmentation', dims=('y', 'x'))
 parsed_labels = sd.models.Labels2DModel.parse(labels_array, transformations=transformation)
 sd_output.labels['segmentation'] = parsed_labels
 
+metadata = sdata.tables["metadata"]
+# cell_id is required downstream. Standard Xenium exports carry an explicit
+# "cell_id" column, but some exports (e.g. the Xenium WTA preview used for the
+# Atera dataset) don't — there the per-cell identifier lives in the table's
+# instance_key column (falling back to the obs index).
+instance_key = metadata.uns.get("spatialdata_attrs", {}).get("instance_key")
+if "cell_id" in metadata.obs.columns:
+    cell_id = metadata.obs["cell_id"].values
+elif instance_key and instance_key in metadata.obs.columns:
+    cell_id = metadata.obs[instance_key].values
+else:
+    cell_id = metadata.obs.index.values
+obs = metadata.obs[[]].copy()
+obs["cell_id"] = cell_id
+if "region" in metadata.obs.columns:
+    obs["region"] = metadata.obs["region"].values
 sd_output.tables['table'] = ad.AnnData(
-      obs=sdata.tables["metadata"].obs[["cell_id", "region"]],
-      var=sdata.tables["metadata"].var[[]]
+      obs=obs,
+      var=metadata.var[[]]
     )
 
 print("Writing output", flush=True)

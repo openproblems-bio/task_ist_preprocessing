@@ -51,7 +51,16 @@ assert par['coordinate_system'] in segmentation_coord_systems, f"Coordinate syst
 
 # Transform transcript coordinates to the coordinate system
 print('Transforming transcripts coordinates', flush=True)
-transcripts = sd.transform(sdata[par['transcripts_key']], to_coordinate_system=par['coordinate_system'])
+# Multi-partition parquet files each start with a 0-based index, producing duplicate index
+# values in the combined dask DataFrame. sd.transform() internally creates a pd.Series with
+# index=transformed.index; when that dask index is computed it triggers an assign expression
+# that fails on duplicate/lazy indices. Fix: materialize to pandas and rebuild as a single
+# dask partition with a clean RangeIndex before transforming.
+# The original sdata[transcripts_key] is left unchanged so lines below remain consistent.
+transcripts_input = sdata[par['transcripts_key']]
+transcripts_reset = dask.dataframe.from_pandas(transcripts_input.compute().reset_index(drop=True), npartitions=1)
+transcripts_reset.attrs.update(transcripts_input.attrs)
+transcripts = sd.transform(transcripts_reset, to_coordinate_system=par['coordinate_system'])
 
 # In case of a translation transformation of the segmentation (e.g. crop of the data), we need to adjust the transcript coordinates
 trans = sd.transformations.get_transformation(sdata_segm["segmentation"], get_all=True)[par['coordinate_system']].inverse()
