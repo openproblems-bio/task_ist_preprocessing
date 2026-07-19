@@ -138,7 +138,8 @@ workflow run_wf {
     clustermap,
     pciseq,
     comseg,
-    proseg
+    proseg,
+    segger
   ]
   
   segm_ass_ch = segm_ch
