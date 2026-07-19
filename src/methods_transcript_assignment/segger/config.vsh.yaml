@@ -1,0 +1,72 @@
+__merge__: /src/api/comp_method_transcript_assignment.yaml
+
+name: segger
+label: "Segger Transcript Assignment"
+summary: "Assign transcripts to cells using the Segger method"
+description: "Segger is a tool for cell segmentation in single-molecule spatial omics datasets that leverages graph neural networks (GNNs) and heterogeneous graphs. This component runs segger's end-to-end CLI (`segger segment`), using the provided segmentation as the boundary prior, and maps the resulting per-transcript assignments back onto the transcripts."
+links:
+  documentation: "https://elihei2.github.io/segger_dev/"
+  repository: "https://github.com/dpeerlab/segger"
+references:
+  doi: "10.1101/2025.03.14.643160"
+
+arguments:
+  - name: --transcripts_key
+    type: string
+    description: The key of the transcripts within the points of the spatial data
+    default: transcripts
+  - name: --coordinate_system
+    type: string
+    description: The key of the pixel space coordinate system within the spatial data
+    default: global
+  - name: --n_epochs
+    type: integer
+    required: false
+    description: "Number of training epochs for the segger GNN."
+    default: 20
+  - name: --prediction_expansion_ratio
+    type: double
+    required: false
+    description: "Fraction of each polygon's equivalent radius used to expand it during prediction."
+    default: 0.5
+  - name: --prediction_mode
+    type: string
+    required: false
+    choices: [nucleus, cell, uniform]
+    description: "Which polygon set drives the prediction graph."
+    default: nucleus
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  # NOTE: segger runs its tiling / training / prediction end-to-end on the GPU
+  #       (cudf, cuspatial, torch). Develop/test on a CUDA host; `viash test`
+  #       will not run on a machine without an NVIDIA GPU.
+  - type: docker
+    image: nvcr.io/nvidia/pytorch:25.06-py3
+    setup:
+      - type: apt
+        packages: [procps, git, libxcb1]
+      - type: python
+        github:
+          - openproblems-bio/core#subdirectory=packages/python/openproblems
+          - dpeerlab/segger
+      - type: python
+        packages:
+          - "spatialdata>=0.7.3"
+          - "anndata>=0.12.0"
+          - "zarr>=3.0.0"
+          - geopandas
+          - shapely
+          - "rasterio>=1.3"
+          - scikit-image
+          - cuspatial-cu12
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ hightime, midcpu, highmem, gpu ]
