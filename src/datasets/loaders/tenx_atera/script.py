@@ -4,8 +4,35 @@ import os
 import zipfile
 import tempfile
 from pathlib import Path
-import zarr
 from spatialdata_io import xenium
+
+try:
+    from xarray import DataTree
+except ImportError:  # older xarray ships DataTree as a separate package
+    from datatree import DataTree
+
+
+def rechunk_uniform(sdata, chunk_size=1024):
+    """Rechunk all image/label rasters to a uniform (regular) chunk grid.
+
+    xenium() can return multiscale rasters whose dask chunks are irregular.
+    When written, an irregular grid is encoded as a *rectilinear* chunk grid,
+    which spatialdata's ome-zarr reader cannot read back (it accesses the
+    ``.chunks`` attribute, which is undefined for rectilinear grids). Forcing a
+    uniform chunk size along the spatial dims guarantees a regular grid.
+    """
+    spatial = ("z", "y", "x")
+    for group in (sdata.images, sdata.labels):
+        for key in list(group.keys()):
+            elem = group[key]
+            # multiscale rasters are DataTree (indexable by "scale0");
+            # single-scale rasters are a plain DataArray.
+            ref = elem["scale0"] if isinstance(elem, DataTree) else elem
+            coords = list(ref.coords.keys())
+            strategy = {c: chunk_size for c in coords if c in spatial}
+            if "c" in coords:  # keep the channel axis as a single chunk
+                strategy["c"] = -1
+            group[key] = elem.chunk(strategy)
 
 ## VIASH START
 par = {
@@ -92,13 +119,18 @@ new_uns = {
 for key, value in new_uns.items():
     sdata.tables["table"].uns[key] = value
 
+# Force a regular chunk grid so the written store is readable by spatialdata's
+# ome-zarr reader (see rechunk_uniform). Do NOT enable array.rectilinear_chunks:
+# that only permits writing the unreadable rectilinear grids we are avoiding.
+print("Rechunking rasters to a uniform chunk grid", flush=True)
+rechunk_uniform(sdata)
+
 print(f"Output: {sdata}", flush=True)
 
 print(f"Writing to '{par['output']}'", flush=True)
 if os.path.exists(par["output"]):
     shutil.rmtree(par["output"])
 
-zarr.config.set({"array.rectilinear_chunks": True})
 sdata.write(par["output"])
 
 print("Done", flush=True)
