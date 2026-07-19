@@ -3871,7 +3871,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/rctd",
     "viash_version" : "0.9.7",
-    "git_commit" : "d2345bf0c0b49b601fe9e4e785a1c1be2604754c",
+    "git_commit" : "e5dea5da576888918305e58f68735c6ab046b66f",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
