@@ -517,7 +517,7 @@ argument_groups:
     description: "A list of transcript assignment methods to run.\n"
     info: null
     default:
-    - "basic_transcript_assignment:baysor:clustermap:pciseq:comseg:proseg"
+    - "basic_transcript_assignment:baysor:clustermap:pciseq:comseg:proseg:segger"
     required: false
     direction: "input"
     multiple: true
@@ -677,6 +677,9 @@ dependencies:
 - name: "methods_transcript_assignment/proseg"
   repository:
     type: "local"
+- name: "methods_transcript_assignment/segger"
+  repository:
+    type: "local"
 - name: "methods_count_aggregation/basic_count_aggregation"
   repository:
     type: "local"
@@ -781,7 +784,7 @@ build_info:
   output: "target/nextflow/workflows/run_benchmark"
   executable: "target/nextflow/workflows/run_benchmark/main.nf"
   viash_version: "0.9.7"
-  git_commit: "e5dea5da576888918305e58f68735c6ab046b66f"
+  git_commit: "60f57120f2e89a4855cc292f0a2ae2e1dc28300d"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
   dependencies:
   - "target/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/utils/extract_uns_metadata"
@@ -799,6 +802,7 @@ build_info:
   - "target/nextflow/methods_transcript_assignment/pciseq"
   - "target/nextflow/methods_transcript_assignment/comseg"
   - "target/nextflow/methods_transcript_assignment/proseg"
+  - "target/nextflow/methods_transcript_assignment/segger"
   - "target/nextflow/methods_count_aggregation/basic_count_aggregation"
   - "target/nextflow/methods_qc_filter/basic_qc_filter"
   - "target/nextflow/methods_calculate_cell_volume/alpha_shapes"

@@ -3709,7 +3709,7 @@ meta = [
           "name" : "--transcript_assignment_methods",
           "description" : "A list of transcript assignment methods to run.\n",
           "default" : [
-            "basic_transcript_assignment:baysor:clustermap:pciseq:comseg:proseg"
+            "basic_transcript_assignment:baysor:clustermap:pciseq:comseg:proseg:segger"
           ],
           "required" : false,
           "direction" : "input",
@@ -3941,6 +3941,12 @@ meta = [
       }
     },
     {
+      "name" : "methods_transcript_assignment/segger",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
       "name" : "methods_count_aggregation/basic_count_aggregation",
       "repository" : {
         "type" : "local"
@@ -4123,7 +4129,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.7",
-    "git_commit" : "e5dea5da576888918305e58f68735c6ab046b66f",
+    "git_commit" : "60f57120f2e89a4855cc292f0a2ae2e1dc28300d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4248,6 +4254,7 @@ include { clustermap } from "${meta.resources_dir}/../../../nextflow/methods_tra
 include { pciseq } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/pciseq/main.nf"
 include { comseg } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/comseg/main.nf"
 include { proseg } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/proseg/main.nf"
+include { segger } from "${meta.resources_dir}/../../../nextflow/methods_transcript_assignment/segger/main.nf"
 include { basic_count_aggregation } from "${meta.resources_dir}/../../../nextflow/methods_count_aggregation/basic_count_aggregation/main.nf"
 include { basic_qc_filter } from "${meta.resources_dir}/../../../nextflow/methods_qc_filter/basic_qc_filter/main.nf"
 include { alpha_shapes } from "${meta.resources_dir}/../../../nextflow/methods_calculate_cell_volume/alpha_shapes/main.nf"
@@ -4411,7 +4418,8 @@ workflow run_wf {
     clustermap,
     pciseq,
     comseg,
-    proseg
+    proseg,
+    segger
   ]
   
   segm_ass_ch = segm_ch
