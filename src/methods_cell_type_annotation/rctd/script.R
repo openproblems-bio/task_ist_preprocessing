@@ -8,7 +8,13 @@ library(anndataR)
 par <- list(
   "input_spatial_normalized_counts" = "task_ist_preprocessing/resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_aggregated_counts.h5ad",
   "input_scrnaseq_reference"= "task_ist_preprocessing/resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad",
-  "output" = "task_ist_preprocessing/tmp/spatial_types.h5ad"
+  "output" = "task_ist_preprocessing/tmp/spatial_types.h5ad",
+  "gene_cutoff" = 0.0,
+  "fc_cutoff" = 0.1,
+  "gene_cutoff_reg" = 0.0,
+  "fc_cutoff_reg" = 0.1,
+  "umi_min" = 20,
+  "umi_min_sigma" = 20
 )
 
 meta <- list(
@@ -48,7 +54,15 @@ if ("cpus" %in% names(meta) && !is.null(meta$cpus)) cores <- meta$cpus
 cat(sprintf("Number of cores: %s\n", cores))
 
 # Run the algorithm
-myRCTD <- create.RCTD(puck, reference, max_cores = cores)
+# NOTE: RCTD's default DE-gene / UMI thresholds are tuned for whole-transcriptome
+# references and produce "fewer than 10 regression differentially expressed genes"
+# on small iST panels. The relaxed thresholds below are passed from the config.
+myRCTD <- create.RCTD(
+  puck, reference, max_cores = cores,
+  gene_cutoff = par$gene_cutoff, fc_cutoff = par$fc_cutoff,
+  gene_cutoff_reg = par$gene_cutoff_reg, fc_cutoff_reg = par$fc_cutoff_reg,
+  UMI_min = par$umi_min, UMI_min_sigma = par$umi_min_sigma
+)
 myRCTD <- run.RCTD(myRCTD, doublet_mode = "doublet")
 
 # Extract results

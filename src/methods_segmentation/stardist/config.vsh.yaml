@@ -31,8 +31,16 @@ engines:
     setup:
       - type: python
         pypi:
+          # TensorFlow must be >=2.18 so it allows numpy>=2.0. anndata/spatialdata
+          # reference np.bool (readded in numpy 2.0), so a numpy<2.0 pin makes
+          # `import anndata` crash at runtime; TF 2.17 caps numpy<2.0, so we bump TF.
           - stardist
-          - tensorflow==2.17.0
+          - tensorflow==2.18.0
+          # csbdeep/stardist use the Keras 2 API via tf_keras, which must match
+          # the tensorflow version (the base image ships tf_keras 2.17).
+          - tf_keras==2.18.0
+          - "numpy>=2.0.0,<2.2.0"
+          - scipy<1.15.0
   - type: native
 
 runners:

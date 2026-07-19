@@ -84,6 +84,13 @@ engines:
     setup:
       - type: python
         pypi: cellpose<4.0.0
+      # Pre-download the pretrained cyto weights into the image (~/.cellpose)
+      # so runtime tasks never hit the cellpose model server (avoids the
+      # intermittent "HTTP Error 504: Gateway Time-out" seen when several
+      # segmentation tasks fetch the weights concurrently).
+      - type: docker
+        run:
+          - "python -c \"from cellpose import models; models.Cellpose(gpu=False, model_type='cyto')\""
     __merge__: 
       - /src/base/setup_txsim_partial.yaml
       - /src/base/setup_spatialdata_partial.yaml
