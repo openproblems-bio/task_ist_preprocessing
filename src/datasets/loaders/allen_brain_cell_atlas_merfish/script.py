@@ -458,6 +458,10 @@ joined = gpd.sjoin(
     how="left",
     predicate="within",
 )
+# A spot lying inside overlapping cell polygons yields multiple sjoin rows,
+# making `joined` longer than `spots_df`. Keep one match per spot (the first)
+# and realign to the original spot index so the assignment stays 1:1.
+joined = joined[~joined.index.duplicated(keep="first")].reindex(spots_gdf.index)
 spots_df["cell_id"] = joined["cell_id"].values
 print(
     datetime.now() - t0,
