@@ -3502,7 +3502,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/custom_segmentation",
     "viash_version" : "0.9.7",
-    "git_commit" : "041ab3e2312ca7184f9f6abc545d4c77f2d3206e",
+    "git_commit" : "15a214eb3d735268ed6f2468f4c963ca66a85601",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3665,16 +3665,28 @@ assert par["labels_key"] in sdata.labels, f"Key '{par['labels_key']}' not found 
 
 print(f"Copy segmentation from '{par['labels_key']}'", flush=True)
 metadata = sdata.tables["metadata"]
-# Select only the columns that exist — Xenium provides cell_id and region,
-# Vizgen uses different column names (or an empty obs) so we take what's available.
-obs_cols = [c for c in ["cell_id", "region"] if c in metadata.obs.columns]
+# cell_id is required downstream. Standard Xenium exports carry an explicit
+# "cell_id" column, but some exports (e.g. the Xenium WTA preview used for the
+# Atera dataset) don't — there the per-cell identifier lives in the table's
+# instance_key column (falling back to the obs index).
+instance_key = metadata.uns.get("spatialdata_attrs", {}).get("instance_key")
+if "cell_id" in metadata.obs.columns:
+    cell_id = metadata.obs["cell_id"].values
+elif instance_key and instance_key in metadata.obs.columns:
+    cell_id = metadata.obs[instance_key].values
+else:
+    cell_id = metadata.obs.index.values
+obs = metadata.obs[[]].copy()
+obs["cell_id"] = cell_id
+if "region" in metadata.obs.columns:
+    obs["region"] = metadata.obs["region"].values
 sdata_segmentation_only = sd.SpatialData(
   labels={
     "segmentation": sdata[par["labels_key"]]
   },
   tables={
     "table": ad.AnnData(
-      obs=metadata.obs[obs_cols],
+      obs=obs,
       var=metadata.var[[]]
     )
   }

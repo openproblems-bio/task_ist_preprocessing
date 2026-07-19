@@ -3494,7 +3494,10 @@ meta = [
           "user" : false,
           "pypi" : [
             "stardist",
-            "tensorflow==2.17.0"
+            "tensorflow==2.18.0",
+            "tf_keras==2.18.0",
+            "numpy>=2.0.0,<2.2.0",
+            "scipy<1.15.0"
           ],
           "upgrade" : true
         }
@@ -3511,7 +3514,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/stardist",
     "viash_version" : "0.9.7",
-    "git_commit" : "041ab3e2312ca7184f9f6abc545d4c77f2d3206e",
+    "git_commit" : "15a214eb3d735268ed6f2468f4c963ca66a85601",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3632,6 +3635,17 @@ import os
 import shutil
 from pathlib import Path
 import numpy as np
+# numpy>=1.24 removed the deprecated scalar-type aliases (np.bool, np.int,
+# np.float, np.long, ...), but stardist/csbdeep still reference them. TensorFlow
+# 2.17 forces numpy>=1.26, so we can't downgrade numpy far enough to get them
+# back — restore the aliases instead. Each mapped to its Python builtin / numpy
+# type as numpy itself did before removal.
+for _alias, _target in {
+    "bool": bool, "int": int, "float": float, "complex": complex,
+    "object": object, "str": str, "long": int, "unicode": str,
+}.items():
+    if not hasattr(np, _alias):
+        setattr(np, _alias, _target)
 import xarray as xr
 import spatialdata as sd
 import anndata as ad
@@ -3731,9 +3745,25 @@ labels_array = xr.DataArray(labels, name=f'segmentation', dims=('y', 'x'))
 parsed_labels = sd.models.Labels2DModel.parse(labels_array, transformations=transformation)
 sd_output.labels['segmentation'] = parsed_labels
 
+metadata = sdata.tables["metadata"]
+# cell_id is required downstream. Standard Xenium exports carry an explicit
+# "cell_id" column, but some exports (e.g. the Xenium WTA preview used for the
+# Atera dataset) don't — there the per-cell identifier lives in the table's
+# instance_key column (falling back to the obs index).
+instance_key = metadata.uns.get("spatialdata_attrs", {}).get("instance_key")
+if "cell_id" in metadata.obs.columns:
+    cell_id = metadata.obs["cell_id"].values
+elif instance_key and instance_key in metadata.obs.columns:
+    cell_id = metadata.obs[instance_key].values
+else:
+    cell_id = metadata.obs.index.values
+obs = metadata.obs[[]].copy()
+obs["cell_id"] = cell_id
+if "region" in metadata.obs.columns:
+    obs["region"] = metadata.obs["region"].values
 sd_output.tables['table'] = ad.AnnData(
-      obs=sdata.tables["metadata"].obs[["cell_id", "region"]],
-      var=sdata.tables["metadata"].var[[]]
+      obs=obs,
+      var=metadata.var[[]]
     )
 
 print("Writing output", flush=True)

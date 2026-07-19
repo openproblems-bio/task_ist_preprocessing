@@ -3960,7 +3960,7 @@ meta = [
         "label" : [
           "hightime",
           "midcpu",
-          "highmem"
+          "midmem"
         ],
         "tag" : "$id"
       },
@@ -4030,7 +4030,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/watershed",
     "viash_version" : "0.9.7",
-    "git_commit" : "041ab3e2312ca7184f9f6abc545d4c77f2d3206e",
+    "git_commit" : "15a214eb3d735268ed6f2468f4c963ca66a85601",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4269,9 +4269,25 @@ data_array = xr.DataArray(image, name=f'segmentation', dims=('y', 'x'))
 parsed_data = Labels2DModel.parse(data_array, transformations=transformation)
 sd_output.labels['segmentation'] = parsed_data
 
+metadata = sdata.tables["metadata"]
+# cell_id is required downstream. Standard Xenium exports carry an explicit
+# "cell_id" column, but some exports (e.g. the Xenium WTA preview used for the
+# Atera dataset) don't — there the per-cell identifier lives in the table's
+# instance_key column (falling back to the obs index).
+instance_key = metadata.uns.get("spatialdata_attrs", {}).get("instance_key")
+if "cell_id" in metadata.obs.columns:
+    cell_id = metadata.obs["cell_id"].values
+elif instance_key and instance_key in metadata.obs.columns:
+    cell_id = metadata.obs[instance_key].values
+else:
+    cell_id = metadata.obs.index.values
+obs = metadata.obs[[]].copy()
+obs["cell_id"] = cell_id
+if "region" in metadata.obs.columns:
+    obs["region"] = metadata.obs["region"].values
 sd_output.tables['table'] = ad.AnnData(
-      obs=sdata.tables["metadata"].obs[["cell_id", "region"]],
-      var=sdata.tables["metadata"].var[[]]
+      obs=obs,
+      var=metadata.var[[]]
     )
 
 print("Writing output", flush=True)
@@ -4665,7 +4681,7 @@ meta["defaults"] = [
   "label" : [
     "hightime",
     "midcpu",
-    "highmem"
+    "midmem"
   ],
   "tag" : "$id"
 }'''),

@@ -3684,6 +3684,12 @@ meta = [
             "cellpose<4.0.0"
           ],
           "upgrade" : true
+        },
+        {
+          "type" : "docker",
+          "run" : [
+            "python -c \\"from cellpose import models; models.Cellpose(gpu=False, model_type='cyto')\\""
+          ]
         }
       ]
     },
@@ -3698,7 +3704,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/cellpose",
     "viash_version" : "0.9.7",
-    "git_commit" : "041ab3e2312ca7184f9f6abc545d4c77f2d3206e",
+    "git_commit" : "15a214eb3d735268ed6f2468f4c963ca66a85601",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
