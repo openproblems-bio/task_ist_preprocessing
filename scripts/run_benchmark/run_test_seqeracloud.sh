@@ -24,6 +24,7 @@ default_methods:
 segmentation_methods:
   - custom_segmentation
   - cellpose
+  - cellposev4
   - binning
   - stardist
   - watershed
