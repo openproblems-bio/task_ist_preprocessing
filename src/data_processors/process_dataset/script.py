@@ -2,10 +2,17 @@ import numpy as np
 import pandas as pd
 import anndata as ad
 import spatialdata as sd
+import zarr
 import os
 import shutil
 import tempfile
 from pathlib import Path
+
+# The 10x Atera loader (newer spatialdata/zarr) writes image arrays with
+# rectilinear (variable-size) chunk grids, which zarr>=3 gates behind an
+# experimental flag and refuses to read by default. Enable reading them so
+# sd.read_zarr() below can open the store.
+zarr.config.set({"array.rectilinear_chunks": True})
 
 ### VIASH START
 par = {
@@ -250,13 +257,19 @@ if crop_coords is not None:
         target_coordinate_system="global",
         filter_table=True,
     )
-    rechunk_sdata(sdata_output) #NOTE: rechunking currently needed (https://github.com/scverse/spatialdata/issues/929)
     # metadata is dataset-level, not spatial — re-add it if the bounding_box query dropped it
     if "metadata" in sdata.tables and "metadata" not in sdata_output.tables:
         sdata_output["metadata"] = sdata.tables["metadata"]
 else:
     sdata_output = sdata
-    
+
+# Rechunk to uniform chunks before writing (NOTE: rechunking currently needed,
+# https://github.com/scverse/spatialdata/issues/929). Run unconditionally so
+# that uncropped datasets (e.g. 10x Atera, whose store has rectilinear chunk
+# grids) are also written with a regular chunk grid — otherwise downstream
+# components that read output_sp.zarr hit zarr's rectilinear-chunks error.
+rechunk_sdata(sdata_output)
+
 # Save the single-cell data
 adata.write_h5ad(par["output_sc"], compression="gzip")
 
