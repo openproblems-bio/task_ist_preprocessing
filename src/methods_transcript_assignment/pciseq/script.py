@@ -122,7 +122,10 @@ x_coords = transcripts.x.compute().to_numpy()
 
 #Added for pciSeq
 #TODO this will immediately break when the name of the gene isn't feature_name
-transcripts_dataframe = sdata[par['transcripts_key']].compute()[['feature_name']] 
+# Materialize the full transcripts once, in the same row order as the transformed
+# x/y coordinates above, so every downstream filter stays positionally aligned.
+transcripts_full = sdata[par['transcripts_key']].compute()
+transcripts_dataframe = transcripts_full[['feature_name']].copy()
 transcripts_dataframe['x'] = x_coords
 transcripts_dataframe['y'] = y_coords
 
@@ -132,13 +135,15 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
 else:
      label_image = sdata_segm["segmentation"].to_numpy()
 
-# There might be spots at the border of the image, pciseq runs into an error if this is the case
-transcripts_at_border = transcripts_dataframe['x'] > (label_image.shape[1]-0.5)
-transcripts_at_border = transcripts_at_border | (transcripts_dataframe['y'] > (label_image.shape[0]-0.5))
-transcripts_dataframe = transcripts_dataframe.loc[~transcripts_at_border]
-transcripts_at_border_dask = transcripts.x > (label_image.shape[1]-0.5)
-transcripts_at_border_dask = transcripts_at_border_dask | (transcripts.y > (label_image.shape[0]-0.5))
-sdata[par['transcripts_key']] = sdata[par['transcripts_key']].loc[~transcripts_at_border_dask]
+# There might be spots at the border of the image, pciseq runs into an error if this is the case.
+# Build the mask as a positional numpy array from the transformed coords and apply the SAME mask
+# to both the pciSeq input and the full transcripts, so pciSeq's per-spot assignments line up
+# row-for-row with the transcripts when cell_ids are written back below. (Filtering the original
+# multi-partition dask frame by a mask derived from the reset-index transcripts raises an
+# "Unalignable boolean Series" IndexingError because the two indices no longer match.)
+transcripts_at_border = (x_coords > (label_image.shape[1] - 0.5)) | (y_coords > (label_image.shape[0] - 0.5))
+transcripts_dataframe = transcripts_dataframe[~transcripts_at_border]
+transcripts_full = transcripts_full[~transcripts_at_border]
 
 # Grab all the pciSeq parameters
 opts_keys = [#'exclude_genes',
@@ -168,7 +173,7 @@ assignments, cell_types = tx.preprocessing.run_pciSeq(
 
 #assign transcript -> cell
 transformations = sd.transformations.get_transformation(sdata[par['transcripts_key']], get_all=True)
-transcripts_pd = sdata[par['transcripts_key']].compute().copy()
+transcripts_pd = transcripts_full.copy()
 transcripts_pd["cell_id"] = assignments['cell'].to_numpy()
 sdata[par['transcripts_key']] = PointsModel.parse(transcripts_pd, transformations=transformations)
 

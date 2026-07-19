@@ -2,12 +2,17 @@ import os
 import shutil
 from pathlib import Path
 import numpy as np
-# numpy>=1.24 removed the deprecated `np.long` alias, but stardist/csbdeep
-# still reference it. TensorFlow 2.17 forces numpy>=1.26, so we can't
-# downgrade numpy far enough to get it back — restore the alias instead
-# (`np.long` was always just Python's built-in `int` on py3).
-if not hasattr(np, "long"):
-    np.long = int
+# numpy>=1.24 removed the deprecated scalar-type aliases (np.bool, np.int,
+# np.float, np.long, ...), but stardist/csbdeep still reference them. TensorFlow
+# 2.17 forces numpy>=1.26, so we can't downgrade numpy far enough to get them
+# back — restore the aliases instead. Each mapped to its Python builtin / numpy
+# type as numpy itself did before removal.
+for _alias, _target in {
+    "bool": bool, "int": int, "float": float, "complex": complex,
+    "object": object, "str": str, "long": int, "unicode": str,
+}.items():
+    if not hasattr(np, _alias):
+        setattr(np, _alias, _target)
 import xarray as xr
 import spatialdata as sd
 import anndata as ad
