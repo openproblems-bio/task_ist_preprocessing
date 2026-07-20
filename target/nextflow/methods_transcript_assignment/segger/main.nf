@@ -3937,7 +3937,7 @@ meta = [
     {
       "type" : "docker",
       "id" : "docker",
-      "image" : "nvcr.io/nvidia/pytorch:25.06-py3",
+      "image" : "nvcr.io/nvidia/pytorch:26.06-py3",
       "namespace_separator" : "/",
       "setup" : [
         {
@@ -3980,7 +3980,8 @@ meta = [
         {
           "type" : "docker",
           "run" : [
-            "pip install --no-cache-dir torch_geometric lightning\nFORCE_CUDA=1 TORCH_CUDA_ARCH_LIST=\\"8.0;8.6;8.9;9.0\\" pip install --no-cache-dir --no-build-isolation torch_scatter\n"
+            "pip install --no-cache-dir torch_geometric lightning",
+            "FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST=\\"8.0;8.6;8.9;9.0\\" pip install --no-cache-dir --no-build-isolation torch_scatter"
           ]
         },
         {
@@ -3990,6 +3991,12 @@ meta = [
             "dpeerlab/segger"
           ],
           "upgrade" : true
+        },
+        {
+          "type" : "docker",
+          "run" : [
+            "pip install --no-cache-dir \\"pandas>=2.0,<2.2.4\\""
+          ]
         }
       ]
     },
@@ -4004,7 +4011,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/segger",
     "viash_version" : "0.9.7",
-    "git_commit" : "27d8c19874b532dffb7f43d475745bb16a6f6576",
+    "git_commit" : "7accc74d4349536b63f200a0a93315955856d874",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

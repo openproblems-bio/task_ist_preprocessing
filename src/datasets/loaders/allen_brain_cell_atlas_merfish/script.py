@@ -75,7 +75,12 @@ TMP_DIR.mkdir(parents=True, exist_ok=True)
 def download_if_missing(url, path):
     if not Path(path).exists():
         print(datetime.now() - t0, f"Downloading {url}", flush=True)
-        urllib.request.urlretrieve(url, path)
+        # Route required downloads through the retrying helper so a transient
+        # network hiccup (e.g. "Connection reset by peer" during the TLS
+        # handshake) does not abort the whole run. robust_urlretrieve is
+        # defined below but only referenced at call time, which is fine.
+        if not robust_urlretrieve(url, path):
+            raise RuntimeError(f"Failed to download required file after retries: {url}")
 
 
 def check_url(url):

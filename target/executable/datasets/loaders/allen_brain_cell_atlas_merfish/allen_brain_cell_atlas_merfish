@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "geopandas" "tifffile" "shapely"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas_merfish"
-LABEL org.opencontainers.image.created="2026-07-20T08:22:19Z"
+LABEL org.opencontainers.image.created="2026-07-20T13:55:47Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="27d8c19874b532dffb7f43d475745bb16a6f6576"
+LABEL org.opencontainers.image.revision="7accc74d4349536b63f200a0a93315955856d874"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1358,7 +1358,12 @@ TMP_DIR.mkdir(parents=True, exist_ok=True)
 def download_if_missing(url, path):
     if not Path(path).exists():
         print(datetime.now() - t0, f"Downloading {url}", flush=True)
-        urllib.request.urlretrieve(url, path)
+        # Route required downloads through the retrying helper so a transient
+        # network hiccup (e.g. "Connection reset by peer" during the TLS
+        # handshake) does not abort the whole run. robust_urlretrieve is
+        # defined below but only referenced at call time, which is fine.
+        if not robust_urlretrieve(url, path):
+            raise RuntimeError(f"Failed to download required file after retries: {url}")
 
 
 def check_url(url):
