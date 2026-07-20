@@ -59,6 +59,11 @@ else:
 # Assign cell ids directly to transcripts_reset (clean-index single-partition dask DataFrame).
 # Using sdata[par['transcripts_key']] here would reintroduce the duplicate parquet index,
 # causing the same "cannot reindex on an axis with duplicate labels" error at write time.
+# Clamp coords to the label-image bounds: transcripts at the crop boundary can
+# round a few pixels past the raster edge (see get_crop_coords in
+# process_dataset). Matches segger's handling; edge/background at the border.
+y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
+x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
 cell_ids = label_image[y_coords, x_coords]
 transcripts_reset["cell_id"] = pd.Series(cell_ids)
 

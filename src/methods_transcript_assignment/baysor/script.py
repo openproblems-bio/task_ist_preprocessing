@@ -80,6 +80,12 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
 
+# Clamp coords to the label-image bounds: transcripts at the crop boundary can
+# round a few pixels past the raster edge (see get_crop_coords in
+# process_dataset). Matches segger's handling; edge/background at the border.
+y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
+x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
+
 cell_id_dask_series = dask.dataframe.from_dask_array(
     dask.array.from_array(
         label_image[y_coords, x_coords], chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
