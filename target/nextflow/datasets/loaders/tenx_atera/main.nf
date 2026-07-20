@@ -3496,7 +3496,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/tenx_atera",
     "viash_version" : "0.9.7",
-    "git_commit" : "19b846d097f0caacfb0cb6139bd43b9151b8b657",
+    "git_commit" : "1c69ab9f9fe3a09af46acf89da581bbebc029fdf",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3734,8 +3734,29 @@ sdata = xenium(
     cells_as_circles=False,
 )
 
-# remove morphology_focus
-_ = sdata.images.pop("morphology_focus")
+# Keep exactly one morphology raster named "morphology_mip"; process_dataset
+# renames it to the API-required "image" element. Atera output mirrors Xenium
+# Onboard Analysis v4, which ships only a multi-channel "morphology_focus"
+# (channel 0 is DAPI, which the segmentation methods use via image[0]) and no
+# separate "morphology_mip". Prefer the MIP if present, otherwise fall back to
+# morphology_focus so the dataset always has an image.
+if "morphology_mip" not in sdata.images and "morphology_focus" in sdata.images:
+    sdata["morphology_mip"] = sdata["morphology_focus"]
+if "morphology_focus" in sdata.images:
+    del sdata.images["morphology_focus"]
+
+# Log the morphology image channel names so it's visible in the run log which
+# channel is which — segmentation uses channel 0 (expected to be DAPI).
+try:
+    _mip = sdata["morphology_mip"]
+    try:
+        _arr = _mip["scale0"].image  # multiscale raster
+    except (TypeError, KeyError):
+        _arr = _mip  # single-scale DataArray
+    _channels = [str(c) for c in _arr.coords["c"].values] if "c" in _arr.coords else "<no channel axis>"
+    print(f"morphology image channels (channel 0 used for segmentation): {_channels}", flush=True)
+except Exception as e:
+    print(f"Could not read morphology image channel names: {e}", flush=True)
 
 print("Add uns to table", flush=True)
 new_uns = {

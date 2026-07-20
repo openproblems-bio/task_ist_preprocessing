@@ -464,9 +464,9 @@ RUN pip install --upgrade pip && \
 
 RUN pip install --no-cache-dir "pandas>=2.0,<2.2.4"
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment segger"
-LABEL org.opencontainers.image.created="2026-07-20T19:46:13Z"
+LABEL org.opencontainers.image.created="2026-07-20T22:04:35Z"
 LABEL org.opencontainers.image.source="https://github.com/dpeerlab/segger"
-LABEL org.opencontainers.image.revision="19b846d097f0caacfb0cb6139bd43b9151b8b657"
+LABEL org.opencontainers.image.revision="1c69ab9f9fe3a09af46acf89da581bbebc029fdf"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
