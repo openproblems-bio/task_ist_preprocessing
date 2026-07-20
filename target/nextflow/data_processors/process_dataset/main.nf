@@ -4381,7 +4381,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.7",
-    "git_commit" : "2c011a510321ee773720d59c0dff1fff5a512956",
+    "git_commit" : "27d8c19874b532dffb7f43d475745bb16a6f6576",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4508,6 +4508,11 @@ import shutil
 import tempfile
 from pathlib import Path
 
+try:
+    from xarray import DataTree
+except ImportError:  # older xarray ships DataTree as a separate package
+    from datatree import DataTree
+
 # The 10x Atera loader (newer spatialdata/zarr) writes image arrays with
 # rectilinear (variable-size) chunk grids, which zarr>=3 gates behind an
 # experimental flag and refuses to read by default. Enable reading them so
@@ -4610,21 +4615,21 @@ def rechunk_sdata(sdata, CHUNK_SIZE=1024):
         
     """
     
-    for key in list(sdata.images.keys()):
-        image = sdata.images[key]
-        coords = list(image["scale0"].coords.keys())
-        rechunk_strategy = {c: CHUNK_SIZE for c in coords}
-        if "c" in coords:
-            rechunk_strategy["c"] = image["scale0"]["image"].chunks[0][0]
-        image = image.chunk(rechunk_strategy)
-        sdata.images[key] = image
-        
-    for key in list(sdata.labels.keys()):
-        label_image = sdata.labels[key]
-        coords = list(label_image.coords.keys())
-        rechunk_strategy = {c: CHUNK_SIZE for c in coords}
-        label_image = label_image.chunk(rechunk_strategy)
-        sdata.labels[key] = label_image
+    # Chunk only the spatial dims to a uniform size. Reading coords from the
+    # element directly fails for multiscale rasters (DataTree), whose root
+    # exposes no y/x coords -> an empty strategy leaves the coarse pyramid
+    # levels with their irregular (rectilinear) chunks, which zarr>=3 cannot
+    # write. Read coords from scale0 for DataTrees; keep the channel axis whole.
+    spatial = ("z", "y", "x")
+    for group in (sdata.images, sdata.labels):
+        for key in list(group.keys()):
+            elem = group[key]
+            ref = elem["scale0"] if isinstance(elem, DataTree) else elem
+            coords = list(ref.coords.keys())
+            rechunk_strategy = {c: CHUNK_SIZE for c in coords if c in spatial}
+            if "c" in coords:  # keep the channel axis as a single chunk
+                rechunk_strategy["c"] = -1
+            group[key] = elem.chunk(rechunk_strategy)
 
 
 def subsample_adata_group_balanced(adata, group_key, n_samples, seed=0):

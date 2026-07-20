@@ -3978,6 +3978,12 @@ meta = [
           ]
         },
         {
+          "type" : "docker",
+          "run" : [
+            "pip install --no-cache-dir torch_geometric lightning\nFORCE_CUDA=1 TORCH_CUDA_ARCH_LIST=\\"8.0;8.6;8.9;9.0\\" pip install --no-cache-dir --no-build-isolation torch_scatter\n"
+          ]
+        },
+        {
           "type" : "python",
           "user" : false,
           "github" : [
@@ -3998,7 +4004,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/segger",
     "viash_version" : "0.9.7",
-    "git_commit" : "2c011a510321ee773720d59c0dff1fff5a512956",
+    "git_commit" : "27d8c19874b532dffb7f43d475745bb16a6f6576",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

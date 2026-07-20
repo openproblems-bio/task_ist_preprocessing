@@ -457,13 +457,16 @@ RUN pip install --upgrade pip && \
 
 RUN pip install --no-cache-dir --extra-index-url=https://pypi.nvidia.com cuspatial-cu12
 
+RUN pip install --no-cache-dir torch_geometric lightning
+FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0" pip install --no-cache-dir --no-build-isolation torch_scatter
+
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/dpeerlab/segger"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment segger"
-LABEL org.opencontainers.image.created="2026-07-19T22:45:07Z"
+LABEL org.opencontainers.image.created="2026-07-20T08:22:18Z"
 LABEL org.opencontainers.image.source="https://github.com/dpeerlab/segger"
-LABEL org.opencontainers.image.revision="2c011a510321ee773720d59c0dff1fff5a512956"
+LABEL org.opencontainers.image.revision="27d8c19874b532dffb7f43d475745bb16a6f6576"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
