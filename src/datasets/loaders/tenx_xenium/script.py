@@ -59,8 +59,16 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         cells_as_circles=False,
     )
 
-    # remove morphology_focus
-    _ = sdata.images.pop("morphology_focus")
+    # Keep exactly one morphology raster named "morphology_mip"; process_dataset
+    # renames it to the API-required "image" element. Older Xenium ship both a
+    # single-channel "morphology_mip" and a multi-channel "morphology_focus";
+    # newer Xenium (Onboard Analysis v2+) ship only "morphology_focus" (channel 0
+    # is DAPI, which the segmentation methods use via image[0]). Prefer the MIP,
+    # otherwise fall back to morphology_focus so the dataset always has an image.
+    if "morphology_mip" not in sdata.images and "morphology_focus" in sdata.images:
+        sdata["morphology_mip"] = sdata["morphology_focus"]
+    if "morphology_focus" in sdata.images:
+        del sdata.images["morphology_focus"]
 
     print("Add uns to table", flush=True)
     new_uns = {

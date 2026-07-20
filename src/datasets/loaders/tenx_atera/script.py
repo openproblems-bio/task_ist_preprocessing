@@ -102,8 +102,16 @@ sdata = xenium(
     cells_as_circles=False,
 )
 
-# remove morphology_focus
-_ = sdata.images.pop("morphology_focus")
+# Keep exactly one morphology raster named "morphology_mip"; process_dataset
+# renames it to the API-required "image" element. Atera output mirrors Xenium
+# Onboard Analysis v4, which ships only a multi-channel "morphology_focus"
+# (channel 0 is DAPI, which the segmentation methods use via image[0]) and no
+# separate "morphology_mip". Prefer the MIP if present, otherwise fall back to
+# morphology_focus so the dataset always has an image.
+if "morphology_mip" not in sdata.images and "morphology_focus" in sdata.images:
+    sdata["morphology_mip"] = sdata["morphology_focus"]
+if "morphology_focus" in sdata.images:
+    del sdata.images["morphology_focus"]
 
 print("Add uns to table", flush=True)
 new_uns = {
