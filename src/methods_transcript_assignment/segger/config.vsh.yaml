@@ -69,6 +69,18 @@ engines:
       - type: docker
         run: |
           pip install --no-cache-dir --extra-index-url=https://pypi.nvidia.com cuspatial-cu12
+      # segger imports torch_geometric (at import time via _patches), lightning
+      # (segger segment -> Trainer) and torch_scatter (models: scatter_max) but
+      # declares NONE of them in its pyproject, so the github install below does
+      # not pull them. torch_geometric/lightning are pure Python. torch_scatter
+      # has no prebuilt wheel for the NGC image's custom torch build, so it must
+      # compile against the image's torch (--no-build-isolation). The build host
+      # has no GPU, so force a CUDA build for the target GPU archs (A100=8.0,
+      # A10/A40=8.6, L4/L40=8.9, H100=9.0).
+      - type: docker
+        run: |
+          pip install --no-cache-dir torch_geometric lightning
+          FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0" pip install --no-cache-dir --no-build-isolation torch_scatter
       # segger trunk installed last so its (unpinned) deps resolve against the
       # RAPIDS/torch stack already present in the image.
       - type: python
