@@ -113,6 +113,19 @@ if "morphology_mip" not in sdata.images and "morphology_focus" in sdata.images:
 if "morphology_focus" in sdata.images:
     del sdata.images["morphology_focus"]
 
+# Log the morphology image channel names so it's visible in the run log which
+# channel is which — segmentation uses channel 0 (expected to be DAPI).
+try:
+    _mip = sdata["morphology_mip"]
+    try:
+        _arr = _mip["scale0"].image  # multiscale raster
+    except (TypeError, KeyError):
+        _arr = _mip  # single-scale DataArray
+    _channels = [str(c) for c in _arr.coords["c"].values] if "c" in _arr.coords else "<no channel axis>"
+    print(f"morphology image channels (channel 0 used for segmentation): {_channels}", flush=True)
+except Exception as e:
+    print(f"Could not read morphology image channel names: {e}", flush=True)
+
 print("Add uns to table", flush=True)
 new_uns = {
     "dataset_id": par["dataset_id"],
