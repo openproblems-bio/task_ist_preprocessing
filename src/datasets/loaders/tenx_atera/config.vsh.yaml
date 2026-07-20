@@ -60,8 +60,15 @@ engines:
     setup:
       - type: python
         pypi:
-          - spatialdata-io==0.6.0
-          - spatialdata==0.7.2
+          # spatialdata 0.7.2 + zarr>=3.2 writes multiscale rasters (the xenium
+          # cell/nucleus label pyramids) as rectilinear chunk grids, which zarr
+          # gates behind an experimental flag and which spatialdata cannot read
+          # back (rechunking to a uniform grid does NOT help -- dask's to_zarr
+          # passes per-chunk sizes so the grid is always rectilinear). spatialdata
+          # 0.8.0 (with ome-zarr 0.18 + dask>=2026.3) emits a regular grid again
+          # and round-trips cleanly. Verified on the cluster against the real data.
+          - spatialdata-io==0.7.1
+          - spatialdata==0.8.0
   - type: native
 
 runners:

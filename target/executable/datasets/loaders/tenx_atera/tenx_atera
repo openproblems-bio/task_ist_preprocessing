@@ -446,12 +446,12 @@ function ViashDockerfile {
 FROM openproblems/base_python:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata-io==0.6.0" "spatialdata==0.7.2"
+  pip install --upgrade --no-cache-dir "spatialdata-io==0.7.1" "spatialdata==0.8.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders tenx_atera"
-LABEL org.opencontainers.image.created="2026-07-20T13:55:47Z"
+LABEL org.opencontainers.image.created="2026-07-20T19:46:14Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="7accc74d4349536b63f200a0a93315955856d874"
+LABEL org.opencontainers.image.revision="19b846d097f0caacfb0cb6139bd43b9151b8b657"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
