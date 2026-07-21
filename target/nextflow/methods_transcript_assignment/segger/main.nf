@@ -3795,10 +3795,10 @@ meta = [
         },
         {
           "type" : "double",
-          "name" : "--prediction_expansion_ratio",
-          "description" : "Fraction of each polygon's equivalent radius used to expand it during prediction.",
+          "name" : "--prediction_graph_buffer_ratio",
+          "description" : "Fraction of each polygon's equivalent radius used to buffer (expand) it when building the prediction graph. Maps to segger's --prediction-graph-buffer-ratio (renamed from --prediction-expansion-ratio in segger 0.1.0).",
           "default" : [
-            0.5
+            0.05
           ],
           "required" : false,
           "direction" : "input",
@@ -3810,7 +3810,7 @@ meta = [
           "name" : "--prediction_mode",
           "description" : "Which polygon set drives the prediction graph.",
           "default" : [
-            "nucleus"
+            "cell"
           ],
           "required" : false,
           "choices" : [
@@ -3945,7 +3945,9 @@ meta = [
           "packages" : [
             "procps",
             "git",
-            "libxcb1"
+            "libxcb1",
+            "libgl1",
+            "libglib2.0-0"
           ],
           "interactive" : false
         },
@@ -3988,7 +3990,7 @@ meta = [
           "type" : "python",
           "user" : false,
           "github" : [
-            "dpeerlab/segger"
+            "dpeerlab/segger@0233cf62eb177b6e44e49318037705550765a010"
           ],
           "upgrade" : true
         },
@@ -4011,7 +4013,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/segger",
     "viash_version" : "0.9.7",
-    "git_commit" : "241843e167b7cde16188893455d67a857ebc272f",
+    "git_commit" : "f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4153,7 +4155,7 @@ par = {
   'transcripts_key': $( if [ ! -z ${VIASH_PAR_TRANSCRIPTS_KEY+x} ]; then echo "r'${VIASH_PAR_TRANSCRIPTS_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'coordinate_system': $( if [ ! -z ${VIASH_PAR_COORDINATE_SYSTEM+x} ]; then echo "r'${VIASH_PAR_COORDINATE_SYSTEM//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'n_epochs': $( if [ ! -z ${VIASH_PAR_N_EPOCHS+x} ]; then echo "int(r'${VIASH_PAR_N_EPOCHS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
-  'prediction_expansion_ratio': $( if [ ! -z ${VIASH_PAR_PREDICTION_EXPANSION_RATIO+x} ]; then echo "float(r'${VIASH_PAR_PREDICTION_EXPANSION_RATIO//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'prediction_graph_buffer_ratio': $( if [ ! -z ${VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO+x} ]; then echo "float(r'${VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'prediction_mode': $( if [ ! -z ${VIASH_PAR_PREDICTION_MODE+x} ]; then echo "r'${VIASH_PAR_PREDICTION_MODE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
 }
 meta = {
@@ -4272,8 +4274,10 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
 # Clip to the label image bounds (transcripts can sit just outside after transform).
+n_oob = int(np.count_nonzero((y_coords < 0) | (y_coords >= label_image.shape[0]) | (x_coords < 0) | (x_coords >= label_image.shape[1])))
 y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
 x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
+print(f"Clamped {n_oob}/{len(x_coords)} transcripts outside the {label_image.shape[0]}x{label_image.shape[1]} label image to its edge", flush=True)
 prior_cell_id = label_image[y_coords, x_coords].astype(np.int64)  # 0 == background
 
 # Canonical transcripts frame (native coordinates, clean RangeIndex). Its row
@@ -4312,7 +4316,7 @@ cmd = [
     "-i", str(XENIUM_DIR),
     "-o", str(SEGGER_OUT_DIR),
     "--n-epochs", str(par["n_epochs"]),
-    "--prediction-expansion-ratio", str(par["prediction_expansion_ratio"]),
+    "--prediction-graph-buffer-ratio", str(par["prediction_graph_buffer_ratio"]),
     "--prediction-mode", par["prediction_mode"],
 ]
 # cudf's \\`validate_setup\\` aborts \\`import cudf\\` on hosts without a usable NVIDIA
@@ -4335,13 +4339,15 @@ if not seg_pq.exists():
 print('Reading segger output', flush=True)
 seg = pd.read_parquet(seg_pq)
 
-# Keep only confident assignments. Mirror segger's canonical valid_cell_id
-# predicate (drop null / "-1" / "UNASSIGNED" / "NONE", case-insensitive) so
-# the unassigned sentinels don't leak into the output.
+# Keep only confident assignments. segger 0.1.0 no longer emits a \\`keep\\` column;
+# a transcript is confidently assigned when its per-gene similarity clears the
+# learned threshold (segger applies exactly this \\`segger_similarity >=
+# similarity_threshold\\` filter when writing its own AnnData). Also drop
+# null / "-1" / "UNASSIGNED" / "NONE" cell ids (case-insensitive).
 _UNASSIGNED = {"-1", "UNASSIGNED", "NONE", "NAN", ""}
 seg_id_str = seg["segger_cell_id"].astype(str).str.strip().str.upper()
 keep_mask = (
-    seg["keep"].astype(bool)
+    (seg["segger_similarity"] >= seg["similarity_threshold"])
     & seg["segger_cell_id"].notna()
     & ~seg_id_str.isin(_UNASSIGNED)
 )

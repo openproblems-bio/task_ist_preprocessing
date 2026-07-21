@@ -34,6 +34,15 @@ arguments:
     direction: input
     type: integer
     default: 500 #5000
+  - name: --batch_size
+    required: false
+    direction: input
+    type: integer
+    # Number of cost-matrix rows/cols materialized at once during the solve.
+    # Computes the (n_sc x n_sc) / (n_sp x n_sp) GW costs online in batches instead
+    # of materializing the full matrix, which otherwise exhausts GPU memory on large
+    # references (the 101k-cell MPII lung reference needs ~76 GiB for n_sc x n_sc).
+    default: 1024
   - name: --mapping_mode
     required: false
     direction: input

@@ -3697,6 +3697,17 @@ meta = [
           "multiple_sep" : ";"
         },
         {
+          "type" : "integer",
+          "name" : "--batch_size",
+          "default" : [
+            1024
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
           "type" : "string",
           "name" : "--mapping_mode",
           "default" : [
@@ -3856,7 +3867,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/moscot",
     "viash_version" : "0.9.7",
-    "git_commit" : "241843e167b7cde16188893455d67a857ebc272f",
+    "git_commit" : "f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4018,6 +4029,7 @@ par = {
   'epsilon': $( if [ ! -z ${VIASH_PAR_EPSILON+x} ]; then echo "float(r'${VIASH_PAR_EPSILON//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'tau': $( if [ ! -z ${VIASH_PAR_TAU+x} ]; then echo "float(r'${VIASH_PAR_TAU//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'rank': $( if [ ! -z ${VIASH_PAR_RANK+x} ]; then echo "int(r'${VIASH_PAR_RANK//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'batch_size': $( if [ ! -z ${VIASH_PAR_BATCH_SIZE+x} ]; then echo "int(r'${VIASH_PAR_BATCH_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'mapping_mode': $( if [ ! -z ${VIASH_PAR_MAPPING_MODE+x} ]; then echo "r'${VIASH_PAR_MAPPING_MODE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
 }
 meta = {
@@ -4080,12 +4092,17 @@ mp = mp.prepare(
     xy_callback="local-pca",
 )
 
+# batch_size computes the GW cost matrices online in batches instead of
+# materializing the full (n_sc x n_sc) matrix, which otherwise exhausts GPU
+# memory on large references (e.g. the 101k-cell MPII lung reference needs
+# ~76 GiB just for n_sc x n_sc). Trades a little speed for a bounded footprint.
 mp = mp.solve(
     alpha=par['alpha'],
     epsilon=par['epsilon'],
     tau_a=par['tau'],
     tau_b=par['tau'],
     rank=par['rank'],
+    batch_size=par['batch_size'],
 )
 
 # Map annotations

@@ -41,6 +41,7 @@ par = {
    'epsilon': 0.01,
    'tau': 0.3,
    'rank': 500, #5000
+   'batch_size': 1024,
    'mapping_mode': 'max',
 }
 meta = {
@@ -82,12 +83,17 @@ mp = mp.prepare(
     xy_callback="local-pca",
 )
 
+# batch_size computes the GW cost matrices online in batches instead of
+# materializing the full (n_sc x n_sc) matrix, which otherwise exhausts GPU
+# memory on large references (e.g. the 101k-cell MPII lung reference needs
+# ~76 GiB just for n_sc x n_sc). Trades a little speed for a bounded footprint.
 mp = mp.solve(
     alpha=par['alpha'],
     epsilon=par['epsilon'],
     tau_a=par['tau'],
     tau_b=par['tau'],
     rank=par['rank'],
+    batch_size=par['batch_size'],
 )
 
 # Map annotations

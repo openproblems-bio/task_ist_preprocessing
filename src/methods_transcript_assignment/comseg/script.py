@@ -1,8 +1,10 @@
+import os
 import spatialdata as sd
 import sopa
 import anndata as ad
 import pandas as pd
 import numpy as np
+import dask.dataframe as dd
 
 ## VIASH START
 par = {
@@ -23,6 +25,10 @@ par = {
     "norm_vector": False,
     "allow_disconnected_polygon": True,
 }
+meta = {
+    "name": "comseg",
+    "cpus": 15,
+}
 ## VIASH END
 
 
@@ -30,6 +36,16 @@ par = {
 print('Reading input files', flush=True)
 sdata = sd.read_zarr(par['input_ist'])
 sdata_segm = sd.read_zarr(par['input_segmentation'])
+
+# Multi-partition parquet restarts its index at 0 per partition, producing duplicate
+# index labels that break sopa's cell_id assignment and the final write with
+# "cannot reindex on an axis with duplicate labels". Rebuild the transcripts as a
+# single-partition frame with a clean RangeIndex before any sopa op touches them.
+_tx = sdata[par['transcripts_key']]
+_tx_reset = dd.from_pandas(_tx.compute().reset_index(drop=True), npartitions=1)
+_tx_reset.attrs.update(_tx.attrs)
+del sdata[par['transcripts_key']]
+sdata[par['transcripts_key']] = _tx_reset
 
 # Convert the prior segmentation to polygons
 sdata["segmentation_boundaries"] = sd.to_polygons(sdata_segm["segmentation"])
@@ -61,7 +77,15 @@ config = {
 }
 
 
-# sopa.settings.parallelization_backend = 'dask' #TODO: get parallelization running.
+# ComSeg processes each transcript patch independently and is pure-Python, so it
+# runs single-threaded unless a parallelization backend is enabled. Use the dask
+# backend to spread patches across the allocated CPUs (see midcpu/highmem labels).
+n_workers = max((meta["cpus"] or os.cpu_count() or 1) - 1, 1)
+sopa.settings.parallelization_backend = "dask"
+sopa.settings.dask_client_kwargs["n_workers"] = n_workers
+sopa.settings.dask_client_kwargs["threads_per_worker"] = 1  # CPU-bound work, avoid GIL contention
+print(f"Running ComSeg with dask backend, n_workers={n_workers}", flush=True)
+
 sopa.segmentation.comseg(sdata, config)
 
 # Assign transcripts to cell ids

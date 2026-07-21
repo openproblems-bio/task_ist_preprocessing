@@ -454,9 +454,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("BiocManager", quietly 
 RUN Rscript -e "options(timeout = 600000000); devtools::install_github('dmcable/spacexr', build_vignettes = FALSE)"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation rctd"
-LABEL org.opencontainers.image.created="2026-07-21T06:27:19Z"
+LABEL org.opencontainers.image.created="2026-07-21T10:36:00Z"
 LABEL org.opencontainers.image.source="https://github.com/dmcable/spacexr"
-LABEL org.opencontainers.image.revision="241843e167b7cde16188893455d67a857ebc272f"
+LABEL org.opencontainers.image.revision="f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1352,8 +1352,20 @@ filtered_ref <- ref[,colData(ref)\$cell_type %in% valid_celltypes]
 ref_counts <- assay(filtered_ref, "counts")
 # factor to drop filtered cell types
 colData(filtered_ref)\$cell_type <- factor(colData(filtered_ref)\$cell_type) 
-cell_types <- colData(filtered_ref)\$cell_type 
+cell_types <- colData(filtered_ref)\$cell_type
 names(cell_types) <- colnames(ref_counts)
+
+# spacexr::check_cell_types() rejects cell-type names containing '/'
+# (e.g. "Ciliated/secretory cells", "T/NK lineage"). Sanitize the factor levels
+# before building the Reference, and keep a map (safe name -> original name) so
+# the predicted labels can be restored below to match the scRNAseq reference.
+cell_type_name_map <- levels(cell_types)
+names(cell_type_name_map) <- gsub("/", "_", levels(cell_types))
+if (any(duplicated(names(cell_type_name_map)))) {
+  names(cell_type_name_map) <- make.unique(names(cell_type_name_map))
+}
+levels(cell_types) <- names(cell_type_name_map)
+
 reference <- Reference(ref_counts, cell_types, min_UMI = 0)
 
 # check cores
@@ -1383,7 +1395,12 @@ names(spatial_cell_types) <- rownames(results\$results_df)
 
 #
 colData(sce)\$cell_type <- "None_sp"
-colData(sce)[names(spatial_cell_types),"cell_type"] <- as.character(spatial_cell_types)
+# Restore the original cell-type names (undo the '/' sanitization). "None_sp"
+# and anything not in the map are left unchanged.
+predicted <- as.character(spatial_cell_types)
+mapped <- unname(cell_type_name_map[predicted])
+predicted[!is.na(mapped)] <- mapped[!is.na(mapped)]
+colData(sce)[names(spatial_cell_types),"cell_type"] <- predicted
 
 # Write the final object to h5ad format
 # set to 'w', is this ok?

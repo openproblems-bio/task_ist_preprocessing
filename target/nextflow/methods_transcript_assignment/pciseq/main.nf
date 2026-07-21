@@ -4061,7 +4061,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/pciseq",
     "viash_version" : "0.9.7",
-    "git_commit" : "241843e167b7cde16188893455d67a857ebc272f",
+    "git_commit" : "f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4331,15 +4331,27 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
 else:
      label_image = sdata_segm["segmentation"].to_numpy()
 
-# There might be spots at the border of the image, pciseq runs into an error if this is the case.
-# Build the mask as a positional numpy array from the transformed coords and apply the SAME mask
-# to both the pciSeq input and the full transcripts, so pciSeq's per-spot assignments line up
-# row-for-row with the transcripts when cell_ids are written back below. (Filtering the original
-# multi-partition dask frame by a mask derived from the reset-index transcripts raises an
-# "Unalignable boolean Series" IndexingError because the two indices no longer match.)
-transcripts_at_border = (x_coords > (label_image.shape[1] - 0.5)) | (y_coords > (label_image.shape[0] - 0.5))
-transcripts_dataframe = transcripts_dataframe[~transcripts_at_border]
-transcripts_full = transcripts_full[~transcripts_at_border]
+# pciSeq internally drops spots that fall OUTSIDE the label image, and returns
+# per-spot assignments only for the kept spots; txsim.run_pciSeq then does
+# \\`spots['cell'] = assignments\\`, which raises "Length of values ... does not match
+# length of index" when any spot was dropped. So we must pre-filter to exactly the
+# spots pciSeq keeps. pciSeq rounds coords to pixel indices and keeps round(coord)
+# in [0, size); the equivalent float bounds are (-0.5, size-0.5]. Filter BOTH borders
+# (a crop transform can push transcripts off either the high OR the low/negative side;
+# filtering only the high border left the negative-coord spots in and caused the
+# mismatch on cropped datasets like MPII).
+# Build the mask as a positional numpy array from the transformed coords and apply the
+# SAME mask to both the pciSeq input and the full transcripts so pciSeq's per-spot
+# assignments line up row-for-row when cell_ids are written back below.
+transcripts_out_of_bounds = (
+    (x_coords > (label_image.shape[1] - 0.5)) | (y_coords > (label_image.shape[0] - 0.5)) |
+    (x_coords < -0.5) | (y_coords < -0.5)
+)
+n_oob = int(transcripts_out_of_bounds.sum())
+print(f"Dropping {n_oob}/{len(x_coords)} transcripts outside the "
+      f"{label_image.shape[0]}x{label_image.shape[1]} label image (pciSeq drops these internally)", flush=True)
+transcripts_dataframe = transcripts_dataframe[~transcripts_out_of_bounds]
+transcripts_full = transcripts_full[~transcripts_out_of_bounds]
 
 # Grab all the pciSeq parameters
 opts_keys = [#'exclude_genes',

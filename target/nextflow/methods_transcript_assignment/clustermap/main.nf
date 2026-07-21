@@ -4141,7 +4141,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/clustermap",
     "viash_version" : "0.9.7",
-    "git_commit" : "241843e167b7cde16188893455d67a857ebc272f",
+    "git_commit" : "f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4554,13 +4554,12 @@ else:
 spots_cmap['clustermap'] += 1 
 
 #assign ClusterMap output (stored in spots_cmap) to the transcripts (i.e. assign transcripts to cells)
-cell_id_dask_series = dask.dataframe.from_dask_array(
-    dask.array.from_array(
-        spots_cmap["clustermap"].values, chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
-    ), 
-    index=sdata[par['transcripts_key']].index
-)
-sdata[par['transcripts_key']]["cell_id"] = cell_id_dask_series 
+# Assign to the clean-index single-partition frame (transcripts_reset). Using
+# sdata[par['transcripts_key']] here reintroduces the duplicate parquet index
+# (multi-partition parquet restarts at 0 per partition) and fails downstream with
+# "cannot reindex on an axis with duplicate labels".
+cell_ids = spots_cmap["clustermap"].values
+transcripts_reset["cell_id"] = pd.Series(cell_ids)
 
 #create new .obs for cells based on the segmentation output (corresponding with the transcripts 'cell_id')
 unique_cells = np.unique(spots_cmap["clustermap"].values)
@@ -4582,7 +4581,7 @@ assert 0 not in cell_id_col, "Found '0' in cell_id column of assingment output c
 print('Subsetting to transcripts cell id data', flush=True)
 sdata_transcripts_only = sd.SpatialData(
   points={
-    "transcripts": sdata[par['transcripts_key']]
+    "transcripts": transcripts_reset
   },
   tables={
     "table": ad.AnnData(

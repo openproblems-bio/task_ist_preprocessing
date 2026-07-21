@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "tangram-sc"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation tangram"
-LABEL org.opencontainers.image.created="2026-07-21T06:27:18Z"
+LABEL org.opencontainers.image.created="2026-07-21T10:35:58Z"
 LABEL org.opencontainers.image.source="https://github.com/broadinstitute/Tangram"
-LABEL org.opencontainers.image.revision="241843e167b7cde16188893455d67a857ebc272f"
+LABEL org.opencontainers.image.revision="f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -608,7 +608,7 @@ function ViashHelp {
   echo ""
   echo "    --mode"
   echo "        type: string"
-  echo "        default: cells"
+  echo "        default: clusters"
   echo ""
   echo "    --num_epochs"
   echo "        type: integer"
@@ -951,7 +951,7 @@ if [ -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then
   VIASH_PAR_CELLTYPE_KEY="cell_type"
 fi
 if [ -z ${VIASH_PAR_MODE+x} ]; then
-  VIASH_PAR_MODE="cells"
+  VIASH_PAR_MODE="clusters"
 fi
 if [ -z ${VIASH_PAR_NUM_EPOCHS+x} ]; then
   VIASH_PAR_NUM_EPOCHS="1000"
@@ -1225,14 +1225,22 @@ tg.pp_adatas(adata_sc=adata_sc, adata_sp=adata_sp, genes=markers)
 # 'uniform', when is a ndarray, shape = (number_spots,). 
 # use 'uniform' if the spatial voxels are at single cell resolution (e.g. MERFISH). 'rna_count_based', assumes that 
 # cell density is proportional to the number of RNA molecules.
-adata_map = tg.map_cells_to_space(
+# In 'cells' mode tangram learns a (n_sc_cells x n_spatial_cells) mapping matrix
+# on the GPU, which runs out of VRAM for large references (e.g. the 101k-cell
+# MPII lung reference). 'clusters' mode maps per-cell-type clusters instead,
+# shrinking that matrix by ~n_cells_per_type and fitting comfortably on the GPU;
+# it requires the cluster_label to average cells within.
+map_kwargs = dict(
     adata_sc=adata_sc,
     adata_sp=adata_sp,
     device=device,
     mode=par['mode'],
     num_epochs=par['num_epochs'],
-    density_prior='uniform'
+    density_prior='uniform',
 )
+if par['mode'] == 'clusters':
+    map_kwargs['cluster_label'] = par['celltype_key']
+adata_map = tg.map_cells_to_space(**map_kwargs)
     
 # Spatial prediction dataframe is saved in \`obsm\` \`tangram_ct_pred\` of the spatial AnnData
 tg.project_cell_annotations(

@@ -3656,7 +3656,7 @@ meta = [
           "type" : "string",
           "name" : "--mode",
           "default" : [
-            "cells"
+            "clusters"
           ],
           "required" : false,
           "direction" : "input",
@@ -3813,7 +3813,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/tangram",
     "viash_version" : "0.9.7",
-    "git_commit" : "241843e167b7cde16188893455d67a857ebc272f",
+    "git_commit" : "f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4003,14 +4003,22 @@ tg.pp_adatas(adata_sc=adata_sc, adata_sp=adata_sp, genes=markers)
 # 'uniform', when is a ndarray, shape = (number_spots,). 
 # use 'uniform' if the spatial voxels are at single cell resolution (e.g. MERFISH). 'rna_count_based', assumes that 
 # cell density is proportional to the number of RNA molecules.
-adata_map = tg.map_cells_to_space(
+# In 'cells' mode tangram learns a (n_sc_cells x n_spatial_cells) mapping matrix
+# on the GPU, which runs out of VRAM for large references (e.g. the 101k-cell
+# MPII lung reference). 'clusters' mode maps per-cell-type clusters instead,
+# shrinking that matrix by ~n_cells_per_type and fitting comfortably on the GPU;
+# it requires the cluster_label to average cells within.
+map_kwargs = dict(
     adata_sc=adata_sc,
     adata_sp=adata_sp,
     device=device,
     mode=par['mode'],
     num_epochs=par['num_epochs'],
-    density_prior='uniform'
+    density_prior='uniform',
 )
+if par['mode'] == 'clusters':
+    map_kwargs['cluster_label'] = par['celltype_key']
+adata_map = tg.map_cells_to_space(**map_kwargs)
     
 # Spatial prediction dataframe is saved in \\`obsm\\` \\`tangram_ct_pred\\` of the spatial AnnData
 tg.project_cell_annotations(

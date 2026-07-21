@@ -3749,7 +3749,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_expression_correction/split",
     "viash_version" : "0.9.7",
-    "git_commit" : "241843e167b7cde16188893455d67a857ebc272f",
+    "git_commit" : "f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3947,6 +3947,13 @@ ref_counts <- assay(filtered_ref, "counts")
 colData(filtered_ref)\\$cell_type <- factor(colData(filtered_ref)\\$cell_type)
 cell_types <- colData(filtered_ref)\\$cell_type
 names(cell_types) <- colnames(ref_counts)
+
+# spacexr::check_cell_types() rejects cell-type names containing '/'
+# (e.g. "Ciliated/secretory cells", "T/NK lineage"). Sanitize the factor levels
+# before building the Reference. SPLIT uses RCTD only internally to purify
+# counts and does not emit cell-type labels, so no name restoration is needed.
+levels(cell_types) <- make.unique(gsub("/", "_", levels(cell_types)))
+
 reference <- Reference(ref_counts, cell_types, min_UMI = 0)
 
 # check cores

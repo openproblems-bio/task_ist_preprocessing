@@ -24,17 +24,17 @@ arguments:
     required: false
     description: "Number of training epochs for the segger GNN."
     default: 20
-  - name: --prediction_expansion_ratio
+  - name: --prediction_graph_buffer_ratio
     type: double
     required: false
-    description: "Fraction of each polygon's equivalent radius used to expand it during prediction."
-    default: 0.5
+    description: "Fraction of each polygon's equivalent radius used to buffer (expand) it when building the prediction graph. Maps to segger's --prediction-graph-buffer-ratio (renamed from --prediction-expansion-ratio in segger 0.1.0)."
+    default: 0.05
   - name: --prediction_mode
     type: string
     required: false
     choices: [nucleus, cell, uniform]
     description: "Which polygon set drives the prediction graph."
-    default: nucleus
+    default: cell
 
 resources:
   - type: python_script
@@ -52,8 +52,11 @@ engines:
     # image shipped numpy-1.x torch, which cannot coexist with spatialdata>=0.7.3.
     image: nvcr.io/nvidia/pytorch:26.06-py3
     setup:
+      # libgl1 + libglib2.0-0: segger's writer imports segger.io -> cv2 (opencv),
+      # which needs libGL.so.1 / libgthread at import; without them the run crashes
+      # at write time with "libGL.so.1: cannot open shared object file".
       - type: apt
-        packages: [procps, git, libxcb1]
+        packages: [procps, git, libxcb1, libgl1, libglib2.0-0]
       - type: python
         github:
           - openproblems-bio/core#subdirectory=packages/python/openproblems
@@ -85,8 +88,13 @@ engines:
         run:
           - pip install --no-cache-dir torch_geometric lightning
           - FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0" pip install --no-cache-dir --no-build-isolation torch_scatter
+      # Pin to a specific commit: segger's CLI flags AND output schema change on
+      # trunk (0.1.0 renamed --prediction-expansion-ratio -> --prediction-graph-
+      # buffer-ratio and dropped the `keep` column). script.py targets THIS commit's
+      # contract, so bump this deliberately and re-check `segger segment --help`
+      # and data/writer.py before doing so.
       - type: python
-        github: dpeerlab/segger
+        github: dpeerlab/segger@0233cf62eb177b6e44e49318037705550765a010
       # cudf 25.4 (cuda-12; there is no cuspatial-cu13, so we are stuck on this
       # RAPIDS) hard-requires pandas<2.2.4. But segger pulls the modern single-cell
       # stack — anndata 0.13 and scanpy 1.12 — which BOTH require pandas>=2.3

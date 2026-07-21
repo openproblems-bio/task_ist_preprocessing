@@ -446,7 +446,7 @@ function ViashDockerfile {
 FROM nvcr.io/nvidia/pytorch:26.06-py3
 ENTRYPOINT []
 RUN apt-get update && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y procps git libxcb1 && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y procps git libxcb1 libgl1 libglib2.0-0 && \
   rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip && \
@@ -460,13 +460,13 @@ RUN pip install --no-cache-dir --extra-index-url=https://pypi.nvidia.com cuspati
 RUN pip install --no-cache-dir torch_geometric lightning
 RUN FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0" pip install --no-cache-dir --no-build-isolation torch_scatter
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "git+https://github.com/dpeerlab/segger"
+  pip install --upgrade --no-cache-dir "git+https://github.com/dpeerlab/segger@0233cf62eb177b6e44e49318037705550765a010"
 
 RUN pip install --no-cache-dir "pandas>=2.0,<2.2.4" "anndata>=0.12,<0.13" "scanpy>=1.11,<1.12"
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment segger"
-LABEL org.opencontainers.image.created="2026-07-21T06:27:20Z"
+LABEL org.opencontainers.image.created="2026-07-21T10:36:01Z"
 LABEL org.opencontainers.image.source="https://github.com/dpeerlab/segger"
-LABEL org.opencontainers.image.revision="241843e167b7cde16188893455d67a857ebc272f"
+LABEL org.opencontainers.image.revision="f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -640,15 +640,17 @@ function ViashHelp {
   echo "        default: 20"
   echo "        Number of training epochs for the segger GNN."
   echo ""
-  echo "    --prediction_expansion_ratio"
+  echo "    --prediction_graph_buffer_ratio"
   echo "        type: double"
-  echo "        default: 0.5"
-  echo "        Fraction of each polygon's equivalent radius used to expand it during"
-  echo "        prediction."
+  echo "        default: 0.05"
+  echo "        Fraction of each polygon's equivalent radius used to buffer (expand) it"
+  echo "        when building the prediction graph. Maps to segger's"
+  echo "        --prediction-graph-buffer-ratio (renamed from"
+  echo "        --prediction-expansion-ratio in segger 0.1.0)."
   echo ""
   echo "    --prediction_mode"
   echo "        type: string"
-  echo "        default: nucleus"
+  echo "        default: cell"
   echo "        choices: [ nucleus, cell, uniform ]"
   echo "        Which polygon set drives the prediction graph."
   echo ""
@@ -790,15 +792,15 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_N_EPOCHS=$(ViashRemoveFlags "$1")
             shift 1
             ;;
-        --prediction_expansion_ratio)
-            [ -n "$VIASH_PAR_PREDICTION_EXPANSION_RATIO" ] && ViashError Bad arguments for option \'--prediction_expansion_ratio\': \'$VIASH_PAR_PREDICTION_EXPANSION_RATIO\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_PREDICTION_EXPANSION_RATIO="$2"
-            [ $# -lt 2 ] && ViashError Not enough arguments passed to --prediction_expansion_ratio. Use "--help" to get more information on the parameters. && exit 1
+        --prediction_graph_buffer_ratio)
+            [ -n "$VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO" ] && ViashError Bad arguments for option \'--prediction_graph_buffer_ratio\': \'$VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --prediction_graph_buffer_ratio. Use "--help" to get more information on the parameters. && exit 1
             shift 2
             ;;
-        --prediction_expansion_ratio=*)
-            [ -n "$VIASH_PAR_PREDICTION_EXPANSION_RATIO" ] && ViashError Bad arguments for option \'--prediction_expansion_ratio=*\': \'$VIASH_PAR_PREDICTION_EXPANSION_RATIO\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
-            VIASH_PAR_PREDICTION_EXPANSION_RATIO=$(ViashRemoveFlags "$1")
+        --prediction_graph_buffer_ratio=*)
+            [ -n "$VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO" ] && ViashError Bad arguments for option \'--prediction_graph_buffer_ratio=*\': \'$VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         --prediction_mode)
@@ -1030,11 +1032,11 @@ fi
 if [ -z ${VIASH_PAR_N_EPOCHS+x} ]; then
   VIASH_PAR_N_EPOCHS="20"
 fi
-if [ -z ${VIASH_PAR_PREDICTION_EXPANSION_RATIO+x} ]; then
-  VIASH_PAR_PREDICTION_EXPANSION_RATIO="0.5"
+if [ -z ${VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO+x} ]; then
+  VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO="0.05"
 fi
 if [ -z ${VIASH_PAR_PREDICTION_MODE+x} ]; then
-  VIASH_PAR_PREDICTION_MODE="nucleus"
+  VIASH_PAR_PREDICTION_MODE="cell"
 fi
 
 # check whether required files exist
@@ -1058,9 +1060,9 @@ if [[ -n "$VIASH_PAR_N_EPOCHS" ]]; then
     exit 1
   fi
 fi
-if [[ -n "$VIASH_PAR_PREDICTION_EXPANSION_RATIO" ]]; then
-  if ! [[ "$VIASH_PAR_PREDICTION_EXPANSION_RATIO" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
-    ViashError '--prediction_expansion_ratio' has to be a double. Use "--help" to get more information on the parameters.
+if [[ -n "$VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO" ]]; then
+  if ! [[ "$VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--prediction_graph_buffer_ratio' has to be a double. Use "--help" to get more information on the parameters.
     exit 1
   fi
 fi
@@ -1276,7 +1278,7 @@ par = {
   'transcripts_key': $( if [ ! -z ${VIASH_PAR_TRANSCRIPTS_KEY+x} ]; then echo "r'${VIASH_PAR_TRANSCRIPTS_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'coordinate_system': $( if [ ! -z ${VIASH_PAR_COORDINATE_SYSTEM+x} ]; then echo "r'${VIASH_PAR_COORDINATE_SYSTEM//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'n_epochs': $( if [ ! -z ${VIASH_PAR_N_EPOCHS+x} ]; then echo "int(r'${VIASH_PAR_N_EPOCHS//\'/\'\"\'\"r\'}')"; else echo None; fi ),
-  'prediction_expansion_ratio': $( if [ ! -z ${VIASH_PAR_PREDICTION_EXPANSION_RATIO+x} ]; then echo "float(r'${VIASH_PAR_PREDICTION_EXPANSION_RATIO//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'prediction_graph_buffer_ratio': $( if [ ! -z ${VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO+x} ]; then echo "float(r'${VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'prediction_mode': $( if [ ! -z ${VIASH_PAR_PREDICTION_MODE+x} ]; then echo "r'${VIASH_PAR_PREDICTION_MODE//\'/\'\"\'\"r\'}'"; else echo None; fi )
 }
 meta = {
@@ -1395,8 +1397,10 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
 # Clip to the label image bounds (transcripts can sit just outside after transform).
+n_oob = int(np.count_nonzero((y_coords < 0) | (y_coords >= label_image.shape[0]) | (x_coords < 0) | (x_coords >= label_image.shape[1])))
 y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
 x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
+print(f"Clamped {n_oob}/{len(x_coords)} transcripts outside the {label_image.shape[0]}x{label_image.shape[1]} label image to its edge", flush=True)
 prior_cell_id = label_image[y_coords, x_coords].astype(np.int64)  # 0 == background
 
 # Canonical transcripts frame (native coordinates, clean RangeIndex). Its row
@@ -1435,7 +1439,7 @@ cmd = [
     "-i", str(XENIUM_DIR),
     "-o", str(SEGGER_OUT_DIR),
     "--n-epochs", str(par["n_epochs"]),
-    "--prediction-expansion-ratio", str(par["prediction_expansion_ratio"]),
+    "--prediction-graph-buffer-ratio", str(par["prediction_graph_buffer_ratio"]),
     "--prediction-mode", par["prediction_mode"],
 ]
 # cudf's \`validate_setup\` aborts \`import cudf\` on hosts without a usable NVIDIA
@@ -1458,13 +1462,15 @@ if not seg_pq.exists():
 print('Reading segger output', flush=True)
 seg = pd.read_parquet(seg_pq)
 
-# Keep only confident assignments. Mirror segger's canonical valid_cell_id
-# predicate (drop null / "-1" / "UNASSIGNED" / "NONE", case-insensitive) so
-# the unassigned sentinels don't leak into the output.
+# Keep only confident assignments. segger 0.1.0 no longer emits a \`keep\` column;
+# a transcript is confidently assigned when its per-gene similarity clears the
+# learned threshold (segger applies exactly this \`segger_similarity >=
+# similarity_threshold\` filter when writing its own AnnData). Also drop
+# null / "-1" / "UNASSIGNED" / "NONE" cell ids (case-insensitive).
 _UNASSIGNED = {"-1", "UNASSIGNED", "NONE", "NAN", ""}
 seg_id_str = seg["segger_cell_id"].astype(str).str.strip().str.upper()
 keep_mask = (
-    seg["keep"].astype(bool)
+    (seg["segger_similarity"] >= seg["similarity_threshold"])
     & seg["segger_cell_id"].notna()
     & ~seg_id_str.isin(_UNASSIGNED)
 )

@@ -4025,7 +4025,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.7",
-    "git_commit" : "241843e167b7cde16188893455d67a857ebc272f",
+    "git_commit" : "f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4246,26 +4246,27 @@ else:
 # Clamp coords to the label-image bounds: transcripts at the crop boundary can
 # round a few pixels past the raster edge (see get_crop_coords in
 # process_dataset). Matches segger's handling; edge/background at the border.
+n_oob = int(np.count_nonzero((y_coords < 0) | (y_coords >= label_image.shape[0]) | (x_coords < 0) | (x_coords >= label_image.shape[1])))
 y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
 x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
+print(f"Clamped {n_oob}/{len(x_coords)} transcripts outside the {label_image.shape[0]}x{label_image.shape[1]} label image to its edge", flush=True)
 
-cell_id_dask_series = dask.dataframe.from_dask_array(
-    dask.array.from_array(
-        label_image[y_coords, x_coords], chunks=tuple(sdata[par['transcripts_key']].map_partitions(len).compute())
-    ), 
-    index=sdata[par['transcripts_key']].index
-)
-sdata[par['transcripts_key']]["cell_id"] = cell_id_dask_series
+# Assign cell ids to the clean-index single-partition frame (transcripts_reset).
+# Using sdata[par['transcripts_key']] here reintroduces the duplicate parquet index
+# (multi-partition parquet restarts at 0 per partition) and fails downstream with
+# "cannot reindex on an axis with duplicate labels".
+cell_ids = label_image[y_coords, x_coords]
+transcripts_reset["cell_id"] = pd.Series(cell_ids)
 
 
 ########################
 # Run baysor with sopa #
 ########################
 
-# Create reduced sdata
+# Create reduced sdata (use the clean-index frame that carries cell_id)
 sdata_sopa = sd.SpatialData(
     points={
-        "transcripts": sdata[par['transcripts_key']]
+        "transcripts": transcripts_reset
     },
 )
 

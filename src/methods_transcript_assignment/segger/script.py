@@ -22,8 +22,8 @@ par = {
   'coordinate_system': 'global',
   'output': './temp/methods/segger/segger_assigned_transcripts.zarr',
   'n_epochs': 20,
-  'prediction_expansion_ratio': 0.5,
-  'prediction_mode': 'nucleus',
+  'prediction_graph_buffer_ratio': 0.05,
+  'prediction_mode': 'cell',
 }
 meta = {
   'name': 'segger',
@@ -122,8 +122,10 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
 # Clip to the label image bounds (transcripts can sit just outside after transform).
+n_oob = int(np.count_nonzero((y_coords < 0) | (y_coords >= label_image.shape[0]) | (x_coords < 0) | (x_coords >= label_image.shape[1])))
 y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
 x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
+print(f"Clamped {n_oob}/{len(x_coords)} transcripts outside the {label_image.shape[0]}x{label_image.shape[1]} label image to its edge", flush=True)
 prior_cell_id = label_image[y_coords, x_coords].astype(np.int64)  # 0 == background
 
 # Canonical transcripts frame (native coordinates, clean RangeIndex). Its row
@@ -162,7 +164,7 @@ cmd = [
     "-i", str(XENIUM_DIR),
     "-o", str(SEGGER_OUT_DIR),
     "--n-epochs", str(par["n_epochs"]),
-    "--prediction-expansion-ratio", str(par["prediction_expansion_ratio"]),
+    "--prediction-graph-buffer-ratio", str(par["prediction_graph_buffer_ratio"]),
     "--prediction-mode", par["prediction_mode"],
 ]
 # cudf's `validate_setup` aborts `import cudf` on hosts without a usable NVIDIA
@@ -185,13 +187,15 @@ if not seg_pq.exists():
 print('Reading segger output', flush=True)
 seg = pd.read_parquet(seg_pq)
 
-# Keep only confident assignments. Mirror segger's canonical valid_cell_id
-# predicate (drop null / "-1" / "UNASSIGNED" / "NONE", case-insensitive) so
-# the unassigned sentinels don't leak into the output.
+# Keep only confident assignments. segger 0.1.0 no longer emits a `keep` column;
+# a transcript is confidently assigned when its per-gene similarity clears the
+# learned threshold (segger applies exactly this `segger_similarity >=
+# similarity_threshold` filter when writing its own AnnData). Also drop
+# null / "-1" / "UNASSIGNED" / "NONE" cell ids (case-insensitive).
 _UNASSIGNED = {"-1", "UNASSIGNED", "NONE", "NAN", ""}
 seg_id_str = seg["segger_cell_id"].astype(str).str.strip().str.upper()
 keep_mask = (
-    seg["keep"].astype(bool)
+    (seg["segger_similarity"] >= seg["similarity_threshold"])
     & seg["segger_cell_id"].notna()
     & ~seg_id_str.isin(_UNASSIGNED)
 )
