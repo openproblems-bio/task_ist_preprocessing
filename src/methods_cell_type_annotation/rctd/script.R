@@ -44,8 +44,20 @@ filtered_ref <- ref[,colData(ref)$cell_type %in% valid_celltypes]
 ref_counts <- assay(filtered_ref, "counts")
 # factor to drop filtered cell types
 colData(filtered_ref)$cell_type <- factor(colData(filtered_ref)$cell_type) 
-cell_types <- colData(filtered_ref)$cell_type 
+cell_types <- colData(filtered_ref)$cell_type
 names(cell_types) <- colnames(ref_counts)
+
+# spacexr::check_cell_types() rejects cell-type names containing '/'
+# (e.g. "Ciliated/secretory cells", "T/NK lineage"). Sanitize the factor levels
+# before building the Reference, and keep a map (safe name -> original name) so
+# the predicted labels can be restored below to match the scRNAseq reference.
+cell_type_name_map <- levels(cell_types)
+names(cell_type_name_map) <- gsub("/", "_", levels(cell_types))
+if (any(duplicated(names(cell_type_name_map)))) {
+  names(cell_type_name_map) <- make.unique(names(cell_type_name_map))
+}
+levels(cell_types) <- names(cell_type_name_map)
+
 reference <- Reference(ref_counts, cell_types, min_UMI = 0)
 
 # check cores
@@ -75,7 +87,12 @@ names(spatial_cell_types) <- rownames(results$results_df)
 
 #
 colData(sce)$cell_type <- "None_sp"
-colData(sce)[names(spatial_cell_types),"cell_type"] <- as.character(spatial_cell_types)
+# Restore the original cell-type names (undo the '/' sanitization). "None_sp"
+# and anything not in the map are left unchanged.
+predicted <- as.character(spatial_cell_types)
+mapped <- unname(cell_type_name_map[predicted])
+predicted[!is.na(mapped)] <- mapped[!is.na(mapped)]
+colData(sce)[names(spatial_cell_types),"cell_type"] <- predicted
 
 # Write the final object to h5ad format
 # set to 'w', is this ok?

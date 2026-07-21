@@ -51,6 +51,13 @@ ref_counts <- assay(filtered_ref, "counts")
 colData(filtered_ref)$cell_type <- factor(colData(filtered_ref)$cell_type)
 cell_types <- colData(filtered_ref)$cell_type
 names(cell_types) <- colnames(ref_counts)
+
+# spacexr::check_cell_types() rejects cell-type names containing '/'
+# (e.g. "Ciliated/secretory cells", "T/NK lineage"). Sanitize the factor levels
+# before building the Reference. SPLIT uses RCTD only internally to purify
+# counts and does not emit cell-type labels, so no name restoration is needed.
+levels(cell_types) <- make.unique(gsub("/", "_", levels(cell_types)))
+
 reference <- Reference(ref_counts, cell_types, min_UMI = 0)
 
 # check cores
