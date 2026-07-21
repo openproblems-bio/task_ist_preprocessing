@@ -15,7 +15,10 @@ arguments:
     required: false
     direction: input
     type: string
-    default: "cells"
+    # 'clusters' maps per-cell-type clusters -> space; 'cells' maps individual
+    # reference cells and exhausts GPU VRAM on large references (e.g. the 101k-cell
+    # MPII lung reference). 'clusters' is the appropriate mode for label projection.
+    default: "clusters"
   - name: --num_epochs
     required: false
     direction: input

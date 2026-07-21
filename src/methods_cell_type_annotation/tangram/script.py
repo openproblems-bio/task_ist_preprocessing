@@ -48,14 +48,22 @@ tg.pp_adatas(adata_sc=adata_sc, adata_sp=adata_sp, genes=markers)
 # 'uniform', when is a ndarray, shape = (number_spots,). 
 # use 'uniform' if the spatial voxels are at single cell resolution (e.g. MERFISH). 'rna_count_based', assumes that 
 # cell density is proportional to the number of RNA molecules.
-adata_map = tg.map_cells_to_space(
+# In 'cells' mode tangram learns a (n_sc_cells x n_spatial_cells) mapping matrix
+# on the GPU, which runs out of VRAM for large references (e.g. the 101k-cell
+# MPII lung reference). 'clusters' mode maps per-cell-type clusters instead,
+# shrinking that matrix by ~n_cells_per_type and fitting comfortably on the GPU;
+# it requires the cluster_label to average cells within.
+map_kwargs = dict(
     adata_sc=adata_sc,
     adata_sp=adata_sp,
     device=device,
     mode=par['mode'],
     num_epochs=par['num_epochs'],
-    density_prior='uniform'
+    density_prior='uniform',
 )
+if par['mode'] == 'clusters':
+    map_kwargs['cluster_label'] = par['celltype_key']
+adata_map = tg.map_cells_to_space(**map_kwargs)
     
 # Spatial prediction dataframe is saved in `obsm` `tangram_ct_pred` of the spatial AnnData
 tg.project_cell_annotations(
