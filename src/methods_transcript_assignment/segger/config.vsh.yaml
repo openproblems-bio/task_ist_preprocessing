@@ -45,69 +45,62 @@ engines:
   #       (cudf, cuspatial, torch). Develop/test on a CUDA host; `viash test`
   #       will not run on a machine without an NVIDIA GPU.
   - type: docker
-    # NGC 26.06 ships numpy 2.1 and a torch (2.13) compiled against numpy 2.x, so
-    # the torch<->numpy bridge (used by the `segger segment` subprocess) stays
-    # alive alongside the numpy-2.x task stack (spatialdata>=0.7.3 hard-requires
-    # numpy>=2 via multiscale-spatial-image -> xarray-dataclass). The older 25.06
-    # image shipped numpy-1.x torch, which cannot coexist with spatialdata>=0.7.3.
-    image: nvcr.io/nvidia/pytorch:26.06-py3
+    # segger is fundamentally a RAPIDS application (cudf + cuspatial + cugraph +
+    # cuml). Bolting that full stack onto the NGC PyTorch base made RAPIDS's UCX
+    # (cugraph -> raft_dask) collide with the image's HPC-X UCX and abort with heap
+    # corruption (SIGABRT, exit 134) that no pip pin could fix. So we base on the
+    # official RAPIDS image (ships cudf/cugraph/cuml/cuspatial 25.04 + a consistent,
+    # working UCX/dask stack) and layer torch (GNN) + the spatialdata/anndata I/O
+    # stack + segger on top. numpy 2.0.2 / pandas 2.2.3 come from the base.
+    #
+    # NOTE: this image runs as the NON-root 'rapids' user, so `type: apt` will NOT
+    # work in a viash build (needs root). Everything below installs via conda/pip
+    # only (both write to the rapids-owned conda env) — do NOT add apt steps.
+    image: rapidsai/base:25.04-cuda12.8-py3.12
     setup:
-      # libgl1 + libglib2.0-0: segger's writer imports segger.io -> cv2 (opencv),
-      # which needs libGL.so.1 / libgthread at import; without them the run crashes
-      # at write time with "libGL.so.1: cannot open shared object file".
-      - type: apt
-        packages: [procps, git, libxcb1, libgl1, libglib2.0-0]
+      # git (for the segger + openproblems github installs) via conda: apt is
+      # unavailable as non-root and the RAPIDS base ships no git.
+      - type: docker
+        run: conda install -y -c conda-forge git
       - type: python
         github:
           - openproblems-bio/core#subdirectory=packages/python/openproblems
-      - type: python
-        packages:
-          - "spatialdata>=0.7.3"
-          - "anndata>=0.12.0"
-          - "zarr>=3.0.0"
-          - geopandas
-          - shapely
-          - "rasterio>=1.3"
-          - scikit-image
-      # cuspatial is imported by segger.geometry.conversion and is NOT shipped in
-      # the 26.06 image (unlike 25.06). Install from the NVIDIA index (its
-      # libcudf-cu12/libcuspatial-cu12 deps are not on PyPI); it pulls a matching
-      # cudf-cu12. Unpinned -> resolves to the newest cuda-12 build (25.4, the last
-      # cuda-12 cuspatial-cu12 on the index).
-      - type: docker
-        run: |
-          pip install --no-cache-dir --extra-index-url=https://pypi.nvidia.com cuspatial-cu12
-      # segger imports torch_geometric (at import time via _patches), lightning
-      # (segger segment -> Trainer) and torch_scatter (models: scatter_max) but
-      # declares NONE of them in its pyproject, so the github install below does
-      # not pull them. torch_geometric/lightning are pure Python. torch_scatter has
-      # no prebuilt wheel for the NGC custom torch build, so compile against it
-      # (--no-build-isolation). The build host has no GPU, so force a CUDA build for
-      # the target archs (A100=8.0, A10/A40=8.6, L4/L40=8.9, H100=9.0).
+      # torch for the GNN. Standard PyPI cu124 wheel (numpy-2 compatible) coexists
+      # with the RAPIDS cuda-12 libs. Unlike the NGC custom torch, torch_scatter has
+      # a PREBUILT wheel for this torch (the pyg index) — no CUDA compile needed.
       - type: docker
         run:
+          - pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
           - pip install --no-cache-dir torch_geometric lightning
-          - FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0" pip install --no-cache-dir --no-build-isolation torch_scatter
-      # Pin to a specific commit: segger's CLI flags AND output schema change on
-      # trunk (0.1.0 renamed --prediction-expansion-ratio -> --prediction-graph-
-      # buffer-ratio and dropped the `keep` column). script.py targets THIS commit's
-      # contract, so bump this deliberately and re-check `segger segment --help`
-      # and data/writer.py before doing so.
+          - pip install --no-cache-dir torch_scatter -f https://data.pyg.org/whl/torch-2.6.0+cu124.html
+      # I/O stack. spatialdata pinned <0.8 (resolves to 0.7.1): 0.7.2+ require
+      # dask>=2026.x, but RAPIDS 25.04 hard-pins dask==2025.2.0. 0.7.1 accepts dask
+      # 2025.2.0; pin dask/distributed so spatialdata can't drag them up (which would
+      # break RAPIDS's dask-cudf/cugraph). We validated sd.transform works on 2025.2.0.
+      - type: docker
+        run:
+          - pip install --no-cache-dir "spatialdata>=0.7,<0.8" "zarr>=3.0.0" geopandas shapely "rasterio>=1.3" scikit-image "dask==2025.2.0" "distributed==2025.2.0"
+      # Pin segger to a commit: its CLI flags AND output schema change on trunk
+      # (0.1.0 renamed --prediction-expansion-ratio -> --prediction-graph-buffer-
+      # ratio and dropped the `keep` column). script.py targets THIS commit; bump
+      # deliberately and re-check `segger segment --help` and data/writer.py first.
       - type: python
         github: dpeerlab/segger@0233cf62eb177b6e44e49318037705550765a010
-      # cudf 25.4 (cuda-12; there is no cuspatial-cu13, so we are stuck on this
-      # RAPIDS) hard-requires pandas<2.2.4. But segger pulls the modern single-cell
-      # stack — anndata 0.13 and scanpy 1.12 — which BOTH require pandas>=2.3
-      # (anndata 0.13's zarr reader calls pd.StringDtype(na_value=...), an API added
-      # in pandas 2.3), so under the pinned pandas 2.2.3 reading ANY AnnData/zarr
-      # table crashes with "StringDtype.__init__() got an unexpected keyword
-      # argument 'na_value'". Pin pandas back into cudf's range AND hold anndata /
-      # scanpy at their last pandas-2.2-compatible majors (anndata 0.12.x needs
-      # pandas>=2.1; scanpy 1.11.x needs pandas>=1.5) as the LAST step so they win
-      # over the deps above. numpy stays 2.x. See NOTES.md for the full conflict.
+      # Final step, must be LAST (after segger's github install pulls its deps):
+      #  - cudf 25.4 needs pandas<2.2.4; but anndata 0.13 / scanpy 1.12 (pulled by
+      #    segger) need pandas>=2.3 (anndata 0.13's zarr reader uses
+      #    pd.StringDtype(na_value=...), a pandas-2.3 API) -> reading any zarr table
+      #    crashes under pandas 2.2.3. Hold anndata/scanpy at their last pandas-2.2
+      #    majors (anndata 0.12.x: pandas>=2.1; scanpy 1.11.x: pandas>=1.5), and
+      #    re-assert spatialdata<0.8 + dask==2025.2.0 in case a dep nudged them.
+      #  - swap opencv-python -> opencv-python-headless: segger pulls opencv-python,
+      #    whose cv2 needs libGL.so.1 (a system lib we cannot apt-install as non-root);
+      #    the headless build provides the same cv2 without it. See NOTES.md.
       - type: docker
         run:
-          - pip install --no-cache-dir "pandas>=2.0,<2.2.4" "anndata>=0.12,<0.13" "scanpy>=1.11,<1.12"
+          - pip install --no-cache-dir "pandas>=2.0,<2.2.4" "anndata>=0.12,<0.13" "scanpy>=1.11,<1.12" "spatialdata>=0.7,<0.8" "dask==2025.2.0" "distributed==2025.2.0"
+          - pip uninstall -y opencv-python || true
+          - pip install --no-cache-dir opencv-python-headless
   - type: native
 
 runners:
