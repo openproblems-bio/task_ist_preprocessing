@@ -12,6 +12,12 @@ par <- list(
   "input_scrnaseq_reference"= "task_ist_preprocessing/resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad",
   "output" = "task_ist_preprocessing/tmp/split_corrected.h5ad",
   "keep_all_cells" = FALSE,
+  "gene_cutoff" = 0.0,
+  "fc_cutoff" = 0.1,
+  "gene_cutoff_reg" = 0.0,
+  "fc_cutoff_reg" = 0.1,
+  "umi_min" = 20,
+  "umi_min_sigma" = 20
 )
 
 meta <- list(
@@ -67,7 +73,14 @@ cat(sprintf("Number of cores: %s\n", cores))
 
 # Run the algorithm
 cat("Running RCTD\n")
-myRCTD <- create.RCTD(puck, reference, max_cores = cores)
+# Relaxed DE-gene / UMI thresholds (see config): RCTD's defaults find "fewer than
+# 10 DE genes" on small iST panels with many fine-grained cell types.
+myRCTD <- create.RCTD(
+  puck, reference, max_cores = cores,
+  gene_cutoff = par$gene_cutoff, fc_cutoff = par$fc_cutoff,
+  gene_cutoff_reg = par$gene_cutoff_reg, fc_cutoff_reg = par$fc_cutoff_reg,
+  UMI_min = par$umi_min, UMI_min_sigma = par$umi_min_sigma
+)
 myRCTD <- run.RCTD(myRCTD, doublet_mode = "doublet")
 
 # Get the "spot_class" annotation from RCTD

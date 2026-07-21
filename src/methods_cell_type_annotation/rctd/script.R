@@ -43,9 +43,26 @@ filtered_ref <- ref[,colData(ref)$cell_type %in% valid_celltypes]
 
 ref_counts <- assay(filtered_ref, "counts")
 # factor to drop filtered cell types
-colData(filtered_ref)$cell_type <- factor(colData(filtered_ref)$cell_type) 
+colData(filtered_ref)$cell_type <- factor(colData(filtered_ref)$cell_type)
 cell_types <- colData(filtered_ref)$cell_type
 names(cell_types) <- colnames(ref_counts)
+
+# --- Diagnostics: confirm what RCTD actually reads. The reference itself has
+#     ~475/477 panel genes with clear cross-cell-type fold-change, so a "fewer
+#     than 10 DE genes" failure means the data reaching RCTD is degenerate:
+#     cell types collapsed to ~1, non-integer/normalized counts, or few genes
+#     shared with the spatial puck. This block surfaces which. ---
+cat("=== RCTD input diagnostics ===\n")
+cat(sprintf("spatial puck: %d genes x %d cells\n", nrow(counts), ncol(counts)))
+cat(sprintf("reference (>=25 cells/type): %d genes x %d cells, %d cell types\n",
+            nrow(ref_counts), ncol(ref_counts), length(unique(as.character(cell_types)))))
+print(utils::head(sort(table(as.character(cell_types)), decreasing = TRUE), 8))
+cat(sprintf("genes shared reference<->spatial: %d\n",
+            length(intersect(rownames(ref_counts), rownames(counts)))))
+.rcv <- if (methods::is(ref_counts, "sparseMatrix")) ref_counts@x else as.numeric(ref_counts)
+if (length(.rcv)) cat(sprintf("reference counts: min=%.4g max=%.4g mean=%.4g all-integer=%s\n",
+            min(.rcv), max(.rcv), mean(.rcv), isTRUE(all.equal(.rcv, round(.rcv)))))
+cat("==============================\n")
 
 # spacexr::check_cell_types() rejects cell-type names containing '/'
 # (e.g. "Ciliated/secretory cells", "T/NK lineage"). Sanitize the factor levels
