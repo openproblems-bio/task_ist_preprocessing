@@ -459,9 +459,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("remotes", quietly = TR
 RUN Rscript -e 'remotes::install_github("bdsc-tds/SPLIT")'
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_expression_correction split"
-LABEL org.opencontainers.image.created="2026-07-21T10:36:00Z"
+LABEL org.opencontainers.image.created="2026-07-21T21:31:21Z"
 LABEL org.opencontainers.image.source="https://github.com/bdsc-tds/SPLIT"
-LABEL org.opencontainers.image.revision="f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a"
+LABEL org.opencontainers.image.revision="95993ed881a30fa5335a58f490a3ad4b20bd9d28"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -613,6 +613,42 @@ function ViashHelp {
   echo "        default: false"
   echo "        Whether to keep cells with 0 counts (may cause errors if set to TRUE)"
   echo ""
+  echo "    --gene_cutoff"
+  echo "        type: double"
+  echo "        default: 0.0"
+  echo "        Minimum normalized mean expression for a gene to be a platform-effect DE"
+  echo "        gene (RCTD default 0.000125)."
+  echo ""
+  echo "    --fc_cutoff"
+  echo "        type: double"
+  echo "        default: 0.1"
+  echo "        Minimum log-fold-change for a gene to be a platform-effect DE gene (RCTD"
+  echo "        default 0.5)."
+  echo ""
+  echo "    --gene_cutoff_reg"
+  echo "        type: double"
+  echo "        default: 0.0"
+  echo "        Minimum normalized mean expression for a gene to be a regression DE gene"
+  echo "        (RCTD default 0.0002)."
+  echo ""
+  echo "    --fc_cutoff_reg"
+  echo "        type: double"
+  echo "        default: 0.1"
+  echo "        Minimum log-fold-change for a gene to be a regression DE gene (RCTD"
+  echo "        default 0.75)."
+  echo ""
+  echo "    --umi_min"
+  echo "        type: integer"
+  echo "        default: 20"
+  echo "        Minimum total UMI per spatial cell to be included (RCTD default 100; iST"
+  echo "        cells are low-count)."
+  echo ""
+  echo "    --umi_min_sigma"
+  echo "        type: integer"
+  echo "        default: 20"
+  echo "        Minimum UMI for cells used to fit the platform-effect variance (RCTD"
+  echo "        default 300)."
+  echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
   echo "        Number of CPUs to use"
@@ -705,6 +741,72 @@ while [[ $# -gt 0 ]]; do
         --keep_all_cells=*)
             [ -n "$VIASH_PAR_KEEP_ALL_CELLS" ] && ViashError Bad arguments for option \'--keep_all_cells=*\': \'$VIASH_PAR_KEEP_ALL_CELLS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_KEEP_ALL_CELLS=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --gene_cutoff)
+            [ -n "$VIASH_PAR_GENE_CUTOFF" ] && ViashError Bad arguments for option \'--gene_cutoff\': \'$VIASH_PAR_GENE_CUTOFF\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_GENE_CUTOFF="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --gene_cutoff. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --gene_cutoff=*)
+            [ -n "$VIASH_PAR_GENE_CUTOFF" ] && ViashError Bad arguments for option \'--gene_cutoff=*\': \'$VIASH_PAR_GENE_CUTOFF\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_GENE_CUTOFF=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --fc_cutoff)
+            [ -n "$VIASH_PAR_FC_CUTOFF" ] && ViashError Bad arguments for option \'--fc_cutoff\': \'$VIASH_PAR_FC_CUTOFF\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_FC_CUTOFF="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --fc_cutoff. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --fc_cutoff=*)
+            [ -n "$VIASH_PAR_FC_CUTOFF" ] && ViashError Bad arguments for option \'--fc_cutoff=*\': \'$VIASH_PAR_FC_CUTOFF\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_FC_CUTOFF=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --gene_cutoff_reg)
+            [ -n "$VIASH_PAR_GENE_CUTOFF_REG" ] && ViashError Bad arguments for option \'--gene_cutoff_reg\': \'$VIASH_PAR_GENE_CUTOFF_REG\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_GENE_CUTOFF_REG="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --gene_cutoff_reg. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --gene_cutoff_reg=*)
+            [ -n "$VIASH_PAR_GENE_CUTOFF_REG" ] && ViashError Bad arguments for option \'--gene_cutoff_reg=*\': \'$VIASH_PAR_GENE_CUTOFF_REG\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_GENE_CUTOFF_REG=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --fc_cutoff_reg)
+            [ -n "$VIASH_PAR_FC_CUTOFF_REG" ] && ViashError Bad arguments for option \'--fc_cutoff_reg\': \'$VIASH_PAR_FC_CUTOFF_REG\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_FC_CUTOFF_REG="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --fc_cutoff_reg. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --fc_cutoff_reg=*)
+            [ -n "$VIASH_PAR_FC_CUTOFF_REG" ] && ViashError Bad arguments for option \'--fc_cutoff_reg=*\': \'$VIASH_PAR_FC_CUTOFF_REG\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_FC_CUTOFF_REG=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --umi_min)
+            [ -n "$VIASH_PAR_UMI_MIN" ] && ViashError Bad arguments for option \'--umi_min\': \'$VIASH_PAR_UMI_MIN\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_UMI_MIN="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --umi_min. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --umi_min=*)
+            [ -n "$VIASH_PAR_UMI_MIN" ] && ViashError Bad arguments for option \'--umi_min=*\': \'$VIASH_PAR_UMI_MIN\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_UMI_MIN=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --umi_min_sigma)
+            [ -n "$VIASH_PAR_UMI_MIN_SIGMA" ] && ViashError Bad arguments for option \'--umi_min_sigma\': \'$VIASH_PAR_UMI_MIN_SIGMA\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_UMI_MIN_SIGMA="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --umi_min_sigma. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --umi_min_sigma=*)
+            [ -n "$VIASH_PAR_UMI_MIN_SIGMA" ] && ViashError Bad arguments for option \'--umi_min_sigma=*\': \'$VIASH_PAR_UMI_MIN_SIGMA\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_UMI_MIN_SIGMA=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -916,6 +1018,24 @@ fi
 if [ -z ${VIASH_PAR_KEEP_ALL_CELLS+x} ]; then
   VIASH_PAR_KEEP_ALL_CELLS="false"
 fi
+if [ -z ${VIASH_PAR_GENE_CUTOFF+x} ]; then
+  VIASH_PAR_GENE_CUTOFF="0.0"
+fi
+if [ -z ${VIASH_PAR_FC_CUTOFF+x} ]; then
+  VIASH_PAR_FC_CUTOFF="0.1"
+fi
+if [ -z ${VIASH_PAR_GENE_CUTOFF_REG+x} ]; then
+  VIASH_PAR_GENE_CUTOFF_REG="0.0"
+fi
+if [ -z ${VIASH_PAR_FC_CUTOFF_REG+x} ]; then
+  VIASH_PAR_FC_CUTOFF_REG="0.1"
+fi
+if [ -z ${VIASH_PAR_UMI_MIN+x} ]; then
+  VIASH_PAR_UMI_MIN="20"
+fi
+if [ -z ${VIASH_PAR_UMI_MIN_SIGMA+x} ]; then
+  VIASH_PAR_UMI_MIN_SIGMA="20"
+fi
 
 # check whether required files exist
 if [ ! -z "$VIASH_PAR_INPUT_SPATIAL_WITH_CELL_TYPES" ] && [ ! -e "$VIASH_PAR_INPUT_SPATIAL_WITH_CELL_TYPES" ]; then
@@ -931,6 +1051,42 @@ fi
 if [[ -n "$VIASH_PAR_KEEP_ALL_CELLS" ]]; then
   if ! [[ "$VIASH_PAR_KEEP_ALL_CELLS" =~ ^(true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO)$ ]]; then
     ViashError '--keep_all_cells' has to be a boolean. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_GENE_CUTOFF" ]]; then
+  if ! [[ "$VIASH_PAR_GENE_CUTOFF" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--gene_cutoff' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_FC_CUTOFF" ]]; then
+  if ! [[ "$VIASH_PAR_FC_CUTOFF" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--fc_cutoff' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_GENE_CUTOFF_REG" ]]; then
+  if ! [[ "$VIASH_PAR_GENE_CUTOFF_REG" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--gene_cutoff_reg' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_FC_CUTOFF_REG" ]]; then
+  if ! [[ "$VIASH_PAR_FC_CUTOFF_REG" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--fc_cutoff_reg' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_UMI_MIN" ]]; then
+  if ! [[ "$VIASH_PAR_UMI_MIN" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--umi_min' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_UMI_MIN_SIGMA" ]]; then
+  if ! [[ "$VIASH_PAR_UMI_MIN_SIGMA" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--umi_min_sigma' has to be an integer. Use "--help" to get more information on the parameters.
     exit 1
   fi
 fi
@@ -1121,7 +1277,13 @@ par <- list(
   "input_spatial_with_cell_types" = $( if [ ! -z ${VIASH_PAR_INPUT_SPATIAL_WITH_CELL_TYPES+x} ]; then echo -n "'"; echo -n "$VIASH_PAR_INPUT_SPATIAL_WITH_CELL_TYPES" | sed "s#['\\]#\\\\&#g"; echo "'"; else echo NULL; fi ),
   "input_scrnaseq_reference" = $( if [ ! -z ${VIASH_PAR_INPUT_SCRNASEQ_REFERENCE+x} ]; then echo -n "'"; echo -n "$VIASH_PAR_INPUT_SCRNASEQ_REFERENCE" | sed "s#['\\]#\\\\&#g"; echo "'"; else echo NULL; fi ),
   "output" = $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo -n "'"; echo -n "$VIASH_PAR_OUTPUT" | sed "s#['\\]#\\\\&#g"; echo "'"; else echo NULL; fi ),
-  "keep_all_cells" = $( if [ ! -z ${VIASH_PAR_KEEP_ALL_CELLS+x} ]; then echo -n "as.logical(toupper('"; echo -n "$VIASH_PAR_KEEP_ALL_CELLS" | sed "s#['\\]#\\\\&#g"; echo "'))"; else echo NULL; fi )
+  "keep_all_cells" = $( if [ ! -z ${VIASH_PAR_KEEP_ALL_CELLS+x} ]; then echo -n "as.logical(toupper('"; echo -n "$VIASH_PAR_KEEP_ALL_CELLS" | sed "s#['\\]#\\\\&#g"; echo "'))"; else echo NULL; fi ),
+  "gene_cutoff" = $( if [ ! -z ${VIASH_PAR_GENE_CUTOFF+x} ]; then echo -n "as.numeric('"; echo -n "$VIASH_PAR_GENE_CUTOFF" | sed "s#['\\]#\\\\&#g"; echo "')"; else echo NULL; fi ),
+  "fc_cutoff" = $( if [ ! -z ${VIASH_PAR_FC_CUTOFF+x} ]; then echo -n "as.numeric('"; echo -n "$VIASH_PAR_FC_CUTOFF" | sed "s#['\\]#\\\\&#g"; echo "')"; else echo NULL; fi ),
+  "gene_cutoff_reg" = $( if [ ! -z ${VIASH_PAR_GENE_CUTOFF_REG+x} ]; then echo -n "as.numeric('"; echo -n "$VIASH_PAR_GENE_CUTOFF_REG" | sed "s#['\\]#\\\\&#g"; echo "')"; else echo NULL; fi ),
+  "fc_cutoff_reg" = $( if [ ! -z ${VIASH_PAR_FC_CUTOFF_REG+x} ]; then echo -n "as.numeric('"; echo -n "$VIASH_PAR_FC_CUTOFF_REG" | sed "s#['\\]#\\\\&#g"; echo "')"; else echo NULL; fi ),
+  "umi_min" = $( if [ ! -z ${VIASH_PAR_UMI_MIN+x} ]; then echo -n "as.integer('"; echo -n "$VIASH_PAR_UMI_MIN" | sed "s#['\\]#\\\\&#g"; echo "')"; else echo NULL; fi ),
+  "umi_min_sigma" = $( if [ ! -z ${VIASH_PAR_UMI_MIN_SIGMA+x} ]; then echo -n "as.integer('"; echo -n "$VIASH_PAR_UMI_MIN_SIGMA" | sed "s#['\\]#\\\\&#g"; echo "')"; else echo NULL; fi )
 )
 meta <- list(
   "name" = $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo -n "'"; echo -n "$VIASH_META_NAME" | sed "s#['\\]#\\\\&#g"; echo "'"; else echo NULL; fi ),
@@ -1201,7 +1363,14 @@ cat(sprintf("Number of cores: %s\\n", cores))
 
 # Run the algorithm
 cat("Running RCTD\\n")
-myRCTD <- create.RCTD(puck, reference, max_cores = cores)
+# Relaxed DE-gene / UMI thresholds (see config): RCTD's defaults find "fewer than
+# 10 DE genes" on small iST panels with many fine-grained cell types.
+myRCTD <- create.RCTD(
+  puck, reference, max_cores = cores,
+  gene_cutoff = par\$gene_cutoff, fc_cutoff = par\$fc_cutoff,
+  gene_cutoff_reg = par\$gene_cutoff_reg, fc_cutoff_reg = par\$fc_cutoff_reg,
+  UMI_min = par\$umi_min, UMI_min_sigma = par\$umi_min_sigma
+)
 myRCTD <- run.RCTD(myRCTD, doublet_mode = "doublet")
 
 # Get the "spot_class" annotation from RCTD

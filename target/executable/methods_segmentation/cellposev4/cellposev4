@@ -455,9 +455,9 @@ RUN pip install --upgrade pip && \
   python -c 'from cellpose.models import CellposeModel; model = CellposeModel()'
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation cellposev4"
-LABEL org.opencontainers.image.created="2026-07-21T10:35:59Z"
+LABEL org.opencontainers.image.created="2026-07-21T21:31:21Z"
 LABEL org.opencontainers.image.source="https://github.com/mouseland/cellpose"
-LABEL org.opencontainers.image.revision="f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a"
+LABEL org.opencontainers.image.revision="95993ed881a30fa5335a58f490a3ad4b20bd9d28"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

@@ -424,6 +424,72 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
+  - type: "double"
+    name: "--gene_cutoff"
+    description: "Minimum normalized mean expression for a gene to be a platform-effect\
+      \ DE gene (RCTD default 0.000125)."
+    info: null
+    default:
+    - 0.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--fc_cutoff"
+    description: "Minimum log-fold-change for a gene to be a platform-effect DE gene\
+      \ (RCTD default 0.5)."
+    info: null
+    default:
+    - 0.1
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--gene_cutoff_reg"
+    description: "Minimum normalized mean expression for a gene to be a regression\
+      \ DE gene (RCTD default 0.0002)."
+    info: null
+    default:
+    - 0.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--fc_cutoff_reg"
+    description: "Minimum log-fold-change for a gene to be a regression DE gene (RCTD\
+      \ default 0.75)."
+    info: null
+    default:
+    - 0.1
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--umi_min"
+    description: "Minimum total UMI per spatial cell to be included (RCTD default\
+      \ 100; iST cells are low-count)."
+    info: null
+    default:
+    - 20
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--umi_min_sigma"
+    description: "Minimum UMI for cells used to fit the platform-effect variance (RCTD\
+      \ default 300)."
+    info: null
+    default:
+    - 20
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 resources:
 - type: "r_script"
   path: "script.R"
@@ -541,7 +607,7 @@ build_info:
   output: "target/nextflow/methods_expression_correction/split"
   executable: "target/nextflow/methods_expression_correction/split/main.nf"
   viash_version: "0.9.7"
-  git_commit: "f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a"
+  git_commit: "95993ed881a30fa5335a58f490a3ad4b20bd9d28"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

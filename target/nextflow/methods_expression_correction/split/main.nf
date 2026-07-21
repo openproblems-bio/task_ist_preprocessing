@@ -3587,6 +3587,78 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--gene_cutoff",
+          "description" : "Minimum normalized mean expression for a gene to be a platform-effect DE gene (RCTD default 0.000125).",
+          "default" : [
+            0.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--fc_cutoff",
+          "description" : "Minimum log-fold-change for a gene to be a platform-effect DE gene (RCTD default 0.5).",
+          "default" : [
+            0.1
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--gene_cutoff_reg",
+          "description" : "Minimum normalized mean expression for a gene to be a regression DE gene (RCTD default 0.0002).",
+          "default" : [
+            0.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--fc_cutoff_reg",
+          "description" : "Minimum log-fold-change for a gene to be a regression DE gene (RCTD default 0.75).",
+          "default" : [
+            0.1
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--umi_min",
+          "description" : "Minimum total UMI per spatial cell to be included (RCTD default 100; iST cells are low-count).",
+          "default" : [
+            20
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--umi_min_sigma",
+          "description" : "Minimum UMI for cells used to fit the platform-effect variance (RCTD default 300).",
+          "default" : [
+            20
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -3749,7 +3821,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_expression_correction/split",
     "viash_version" : "0.9.7",
-    "git_commit" : "f94cf1e15fae3852f10ea7a4466e5a1e5cd1a89a",
+    "git_commit" : "95993ed881a30fa5335a58f490a3ad4b20bd9d28",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3883,7 +3955,13 @@ par <- list(
   "input_spatial_with_cell_types" = $( if [ ! -z ${VIASH_PAR_INPUT_SPATIAL_WITH_CELL_TYPES+x} ]; then echo -n "'"; echo -n "$VIASH_PAR_INPUT_SPATIAL_WITH_CELL_TYPES" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "'"; else echo NULL; fi ),
   "input_scrnaseq_reference" = $( if [ ! -z ${VIASH_PAR_INPUT_SCRNASEQ_REFERENCE+x} ]; then echo -n "'"; echo -n "$VIASH_PAR_INPUT_SCRNASEQ_REFERENCE" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "'"; else echo NULL; fi ),
   "output" = $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo -n "'"; echo -n "$VIASH_PAR_OUTPUT" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "'"; else echo NULL; fi ),
-  "keep_all_cells" = $( if [ ! -z ${VIASH_PAR_KEEP_ALL_CELLS+x} ]; then echo -n "as.logical(toupper('"; echo -n "$VIASH_PAR_KEEP_ALL_CELLS" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "'))"; else echo NULL; fi )
+  "keep_all_cells" = $( if [ ! -z ${VIASH_PAR_KEEP_ALL_CELLS+x} ]; then echo -n "as.logical(toupper('"; echo -n "$VIASH_PAR_KEEP_ALL_CELLS" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "'))"; else echo NULL; fi ),
+  "gene_cutoff" = $( if [ ! -z ${VIASH_PAR_GENE_CUTOFF+x} ]; then echo -n "as.numeric('"; echo -n "$VIASH_PAR_GENE_CUTOFF" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "')"; else echo NULL; fi ),
+  "fc_cutoff" = $( if [ ! -z ${VIASH_PAR_FC_CUTOFF+x} ]; then echo -n "as.numeric('"; echo -n "$VIASH_PAR_FC_CUTOFF" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "')"; else echo NULL; fi ),
+  "gene_cutoff_reg" = $( if [ ! -z ${VIASH_PAR_GENE_CUTOFF_REG+x} ]; then echo -n "as.numeric('"; echo -n "$VIASH_PAR_GENE_CUTOFF_REG" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "')"; else echo NULL; fi ),
+  "fc_cutoff_reg" = $( if [ ! -z ${VIASH_PAR_FC_CUTOFF_REG+x} ]; then echo -n "as.numeric('"; echo -n "$VIASH_PAR_FC_CUTOFF_REG" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "')"; else echo NULL; fi ),
+  "umi_min" = $( if [ ! -z ${VIASH_PAR_UMI_MIN+x} ]; then echo -n "as.integer('"; echo -n "$VIASH_PAR_UMI_MIN" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "')"; else echo NULL; fi ),
+  "umi_min_sigma" = $( if [ ! -z ${VIASH_PAR_UMI_MIN_SIGMA+x} ]; then echo -n "as.integer('"; echo -n "$VIASH_PAR_UMI_MIN_SIGMA" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "')"; else echo NULL; fi )
 )
 meta <- list(
   "name" = $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo -n "'"; echo -n "$VIASH_META_NAME" | sed "s#['\\\\]#\\\\\\\\&#g"; echo "'"; else echo NULL; fi ),
@@ -3963,7 +4041,14 @@ cat(sprintf("Number of cores: %s\\\\n", cores))
 
 # Run the algorithm
 cat("Running RCTD\\\\n")
-myRCTD <- create.RCTD(puck, reference, max_cores = cores)
+# Relaxed DE-gene / UMI thresholds (see config): RCTD's defaults find "fewer than
+# 10 DE genes" on small iST panels with many fine-grained cell types.
+myRCTD <- create.RCTD(
+  puck, reference, max_cores = cores,
+  gene_cutoff = par\\$gene_cutoff, fc_cutoff = par\\$fc_cutoff,
+  gene_cutoff_reg = par\\$gene_cutoff_reg, fc_cutoff_reg = par\\$fc_cutoff_reg,
+  UMI_min = par\\$umi_min, UMI_min_sigma = par\\$umi_min_sigma
+)
 myRCTD <- run.RCTD(myRCTD, doublet_mode = "doublet")
 
 # Get the "spot_class" annotation from RCTD
