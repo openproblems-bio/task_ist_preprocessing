@@ -17,6 +17,34 @@ arguments:
     type: boolean
     default: false
     description: Whether to keep cells with 0 counts (may cause errors if set to TRUE)
+  # RCTD's default DE-gene / UMI thresholds are tuned for whole-transcriptome
+  # references; on small iST panels (a few hundred genes, many similar fine-grained
+  # cell types) fold-changes are compressed and RCTD finds "fewer than 10 DE genes".
+  # These relaxed defaults mirror the rctd component so create.RCTD below succeeds.
+  - name: --gene_cutoff
+    type: double
+    default: 0.0
+    description: "Minimum normalized mean expression for a gene to be a platform-effect DE gene (RCTD default 0.000125)."
+  - name: --fc_cutoff
+    type: double
+    default: 0.1
+    description: "Minimum log-fold-change for a gene to be a platform-effect DE gene (RCTD default 0.5)."
+  - name: --gene_cutoff_reg
+    type: double
+    default: 0.0
+    description: "Minimum normalized mean expression for a gene to be a regression DE gene (RCTD default 0.0002)."
+  - name: --fc_cutoff_reg
+    type: double
+    default: 0.1
+    description: "Minimum log-fold-change for a gene to be a regression DE gene (RCTD default 0.75)."
+  - name: --umi_min
+    type: integer
+    default: 20
+    description: "Minimum total UMI per spatial cell to be included (RCTD default 100; iST cells are low-count)."
+  - name: --umi_min_sigma
+    type: integer
+    default: 20
+    description: "Minimum UMI for cells used to fit the platform-effect variance (RCTD default 300)."
 
 resources:
   - type: r_script
