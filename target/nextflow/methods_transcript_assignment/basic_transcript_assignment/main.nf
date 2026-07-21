@@ -3921,7 +3921,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/basic_transcript_assignment",
     "viash_version" : "0.9.7",
-    "git_commit" : "1c69ab9f9fe3a09af46acf89da581bbebc029fdf",
+    "git_commit" : "241843e167b7cde16188893455d67a857ebc272f",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4123,6 +4123,11 @@ else:
 # Assign cell ids directly to transcripts_reset (clean-index single-partition dask DataFrame).
 # Using sdata[par['transcripts_key']] here would reintroduce the duplicate parquet index,
 # causing the same "cannot reindex on an axis with duplicate labels" error at write time.
+# Clamp coords to the label-image bounds: transcripts at the crop boundary can
+# round a few pixels past the raster edge (see get_crop_coords in
+# process_dataset). Matches segger's handling; edge/background at the border.
+y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
+x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
 cell_ids = label_image[y_coords, x_coords]
 transcripts_reset["cell_id"] = pd.Series(cell_ids)
 

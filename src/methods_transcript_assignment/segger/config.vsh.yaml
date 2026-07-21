@@ -87,13 +87,19 @@ engines:
           - FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0" pip install --no-cache-dir --no-build-isolation torch_scatter
       - type: python
         github: dpeerlab/segger
-      # cudf 25.4 needs pandas<2.2.4, but segger (via scanpy 1.12 / anndata 0.13)
-      # pulls pandas 3.0, which removed pandas.api.types.is_interval that cudf
-      # imports -> `import cudf` crashes. Pin pandas back into cudf's supported
-      # range as the LAST step so it wins over the deps above. numpy stays 2.x.
+      # cudf 25.4 (cuda-12; there is no cuspatial-cu13, so we are stuck on this
+      # RAPIDS) hard-requires pandas<2.2.4. But segger pulls the modern single-cell
+      # stack — anndata 0.13 and scanpy 1.12 — which BOTH require pandas>=2.3
+      # (anndata 0.13's zarr reader calls pd.StringDtype(na_value=...), an API added
+      # in pandas 2.3), so under the pinned pandas 2.2.3 reading ANY AnnData/zarr
+      # table crashes with "StringDtype.__init__() got an unexpected keyword
+      # argument 'na_value'". Pin pandas back into cudf's range AND hold anndata /
+      # scanpy at their last pandas-2.2-compatible majors (anndata 0.12.x needs
+      # pandas>=2.1; scanpy 1.11.x needs pandas>=1.5) as the LAST step so they win
+      # over the deps above. numpy stays 2.x. See NOTES.md for the full conflict.
       - type: docker
         run:
-          - pip install --no-cache-dir "pandas>=2.0,<2.2.4"
+          - pip install --no-cache-dir "pandas>=2.0,<2.2.4" "anndata>=0.12,<0.13" "scanpy>=1.11,<1.12"
   - type: native
 
 runners:

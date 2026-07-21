@@ -463,9 +463,9 @@ RUN unzip baysor-x86_x64-linux-v0.7.1_build.zip
 RUN chmod +x /bin/baysor
 RUN ln -sf /bin/baysor/bin/baysor /usr/local/bin/baysor
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment baysor"
-LABEL org.opencontainers.image.created="2026-07-20T22:04:35Z"
+LABEL org.opencontainers.image.created="2026-07-21T06:27:20Z"
 LABEL org.opencontainers.image.source="https://github.com/kharchenkolab/Baysor"
-LABEL org.opencontainers.image.revision="1c69ab9f9fe3a09af46acf89da581bbebc029fdf"
+LABEL org.opencontainers.image.revision="241843e167b7cde16188893455d67a857ebc272f"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1411,6 +1411,12 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
+
+# Clamp coords to the label-image bounds: transcripts at the crop boundary can
+# round a few pixels past the raster edge (see get_crop_coords in
+# process_dataset). Matches segger's handling; edge/background at the border.
+y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
+x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
 
 cell_id_dask_series = dask.dataframe.from_dask_array(
     dask.array.from_array(

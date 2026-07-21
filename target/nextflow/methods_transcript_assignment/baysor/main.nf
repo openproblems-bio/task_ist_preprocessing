@@ -4025,7 +4025,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.7",
-    "git_commit" : "1c69ab9f9fe3a09af46acf89da581bbebc029fdf",
+    "git_commit" : "241843e167b7cde16188893455d67a857ebc272f",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4242,6 +4242,12 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
+
+# Clamp coords to the label-image bounds: transcripts at the crop boundary can
+# round a few pixels past the raster edge (see get_crop_coords in
+# process_dataset). Matches segger's handling; edge/background at the border.
+y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
+x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
 
 cell_id_dask_series = dask.dataframe.from_dask_array(
     dask.array.from_array(

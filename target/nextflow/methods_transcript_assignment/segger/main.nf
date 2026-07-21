@@ -3995,7 +3995,7 @@ meta = [
         {
           "type" : "docker",
           "run" : [
-            "pip install --no-cache-dir \\"pandas>=2.0,<2.2.4\\""
+            "pip install --no-cache-dir \\"pandas>=2.0,<2.2.4\\" \\"anndata>=0.12,<0.13\\" \\"scanpy>=1.11,<1.12\\""
           ]
         }
       ]
@@ -4011,7 +4011,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/segger",
     "viash_version" : "0.9.7",
-    "git_commit" : "1c69ab9f9fe3a09af46acf89da581bbebc029fdf",
+    "git_commit" : "241843e167b7cde16188893455d67a857ebc272f",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
