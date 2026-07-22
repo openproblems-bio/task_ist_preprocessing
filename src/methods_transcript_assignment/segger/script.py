@@ -79,11 +79,15 @@ trans_global_to_transcripts = sd.transformations.get_transformation(sdata[par['t
 trans = sd.transformations.Sequence([trans_segm_to_global, trans_global_to_transcripts])
 boundaries = sd.transform(boundaries, trans, par['coordinate_system'])
 
-# Xenium boundary schema: one row per polygon vertex (cell_id int64, vertex_x/y float64).
+# Xenium boundary schema: one row per polygon vertex (vertex_x/y float64). cell_id is cast
+# to STRING (via int64, so labels render as clean "1"/"2") to match the transcripts.parquet
+# cell_id written below: segger joins transcript cell_id -> boundary cell_id to map each cell
+# to its polygon, and a str-vs-int mismatch makes every row miss -> all-nan entity_index ->
+# "Index has duplicate keys: [nan]" in setup_anndata. Real Xenium v2+ uses string ids in both.
 boundaries.index.name = "cell_id"
 boundaries_df = boundaries['geometry'].get_coordinates().rename(columns={'x': 'vertex_x', 'y': 'vertex_y'})
 boundaries_df = boundaries_df.reset_index()
-boundaries_df['cell_id'] = boundaries_df['cell_id'].astype(np.int64)
+boundaries_df['cell_id'] = boundaries_df['cell_id'].astype(np.int64).astype(str)
 boundaries_df['vertex_x'] = boundaries_df['vertex_x'].astype(np.float64)
 boundaries_df['vertex_y'] = boundaries_df['vertex_y'].astype(np.float64)
 boundaries_df = boundaries_df[['cell_id', 'vertex_x', 'vertex_y']]
