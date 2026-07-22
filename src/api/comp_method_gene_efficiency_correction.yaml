@@ -1,0 +1,31 @@
+namespace: methods_gene_efficiency_correction
+info:
+  type: method
+  subtype: method_gene_efficiency_correction
+  type_info:
+    label: Gene efficiency correction
+    summary: Correcting per-gene detection efficiency in spatial data
+    description: >-
+      A gene efficiency correction method corrects for per-gene detection efficiency in the
+      (expression-)corrected spatial counts. It runs as a separate stage after expression
+      correction, consuming and producing the corrected-counts format.
+arguments:
+  - name: --input
+    required: true
+    direction: input
+    __merge__: /src/api/file_spatial_corrected_counts.yaml
+  - name: --input_scrnaseq_reference
+    required: false
+    direction: input
+    __merge__: /src/api/file_scrnaseq_reference.yaml
+  - name: --output
+    required: true
+    direction: output
+    __merge__: /src/api/file_spatial_corrected_counts.yaml
+test_resources:
+  - path: /resources_test/task_ist_preprocessing/mouse_brain_combined
+    dest: resources_test/task_ist_preprocessing/mouse_brain_combined
+  - type: python_script
+    path: /common/component_tests/run_and_check_output.py
+  - type: python_script
+    path: /common/component_tests/check_config.py

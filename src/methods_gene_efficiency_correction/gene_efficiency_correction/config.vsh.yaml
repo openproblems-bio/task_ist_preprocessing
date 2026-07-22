@@ -1,4 +1,4 @@
-__merge__: /src/api/comp_method_expression_correction.yaml
+__merge__: /src/api/comp_method_gene_efficiency_correction.yaml
 
 name: gene_efficiency_correction
 label: "Gene Efficiency Correction"
@@ -27,7 +27,7 @@ resources:
 engines:
   - type: docker
     image: openproblems/base_python:1
-    __merge__: 
+    __merge__:
       - /src/base/setup_txsim_partial.yaml
     setup:
         - type: python

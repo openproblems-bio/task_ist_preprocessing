@@ -415,11 +415,10 @@ workflow run_wf {
    ****************************************/
   expr_corr_methods = [
     no_correction,
-    gene_efficiency_correction,
     resolvi_correction,
     split
   ]
-  
+
   expr_corr_ch = cta_ch
     | expandChannelWithParameterSets(expr_corr_methods, "corr", "expression_correction_methods")
     | runEach(
@@ -437,6 +436,44 @@ workflow run_wf {
         removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "expression_correction",
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
+            run_id: id
+          ]],
+          output_correction: out_dict.output
+        ]
+      }
+    )
+
+
+  /****************************************
+   *      GENE EFFICIENCY CORRECTION      *
+   ****************************************/
+  // Runs after expression correction on its corrected counts. The output overwrites the
+  // `output_correction` state key, so `aggregate_spatial_data` and the similarity metric
+  // (which both read `output_correction`) consume the final corrected counts unchanged.
+  gene_eff_methods = [
+    gene_eff_no_correction,
+    gene_efficiency_correction
+  ]
+
+  gene_eff_ch = expr_corr_ch
+    | expandChannelWithParameterSets(gene_eff_methods, "gene_eff", "gene_efficiency_correction_methods")
+    | runEach(
+      components: gene_eff_methods,
+      filter: { id, state, comp ->
+        comp.config.name == state.current_method_id
+      },
+      fromState: { id, state, comp ->
+        [
+          input: state.output_correction,
+          input_scrnaseq_reference: state.input_sc
+        ] + state.current_method_args
+      },
+      toState: { id, out_dict, state, comp ->
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
+          steps: state.steps + [[
+            type: "gene_efficiency_correction",
             component_id: state.current_method_id,
             component_variant: state.current_method_variant,
             run_id: id
@@ -469,7 +506,7 @@ workflow run_wf {
    *          COMBINE WITH CONTROL        *
    ****************************************/
 
-  expr_corr_and_control_ch = expr_corr_ch.mix(control_ch)
+  expr_corr_and_control_ch = gene_eff_ch.mix(control_ch)
 
 
   /****************************************
@@ -586,7 +623,7 @@ workflow run_wf {
       def methods =
         segm_methods + segm_ass_methods + direct_ass_methods + count_aggr_methods +
         qc_filter_methods + cell_vol_methods + vol_norm_methods + direct_norm_methods +
-        cta_methods + expr_corr_methods
+        cta_methods + expr_corr_methods + gene_eff_methods
       def method_configs = methods.collect{it.config}
       def method_configs_yaml_blob = toYamlBlob(method_configs)
       def method_configs_file = tempFile("method_configs.yaml")
