@@ -1,4 +1,5 @@
 import os
+import json
 import shutil
 import subprocess
 from pathlib import Path
@@ -153,6 +154,26 @@ if "z" in tx_pd.columns:
     tx_out.insert(3, "z_location", tx_pd["z"].to_numpy().astype(np.float32))
 tx_out.to_parquet(XENIUM_DIR / "transcripts.parquet", index=False)
 del transcripts, y_coords, x_coords, label_image
+
+# segger 0.1.0 auto-detects the platform from marker files: its Xenium loader needs an
+# `experiment.xenium` JSON and reads only `analysis_sw_version` from it, which selects its
+# v1 ("-1") vs v2+ ("UNASSIGNED") loader. We always write the "UNASSIGNED" sentinel above,
+# so we need the v2+ loader (version >= 2). Reuse the real version the Xenium dataset
+# loader stashed in the metadata table's uns when it is v2+; otherwise (v1 source, missing,
+# or a non-Xenium dataset wrapped here as Xenium-layout) fall back to a v2+ default.
+DEFAULT_SW_VERSION = "xenium-3.0.0"
+sw_version = DEFAULT_SW_VERSION
+try:
+    src_version = sdata.tables["metadata"].uns.get("xenium_analysis_sw_version")
+    if src_version and int(str(src_version).split("-")[-1].split(".")[0]) >= 2:
+        sw_version = str(src_version)
+    elif src_version:
+        print(f"Source Xenium version '{src_version}' is <2, but we write the "
+              f"UNASSIGNED sentinel; using {sw_version} instead.", flush=True)
+except (KeyError, AttributeError, ValueError, IndexError):
+    pass
+print(f"Writing experiment.xenium with analysis_sw_version={sw_version}", flush=True)
+(XENIUM_DIR / "experiment.xenium").write_text(json.dumps({"analysis_sw_version": sw_version}))
 
 ################
 # Run segger   #

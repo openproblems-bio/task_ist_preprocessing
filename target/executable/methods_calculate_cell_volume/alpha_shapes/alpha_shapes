@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "alphashape" "descartes"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_calculate_cell_volume alpha_shapes"
-LABEL org.opencontainers.image.created="2026-07-22T12:14:06Z"
+LABEL org.opencontainers.image.created="2026-07-22T18:33:08Z"
 LABEL org.opencontainers.image.source="https://github.com/theislab/txsim"
-LABEL org.opencontainers.image.revision="5a2b2179435166b2a8fe54ca8cefe7660e055d27"
+LABEL org.opencontainers.image.revision="c1ff51c194864e7c96705e565832b7f16d2cd8ad"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
