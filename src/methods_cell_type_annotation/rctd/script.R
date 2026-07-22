@@ -37,8 +37,19 @@ puck <- SpatialRNA(coords, counts)
 # Read reference scrnaseq
 ref <- read_h5ad(par$input_scrnaseq_reference, as = "SingleCellExperiment")
 
+# Drop reference cells with zero total counts. After the reference is subset to the
+# shared spatial panel (~few hundred genes), some cells express NONE of those genes
+# (nUMI == 0). RCTD's get_cell_type_info divides each cell by its nUMI, so a zero-UMI
+# cell becomes NaN; a single NaN column then poisons other_mean (via rowMeans) for
+# every cell type, making get_de_genes return 0 DE genes ("fewer than 10 ... DEGs").
+nonzero_cells <- Matrix::colSums(assay(ref, "counts")) > 0
+if (any(!nonzero_cells)) {
+  cat(sprintf("Dropping %d reference cells with zero panel-gene counts\n", sum(!nonzero_cells)))
+  ref <- ref[, nonzero_cells]
+}
+
 #filter reference cell types to those with >25 cells
-valid_celltypes <- names(table(colData(ref)$cell_type))[table(colData(ref)$cell_type) >= 25] 
+valid_celltypes <- names(table(colData(ref)$cell_type))[table(colData(ref)$cell_type) >= 25]
 filtered_ref <- ref[,colData(ref)$cell_type %in% valid_celltypes]
 
 ref_counts <- assay(filtered_ref, "counts")
