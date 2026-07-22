@@ -370,7 +370,7 @@ build_info:
   output: "target/executable/datasets/loaders/allen_brain_cell_atlas_merfish"
   executable: "target/executable/datasets/loaders/allen_brain_cell_atlas_merfish/allen_brain_cell_atlas_merfish"
   viash_version: "0.9.7"
-  git_commit: "0dac5f98382d505866b4da85e6336ad5e4baa89d"
+  git_commit: "aac85461cb5dd1a559f5f0c6bbe007c9f246e746"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

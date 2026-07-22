@@ -3867,7 +3867,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/moscot",
     "viash_version" : "0.9.7",
-    "git_commit" : "0dac5f98382d505866b4da85e6336ad5e4baa89d",
+    "git_commit" : "aac85461cb5dd1a559f5f0c6bbe007c9f246e746",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4084,11 +4084,13 @@ adata_sc.X = adata_sc.layers["normalized"]
 adata_sp.X = adata_sp.layers["normalized"]
 adata_sp.obsm["spatial"] = adata_sp.obs[["centroid_x", "centroid_y"]].to_numpy()
 
+sc.pp.pca(adata_sc, n_comps=50)   # X is the normalized layer set above
+
 # Define mapping problem
 mp = MappingProblem(adata_sc=adata_sc, adata_sp=adata_sp)
 
 mp = mp.prepare(
-    sc_attr={"attr": "layers", "key": "normalized"},
+    sc_attr={"attr": "obsm", "key": "X_pca"},   # <-- 50-dim, not raw genes
     xy_callback="local-pca",
 )
 
