@@ -44,6 +44,9 @@ celltype_annotation_methods:
   - tacco
 expression_correction_methods:
   - no_correction
+gene_efficiency_correction_methods:
+  - no_correction
+  # - gene_efficiency_correction
 HERE
 
 # Write the parameters to file (input_states version, NOTE: enable `-entry_name auto` for this)

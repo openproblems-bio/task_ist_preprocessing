@@ -55,9 +55,11 @@ celltype_annotation_methods:
   - rctd
 expression_correction_methods:
   - no_correction
-  - gene_efficiency_correction
   - resolvi_correction
   - split
+gene_efficiency_correction_methods:
+  - no_correction
+  - gene_efficiency_correction
 #method_parameters_yaml: /tmp/method_params.yaml
 HERE
 
