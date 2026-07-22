@@ -65,13 +65,16 @@ engines:
       - type: python
         github:
           - openproblems-bio/core#subdirectory=packages/python/openproblems
-      # torch for the GNN. Standard PyPI cu124 wheel (numpy-2 compatible) coexists
-      # with the RAPIDS cuda-12 libs. Unlike the NGC custom torch, torch_scatter has
-      # a PREBUILT wheel for this torch (the pyg index) — no CUDA compile needed.
+      # torch (+ torchvision, which segger's data_module imports) for the GNN.
+      # Standard PyPI cu124 wheels (numpy-2 compatible) coexist with the RAPIDS
+      # cuda-12 libs. torchvision must match torch (2.6.0 <-> 0.21.0). Unlike the NGC
+      # custom torch, torch_scatter has a PREBUILT wheel for this torch (pyg index) —
+      # no CUDA compile needed. typer + torch_geometric + lightning are pure Python
+      # (segger imports all three but declares none of them).
       - type: docker
         run:
-          - pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
-          - pip install --no-cache-dir torch_geometric lightning
+          - pip install --no-cache-dir torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+          - pip install --no-cache-dir torch_geometric lightning typer
           - pip install --no-cache-dir torch_scatter -f https://data.pyg.org/whl/torch-2.6.0+cu124.html
       # I/O stack. spatialdata pinned <0.8 (resolves to 0.7.1): 0.7.2+ require
       # dask>=2026.x, but RAPIDS 25.04 hard-pins dask==2025.2.0. 0.7.1 accepts dask
