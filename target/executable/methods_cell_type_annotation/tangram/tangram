@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "tangram-sc"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation tangram"
-LABEL org.opencontainers.image.created="2026-07-22T18:33:06Z"
+LABEL org.opencontainers.image.created="2026-07-22T19:22:37Z"
 LABEL org.opencontainers.image.source="https://github.com/broadinstitute/Tangram"
-LABEL org.opencontainers.image.revision="c1ff51c194864e7c96705e565832b7f16d2cd8ad"
+LABEL org.opencontainers.image.revision="0dac5f98382d505866b4da85e6336ad5e4baa89d"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

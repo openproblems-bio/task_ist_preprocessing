@@ -3781,7 +3781,19 @@ meta = [
           "name" : "--expression_correction_methods",
           "description" : "A list of expression correction methods to run.\n",
           "default" : [
-            "no_correction:gene_efficiency_correction:resolvi_correction:split"
+            "no_correction:resolvi_correction:split"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--gene_efficiency_correction_methods",
+          "description" : "A list of gene efficiency correction methods to run.\n",
+          "default" : [
+            "no_correction:gene_efficiency_correction"
           ],
           "required" : false,
           "direction" : "input",
@@ -4031,12 +4043,6 @@ meta = [
       }
     },
     {
-      "name" : "methods_expression_correction/gene_efficiency_correction",
-      "repository" : {
-        "type" : "local"
-      }
-    },
-    {
       "name" : "methods_expression_correction/resolvi_correction",
       "repository" : {
         "type" : "local"
@@ -4044,6 +4050,19 @@ meta = [
     },
     {
       "name" : "methods_expression_correction/split",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_gene_efficiency_correction/no_correction",
+      "alias" : "gene_eff_no_correction",
+      "repository" : {
+        "type" : "local"
+      }
+    },
+    {
+      "name" : "methods_gene_efficiency_correction/gene_efficiency_correction",
       "repository" : {
         "type" : "local"
       }
@@ -4129,7 +4148,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/run_benchmark",
     "viash_version" : "0.9.7",
-    "git_commit" : "c1ff51c194864e7c96705e565832b7f16d2cd8ad",
+    "git_commit" : "0dac5f98382d505866b4da85e6336ad5e4baa89d",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4269,9 +4288,11 @@ include { tangram } from "${meta.resources_dir}/../../../nextflow/methods_cell_t
 include { singler } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/singler/main.nf"
 include { rctd } from "${meta.resources_dir}/../../../nextflow/methods_cell_type_annotation/rctd/main.nf"
 include { no_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/no_correction/main.nf"
-include { gene_efficiency_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/gene_efficiency_correction/main.nf"
 include { resolvi_correction } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/resolvi_correction/main.nf"
 include { split } from "${meta.resources_dir}/../../../nextflow/methods_expression_correction/split/main.nf"
+include { no_correction as gene_eff_no_correction_viashalias } from "${meta.resources_dir}/../../../nextflow/methods_gene_efficiency_correction/no_correction/main.nf"
+gene_eff_no_correction = gene_eff_no_correction_viashalias.run(key: "gene_eff_no_correction")
+include { gene_efficiency_correction } from "${meta.resources_dir}/../../../nextflow/methods_gene_efficiency_correction/gene_efficiency_correction/main.nf"
 include { aggregate_spatial_data } from "${meta.resources_dir}/../../../nextflow/methods_data_aggregation/aggregate_spatial_data/main.nf"
 include { similarity } from "${meta.resources_dir}/../../../nextflow/metrics/similarity/main.nf"
 include { quality } from "${meta.resources_dir}/../../../nextflow/metrics/quality/main.nf"
@@ -4695,11 +4716,10 @@ workflow run_wf {
    ****************************************/
   expr_corr_methods = [
     no_correction,
-    gene_efficiency_correction,
     resolvi_correction,
     split
   ]
-  
+
   expr_corr_ch = cta_ch
     | expandChannelWithParameterSets(expr_corr_methods, "corr", "expression_correction_methods")
     | runEach(
@@ -4717,6 +4737,44 @@ workflow run_wf {
         removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
           steps: state.steps + [[
             type: "expression_correction",
+            component_id: state.current_method_id,
+            component_variant: state.current_method_variant,
+            run_id: id
+          ]],
+          output_correction: out_dict.output
+        ]
+      }
+    )
+
+
+  /****************************************
+   *      GENE EFFICIENCY CORRECTION      *
+   ****************************************/
+  // Runs after expression correction on its corrected counts. The output overwrites the
+  // `output_correction` state key, so `aggregate_spatial_data` and the similarity metric
+  // (which both read `output_correction`) consume the final corrected counts unchanged.
+  gene_eff_methods = [
+    gene_eff_no_correction,
+    gene_efficiency_correction
+  ]
+
+  gene_eff_ch = expr_corr_ch
+    | expandChannelWithParameterSets(gene_eff_methods, "gene_eff", "gene_efficiency_correction_methods")
+    | runEach(
+      components: gene_eff_methods,
+      filter: { id, state, comp ->
+        comp.config.name == state.current_method_id
+      },
+      fromState: { id, state, comp ->
+        [
+          input: state.output_correction,
+          input_scrnaseq_reference: state.input_sc
+        ] + state.current_method_args
+      },
+      toState: { id, out_dict, state, comp ->
+        removeKeys(state, ["current_method_id", "current_method_variant", "current_method_args"]) + [
+          steps: state.steps + [[
+            type: "gene_efficiency_correction",
             component_id: state.current_method_id,
             component_variant: state.current_method_variant,
             run_id: id
@@ -4749,7 +4807,7 @@ workflow run_wf {
    *          COMBINE WITH CONTROL        *
    ****************************************/
 
-  expr_corr_and_control_ch = expr_corr_ch.mix(control_ch)
+  expr_corr_and_control_ch = gene_eff_ch.mix(control_ch)
 
 
   /****************************************
@@ -4866,7 +4924,7 @@ workflow run_wf {
       def methods =
         segm_methods + segm_ass_methods + direct_ass_methods + count_aggr_methods +
         qc_filter_methods + cell_vol_methods + vol_norm_methods + direct_norm_methods +
-        cta_methods + expr_corr_methods
+        cta_methods + expr_corr_methods + gene_eff_methods
       def method_configs = methods.collect{it.config}
       def method_configs_yaml_blob = toYamlBlob(method_configs)
       def method_configs_file = tempFile("method_configs.yaml")

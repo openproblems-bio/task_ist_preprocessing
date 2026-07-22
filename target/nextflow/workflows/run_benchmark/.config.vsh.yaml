@@ -577,7 +577,17 @@ argument_groups:
     description: "A list of expression correction methods to run.\n"
     info: null
     default:
-    - "no_correction:gene_efficiency_correction:resolvi_correction:split"
+    - "no_correction:resolvi_correction:split"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--gene_efficiency_correction_methods"
+    description: "A list of gene efficiency correction methods to run.\n"
+    info: null
+    default:
+    - "no_correction:gene_efficiency_correction"
     required: false
     direction: "input"
     multiple: true
@@ -722,13 +732,17 @@ dependencies:
 - name: "methods_expression_correction/no_correction"
   repository:
     type: "local"
-- name: "methods_expression_correction/gene_efficiency_correction"
-  repository:
-    type: "local"
 - name: "methods_expression_correction/resolvi_correction"
   repository:
     type: "local"
 - name: "methods_expression_correction/split"
+  repository:
+    type: "local"
+- name: "methods_gene_efficiency_correction/no_correction"
+  alias: "gene_eff_no_correction"
+  repository:
+    type: "local"
+- name: "methods_gene_efficiency_correction/gene_efficiency_correction"
   repository:
     type: "local"
 - name: "methods_data_aggregation/aggregate_spatial_data"
@@ -784,7 +798,7 @@ build_info:
   output: "target/nextflow/workflows/run_benchmark"
   executable: "target/nextflow/workflows/run_benchmark/main.nf"
   viash_version: "0.9.7"
-  git_commit: "c1ff51c194864e7c96705e565832b7f16d2cd8ad"
+  git_commit: "0dac5f98382d505866b4da85e6336ad5e4baa89d"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
   dependencies:
   - "target/dependencies/github/openproblems-bio/openproblems/build/main/nextflow/utils/extract_uns_metadata"
@@ -817,9 +831,10 @@ build_info:
   - "target/nextflow/methods_cell_type_annotation/singler"
   - "target/nextflow/methods_cell_type_annotation/rctd"
   - "target/nextflow/methods_expression_correction/no_correction"
-  - "target/nextflow/methods_expression_correction/gene_efficiency_correction"
   - "target/nextflow/methods_expression_correction/resolvi_correction"
   - "target/nextflow/methods_expression_correction/split"
+  - "target/nextflow/methods_gene_efficiency_correction/no_correction"
+  - "target/nextflow/methods_gene_efficiency_correction/gene_efficiency_correction"
   - "target/nextflow/methods_data_aggregation/aggregate_spatial_data"
   - "target/nextflow/metrics/similarity"
   - "target/nextflow/metrics/quality"
