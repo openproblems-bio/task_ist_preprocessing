@@ -3,6 +3,7 @@ import anndata as ad
 from spatialdata_io import xenium
 import shutil
 import os
+import json
 import zipfile
 import tempfile
 
@@ -96,6 +97,18 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     }
     for key, value in new_uns.items():
         sdata.tables["table"].uns[key] = value
+
+    # Preserve the Xenium analysis software version (from the raw experiment.xenium)
+    # so downstream components can recover it instead of hardcoding — e.g. segger reads
+    # it to select its v1 vs v2+ Xenium loader. Best-effort: skip if absent/unreadable.
+    try:
+        with open(os.path.join(par_input, "experiment.xenium")) as f:
+            xenium_sw_version = json.load(f).get("analysis_sw_version")
+        if xenium_sw_version:
+            sdata.tables["table"].uns["xenium_analysis_sw_version"] = xenium_sw_version
+            print(f"Xenium analysis_sw_version: {xenium_sw_version}", flush=True)
+    except (OSError, ValueError) as e:
+        print(f"(no experiment.xenium analysis_sw_version: {e})", flush=True)
 
     print(f"Output: {sdata}", flush=True)
 

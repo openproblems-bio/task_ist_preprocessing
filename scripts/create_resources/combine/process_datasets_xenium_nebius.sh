@@ -129,6 +129,17 @@ param_list:
     dataset_description: "Xenium V1 FFPE Human Breast IDC + 2021 Wu scRNAseq"
     dataset_organism: "homo_sapiens"
 
+  - id: "2026_10x_human_breast_cancer_atera_combined"
+    input_sp: "$input_dir/10x_atera/2026_10x_human_breast_cancer_atera/dataset.zarr"
+    input_sc: "$input_dir/wu_human_breast_cancer_sc/2021Wu_human_breast_cancer_sc/dataset.h5ad"
+    dataset_id: "2026_10x_human_breast_cancer_atera_combined"
+    dataset_name: "Human breast cancer combined 2026 10x Atera WTA 2021 Wu scRNAseq"
+    dataset_url: "https://www.10xgenomics.com/datasets/atera-wta-ffpe-human-breast-cancer"
+    dataset_reference: "https://doi.org/10.1038/s41588-021-00911-1"
+    dataset_summary: "Atera WTA FFPE Human Breast Cancer (DCIS Grade 3) + 2021 Wu scRNAseq"
+    dataset_description: "Atera WTA FFPE Human Breast Cancer (DCIS Grade 3) + 2021 Wu scRNAseq"
+    dataset_organism: "homo_sapiens"
+
 output_sc: "\$id/output_sc.h5ad"
 output_sp: "\$id/output_sp.zarr"
 output_state: "\$id/state.yaml"
