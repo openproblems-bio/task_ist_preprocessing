@@ -449,8 +449,8 @@ RUN conda install -y -c conda-forge git
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/openproblems-bio/core#subdirectory=packages/python/openproblems"
 
-RUN pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
-RUN pip install --no-cache-dir torch_geometric lightning
+RUN pip install --no-cache-dir torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+RUN pip install --no-cache-dir torch_geometric lightning typer
 RUN pip install --no-cache-dir torch_scatter -f https://data.pyg.org/whl/torch-2.6.0+cu124.html
 RUN pip install --no-cache-dir "spatialdata>=0.7,<0.8" "zarr>=3.0.0" geopandas shapely "rasterio>=1.3" scikit-image "dask==2025.2.0" "distributed==2025.2.0"
 RUN pip install --upgrade pip && \
@@ -460,9 +460,9 @@ RUN pip install --no-cache-dir "pandas>=2.0,<2.2.4" "anndata>=0.12,<0.13" "scanp
 RUN pip uninstall -y opencv-python || true
 RUN pip install --no-cache-dir opencv-python-headless
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment segger"
-LABEL org.opencontainers.image.created="2026-07-22T07:51:56Z"
+LABEL org.opencontainers.image.created="2026-07-22T12:14:07Z"
 LABEL org.opencontainers.image.source="https://github.com/dpeerlab/segger"
-LABEL org.opencontainers.image.revision="9604176454214c9097add955f731d191142b8d37"
+LABEL org.opencontainers.image.revision="5a2b2179435166b2a8fe54ca8cefe7660e055d27"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
