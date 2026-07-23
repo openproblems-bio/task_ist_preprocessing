@@ -1,10 +1,11 @@
 #!/bin/bash
 
-# Test run for the segger transcript-assignment method.
+# Test run for the segger and fastreseg transcript-assignment methods.
 # Runs on the small S3 test resources, using the DEFAULT method at every stage
-# plus segger added to the transcript-assignment stage. Segger requires a GPU,
-# so this runs on Nebius (the gpu labels in labels_nebius.config pin it to the
-# GPU node group).
+# plus segger and fastreseg added to the transcript-assignment stage. Segger
+# requires a GPU, so this runs on Nebius (the gpu labels in labels_nebius.config
+# pin it to the GPU node group). fastreseg is CPU-based (midcpu/midmem labels)
+# and schedules on a regular node within the same run.
 
 # get the root of the directory
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -32,6 +33,7 @@ segmentation_methods:
 transcript_assignment_methods:
   - basic_transcript_assignment
   - segger
+  - fastreseg
 count_aggregation_methods:
   - basic_count_aggregation
 qc_filtering_methods:
@@ -68,4 +70,4 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --params-file /tmp/params_segger.yaml \
   --entry-name auto \
   --config src/base/labels_nebius.config \
-  --labels task_ist_preprocessing,test,segger
+  --labels task_ist_preprocessing,test,segger,fastreseg

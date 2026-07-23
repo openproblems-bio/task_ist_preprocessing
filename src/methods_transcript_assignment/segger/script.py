@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import shutil
 import subprocess
@@ -184,7 +185,7 @@ print(f"Writing experiment.xenium with analysis_sw_version={sw_version}", flush=
 ################
 
 SEGGER_OUT_DIR.mkdir(parents=True, exist_ok=True)
-cmd = [
+base_cmd = [
     "segger", "segment",
     "-i", str(XENIUM_DIR),
     "-o", str(SEGGER_OUT_DIR),
@@ -198,8 +199,47 @@ env = os.environ.copy()
 env.setdefault("RAPIDS_NO_INITIALIZE", "1")
 env.setdefault("CUDF_NO_INITIALIZE", "1")
 env.setdefault("RMM_NO_INITIALIZE", "1")
-print("Running segger:", " ".join(cmd), flush=True)
-subprocess.run(cmd, check=True, env=env)
+
+
+def run_segger(node_dim):
+    # --node-representation-dim is segger's `in_channels` (== cells_embedding_size):
+    # the PCA n_components for the gene/cell embeddings (segger's own default 128).
+    cmd = base_cmd + ["--node-representation-dim", str(int(node_dim))]
+    print("Running segger:", " ".join(cmd), flush=True)
+    # Stream segger's output live AND capture it, so we can recover the max valid
+    # embedding dim from the PCA error below without hiding the training logs.
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, env=env
+    )
+    captured = []
+    for line in proc.stdout:
+        print(line, end="", flush=True)
+        captured.append(line)
+    proc.wait()
+    return proc.returncode, "".join(captured)
+
+
+# segger runs PCA(n_components=node_dim) on a genes x genes correlation matrix in
+# setup_anndata. On small panels/crops fewer genes survive segger's internal count
+# filters (cells_min_counts etc.) than node_dim, so the PCA raises e.g.
+# "n_components=128 must be between 0 and min(n_samples, n_features)=62". The surviving
+# gene count depends on segger's own filtering (not cheaply predictable here), but segger
+# reports the exact ceiling in that message, so retry once at that dim. On full panels
+# (>=node_dim genes survive) this never triggers.
+node_dim = int(par["node_representation_dim"])
+returncode, seg_out = run_segger(node_dim)
+if returncode != 0:
+    m = re.search(r"must be between 0 and min\(n_samples, n_features\)=(\d+)", seg_out)
+    if m and 0 < int(m.group(1)) < node_dim:
+        max_dim = int(m.group(1))
+        print(
+            f"segger's gene PCA rejected node_representation_dim={node_dim}: only {max_dim} "
+            f"genes survived its count filter. Retrying at {max_dim}.",
+            flush=True,
+        )
+        returncode, seg_out = run_segger(max_dim)
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, base_cmd)
 
 seg_pq = SEGGER_OUT_DIR / "segger_segmentation.parquet"
 if not seg_pq.exists():

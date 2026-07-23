@@ -35,6 +35,17 @@ arguments:
     choices: [nucleus, cell, uniform]
     description: "Which polygon set drives the prediction graph."
     default: cell
+  - name: --node_representation_dim
+    type: integer
+    required: false
+    description: >-
+      Node embedding size for segger's GNN — maps to segger's --node-representation-dim
+      (its `in_channels` / cells_embedding_size, default 128). segger runs a PCA with this
+      many components on a genes x genes correlation matrix, so on small panels/crops (where
+      fewer genes survive segger's internal count filters) the PCA fails if this exceeds the
+      surviving-gene count. script.py auto-retries once at the ceiling segger reports, so this
+      is effectively an upper bound; leave at 128 for full panels.
+    default: 128
 
 resources:
   - type: python_script

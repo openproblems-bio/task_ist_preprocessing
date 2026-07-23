@@ -68,7 +68,7 @@ argument_groups:
           A list of transcript assignment methods to run.
         type: string
         multiple: true
-        default: "basic_transcript_assignment:baysor:clustermap:pciseq:comseg:proseg:segger"
+        default: "basic_transcript_assignment:baysor:clustermap:pciseq:comseg:proseg:segger:fastreseg"
       - name: "--count_aggregation_methods"
         description: |
           A list of count aggregation methods to run.
@@ -167,6 +167,7 @@ dependencies:
   - name: methods_transcript_assignment/comseg
   - name: methods_transcript_assignment/proseg
   - name: methods_transcript_assignment/segger
+  - name: methods_transcript_assignment/fastreseg
   - name: methods_count_aggregation/basic_count_aggregation
   - name: methods_qc_filter/basic_qc_filter
   - name: methods_calculate_cell_volume/alpha_shapes

@@ -460,9 +460,9 @@ RUN pip install --no-cache-dir "pandas>=2.0,<2.2.4" "anndata>=0.12,<0.13" "scanp
 RUN pip uninstall -y opencv-python || true
 RUN pip install --no-cache-dir opencv-python-headless
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment segger"
-LABEL org.opencontainers.image.created="2026-07-22T20:24:27Z"
+LABEL org.opencontainers.image.created="2026-07-23T13:53:07Z"
 LABEL org.opencontainers.image.source="https://github.com/dpeerlab/segger"
-LABEL org.opencontainers.image.revision="aac85461cb5dd1a559f5f0c6bbe007c9f246e746"
+LABEL org.opencontainers.image.revision="ae688082b0911498c8a15d17750c3bd45f6cae45"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -650,6 +650,18 @@ function ViashHelp {
   echo "        choices: [ nucleus, cell, uniform ]"
   echo "        Which polygon set drives the prediction graph."
   echo ""
+  echo "    --node_representation_dim"
+  echo "        type: integer"
+  echo "        default: 128"
+  echo "        Node embedding size for segger's GNN — maps to segger's"
+  echo "        --node-representation-dim (its \`in_channels\` / cells_embedding_size,"
+  echo "        default 128). segger runs a PCA with this many components on a genes x"
+  echo "        genes correlation matrix, so on small panels/crops (where fewer genes"
+  echo "        survive segger's internal count filters) the PCA fails if this exceeds"
+  echo "        the surviving-gene count. script.py auto-retries once at the ceiling"
+  echo "        segger reports, so this is effectively an upper bound; leave at 128 for"
+  echo "        full panels."
+  echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
   echo "        Number of CPUs to use"
@@ -808,6 +820,17 @@ while [[ $# -gt 0 ]]; do
         --prediction_mode=*)
             [ -n "$VIASH_PAR_PREDICTION_MODE" ] && ViashError Bad arguments for option \'--prediction_mode=*\': \'$VIASH_PAR_PREDICTION_MODE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_PREDICTION_MODE=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --node_representation_dim)
+            [ -n "$VIASH_PAR_NODE_REPRESENTATION_DIM" ] && ViashError Bad arguments for option \'--node_representation_dim\': \'$VIASH_PAR_NODE_REPRESENTATION_DIM\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NODE_REPRESENTATION_DIM="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --node_representation_dim. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --node_representation_dim=*)
+            [ -n "$VIASH_PAR_NODE_REPRESENTATION_DIM" ] && ViashError Bad arguments for option \'--node_representation_dim=*\': \'$VIASH_PAR_NODE_REPRESENTATION_DIM\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NODE_REPRESENTATION_DIM=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -1034,6 +1057,9 @@ fi
 if [ -z ${VIASH_PAR_PREDICTION_MODE+x} ]; then
   VIASH_PAR_PREDICTION_MODE="cell"
 fi
+if [ -z ${VIASH_PAR_NODE_REPRESENTATION_DIM+x} ]; then
+  VIASH_PAR_NODE_REPRESENTATION_DIM="128"
+fi
 
 # check whether required files exist
 if [ ! -z "$VIASH_PAR_INPUT_IST" ] && [ ! -e "$VIASH_PAR_INPUT_IST" ]; then
@@ -1059,6 +1085,12 @@ fi
 if [[ -n "$VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO" ]]; then
   if ! [[ "$VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
     ViashError '--prediction_graph_buffer_ratio' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_NODE_REPRESENTATION_DIM" ]]; then
+  if ! [[ "$VIASH_PAR_NODE_REPRESENTATION_DIM" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--node_representation_dim' has to be an integer. Use "--help" to get more information on the parameters.
     exit 1
   fi
 fi
@@ -1250,6 +1282,7 @@ trap clean_up EXIT
 trap interrupt INT SIGINT
 cat > "\$tempscript" << 'VIASHMAIN'
 import os
+import re
 import json
 import shutil
 import subprocess
@@ -1276,7 +1309,8 @@ par = {
   'coordinate_system': $( if [ ! -z ${VIASH_PAR_COORDINATE_SYSTEM+x} ]; then echo "r'${VIASH_PAR_COORDINATE_SYSTEM//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'n_epochs': $( if [ ! -z ${VIASH_PAR_N_EPOCHS+x} ]; then echo "int(r'${VIASH_PAR_N_EPOCHS//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'prediction_graph_buffer_ratio': $( if [ ! -z ${VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO+x} ]; then echo "float(r'${VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO//\'/\'\"\'\"r\'}')"; else echo None; fi ),
-  'prediction_mode': $( if [ ! -z ${VIASH_PAR_PREDICTION_MODE+x} ]; then echo "r'${VIASH_PAR_PREDICTION_MODE//\'/\'\"\'\"r\'}'"; else echo None; fi )
+  'prediction_mode': $( if [ ! -z ${VIASH_PAR_PREDICTION_MODE+x} ]; then echo "r'${VIASH_PAR_PREDICTION_MODE//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'node_representation_dim': $( if [ ! -z ${VIASH_PAR_NODE_REPRESENTATION_DIM+x} ]; then echo "int(r'${VIASH_PAR_NODE_REPRESENTATION_DIM//\'/\'\"\'\"r\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1455,7 +1489,7 @@ print(f"Writing experiment.xenium with analysis_sw_version={sw_version}", flush=
 ################
 
 SEGGER_OUT_DIR.mkdir(parents=True, exist_ok=True)
-cmd = [
+base_cmd = [
     "segger", "segment",
     "-i", str(XENIUM_DIR),
     "-o", str(SEGGER_OUT_DIR),
@@ -1469,8 +1503,47 @@ env = os.environ.copy()
 env.setdefault("RAPIDS_NO_INITIALIZE", "1")
 env.setdefault("CUDF_NO_INITIALIZE", "1")
 env.setdefault("RMM_NO_INITIALIZE", "1")
-print("Running segger:", " ".join(cmd), flush=True)
-subprocess.run(cmd, check=True, env=env)
+
+
+def run_segger(node_dim):
+    # --node-representation-dim is segger's \`in_channels\` (== cells_embedding_size):
+    # the PCA n_components for the gene/cell embeddings (segger's own default 128).
+    cmd = base_cmd + ["--node-representation-dim", str(int(node_dim))]
+    print("Running segger:", " ".join(cmd), flush=True)
+    # Stream segger's output live AND capture it, so we can recover the max valid
+    # embedding dim from the PCA error below without hiding the training logs.
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, env=env
+    )
+    captured = []
+    for line in proc.stdout:
+        print(line, end="", flush=True)
+        captured.append(line)
+    proc.wait()
+    return proc.returncode, "".join(captured)
+
+
+# segger runs PCA(n_components=node_dim) on a genes x genes correlation matrix in
+# setup_anndata. On small panels/crops fewer genes survive segger's internal count
+# filters (cells_min_counts etc.) than node_dim, so the PCA raises e.g.
+# "n_components=128 must be between 0 and min(n_samples, n_features)=62". The surviving
+# gene count depends on segger's own filtering (not cheaply predictable here), but segger
+# reports the exact ceiling in that message, so retry once at that dim. On full panels
+# (>=node_dim genes survive) this never triggers.
+node_dim = int(par["node_representation_dim"])
+returncode, seg_out = run_segger(node_dim)
+if returncode != 0:
+    m = re.search(r"must be between 0 and min\\(n_samples, n_features\\)=(\\d+)", seg_out)
+    if m and 0 < int(m.group(1)) < node_dim:
+        max_dim = int(m.group(1))
+        print(
+            f"segger's gene PCA rejected node_representation_dim={node_dim}: only {max_dim} "
+            f"genes survived its count filter. Retrying at {max_dim}.",
+            flush=True,
+        )
+        returncode, seg_out = run_segger(max_dim)
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, base_cmd)
 
 seg_pq = SEGGER_OUT_DIR / "segger_segmentation.parquet"
 if not seg_pq.exists():

@@ -3821,6 +3821,18 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--node_representation_dim",
+          "description" : "Node embedding size for segger's GNN — maps to segger's --node-representation-dim (its `in_channels` / cells_embedding_size, default 128). segger runs a PCA with this many components on a genes x genes correlation matrix, so on small panels/crops (where fewer genes survive segger's internal count filters) the PCA fails if this exceeds the surviving-gene count. script.py auto-retries once at the ceiling segger reports, so this is effectively an upper bound; leave at 128 for full panels.",
+          "default" : [
+            128
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -3997,7 +4009,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/segger",
     "viash_version" : "0.9.7",
-    "git_commit" : "aac85461cb5dd1a559f5f0c6bbe007c9f246e746",
+    "git_commit" : "ae688082b0911498c8a15d17750c3bd45f6cae45",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4115,6 +4127,7 @@ def innerWorkflowFactory(args) {
 tempscript=".viash_script.py"
 cat > "$tempscript" << VIASHMAIN
 import os
+import re
 import json
 import shutil
 import subprocess
@@ -4141,7 +4154,8 @@ par = {
   'coordinate_system': $( if [ ! -z ${VIASH_PAR_COORDINATE_SYSTEM+x} ]; then echo "r'${VIASH_PAR_COORDINATE_SYSTEM//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'n_epochs': $( if [ ! -z ${VIASH_PAR_N_EPOCHS+x} ]; then echo "int(r'${VIASH_PAR_N_EPOCHS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'prediction_graph_buffer_ratio': $( if [ ! -z ${VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO+x} ]; then echo "float(r'${VIASH_PAR_PREDICTION_GRAPH_BUFFER_RATIO//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
-  'prediction_mode': $( if [ ! -z ${VIASH_PAR_PREDICTION_MODE+x} ]; then echo "r'${VIASH_PAR_PREDICTION_MODE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
+  'prediction_mode': $( if [ ! -z ${VIASH_PAR_PREDICTION_MODE+x} ]; then echo "r'${VIASH_PAR_PREDICTION_MODE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'node_representation_dim': $( if [ ! -z ${VIASH_PAR_NODE_REPRESENTATION_DIM+x} ]; then echo "int(r'${VIASH_PAR_NODE_REPRESENTATION_DIM//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -4320,7 +4334,7 @@ print(f"Writing experiment.xenium with analysis_sw_version={sw_version}", flush=
 ################
 
 SEGGER_OUT_DIR.mkdir(parents=True, exist_ok=True)
-cmd = [
+base_cmd = [
     "segger", "segment",
     "-i", str(XENIUM_DIR),
     "-o", str(SEGGER_OUT_DIR),
@@ -4334,8 +4348,47 @@ env = os.environ.copy()
 env.setdefault("RAPIDS_NO_INITIALIZE", "1")
 env.setdefault("CUDF_NO_INITIALIZE", "1")
 env.setdefault("RMM_NO_INITIALIZE", "1")
-print("Running segger:", " ".join(cmd), flush=True)
-subprocess.run(cmd, check=True, env=env)
+
+
+def run_segger(node_dim):
+    # --node-representation-dim is segger's \\`in_channels\\` (== cells_embedding_size):
+    # the PCA n_components for the gene/cell embeddings (segger's own default 128).
+    cmd = base_cmd + ["--node-representation-dim", str(int(node_dim))]
+    print("Running segger:", " ".join(cmd), flush=True)
+    # Stream segger's output live AND capture it, so we can recover the max valid
+    # embedding dim from the PCA error below without hiding the training logs.
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, env=env
+    )
+    captured = []
+    for line in proc.stdout:
+        print(line, end="", flush=True)
+        captured.append(line)
+    proc.wait()
+    return proc.returncode, "".join(captured)
+
+
+# segger runs PCA(n_components=node_dim) on a genes x genes correlation matrix in
+# setup_anndata. On small panels/crops fewer genes survive segger's internal count
+# filters (cells_min_counts etc.) than node_dim, so the PCA raises e.g.
+# "n_components=128 must be between 0 and min(n_samples, n_features)=62". The surviving
+# gene count depends on segger's own filtering (not cheaply predictable here), but segger
+# reports the exact ceiling in that message, so retry once at that dim. On full panels
+# (>=node_dim genes survive) this never triggers.
+node_dim = int(par["node_representation_dim"])
+returncode, seg_out = run_segger(node_dim)
+if returncode != 0:
+    m = re.search(r"must be between 0 and min\\\\(n_samples, n_features\\\\)=(\\\\d+)", seg_out)
+    if m and 0 < int(m.group(1)) < node_dim:
+        max_dim = int(m.group(1))
+        print(
+            f"segger's gene PCA rejected node_representation_dim={node_dim}: only {max_dim} "
+            f"genes survived its count filter. Retrying at {max_dim}.",
+            flush=True,
+        )
+        returncode, seg_out = run_segger(max_dim)
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, base_cmd)
 
 seg_pq = SEGGER_OUT_DIR / "segger_segmentation.parquet"
 if not seg_pq.exists():
