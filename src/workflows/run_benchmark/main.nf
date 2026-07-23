@@ -139,7 +139,8 @@ workflow run_wf {
     pciseq,
     comseg,
     proseg,
-    segger
+    segger,
+    fastreseg
   ]
   
   segm_ass_ch = segm_ch
