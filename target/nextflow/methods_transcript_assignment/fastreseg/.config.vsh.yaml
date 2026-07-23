@@ -651,21 +651,35 @@ engines:
     - "gdal-bin"
     - "libgdal-dev"
     - "r-base"
+    - "r-cran-remotes"
+    - "r-cran-terra"
+    - "r-cran-igraph"
+    - "r-cran-sf"
+    - "r-cran-matrix"
+    - "r-cran-mass"
+    - "r-cran-e1071"
+    - "r-cran-dbscan"
+    - "r-cran-data.table"
+    - "r-cran-dplyr"
+    - "r-cran-ggplot2"
+    - "r-cran-reshape2"
+    - "r-cran-stringr"
+    - "r-cran-fs"
+    - "r-cran-lmtest"
+    - "r-cran-matrixstats"
+    - "r-cran-geometry"
+    - "r-cran-spatstat.geom"
     interactive: false
-  - type: "r"
-    packages:
-    - "devtools"
-    - "terra"
-    - "Matrix"
-    - "dbscan"
-    - "igraph"
-    - "matrixStats"
-    - "codetools"
-    - "data.table"
-    github:
-    - "Nanostring-Biostats/FastReseg"
-    bioc_force_install: false
-    warnings_as_errors: true
+  - type: "docker"
+    run:
+    - "Rscript -e 'options(warn = 2); remotes::install_github(\"Nanostring-Biostats/FastReseg\"\
+      , upgrade = \"never\", repos = \"https://cran.rstudio.com\")'"
+  - type: "python"
+    user: false
+    pypi:
+    - "planktonspace"
+    - "matplotlib<3.9"
+    upgrade: true
   entrypoint: []
   cmd: null
 - type: "native"
@@ -677,7 +691,7 @@ build_info:
   output: "target/nextflow/methods_transcript_assignment/fastreseg"
   executable: "target/nextflow/methods_transcript_assignment/fastreseg/main.nf"
   viash_version: "0.9.7"
-  git_commit: "ae688082b0911498c8a15d17750c3bd45f6cae45"
+  git_commit: "5f2d631343a90952e508c47b58e74f8c5ad0d808"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"
