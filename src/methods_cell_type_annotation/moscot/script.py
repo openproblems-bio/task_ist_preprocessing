@@ -75,13 +75,13 @@ adata_sc.X = adata_sc.layers["normalized"]
 adata_sp.X = adata_sp.layers["normalized"]
 adata_sp.obsm["spatial"] = adata_sp.obs[["centroid_x", "centroid_y"]].to_numpy()
 
-sc.pp.pca(adata_sc, n_comps=50)   # X is the normalized layer set above
+sc.pp.pca(adata_sc, n_comps=30)   # X is the normalized layer set above
 
 # Define mapping problem
 mp = MappingProblem(adata_sc=adata_sc, adata_sp=adata_sp)
 
 mp = mp.prepare(
-    sc_attr={"attr": "obsm", "key": "X_pca"},   # <-- 50-dim, not raw genes
+    sc_attr={"attr": "obsm", "key": "X_pca"},   # <-- 30-dim, not raw genes
     xy_callback="local-pca",
 )
 
