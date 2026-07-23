@@ -46,24 +46,45 @@ engines:
           - gdal-bin
           - libgdal-dev
           - r-base
-      - type: r
-        packages:
-          - devtools
-          - terra
-          - Matrix
-          - dbscan
-          - igraph
-          - matrixStats
-          - codetools
-          - data.table
-          # Add other CRAN packages here
-        github:
-          # Add GitHub packages here if needed
-          - Nanostring-Biostats/FastReseg
-      #- type: python
-      #  github:
-      #    - openproblems-bio/core#subdirectory=packages/python/openproblems
-    __merge__: 
+          # FastReseg's R dependencies as prebuilt Debian binaries. Installing
+          # these via apt avoids compiling terra/igraph/sf/spatstat/stringi/etc.
+          # from source (extremely slow, especially under amd64 emulation on
+          # arm64 hosts). Only concaveman + GiottoUtils/GiottoClass + FastReseg
+          # itself still build from source below; their heavy deps are already
+          # present as binaries here.
+          - r-cran-remotes
+          - r-cran-terra
+          - r-cran-igraph
+          - r-cran-sf
+          - r-cran-matrix
+          - r-cran-mass
+          - r-cran-e1071
+          - r-cran-dbscan
+          - r-cran-data.table
+          - r-cran-dplyr
+          - r-cran-ggplot2
+          - r-cran-reshape2
+          - r-cran-stringr
+          - r-cran-fs
+          - r-cran-lmtest
+          - r-cran-matrixstats
+          - r-cran-geometry
+          - r-cran-spatstat.geom
+      - type: docker
+        # Install FastReseg from GitHub. upgrade = "never" so remotes reuses the
+        # apt-installed binary deps above instead of re-fetching/recompiling them
+        # from CRAN; only the unpackaged deps (concaveman, GiottoUtils,
+        # GiottoClass) and FastReseg itself are compiled from source.
+        run:
+          - Rscript -e 'options(warn = 2); remotes::install_github("Nanostring-Biostats/FastReseg", upgrade = "never", repos = "https://cran.rstudio.com")'
+      - type: python
+        # `plankton` (pulled in by txsim.run_ssam for ssam cell annotation in
+        # input.py) still does `from matplotlib.cm import get_cmap`, removed in
+        # matplotlib 3.9. Pin < 3.9 so run_ssam imports. This is a local setup
+        # step, so it runs AFTER the __merge__'d spatialdata/txsim partials (which
+        # otherwise pull matplotlib >= 3.9) and wins. Mirrors methods_cell_type_annotation/ssam.
+        pypi: [planktonspace, "matplotlib<3.9"]
+    __merge__:
       - /src/base/setup_txsim_partial.yaml
       - /src/base/setup_spatialdata_partial.yaml
   - type: native
