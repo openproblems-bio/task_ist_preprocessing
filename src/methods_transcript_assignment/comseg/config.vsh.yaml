@@ -63,6 +63,30 @@ arguments:
     type: boolean
     default: true
     description: "Allow disconnected polygons in segmentation"
+  - name: --n_workers
+    type: integer
+    default: 4
+    description: |
+      Maximum number of dask worker processes used to run ComSeg patches in
+      parallel. ComSeg builds an in-memory graph per patch, so peak memory
+      scales with the number of concurrent workers; the value is clamped to
+      (cpus - 1). Lower this if the job is OOM-killed (exit 137); raise it
+      (up to the CPU count) to run faster when memory allows.
+  - name: --worker_memory_limit
+    type: string
+    default: "0"
+    description: |
+      Per-worker memory limit for the dask LocalCluster. Default "0" (also
+      "none"/"off"/"disabled") neutralises dask's per-worker memory monitor by
+      setting each worker's limit to the FULL detected container memory. ComSeg's
+      per-patch memory is dominated by unmanaged native allocations
+      (numba/shapely/graphs) that dask cannot spill, so a tighter limit does not
+      buy spilling — it only makes the nanny kill otherwise-healthy workers
+      (KilledWorker) once they cross ~95% of the limit. Total memory is instead
+      bounded by n_workers, and a genuine OOM is caught by the container cgroup +
+      Nextflow retry. Set an explicit value (e.g. "20GB") only if you want dask
+      to police each worker; "auto" is discouraged because it divides detected
+      RAM by CPU count and is easily smaller than a single patch's working set.
 
 
 resources:
