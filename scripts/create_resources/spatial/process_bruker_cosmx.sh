@@ -14,8 +14,8 @@ cat > /tmp/params.yaml << HERE
 param_list:
 
   - id: "bruker_cosmx/bruker_mouse_brain_cosmx/rep1"
-    input_raw: "https://smi-public.objects.liquidweb.services/HalfBrain.zip"
-    input_flat_files: "https://smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
+    input_raw: "s3://openproblems-data/resources/raw_data/bruker_cosmx/HalfBrain.zip"
+    input_flat_files: "s3://openproblems-data/resources/raw_data/bruker_cosmx/Half Brain simple files.zip"
     dataset_name: "Bruker CosMx Mouse Brain"
     dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/cosmx-smi-mouse-brain-ffpe-dataset/"
     dataset_summary: "Bruker CosMx Mouse Brain dataset on FFPE covering a full hemisphere of a mouse brain."
@@ -24,7 +24,7 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "bruker_cosmx/bruker_human_liver_cosmx"
-    input_raw: "https://smi-public.objects.liquidweb.services/NormalLiverFiles.zip"
+    input_raw: "s3://openproblems-data/resources/raw_data/bruker_cosmx/NormalLiverFiles.zip"
     dataset_name: "Bruker CosMx Human Liver"
     dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/human-liver-rna-ffpe-dataset/"
     dataset_summary: "Bruker CosMx Human Liver dataset on FFPE."
