@@ -36,6 +36,12 @@ print(df.head())
 ##converting to dask transcript output for spatialdata format
 df = df.loc[:,["x", "y", "z", "target", "updated_cellID", "updated_celltype", "UMI_transID"]]
 df.rename(columns={"updated_cellID": "cell_id", "target": "feature_name", "UMI_transID": "transcript_id"}, inplace=True)
+# Match the raw_ist convention where feature_name is categorical. Rebuilt from
+# R's CSV it would otherwise be a pyarrow-backed nullable string that survives
+# the zarr round-trip; the downstream count-aggregation then builds var_names
+# from it and write_h5ad refuses to serialize the nullable-string index
+# ("anndata.settings.allow_write_nullable_strings is None").
+df["feature_name"] = df["feature_name"].astype(str).astype("category")
 transcripts_dask = dask.dataframe.from_pandas(df, npartitions = 1)
 
 

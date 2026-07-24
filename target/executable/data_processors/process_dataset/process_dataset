@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata>=0.7.3" "anndata>=0.12.0" "zarr>=3.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2026-07-23T21:03:58Z"
+LABEL org.opencontainers.image.created="2026-07-24T12:12:21Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="5f2d631343a90952e508c47b58e74f8c5ad0d808"
+LABEL org.opencontainers.image.revision="680950ed54d848ed0f6b0188ad3c36c5cb3dd9ad"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

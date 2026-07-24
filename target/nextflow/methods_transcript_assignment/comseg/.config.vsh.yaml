@@ -654,6 +654,40 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
+  - type: "integer"
+    name: "--n_workers"
+    description: "Maximum number of dask worker processes used to run ComSeg patches\
+      \ in\nparallel. ComSeg builds an in-memory graph per patch, so peak memory\n\
+      scales with the number of concurrent workers; the value is clamped to\n(cpus\
+      \ - 1). Lower this if the job is OOM-killed (exit 137); raise it\n(up to the\
+      \ CPU count) to run faster when memory allows.\n"
+    info: null
+    default:
+    - 4
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--worker_memory_limit"
+    description: "Per-worker memory limit for the dask LocalCluster. Default \"0\"\
+      \ (also\n\"none\"/\"off\"/\"disabled\") neutralises dask's per-worker memory\
+      \ monitor by\nsetting each worker's limit to the FULL detected container memory.\
+      \ ComSeg's\nper-patch memory is dominated by unmanaged native allocations\n\
+      (numba/shapely/graphs) that dask cannot spill, so a tighter limit does not\n\
+      buy spilling — it only makes the nanny kill otherwise-healthy workers\n(KilledWorker)\
+      \ once they cross ~95% of the limit. Total memory is instead\nbounded by n_workers,\
+      \ and a genuine OOM is caught by the container cgroup +\nNextflow retry. Set\
+      \ an explicit value (e.g. \"20GB\") only if you want dask\nto police each worker;\
+      \ \"auto\" is discouraged because it divides detected\nRAM by CPU count and\
+      \ is easily smaller than a single patch's working set.\n"
+    info: null
+    default:
+    - "0"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 resources:
 - type: "python_script"
   path: "script.py"
@@ -763,7 +797,7 @@ build_info:
   output: "target/nextflow/methods_transcript_assignment/comseg"
   executable: "target/nextflow/methods_transcript_assignment/comseg/main.nf"
   viash_version: "0.9.7"
-  git_commit: "5f2d631343a90952e508c47b58e74f8c5ad0d808"
+  git_commit: "680950ed54d848ed0f6b0188ad3c36c5cb3dd9ad"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

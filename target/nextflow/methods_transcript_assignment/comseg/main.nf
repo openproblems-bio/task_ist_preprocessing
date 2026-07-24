@@ -3900,6 +3900,30 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--n_workers",
+          "description" : "Maximum number of dask worker processes used to run ComSeg patches in\nparallel. ComSeg builds an in-memory graph per patch, so peak memory\nscales with the number of concurrent workers; the value is clamped to\n(cpus - 1). Lower this if the job is OOM-killed (exit 137); raise it\n(up to the CPU count) to run faster when memory allows.\n",
+          "default" : [
+            4
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--worker_memory_limit",
+          "description" : "Per-worker memory limit for the dask LocalCluster. Default \\"0\\" (also\n\\"none\\"/\\"off\\"/\\"disabled\\") neutralises dask's per-worker memory monitor by\nsetting each worker's limit to the FULL detected container memory. ComSeg's\nper-patch memory is dominated by unmanaged native allocations\n(numba/shapely/graphs) that dask cannot spill, so a tighter limit does not\nbuy spilling — it only makes the nanny kill otherwise-healthy workers\n(KilledWorker) once they cross ~95% of the limit. Total memory is instead\nbounded by n_workers, and a genuine OOM is caught by the container cgroup +\nNextflow retry. Set an explicit value (e.g. \\"20GB\\") only if you want dask\nto police each worker; \\"auto\\" is discouraged because it divides detected\nRAM by CPU count and is easily smaller than a single patch's working set.\n",
+          "default" : [
+            "0"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -4050,7 +4074,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/comseg",
     "viash_version" : "0.9.7",
-    "git_commit" : "5f2d631343a90952e508c47b58e74f8c5ad0d808",
+    "git_commit" : "680950ed54d848ed0f6b0188ad3c36c5cb3dd9ad",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4173,6 +4197,7 @@ import sopa
 import anndata as ad
 import pandas as pd
 import numpy as np
+import dask
 import dask.dataframe as dd
 
 ## VIASH START
@@ -4194,7 +4219,9 @@ par = {
   'min_rna_per_cell': $( if [ ! -z ${VIASH_PAR_MIN_RNA_PER_CELL+x} ]; then echo "int(r'${VIASH_PAR_MIN_RNA_PER_CELL//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'gene_column': $( if [ ! -z ${VIASH_PAR_GENE_COLUMN+x} ]; then echo "r'${VIASH_PAR_GENE_COLUMN//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'norm_vector': $( if [ ! -z ${VIASH_PAR_NORM_VECTOR+x} ]; then echo "r'${VIASH_PAR_NORM_VECTOR//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi ),
-  'allow_disconnected_polygon': $( if [ ! -z ${VIASH_PAR_ALLOW_DISCONNECTED_POLYGON+x} ]; then echo "r'${VIASH_PAR_ALLOW_DISCONNECTED_POLYGON//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi )
+  'allow_disconnected_polygon': $( if [ ! -z ${VIASH_PAR_ALLOW_DISCONNECTED_POLYGON+x} ]; then echo "r'${VIASH_PAR_ALLOW_DISCONNECTED_POLYGON//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi ),
+  'n_workers': $( if [ ! -z ${VIASH_PAR_N_WORKERS+x} ]; then echo "int(r'${VIASH_PAR_N_WORKERS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'worker_memory_limit': $( if [ ! -z ${VIASH_PAR_WORKER_MEMORY_LIMIT+x} ]; then echo "r'${VIASH_PAR_WORKER_MEMORY_LIMIT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -4270,12 +4297,54 @@ config = {
 
 # ComSeg processes each transcript patch independently and is pure-Python, so it
 # runs single-threaded unless a parallelization backend is enabled. Use the dask
-# backend to spread patches across the allocated CPUs (see midcpu/highmem labels).
-n_workers = max((meta["cpus"] or os.cpu_count() or 1) - 1, 1)
+# backend to spread patches across workers, but CAP concurrency: comseg builds an
+# in-memory graph per patch, so peak memory scales with the number of concurrent
+# workers. Running one worker per CPU (14 on midcpu) multiplied peak RAM ~14x and
+# got the job OOM-killed (exit 137 = cgroup SIGKILL). Bounding the worker count is
+# the real memory safeguard (the per-worker memory monitor is neutralised below,
+# see the note there).
+cpu_cap = max((meta["cpus"] or os.cpu_count() or 1) - 1, 1)
+n_workers = max(min(par["n_workers"], cpu_cap), 1)
+
+# \\`distributed\\` defaults worker startup to "spawn", which re-imports this script
+# in every worker. As a plain viash script it has no \\`if __name__ == "__main__"\\`
+# guard, so the re-import re-runs the module-level code (creating yet another
+# cluster) and Python's spawn bootstrap check aborts with "An attempt has been
+# made to start a new process before ... bootstrapping". Force "fork" so workers
+# inherit the already-initialised interpreter instead of re-importing it; this is
+# the Linux-native default and the mode comseg ran under before the deps bumped.
+dask.config.set({"distributed.worker.multiprocessing-method": "fork"})
+
 sopa.settings.parallelization_backend = "dask"
 sopa.settings.dask_client_kwargs["n_workers"] = n_workers
 sopa.settings.dask_client_kwargs["threads_per_worker"] = 1  # CPU-bound work, avoid GIL contention
-print(f"Running ComSeg with dask backend, n_workers={n_workers}", flush=True)
+
+# ComSeg's per-patch memory is mostly UNMANAGED (native numba/shapely/graph
+# allocations, plus the forked interpreter's copy-on-write pages), which dask
+# cannot spill. A per-worker memory_limit therefore never spills here; it only
+# lets the nanny kill workers that cross ~95% of the limit -> KilledWorker, even
+# though nothing is leaking. dask's "auto" is worse: it divides detected RAM by
+# the CPU count (not n_workers), so on an 8-core box each worker gets ~1/8 of RAM
+# and a normal ~1 GB patch already trips 95%. We therefore neutralise the monitor
+# by default, but sopa reads worker.memory_manager.memory_limit and compares it to
+# 4 GiB, so the value must be a real number (0/None makes sopa crash). Setting the
+# limit to the FULL detected container memory does both: sopa sees a number, and
+# the nanny only ever fires near 95% of the whole cgroup — where the OS + Nextflow
+# retry already take over — never prematurely for a single patch. Total memory is
+# bounded by n_workers instead. An explicit value (e.g. "20GB") is honoured as-is.
+_mem_limit_arg = (par["worker_memory_limit"] or "").strip().lower()
+if _mem_limit_arg in ("", "0", "none", "off", "disabled"):
+    from distributed.system import MEMORY_LIMIT as _CONTAINER_MEMORY
+    worker_memory_limit = _CONTAINER_MEMORY
+else:
+    worker_memory_limit = par["worker_memory_limit"]
+sopa.settings.dask_client_kwargs["memory_limit"] = worker_memory_limit
+
+print(
+    f"Running ComSeg with dask backend, n_workers={n_workers} "
+    f"(cap {cpu_cap}), memory_limit={worker_memory_limit!r}",
+    flush=True,
+)
 
 sopa.segmentation.comseg(sdata, config)
 

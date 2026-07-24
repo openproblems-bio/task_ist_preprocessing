@@ -34,6 +34,23 @@ meta = {
 }
 ## VIASH END
 
+# The Nextflow/k8s GPU task hands us an EMPTY CUDA_VISIBLE_DEVICES. An empty (or
+# whitespace) value masks every GPU from the CUDA *driver* API, so cudf/cuspatial and
+# numba enumerate zero devices and segger dies deep in tiling with
+# "cudaErrorNoDevice: no CUDA-capable device is detected" / numba's
+# "IndexError: list index out of range" (self.gpus[devnum] on an empty device list).
+# torch's is_available() is NVML-based and ignores CVD, so the gate below still passes
+# and the failure only surfaces inside the `segger segment` subprocess. Drop an empty
+# value so the allocated device (exposed via NVIDIA_VISIBLE_DEVICES) is visible again;
+# run_segger's os.environ.copy() then inherits the fix for the subprocess.
+if os.environ.get("CUDA_VISIBLE_DEVICES", "x").strip() == "":
+    print(
+        "CUDA_VISIBLE_DEVICES was empty; unsetting so the allocated GPU is visible "
+        "to cudf/numba (torch's NVML check hides this).",
+        flush=True,
+    )
+    del os.environ["CUDA_VISIBLE_DEVICES"]
+
 # segger runs its tiling / GNN training / prediction end-to-end on the GPU
 # (cudf, cuspatial, torch kernels). Fail fast with a clear message rather than
 # deep inside the subprocess when no CUDA device is present.
