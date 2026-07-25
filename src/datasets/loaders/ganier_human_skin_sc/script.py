@@ -40,11 +40,15 @@ adata = ad.read_h5ad(FILE_PATH)
 # Filter out bcc samples
 adata = adata[~adata.obs["01_sample"].str.startswith("bcc")]
 
-# NOTE: only log-normalized counts are available, in the workflow we'll skip the log-normalization step
-# This is not optimal, layers "counts" should be the raw counts
-adata.layers["counts"] = adata.X
+# The download stores log-normalized values in .X and the raw integer counts in
+# .raw.X (full transcriptome, a superset of adata's genes). Count-based methods
+# (RCTD/SPLIT) need integer counts, so source the `counts` layer from .raw aligned
+# to this object's genes; keep the log-normalized values as `normalized` (the
+# process workflow skips its own log-normalization step for this dataset).
+adata.layers["counts"] = adata.raw[:, adata.var_names].X
 adata.layers["normalized"] = adata.X
 del adata.X
+del adata.raw
 
 # Rename fields
 rename_obs_keys = { 
