@@ -107,12 +107,21 @@ engines:
       #    crashes under pandas 2.2.3. Hold anndata/scanpy at their last pandas-2.2
       #    majors (anndata 0.12.x: pandas>=2.1; scanpy 1.11.x: pandas>=1.5), and
       #    re-assert spatialdata<0.8 + dask==2025.2.0 in case a dep nudged them.
+      #  - PIN numba<0.61 + numpy<2.1. scanpy's umap-learn/pynndescent (no numba upper
+      #    bound) otherwise drag numba to 0.66 and numpy to 2.4.x, which violate the
+      #    RAPIDS 25.04 stack: cudf/cuml/cugraph require numba<0.61 and cupy requires
+      #    numpy<2.3. numba 0.60 pulls numpy<2.2; cap at <2.1 for the base's 2.0.2. The
+      #    numba drift did NOT itself crash the GPU op (the NUMBA_CUDA_USE_NVIDIA_BINDING
+      #    env var in script.py is the actual fix), but running cuml/cugraph out of their
+      #    supported numba/numpy range is a latent risk for segger's phenograph step.
+      #    Validated set: numba 0.60.0 / numpy 2.0.2 / llvmlite 0.43.0 (cudf .values,
+      #    cuml kNN, cugraph louvain, torch, spatialdata/anndata all import + run).
       #  - swap opencv-python -> opencv-python-headless: segger pulls opencv-python,
       #    whose cv2 needs libGL.so.1 (a system lib we cannot apt-install as non-root);
       #    the headless build provides the same cv2 without it. See NOTES.md.
       - type: docker
         run:
-          - pip install --no-cache-dir "pandas>=2.0,<2.2.4" "anndata>=0.12,<0.13" "scanpy>=1.11,<1.12" "spatialdata>=0.7,<0.8" "dask==2025.2.0" "distributed==2025.2.0"
+          - pip install --no-cache-dir "pandas>=2.0,<2.2.4" "anndata>=0.12,<0.13" "scanpy>=1.11,<1.12" "spatialdata>=0.7,<0.8" "dask==2025.2.0" "distributed==2025.2.0" "numba>=0.59.1,<0.61" "numpy>=2.0,<2.1"
           - pip uninstall -y opencv-python || true
           - pip install --no-cache-dir opencv-python-headless
   - type: native
