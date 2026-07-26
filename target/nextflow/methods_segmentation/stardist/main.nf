@@ -3514,7 +3514,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/stardist",
     "viash_version" : "0.9.7",
-    "git_commit" : "680950ed54d848ed0f6b0188ad3c36c5cb3dd9ad",
+    "git_commit" : "142f6040dfb1a1d10efaa94aae5e5c3e5e4de7f2",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

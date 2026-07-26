@@ -3991,7 +3991,7 @@ meta = [
         {
           "type" : "docker",
           "run" : [
-            "pip install --no-cache-dir \\"pandas>=2.0,<2.2.4\\" \\"anndata>=0.12,<0.13\\" \\"scanpy>=1.11,<1.12\\" \\"spatialdata>=0.7,<0.8\\" \\"dask==2025.2.0\\" \\"distributed==2025.2.0\\"",
+            "pip install --no-cache-dir \\"pandas>=2.0,<2.2.4\\" \\"anndata>=0.12,<0.13\\" \\"scanpy>=1.11,<1.12\\" \\"spatialdata>=0.7,<0.8\\" \\"dask==2025.2.0\\" \\"distributed==2025.2.0\\" \\"numba>=0.59.1,<0.61\\" \\"numpy>=2.0,<2.1\\"",
             "pip uninstall -y opencv-python || true",
             "pip install --no-cache-dir opencv-python-headless"
           ]
@@ -4009,7 +4009,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/segger",
     "viash_version" : "0.9.7",
-    "git_commit" : "680950ed54d848ed0f6b0188ad3c36c5cb3dd9ad",
+    "git_commit" : "142f6040dfb1a1d10efaa94aae5e5c3e5e4de7f2",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4183,15 +4183,12 @@ dep = {
 
 ## VIASH END
 
-# The Nextflow/k8s GPU task hands us an EMPTY CUDA_VISIBLE_DEVICES. An empty (or
-# whitespace) value masks every GPU from the CUDA *driver* API, so cudf/cuspatial and
-# numba enumerate zero devices and segger dies deep in tiling with
-# "cudaErrorNoDevice: no CUDA-capable device is detected" / numba's
-# "IndexError: list index out of range" (self.gpus[devnum] on an empty device list).
-# torch's is_available() is NVML-based and ignores CVD, so the gate below still passes
-# and the failure only surfaces inside the \\`segger segment\\` subprocess. Drop an empty
-# value so the allocated device (exposed via NVIDIA_VISIBLE_DEVICES) is visible again;
-# run_segger's os.environ.copy() then inherits the fix for the subprocess.
+# Defensive (NOT the observed root cause — see the NUMBA_CUDA_USE_NVIDIA_BINDING fix in
+# run_segger). A set-but-EMPTY CUDA_VISIBLE_DEVICES masks every GPU from the CUDA driver
+# API (cudf/numba would then enumerate zero devices → "cudaErrorNoDevice") while torch's
+# NVML-based is_available() still passes the gate below. The real Nextflow task runs with
+# CVD *unset* (verified), so this branch does not fire there — but an empty value is a real
+# failure mode in other launchers, so drop it to expose the allocated device.
 if os.environ.get("CUDA_VISIBLE_DEVICES", "x").strip() == "":
     print(
         "CUDA_VISIBLE_DEVICES was empty; unsetting so the allocated GPU is visible "
@@ -4365,6 +4362,16 @@ env = os.environ.copy()
 env.setdefault("RAPIDS_NO_INITIALIZE", "1")
 env.setdefault("CUDF_NO_INITIALIZE", "1")
 env.setdefault("RMM_NO_INITIALIZE", "1")
+# THE load-bearing GPU fix. RAPIDS (cudf/cuml/cugraph) builds its CUDA context via the
+# cuda-python (NVIDIA) driver binding. numba MUST use the same binding, otherwise numba's
+# own driver enumerates ZERO devices inside cudf's \\`.values\\`/\\`as_cuda_array\\` path and dies
+# with \\`numba_cuda ... IndexError: list index out of range\\` (self.gpus empty) deep in
+# segger's \\`setup_anndata\\`/\\`phenograph_rapids\\` — even though torch, \\`cudf.sum()\\` and cupy
+# all see the GPU fine. Reproduced + fixed live on a GPU pod: without this the op crashes;
+# with it, cudf \\`.values.get()\\` + cuml kNN + cugraph louvain all pass. (A benign
+# "cuDriverGetVersion() takes no arguments / Not patching Numba" warning is printed and can
+# be ignored.) Force it (not setdefault) so an inherited "0" can't re-break it.
+env["NUMBA_CUDA_USE_NVIDIA_BINDING"] = "1"
 
 
 def run_segger(node_dim):
