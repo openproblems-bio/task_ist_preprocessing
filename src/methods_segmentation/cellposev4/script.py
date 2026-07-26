@@ -18,6 +18,7 @@ par = {
   "output": "segmentation.zarr",
   "diameter": 30.0,
   "flow_threshold": 0.0,
+  "cellprob_threshold": 0.0,
   "niter": 10,
   "min_size": -1,
   "resample": False,
@@ -50,7 +51,7 @@ transformation = sdata['image']['scale0'].image.transform.copy()
 print('Initializing Cellpose model', flush=True)
 model = CellposeModel(gpu=torch.cuda.is_available())
 
-eval_params = {k: par[k] for k in ("diameter", "flow_threshold", "niter", "min_size", "resample") if par.get(k) is not None}
+eval_params = {k: par[k] for k in ("diameter", "flow_threshold", "cellprob_threshold", "niter", "min_size", "resample") if par.get(k) is not None}
 print('Running Cellpose segmentation with parameters:', eval_params, flush=True)
 masks, _, _ = model.eval(image[0], progress=True, **eval_params)
 

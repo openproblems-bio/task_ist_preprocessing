@@ -1,0 +1,47 @@
+# Parameter sweep for the cellposev4 (Cellpose 4 / Cellpose-SAM) segmentation method.
+# Shared source of truth for both run_test_cellposev4_local.sh (read as a local file)
+# and run_test_cellposev4_nebius.sh (read from GitHub via a raw URL, since the Nebius
+# compute env pulls the repo but cannot see the launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total cellposev4 variants = 1 default + sum(sweep list lengths) = 19.
+#
+# See src/methods_segmentation/cellposev4/NOTES.md ("Optimization / tuning") for the
+# rationale, tiers, and defaults. Trim or widen the lists to taste.
+parameters:
+  cellposev4:
+    # Baseline == the component's shipped (deliberately speed-tuned) defaults.
+    default:
+      diameter: 30.0
+      flow_threshold: 0.0
+      cellprob_threshold: 0.0
+      niter: 10
+      min_size: -1
+      resample: false
+    sweep:
+      # ---- Tier 1: highest impact on segmentation quality ----
+      # diameter: cellpose rescales so objects land near ~30 px (training mean),
+      # so 30.0 == "no rescaling". Xenium morphology (~0.2125 um/px) => nuclei
+      # ~35-40 px, whole cells ~60-70 px. Span small nuclei -> whole cells.
+      diameter: [15.0, 20.0, 40.0, 60.0]
+      # cellprob_threshold: recall<->precision dial (network logit ~ -6..+6, def 0).
+      # Lower -> recover more/dimmer cells; higher -> drop dim-region detections.
+      cellprob_threshold: [-3.0, -1.0, 1.0, 3.0]
+      # flow_threshold: 0.0 (our default) disables flow-shape QC (keeps ill-shaped
+      # masks); >0 re-enables it, more permissive as it rises. 0.4 = Cellpose default.
+      flow_threshold: [0.4, 0.6, 0.8]
+      # ---- Tier 2: quality/speed trade-offs ----
+      # niter: flow-dynamics iterations; 10 (default) is aggressively low and may
+      # under-converge large/elongated cells. Cellpose's own default is ~diameter-
+      # proportional (often ~200).
+      niter: [50, 100, 200]
+      # resample: BOOLEAN, default false -> the only meaningful non-default value is
+      # true (run dynamics at full resolution: smoother boundaries, slower).
+      resample: [true]
+      # min_size: -1 (default) disables small-mask removal; positive values drop
+      # progressively larger specks/debris.
+      min_size: [15, 30, 50]

@@ -12,7 +12,11 @@ links:
   documentation: "https://cellpose.readthedocs.io/en/latest/"
   repository: "https://github.com/mouseland/cellpose"
 references:
-  doi: "10.1038/s41592-020-01018-x"
+  doi:
+    # Cellpose-SAM (cpsam): the model this component actually runs
+    - "10.1101/2025.04.28.651001"
+    # Original Cellpose: the flow-dynamics framework it builds on
+    - "10.1038/s41592-020-01018-x"
 
 __merge__: /src/api/comp_method_segmentation.yaml
 
@@ -25,6 +29,10 @@ arguments:
     type: double
     default: 0.0
     description: "Flow error threshold. Set to 0 to skip flow quality check for faster execution."
+  - name: --cellprob_threshold
+    type: double
+    default: 0.0
+    description: "Cell probability threshold (network output ~-6 to 6). Pixels above it are used to seed masks. Lower to recover more/dimmer cells; raise to drop detections in dim/low-contrast regions."
   - name: --niter
     type: integer
     default: 10
