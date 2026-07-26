@@ -4,10 +4,15 @@ namespace: datasets/loaders
 argument_groups:
   - name: Inputs
     arguments:
-      - type: file
+      - type: string
         name: --input_raw
         example: "https://smi-public.objects.liquidweb.services/HalfBrain.zip"
-        description: "Download file url for the raw data"
+        description: |
+          URL/path to the raw data zip. Passed as a string (not a staged file) on
+          purpose: the script streams it in place and extracts only the ~15 GB sopa
+          needs (Morphology2D + CellLabels), skipping the ~190 GB of Morphology3D /
+          AnalysisResults. Staging the full zip (175 GiB) alongside the extraction
+          overruns the node's scratch and OOMs. Supports s3:// (via s3fs) or a local path.
       - type: file
         name: --input_flat_files
         example: "https://smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip"
@@ -65,9 +70,10 @@ engines:
     __merge__: 
       - /src/base/setup_spatialdata_partial.yaml
     setup:
-      - type: python 
+      - type: python
         pypi:
           - sopa
+          - s3fs  # stream the raw zip from s3:// and extract only what sopa needs (see --input_raw)
   - type: native
 
 runners:

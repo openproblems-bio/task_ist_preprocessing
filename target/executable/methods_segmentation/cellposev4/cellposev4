@@ -455,9 +455,9 @@ RUN pip install --upgrade pip && \
   python -c 'from cellpose.models import CellposeModel; model = CellposeModel()'
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation cellposev4"
-LABEL org.opencontainers.image.created="2026-07-26T13:59:06Z"
+LABEL org.opencontainers.image.created="2026-07-26T22:56:37Z"
 LABEL org.opencontainers.image.source="https://github.com/mouseland/cellpose"
-LABEL org.opencontainers.image.revision="a7fb22217b1e1a0ec103ccc9d0259fc65b630d39"
+LABEL org.opencontainers.image.revision="fd841ee9c6de9e1e4b3295d45135f85e3d32605e"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -615,6 +615,13 @@ function ViashHelp {
   echo "        Flow error threshold. Set to 0 to skip flow quality check for faster"
   echo "        execution."
   echo ""
+  echo "    --cellprob_threshold"
+  echo "        type: double"
+  echo "        default: 0.0"
+  echo "        Cell probability threshold (network output ~-6 to 6). Pixels above it"
+  echo "        are used to seed masks. Lower to recover more/dimmer cells; raise to"
+  echo "        drop detections in dim/low-contrast regions."
+  echo ""
   echo "    --niter"
   echo "        type: integer"
   echo "        default: 10"
@@ -723,6 +730,17 @@ while [[ $# -gt 0 ]]; do
         --flow_threshold=*)
             [ -n "$VIASH_PAR_FLOW_THRESHOLD" ] && ViashError Bad arguments for option \'--flow_threshold=*\': \'$VIASH_PAR_FLOW_THRESHOLD\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_FLOW_THRESHOLD=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --cellprob_threshold)
+            [ -n "$VIASH_PAR_CELLPROB_THRESHOLD" ] && ViashError Bad arguments for option \'--cellprob_threshold\': \'$VIASH_PAR_CELLPROB_THRESHOLD\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CELLPROB_THRESHOLD="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --cellprob_threshold. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --cellprob_threshold=*)
+            [ -n "$VIASH_PAR_CELLPROB_THRESHOLD" ] && ViashError Bad arguments for option \'--cellprob_threshold=*\': \'$VIASH_PAR_CELLPROB_THRESHOLD\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CELLPROB_THRESHOLD=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         --niter)
@@ -970,6 +988,9 @@ fi
 if [ -z ${VIASH_PAR_FLOW_THRESHOLD+x} ]; then
   VIASH_PAR_FLOW_THRESHOLD="0.0"
 fi
+if [ -z ${VIASH_PAR_CELLPROB_THRESHOLD+x} ]; then
+  VIASH_PAR_CELLPROB_THRESHOLD="0.0"
+fi
 if [ -z ${VIASH_PAR_NITER+x} ]; then
   VIASH_PAR_NITER="10"
 fi
@@ -996,6 +1017,12 @@ fi
 if [[ -n "$VIASH_PAR_FLOW_THRESHOLD" ]]; then
   if ! [[ "$VIASH_PAR_FLOW_THRESHOLD" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
     ViashError '--flow_threshold' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_CELLPROB_THRESHOLD" ]]; then
+  if ! [[ "$VIASH_PAR_CELLPROB_THRESHOLD" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--cellprob_threshold' has to be a double. Use "--help" to get more information on the parameters.
     exit 1
   fi
 fi
@@ -1204,6 +1231,7 @@ par = {
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'diameter': $( if [ ! -z ${VIASH_PAR_DIAMETER+x} ]; then echo "float(r'${VIASH_PAR_DIAMETER//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'flow_threshold': $( if [ ! -z ${VIASH_PAR_FLOW_THRESHOLD+x} ]; then echo "float(r'${VIASH_PAR_FLOW_THRESHOLD//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'cellprob_threshold': $( if [ ! -z ${VIASH_PAR_CELLPROB_THRESHOLD+x} ]; then echo "float(r'${VIASH_PAR_CELLPROB_THRESHOLD//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'niter': $( if [ ! -z ${VIASH_PAR_NITER+x} ]; then echo "int(r'${VIASH_PAR_NITER//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'min_size': $( if [ ! -z ${VIASH_PAR_MIN_SIZE+x} ]; then echo "int(r'${VIASH_PAR_MIN_SIZE//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'resample': $( if [ ! -z ${VIASH_PAR_RESAMPLE+x} ]; then echo "r'${VIASH_PAR_RESAMPLE//\'/\'\"\'\"r\'}'.lower() == 'true'"; else echo None; fi )
@@ -1257,7 +1285,7 @@ transformation = sdata['image']['scale0'].image.transform.copy()
 print('Initializing Cellpose model', flush=True)
 model = CellposeModel(gpu=torch.cuda.is_available())
 
-eval_params = {k: par[k] for k in ("diameter", "flow_threshold", "niter", "min_size", "resample") if par.get(k) is not None}
+eval_params = {k: par[k] for k in ("diameter", "flow_threshold", "cellprob_threshold", "niter", "min_size", "resample") if par.get(k) is not None}
 print('Running Cellpose segmentation with parameters:', eval_params, flush=True)
 masks, _, _ = model.eval(image[0], progress=True, **eval_params)
 

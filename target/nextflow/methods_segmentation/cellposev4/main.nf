@@ -3375,6 +3375,18 @@ meta = [
           "multiple_sep" : ";"
         },
         {
+          "type" : "double",
+          "name" : "--cellprob_threshold",
+          "description" : "Cell probability threshold (network output ~-6 to 6). Pixels above it are used to seed masks. Lower to recover more/dimmer cells; raise to drop detections in dim/low-contrast regions.",
+          "default" : [
+            0.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
           "type" : "integer",
           "name" : "--niter",
           "description" : "Number of iterations for dynamics. Lower values are faster but less accurate.",
@@ -3471,6 +3483,7 @@ meta = [
   "license" : "MIT",
   "references" : {
     "doi" : [
+      "10.1101/2025.04.28.651001",
       "10.1038/s41592-020-01018-x"
     ]
   },
@@ -3567,7 +3580,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/cellposev4",
     "viash_version" : "0.9.7",
-    "git_commit" : "a7fb22217b1e1a0ec103ccc9d0259fc65b630d39",
+    "git_commit" : "fd841ee9c6de9e1e4b3295d45135f85e3d32605e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3705,6 +3718,7 @@ par = {
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'diameter': $( if [ ! -z ${VIASH_PAR_DIAMETER+x} ]; then echo "float(r'${VIASH_PAR_DIAMETER//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'flow_threshold': $( if [ ! -z ${VIASH_PAR_FLOW_THRESHOLD+x} ]; then echo "float(r'${VIASH_PAR_FLOW_THRESHOLD//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'cellprob_threshold': $( if [ ! -z ${VIASH_PAR_CELLPROB_THRESHOLD+x} ]; then echo "float(r'${VIASH_PAR_CELLPROB_THRESHOLD//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'niter': $( if [ ! -z ${VIASH_PAR_NITER+x} ]; then echo "int(r'${VIASH_PAR_NITER//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'min_size': $( if [ ! -z ${VIASH_PAR_MIN_SIZE+x} ]; then echo "int(r'${VIASH_PAR_MIN_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'resample': $( if [ ! -z ${VIASH_PAR_RESAMPLE+x} ]; then echo "r'${VIASH_PAR_RESAMPLE//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi )
@@ -3758,7 +3772,7 @@ transformation = sdata['image']['scale0'].image.transform.copy()
 print('Initializing Cellpose model', flush=True)
 model = CellposeModel(gpu=torch.cuda.is_available())
 
-eval_params = {k: par[k] for k in ("diameter", "flow_threshold", "niter", "min_size", "resample") if par.get(k) is not None}
+eval_params = {k: par[k] for k in ("diameter", "flow_threshold", "cellprob_threshold", "niter", "min_size", "resample") if par.get(k) is not None}
 print('Running Cellpose segmentation with parameters:', eval_params, flush=True)
 masks, _, _ = model.eval(image[0], progress=True, **eval_params)
 

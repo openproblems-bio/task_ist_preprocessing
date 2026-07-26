@@ -3048,14 +3048,12 @@ meta = [
       "name" : "Inputs",
       "arguments" : [
         {
-          "type" : "file",
+          "type" : "string",
           "name" : "--input_raw",
-          "description" : "Download file url for the raw data",
+          "description" : "URL/path to the raw data zip. Passed as a string (not a staged file) on\npurpose: the script streams it in place and extracts only the ~15 GB sopa\nneeds (Morphology2D + CellLabels), skipping the ~190 GB of Morphology3D /\nAnalysisResults. Staging the full zip (175 GiB) alongside the extraction\noverruns the node's scratch and OOMs. Supports s3:// (via s3fs) or a local path.\n",
           "example" : [
-            "https:/smi-public.objects.liquidweb.services/HalfBrain.zip"
+            "https://smi-public.objects.liquidweb.services/HalfBrain.zip"
           ],
-          "must_exist" : true,
-          "create_parent" : true,
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3508,7 +3506,8 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "sopa"
+            "sopa",
+            "s3fs"
           ],
           "upgrade" : true
         }
@@ -3525,7 +3524,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx",
     "viash_version" : "0.9.7",
-    "git_commit" : "a7fb22217b1e1a0ec103ccc9d0259fc65b630d39",
+    "git_commit" : "fd841ee9c6de9e1e4b3295d45135f85e3d32605e",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

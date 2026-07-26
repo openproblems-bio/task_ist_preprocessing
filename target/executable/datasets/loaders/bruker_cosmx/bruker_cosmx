@@ -449,12 +449,12 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata>=0.7.3" "anndata>=0.12.0" "zarr>=3.0.0"
 
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "sopa"
+  pip install --upgrade --no-cache-dir "sopa" "s3fs"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders bruker_cosmx"
-LABEL org.opencontainers.image.created="2026-07-26T13:59:04Z"
+LABEL org.opencontainers.image.created="2026-07-26T22:56:35Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="a7fb22217b1e1a0ec103ccc9d0259fc65b630d39"
+LABEL org.opencontainers.image.revision="fd841ee9c6de9e1e4b3295d45135f85e3d32605e"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -576,9 +576,16 @@ function ViashHelp {
   echo ""
   echo "Inputs:"
   echo "    --input_raw"
-  echo "        type: file, file must exist"
-  echo "        example: https:/smi-public.objects.liquidweb.services/HalfBrain.zip"
-  echo "        Download file url for the raw data"
+  echo "        type: string"
+  echo "        example: https://smi-public.objects.liquidweb.services/HalfBrain.zip"
+  echo "        URL/path to the raw data zip. Passed as a string (not a staged file) on"
+  echo "        purpose: the script streams it in place and extracts only the ~15 GB"
+  echo "        sopa"
+  echo "        needs (Morphology2D + CellLabels), skipping the ~190 GB of Morphology3D"
+  echo "        /"
+  echo "        AnalysisResults. Staging the full zip (175 GiB) alongside the extraction"
+  echo "        overruns the node's scratch and OOMs. Supports s3:// (via s3fs) or a"
+  echo "        local path."
   echo ""
   echo "    --input_flat_files"
   echo "        type: file, file must exist"
@@ -1029,10 +1036,6 @@ if [ -z ${VIASH_PAR_SEGMENTATION_ID+x} ]; then
 fi
 
 # check whether required files exist
-if [ ! -z "$VIASH_PAR_INPUT_RAW" ] && [ ! -e "$VIASH_PAR_INPUT_RAW" ]; then
-  ViashError "Input file '$VIASH_PAR_INPUT_RAW' does not exist."
-  exit 1
-fi
 if [ ! -z "$VIASH_PAR_INPUT_FLAT_FILES" ] && [ ! -e "$VIASH_PAR_INPUT_FLAT_FILES" ]; then
   ViashError "Input file '$VIASH_PAR_INPUT_FLAT_FILES' does not exist."
   exit 1
@@ -1129,10 +1132,6 @@ fi
 if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   # detect volumes from file arguments
   VIASH_CHOWN_VARS=()
-if [ ! -z "$VIASH_PAR_INPUT_RAW" ]; then
-  VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_INPUT_RAW")" )
-  VIASH_PAR_INPUT_RAW=$(ViashDockerAutodetectMount "$VIASH_PAR_INPUT_RAW")
-fi
 if [ ! -z "$VIASH_PAR_INPUT_FLAT_FILES" ]; then
   VIASH_DIRECTORY_MOUNTS+=( "$(ViashDockerAutodetectMountArg "$VIASH_PAR_INPUT_FLAT_FILES")" )
   VIASH_PAR_INPUT_FLAT_FILES=$(ViashDockerAutodetectMount "$VIASH_PAR_INPUT_FLAT_FILES")
@@ -1556,9 +1555,6 @@ VIASHEOF
 if [[ "$VIASH_ENGINE_TYPE" == "docker" ]]; then
   # strip viash automount from file paths
   
-  if [ ! -z "$VIASH_PAR_INPUT_RAW" ]; then
-    VIASH_PAR_INPUT_RAW=$(ViashDockerStripAutomount "$VIASH_PAR_INPUT_RAW")
-  fi
   if [ ! -z "$VIASH_PAR_INPUT_FLAT_FILES" ]; then
     VIASH_PAR_INPUT_FLAT_FILES=$(ViashDockerStripAutomount "$VIASH_PAR_INPUT_FLAT_FILES")
   fi
