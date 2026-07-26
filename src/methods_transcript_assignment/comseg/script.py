@@ -37,22 +37,37 @@ meta = {
 
 # Read input files
 print('Reading input files', flush=True)
-sdata = sd.read_zarr(par['input_ist'])
+sdata_src = sd.read_zarr(par['input_ist'])
 sdata_segm = sd.read_zarr(par['input_segmentation'])
 
 # Multi-partition parquet restarts its index at 0 per partition, producing duplicate
 # index labels that break sopa's cell_id assignment and the final write with
 # "cannot reindex on an axis with duplicate labels". Rebuild the transcripts as a
 # single-partition frame with a clean RangeIndex before any sopa op touches them.
-_tx = sdata[par['transcripts_key']]
+_tx = sdata_src[par['transcripts_key']]
 _tx_reset = dd.from_pandas(_tx.compute().reset_index(drop=True), npartitions=1)
 _tx_reset.attrs.update(_tx.attrs)
-del sdata[par['transcripts_key']]
-sdata[par['transcripts_key']] = _tx_reset
 
 # Convert the prior segmentation to polygons
-sdata["segmentation_boundaries"] = sd.to_polygons(sdata_segm["segmentation"])
-del sdata["segmentation_boundaries"]["label"] # make_transcript_patches will create a new label column and fails if one exists.
+segmentation_boundaries = sd.to_polygons(sdata_segm["segmentation"])
+del segmentation_boundaries["label"]  # make_transcript_patches will create a new label column and fails if one exists.
+
+# Run sopa/ComSeg on a FRESH, in-memory SpatialData. sd.read_zarr() leaves `sdata_src`
+# backed by the shared source zarr (sdata_src.path -> input_ist), and sopa's
+# make_image_patches / make_transcript_patches / segmentation.comseg all write their new
+# elements (image_patches, transcripts_patches, comseg_boundaries) and a .sopa_cache back
+# through that path -- mutating the supposed-to-be-immutable source dataset in place. If a
+# concurrent run or an OOM kill interrupts one of those writes, it leaves a half-written
+# element (e.g. shapes/image_patches with no shapes.parquet) that then breaks EVERY
+# downstream reader of the dataset. baysor and proseg avoid this by running sopa on a fresh
+# in-memory object; do the same here (carrying the image for make_image_patches and the
+# prior boundaries for the transcript patches) so all sopa writes land in the ephemeral
+# work dir, never the source zarr.
+sdata = sd.SpatialData(
+    images={"image": sdata_src["image"]},
+    points={par['transcripts_key']: _tx_reset},
+    shapes={"segmentation_boundaries": segmentation_boundaries},
+)
 
 # Make patches
 sopa.make_image_patches(sdata, image_key="image", patch_width=par["patch_width"], patch_overlap=par["patch_overlap"])

@@ -3612,7 +3612,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_zuani_human_nsclc_sc",
     "viash_version" : "0.9.7",
-    "git_commit" : "142f6040dfb1a1d10efaa94aae5e5c3e5e4de7f2",
+    "git_commit" : "a7fb22217b1e1a0ec103ccc9d0259fc65b630d39",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

@@ -3991,9 +3991,10 @@ meta = [
         {
           "type" : "docker",
           "run" : [
-            "pip install --no-cache-dir \\"pandas>=2.0,<2.2.4\\" \\"anndata>=0.12,<0.13\\" \\"scanpy>=1.11,<1.12\\" \\"spatialdata>=0.7,<0.8\\" \\"dask==2025.2.0\\" \\"distributed==2025.2.0\\" \\"numba>=0.59.1,<0.61\\" \\"numpy>=2.0,<2.1\\"",
+            "pip install --no-cache-dir \\"pandas>=2.0,<2.2.4\\" \\"anndata>=0.12,<0.13\\" \\"scanpy>=1.11,<1.12\\" \\"spatialdata>=0.7,<0.8\\" \\"dask==2025.2.0\\" \\"distributed==2025.2.0\\" \\"numba>=0.59.1,<0.61\\" \\"numpy>=2.0,<2.1\\" \\"polars>=1.24,<1.26\\"",
             "pip uninstall -y opencv-python || true",
-            "pip install --no-cache-dir opencv-python-headless"
+            "pip install --no-cache-dir opencv-python-headless",
+            "sed -i '/^import torch$/a pl.from_torch = getattr(pl, \\"from_torch\\", lambda data, schema=None, **k: pl.from_numpy(data.detach().cpu().numpy(), schema=schema))' /opt/conda/lib/python3.12/site-packages/segger/data/writer.py"
           ]
         }
       ]
@@ -4009,7 +4010,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/segger",
     "viash_version" : "0.9.7",
-    "git_commit" : "142f6040dfb1a1d10efaa94aae5e5c3e5e4de7f2",
+    "git_commit" : "a7fb22217b1e1a0ec103ccc9d0259fc65b630d39",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

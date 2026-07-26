@@ -18,7 +18,7 @@ par <- list(
 )
 
 meta <- list(
-  'cpus': 4,
+  cpus = 4
 )
 
 ## VIASH END
