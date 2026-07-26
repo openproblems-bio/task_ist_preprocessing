@@ -199,6 +199,59 @@ elif labels_dir.is_dir():
 else:
     raise AssertionError(f"No CellLabels folder and no per-FOV CellLabels tifs found in {DATA_DIR}")
 
+#############################################
+# Memory optimization: lean transcript read #
+#############################################
+# sopa's CosMx reader loads the ENTIRE `*_tx_file.csv` into a pandas DataFrame in
+# one `pd.read_csv` (sopa/io/reader/cosmx.py::_CosMXReader.read_transcripts). For
+# the mouse-brain half-hemisphere that's hundreds of millions of rows, and the
+# string columns ('target', 'CellComp', 'cell', ...) come in as object dtype
+# (~60 B/row) — this is the peak that blows past even the 480 GB veryhighmem cap.
+#
+# We wrap the `read_csv` used inside sopa's cosmx module so that, *only for the
+# transcripts file*, we (a) read the 'target' feature column as categorical and
+# (b) keep just the columns sopa's stitched-FOV path (read_transcripts +
+# _get_global_cell_id) and the downstream transcript schema actually use. Every
+# other sopa read (fov positions, metadata, counts, polygons) is left untouched,
+# and all of sopa's coordinate/stitching math runs unchanged on the leaner frame.
+from sopa.io.reader import cosmx as _cosmx_mod
+
+_real_pd = _cosmx_mod.pd
+_real_read_csv = _real_pd.read_csv
+
+# Columns used by read_transcripts (fov=None) + _get_global_cell_id, plus 'z'
+# which the downstream transcript schema allows. Everything else in the tx file
+# (x_local_px, y_local_px, cell, CellComp, ...) is unused downstream.
+_TX_KEEP = ["fov", "cell_ID", "target", "x_global_px", "y_global_px", "z"]
+_TX_REQUIRED = {"target", "x_global_px", "y_global_px", "fov", "cell_ID"}
+
+def _lean_read_csv(filepath_or_buffer, *args, **kwargs):
+    name = str(filepath_or_buffer)
+    if "_tx_file.csv" in name and "usecols" not in kwargs:
+        header = _real_read_csv(
+            filepath_or_buffer, nrows=0,
+            compression=kwargs.get("compression", "infer"),
+        )
+        cols = set(header.columns)
+        if _TX_REQUIRED.issubset(cols):
+            kwargs["usecols"] = [c for c in _TX_KEEP if c in cols]
+            dtype = dict(kwargs.get("dtype") or {})
+            dtype.setdefault("target", "category")
+            kwargs["dtype"] = dtype
+            log(f"Lean transcript read of {Path(name).name}: usecols={kwargs['usecols']}, target=category")
+    return _real_read_csv(filepath_or_buffer, *args, **kwargs)
+
+class _PandasReadCsvProxy:
+    """Forwards every attribute to pandas, but leans the transcripts read_csv."""
+    def __init__(self, real):
+        self.__dict__["_real"] = real
+    def read_csv(self, *args, **kwargs):
+        return _lean_read_csv(*args, **kwargs)
+    def __getattr__(self, item):
+        return getattr(self._real, item)
+
+_cosmx_mod.pd = _PandasReadCsvProxy(_real_pd)
+
 #########################################
 # Convert raw files to spatialdata zarr #
 #########################################

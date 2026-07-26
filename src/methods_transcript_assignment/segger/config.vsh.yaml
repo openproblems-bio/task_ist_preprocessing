@@ -116,14 +116,25 @@ engines:
       #    supported numba/numpy range is a latent risk for segger's phenograph step.
       #    Validated set: numba 0.60.0 / numpy 2.0.2 / llvmlite 0.43.0 (cudf .values,
       #    cuml kNN, cugraph louvain, torch, spatialdata/anndata all import + run).
+      #  - PIN polars>=1.24,<1.26 (== what cudf-polars 25.4 requires). segger's github
+      #    install leaves polars unpinned; this keeps it at the RAPIDS-compatible 1.24.
+      #    See the writer.py from_torch shim below for why we must stay <1.26.
       #  - swap opencv-python -> opencv-python-headless: segger pulls opencv-python,
       #    whose cv2 needs libGL.so.1 (a system lib we cannot apt-install as non-root);
       #    the headless build provides the same cv2 without it. See NOTES.md.
       - type: docker
         run:
-          - pip install --no-cache-dir "pandas>=2.0,<2.2.4" "anndata>=0.12,<0.13" "scanpy>=1.11,<1.12" "spatialdata>=0.7,<0.8" "dask==2025.2.0" "distributed==2025.2.0" "numba>=0.59.1,<0.61" "numpy>=2.0,<2.1"
+          - pip install --no-cache-dir "pandas>=2.0,<2.2.4" "anndata>=0.12,<0.13" "scanpy>=1.11,<1.12" "spatialdata>=0.7,<0.8" "dask==2025.2.0" "distributed==2025.2.0" "numba>=0.59.1,<0.61" "numpy>=2.0,<2.1" "polars>=1.24,<1.26"
           - pip uninstall -y opencv-python || true
           - pip install --no-cache-dir opencv-python-headless
+          # segger's data/writer.py calls pl.from_torch to turn the prediction tensors into a
+          # polars frame, but polars only added from_torch AFTER 1.27 (PR pola-rs/polars#22177)
+          # -- and cudf-polars 25.4 caps polars at <1.26, so we cannot get the real one without
+          # breaking the RAPIDS stack. Inject the missing function (torch tensor -> from_numpy,
+          # honoring segger's list/dict schema) right after writer.py's `import torch`. getattr
+          # preserves a real from_torch if a future polars provides one. Path is fixed by the
+          # py3.12 base image; a build failure here (missing file) is a loud signal it moved.
+          - "sed -i '/^import torch$/a pl.from_torch = getattr(pl, \"from_torch\", lambda data, schema=None, **k: pl.from_numpy(data.detach().cpu().numpy(), schema=schema))' /opt/conda/lib/python3.12/site-packages/segger/data/writer.py"
   - type: native
 
 runners:
