@@ -131,9 +131,24 @@ transcripts_dataframe['y'] = y_coords
 
 #same as before
 if isinstance(sdata_segm["segmentation"], xr.DataTree):
-    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
+    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy()
 else:
      label_image = sdata_segm["segmentation"].to_numpy()
+
+# Guard against an empty segmentation. pciSeq builds `coo = coo_matrix(label_image)` and
+# then calls `coo.data.max()` in stage_data; when the label image has no cells (all zeros)
+# `coo.data` is a zero-size array and numpy raises the cryptic
+# "zero-size array to reduction operation maximum which has no identity".
+# Fail fast with an actionable message instead. This happens when the upstream `cell_labels`
+# copied by custom_segmentation is empty (observed for the vizgen lung-cancer merscope dataset,
+# whose polygon->label rasterization produced an all-zero image).
+if not (label_image > 0).any():
+    raise ValueError(
+        f"Segmentation '{par['input_segmentation']}' contains no cells: the label image "
+        f"(shape={label_image.shape}, dtype={label_image.dtype}) is entirely zero. pciSeq "
+        f"cannot assign transcripts without any cell labels. Check the upstream segmentation "
+        f"(for custom_segmentation this means the dataset's `cell_labels` is empty)."
+    )
 
 # pciSeq internally drops spots that fall OUTSIDE the label image, and returns
 # per-spot assignments only for the kept spots; txsim.run_pciSeq then does

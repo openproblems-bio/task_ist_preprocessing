@@ -3524,7 +3524,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx",
     "viash_version" : "0.9.7",
-    "git_commit" : "fd841ee9c6de9e1e4b3295d45135f85e3d32605e",
+    "git_commit" : "700280204b53ebd081cc826a0fce21c80ab40ec9",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3781,39 +3781,73 @@ def log(msg):
 TMP_DIR = Path(meta["temp_dir"] or "/tmp")
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 
-def extract_zip(input_zip: Path, output_dir: Path, strip_root: bool = False):
+# CosMx export directories that sopa's cosmx reader never touches. Skipping them on
+# extraction is what makes the mouse-brain hemisphere fit in scratch: the raw zip is
+# ~208 GB, but ~190 GB of that is Morphology3D (per-z-plane 3D stacks — sopa uses the
+# 2D Morphology2D composite) plus AnalysisResults (decoding CSVs) and RunSummary (logs).
+# What's left (Morphology2D + FOV*/CellLabels + the flat CSVs) is ~15 GB. Extracting the
+# whole thing next to the staged zip overruns the node's ~220 GB scratch and OOMs (137).
+SKIP_DIRS = {"Morphology3D", "AnalysisResults", "RunSummary"}
+
+def _member_wanted(name: str) -> bool:
+    parts = name.split("/")
+    if name.startswith("__MACOSX/") or parts[-1] == ".DS_Store":
+        return False
+    return not any(part in SKIP_DIRS for part in parts)
+
+def _open_zip_source(src):
+    """Seekable binary handle for a local path or an s3:// URL (streamed, never fully downloaded)."""
+    s = str(src)
+    if s.startswith("s3://"):
+        import s3fs
+        # openproblems-data is public; anonymous read is deterministic and needs no creds.
+        fs = s3fs.S3FileSystem(anon=True, default_block_size=32 * 2**20)
+        return fs.open(s, "rb")
+    return open(s, "rb")
+
+def extract_zip(input_zip, output_dir: Path, strip_root: bool = False):
     """
-    Extracts the input zip file to the specified output directory.
+    Stream a zip (local path or s3:// URL) into output_dir, skipping the CosMx
+    directories sopa never reads (see SKIP_DIRS). Only the wanted members are
+    transferred, so a remote zip streams just the bytes we keep — it is never
+    downloaded in full first.
 
     Arguments:
-    
-    - input_zip: Path to the input zip file.
-    - output_dir: Path to the directory where the contents of the zip file will be extracted
-    - strip_root: If True, and if all entries in the zip file share exactly one top-level directory, then this top-level directory will be stripped when extracting. 
+
+    - input_zip: local path or s3:// URL of the input zip.
+    - output_dir: directory where the (filtered) contents are written.
+    - strip_root: if True and all entries share exactly one top-level directory, strip it.
     """
     output_dir = Path(output_dir)
-    with zipfile.ZipFile(input_zip, 'r') as zip_ref:
+    kept = skipped = 0
+    kept_bytes = 0
+    with _open_zip_source(input_zip) as fh, zipfile.ZipFile(fh, "r") as zip_ref:
         members = zip_ref.infolist()
 
         # only strip when all entries share exactly one top-level directory
         roots = {Path(m.filename).parts[0] for m in members if m.filename.strip("/") and not m.filename.startswith("__MACOSX/")}
-        if not (strip_root and len(roots) == 1):
-            zip_ref.extractall(output_dir)
-            return
+        do_strip = strip_root and len(roots) == 1
 
         for member in members:
-            if member.filename.startswith("__MACOSX/"):
-                continue  # skip macOS resource-fork entries, don't recreate them
-            parts = Path(member.filename).parts[1:]
+            if not _member_wanted(member.filename):
+                skipped += 1
+                continue
+            parts = Path(member.filename).parts
+            if do_strip:
+                parts = parts[1:]
             if not parts:
                 continue  # the wrapper directory entry itself
             target = output_dir.joinpath(*parts)
             if member.is_dir():
                 target.mkdir(parents=True, exist_ok=True)
-            else:
-                target.parent.mkdir(parents=True, exist_ok=True)
-                with zip_ref.open(member) as src, open(target, "wb") as dst:
-                    shutil.copyfileobj(src, dst)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with zip_ref.open(member) as src, open(target, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+            kept += 1
+            kept_bytes += member.file_size
+    log(f"Extracted {kept} files ({kept_bytes / 1e9:.1f} GB); skipped {skipped} members "
+        f"(dirs {sorted(SKIP_DIRS)} + macOS cruft)")
 
 # Extract zip files
 log("Extract zip of raw files")
