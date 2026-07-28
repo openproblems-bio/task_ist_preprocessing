@@ -1,0 +1,67 @@
+# Parameter sweep for the cellpose (Cellpose v3, cyto/nuclei CNN) segmentation method.
+# Shared source of truth for both run_test_cellpose_local.sh (read as a local file)
+# and run_test_cellpose_nebius.sh (read from GitHub via a raw URL, since the Nebius
+# compute env pulls the repo but cannot see the launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total cellpose variants = 1 default + sum(sweep list lengths) = 20.
+#
+# See src/methods_segmentation/cellpose/NOTES.md ("Optimization / tuning") for the
+# rationale, tiers, and defaults. Unlike cellposev4, this component's shipped defaults
+# already equal Cellpose's own library defaults (quality-oriented) EXCEPT model_type
+# (cyto vs library cyto3), so this sweep explores model choice + object scale +
+# recall/precision dials rather than "walking back" speed-tuned defaults.
+#
+# NOTE: as of txsim@dev the v3 path runs on CPU (the wrapper never passes gpu=), so
+# these 20 variants x the full downstream pipeline are slow; niter: 50 probes the
+# speed lever. Trim the lists if the budget is tight.
+parameters:
+  cellpose:
+    # Baseline == the component's shipped defaults (== Cellpose library defaults,
+    # except model_type). Applied to every variant; the "default variant" is exactly
+    # this point, so none of these values are repeated in the sweep lists below.
+    default:
+      model_type: cyto
+      diameter: 30.0
+      flow_threshold: 0.4
+      cellprob_threshold: 0.0
+      min_size: 15
+      resample: true
+      normalize: true
+      niter: 0
+    sweep:
+      # ---- Tier 1: highest impact on segmentation quality ----
+      # model_type: the most distinctive v3 knob (v4 has no model choice). On a single
+      # grayscale morphology plane the model matters: nuclei for a nuclear stain, cyto2
+      # (Cellpose 2.0) and cyto3 (Cellpose3 generalist) as improved generalists over
+      # the 2021 cyto default. All four are pre-cached in the image (config docker.run).
+      model_type: [nuclei, cyto2, cyto3]
+      # diameter: cellpose rescales so objects land near diam_mean (~30 px cyto).
+      # Xenium morphology (~0.2125 um/px) => nuclei ~38 px, whole cells ~60-70 px.
+      # 0.0 = auto-estimate via the SizeModel (slower). 30.0 = default (omitted).
+      diameter: [0.0, 40.0, 60.0]
+      # cellprob_threshold: recall<->precision dial (per-pixel logit ~ -6..+6, def 0),
+      # no speed cost. Lower -> recover more/dimmer cells; higher -> drop dim detections.
+      cellprob_threshold: [-2.0, -1.0, 1.0, 2.0]
+      # flow_threshold: flow-error QC (def 0.4). 0.2 = stricter shape filter;
+      # 0.6/0.8 = more permissive (keep cells with higher flow error -> more cells).
+      flow_threshold: [0.2, 0.6, 0.8]
+      # ---- Tier 2: quality/speed trade-offs ----
+      # min_size: def 15. 0 keeps small specks (recall on tiny cells); 50 drops debris.
+      min_size: [0, 50]
+      # resample: BOOLEAN, default true (the quality setting). Only non-default value
+      # is false -> dynamics on the downsampled grid (faster, coarser boundaries).
+      resample: [false]
+      # augment: BOOLEAN, default false. Only non-default is true -> test-time
+      # augmentation (accuracy ceiling at ~4-8x cost).
+      augment: [true]
+      # normalize: BOOLEAN, default true. Only non-default is false -> no percentile
+      # normalization (probes intensity sensitivity; usually worse for iST).
+      normalize: [false]
+      # niter: def 0 = auto (~200 at resample). 50 = fewer dynamics iterations ->
+      # faster (meaningful because the v3 path is CPU-bound).
+      niter: [50]
