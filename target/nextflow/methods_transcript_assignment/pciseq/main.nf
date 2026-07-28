@@ -4061,7 +4061,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/pciseq",
     "viash_version" : "0.9.7",
-    "git_commit" : "700280204b53ebd081cc826a0fce21c80ab40ec9",
+    "git_commit" : "6569e2130c8d432263e769faaaeca6393820c56c",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4338,7 +4338,7 @@ else:
 # Fail fast with an actionable message instead. This happens when the upstream \\`cell_labels\\`
 # copied by custom_segmentation is empty (observed for the vizgen lung-cancer merscope dataset,
 # whose polygon->label rasterization produced an all-zero image).
-if not (label_image > 0).any():
+if label_image.max() == 0:
     raise ValueError(
         f"Segmentation '{par['input_segmentation']}' contains no cells: the label image "
         f"(shape={label_image.shape}, dtype={label_image.dtype}) is entirely zero. pciSeq "

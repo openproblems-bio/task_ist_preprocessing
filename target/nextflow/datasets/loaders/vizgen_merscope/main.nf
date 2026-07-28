@@ -3511,7 +3511,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/vizgen_merscope",
     "viash_version" : "0.9.7",
-    "git_commit" : "700280204b53ebd081cc826a0fce21c80ab40ec9",
+    "git_commit" : "6569e2130c8d432263e769faaaeca6393820c56c",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3634,8 +3634,10 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+import dask.array as da
 import geopandas as gpd
 import h5py
+import numpy as np
 import pandas as pd
 import spatialdata as sd
 import spatialdata_io as sdio
@@ -3697,47 +3699,50 @@ print(
 )
 
 
+def _cell_polygon(cell_grp):
+    """Boundary for one cell: prefer zIndex_3, else any available z-plane.
+
+    MERSCOPE stores a cell's boundary only at the z-planes where it appears, so keying on a
+    single hardcoded z-index (the old \\`\\`["zIndex_3"]\\`\\`) drops -- or KeyErrors on -- every cell
+    not present at that plane. Returns None if the cell has no usable boundary.
+    """
+    z_keys = list(cell_grp.keys())
+    z = "zIndex_3" if "zIndex_3" in z_keys else (z_keys[0] if z_keys else None)
+    if z is None or "p_0" not in cell_grp[z] or "coordinates" not in cell_grp[z]["p_0"]:
+        return None
+    return MultiPolygon([Polygon(cell_grp[z]["p_0"]["coordinates"][()][0])])
+
+
 def read_boundary_hdf5(folder):
     print(datetime.now() - t0, "Convert boundary hdf5 to parquet", flush=True)
-    all_boundaries = {}
-    boundaries = None
-    hdf5_files = os.listdir(folder + "/cell_boundaries/")
+    hdf5_files = [
+        f for f in os.listdir(folder + "/cell_boundaries/") if f.endswith(".hdf5")
+    ]
     n_files = len(hdf5_files)
-    incr = n_files // 15
-    for _, i in enumerate(hdf5_files):
-        if (_ % incr) == 0:
-            print(datetime.now() - t0, f"\\\\tProcessed {_}/{n_files}", flush=True)
-        with h5py.File(folder + "/cell_boundaries/" + i, "r") as f:
-            for key in f["featuredata"].keys():
-                if boundaries is not None:
-                    boundaries.loc[key] = MultiPolygon(
-                        [
-                            Polygon(
-                                f["featuredata"][key]["zIndex_3"]["p_0"]["coordinates"][
-                                    ()
-                                ][0]
-                            )
-                        ]
-                    )  # doesn't matter which zIndex we use, MultiPolygon to work with read function in spatialdata-io
-                else:
-                    # boundaries = gpd.GeoDataFrame(index=[key], geometry=MultiPolygon([Polygon(f['featuredata'][key]['zIndex_3']['p_0']['coordinates'][()][0])]))
-                    boundaries = gpd.GeoDataFrame(
-                        geometry=gpd.GeoSeries(
-                            MultiPolygon(
-                                [
-                                    Polygon(
-                                        f["featuredata"][key]["zIndex_3"]["p_0"][
-                                            "coordinates"
-                                        ][()][0]
-                                    )
-                                ]
-                            ),
-                            index=[key],
-                        )
-                    )
-            all_boundaries[i] = boundaries
-            boundaries = None
-    all_concat = pd.concat(list(all_boundaries.values()))
+    incr = max(1, n_files // 15)  # guard against ZeroDivision when <15 files
+    geoms, index, n_skipped = [], [], 0
+    for n, fname in enumerate(hdf5_files):
+        if n % incr == 0:
+            print(datetime.now() - t0, f"\\\\tProcessed {n}/{n_files}", flush=True)
+        with h5py.File(folder + "/cell_boundaries/" + fname, "r") as f:
+            featuredata = f["featuredata"]
+            for key in featuredata.keys():
+                poly = _cell_polygon(featuredata[key])
+                if poly is None:
+                    n_skipped += 1
+                    continue
+                geoms.append(poly)
+                index.append(key)
+    # n_skipped is logged (never silently dropped) so a re-run reveals whether low boundary
+    # coverage is a reader problem or a genuine property of the raw hdf5.
+    print(
+        datetime.now() - t0,
+        f"Read {len(geoms)} cell boundaries from {n_files} files "
+        f"({n_skipped} cells had no usable z-plane boundary)",
+        flush=True,
+    )
+    # Build the GeoDataFrame in one pass; the old row-by-row \\`.loc\\` growth was O(n^2) over ~10^5 cells.
+    all_concat = gpd.GeoDataFrame(geometry=gpd.GeoSeries(geoms, index=index))
     all_concat = all_concat[
         ~all_concat.index.duplicated(keep="first")
     ]  # hdf5 can contain duplicates with same cell_id and position, removing those
@@ -3894,23 +3899,48 @@ rasterize_args = {
     "return_regions_as_labels": True,
 }
 
-for i in range(n_iter):
-    print(
-        datetime.now() - t0,
-        f"Rasterizing iteration {i + 1}/{n_iter} (cells {i * N}..{min((i + 1) * N, n_cells)})",
-        flush=True,
+if n_iter == 1:
+    # Common case (every current dataset has <65535 cells): a single rasterize call.
+    # Keep the lazy DataArray exactly as before.
+    print(datetime.now() - t0, "Rasterizing all cells in a single pass", flush=True)
+    labels_image = sd.rasterize(
+        sdata["cell_boundaries"], ["x", "y"], **rasterize_args
     )
-    labels_image_ = sd.rasterize(
-        sdata["cell_boundaries"].iloc[i * N : min((i + 1) * N, n_cells)],
-        ["x", "y"],
-        **rasterize_args,
+else:
+    # >65535 cells: rasterize in chunks and merge. Two subtleties make the naive in-place
+    # merge wrong (it was silently broken before; this path had never run on real data since
+    # no dataset exceeds 65535 cells):
+    #   1. sd.rasterize returns a *lazy* (dask-backed) DataArray whose \\`.values\\` is a computed
+    #      copy, so the old \\`labels_image.values[mask] = ...\\` write never persisted. We
+    #      materialise each chunk and merge in a plain numpy array instead.
+    #   2. return_regions_as_labels labels each chunk 1..len(chunk) *positionally*, so chunks
+    #      would collide on the same label. We offset each chunk by its global start index
+    #      (and use uint32, since labels exceed uint16 past 65535 cells).
+    combined = None
+    template = None
+    for i in range(n_iter):
+        start = i * N
+        end = min((i + 1) * N, n_cells)
+        print(
+            datetime.now() - t0,
+            f"Rasterizing iteration {i + 1}/{n_iter} (cells {start}..{end})",
+            flush=True,
+        )
+        chunk = sd.rasterize(
+            sdata["cell_boundaries"].iloc[start:end], ["x", "y"], **rasterize_args
+        )
+        chunk_np = np.asarray(chunk.data)
+        if combined is None:
+            combined = chunk_np.astype("uint32")
+            template = chunk
+        else:
+            mask = chunk_np > 0
+            combined[mask] = chunk_np[mask].astype("uint32") + start
+    # Rebuild a dask-backed labels element (spatialdata rejects a numpy-backed one) while
+    # preserving the template's transform and attrs (incl. label_index_to_category).
+    labels_image = template.copy(
+        data=da.from_array(combined, chunks=template.data.chunksize)
     )
-    if i == 0:
-        labels_image = labels_image_
-    else:
-        labels_image.values[labels_image_.values > 0] = labels_image_.values[
-            labels_image_.values > 0
-        ]
 
 print(datetime.now() - t0, "Rasterization finished", flush=True)
 try:

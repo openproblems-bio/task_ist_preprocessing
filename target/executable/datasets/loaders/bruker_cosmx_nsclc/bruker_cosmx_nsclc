@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "sopa"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders bruker_cosmx_nsclc"
-LABEL org.opencontainers.image.created="2026-07-27T20:06:45Z"
+LABEL org.opencontainers.image.created="2026-07-28T21:42:52Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="700280204b53ebd081cc826a0fce21c80ab40ec9"
+LABEL org.opencontainers.image.revision="6569e2130c8d432263e769faaaeca6393820c56c"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
