@@ -37,6 +37,14 @@ hyperparameters = {k:(v if v != "None" else None) for k,v in hyperparameters.ite
 del hyperparameters['input']
 del hyperparameters['output']
 
+# skimage.segmentation.watershed's `compactness` knob is only reachable through the
+# nested `watershed_params` dict that txsim.segment_watershed forwards (it reads
+# hyperparams.get("watershed_params", {})). Lift the exposed --watershed_compactness
+# arg into that dict so it actually takes effect. compactness=0.0 == standard
+# marker-controlled watershed, i.e. unchanged default behaviour.
+compactness = hyperparameters.pop("watershed_compactness", 0.0)
+hyperparameters["watershed_params"] = {"compactness": compactness}
+
 sdata = sd.read_zarr(par["input"])
 
 sd_output = sd.SpatialData()

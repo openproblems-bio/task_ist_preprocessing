@@ -156,6 +156,10 @@ arguments:
 - name: --bg_intensity_filter_bg_size
   type: integer
   default: 2000
+- name: --watershed_compactness
+  type: double
+  default: 0.0
+  description: "Compactness passed to skimage.segmentation.watershed. 0.0 = standard marker-controlled watershed (unchanged default). Higher values (try 1e-3 to 1e-1) enable compact watershed (Neubert & Protzel), biasing basins toward rounder, more regular cell shapes. Forwarded via txsim's watershed_params dict (see script.py)."
 
 resources:
   - type: python_script

@@ -69,6 +69,14 @@ arguments:
   - name: --min_size
     type: integer
     default: 15
+  - name: --niter
+    type: integer
+    default: 0
+    description: |
+      Number of flow-dynamics iterations. 0 (Cellpose treats 0 or None the same)
+      lets Cellpose set it proportional to the diameter (~200 at resample=true).
+      Lower it (e.g. 50) to speed up the CPU path; raise it for large/elongated
+      cells that under-converge. Forwarded verbatim to model.eval.
   - name: --stitch_threshold
     type: double
     default: 0.0
@@ -84,13 +92,16 @@ engines:
     setup:
       - type: python
         pypi: cellpose<4.0.0
-      # Pre-download the pretrained cyto weights into the image (~/.cellpose)
-      # so runtime tasks never hit the cellpose model server (avoids the
-      # intermittent "HTTP Error 504: Gateway Time-out" seen when several
-      # segmentation tasks fetch the weights concurrently).
+      # Pre-download the pretrained weights + size models into the image
+      # (~/.cellpose) so runtime tasks never hit the cellpose model server
+      # (avoids the intermittent "HTTP Error 504: Gateway Time-out" seen when
+      # several segmentation tasks fetch the weights concurrently). Instantiating
+      # Cellpose(model_type=m) caches both the mask model and its size model.
+      # All four builtins are cached because the --model_type sweep selects among
+      # them (see scripts/run_benchmark/cellpose_params.yaml).
       - type: docker
         run:
-          - "python -c \"from cellpose import models; models.Cellpose(gpu=False, model_type='cyto')\""
+          - "python -c \"from cellpose import models; [models.Cellpose(gpu=False, model_type=m) for m in ['cyto','nuclei','cyto2','cyto3']]\""
     __merge__: 
       - /src/base/setup_txsim_partial.yaml
       - /src/base/setup_spatialdata_partial.yaml

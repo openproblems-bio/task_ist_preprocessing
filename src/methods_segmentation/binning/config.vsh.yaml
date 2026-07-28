@@ -14,6 +14,20 @@ arguments:
   - name: --bin_size
     type: integer
     default: 30
+    description: |
+      Edge length of each square pseudo-cell bin, in PIXELS of the input `image`
+      element. On this benchmark's standardized raw_ist grid (images are rasterized
+      at target_unit_to_pixels=1, i.e. ~1 um/pixel) 1 px is ~1 um, so 30 px is
+      ~30 um bins. Used only when --bin_size_um is not set.
+  - name: --bin_size_um
+    type: double
+    required: false
+    description: |
+      Edge length of each square bin in MICRONS. When set, it OVERRIDES --bin_size:
+      the script reads the input image's coordinate transform (um per pixel) and
+      converts to a pixel bin size, so the physical bin size is comparable across
+      datasets even if they are gridded at different pixel sizes. Leave unset to use
+      --bin_size (raw pixels).
 
 resources:
   - type: python_script
