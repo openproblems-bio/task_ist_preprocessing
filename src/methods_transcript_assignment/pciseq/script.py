@@ -142,7 +142,7 @@ else:
 # Fail fast with an actionable message instead. This happens when the upstream `cell_labels`
 # copied by custom_segmentation is empty (observed for the vizgen lung-cancer merscope dataset,
 # whose polygon->label rasterization produced an all-zero image).
-if not (label_image > 0).any():
+if label_image.max() == 0:
     raise ValueError(
         f"Segmentation '{par['input_segmentation']}' contains no cells: the label image "
         f"(shape={label_image.shape}, dtype={label_image.dtype}) is entirely zero. pciSeq "
