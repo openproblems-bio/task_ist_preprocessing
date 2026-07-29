@@ -78,12 +78,10 @@ engines:
         run:
           - Rscript -e 'options(warn = 2); remotes::install_github("Nanostring-Biostats/FastReseg", upgrade = "never", repos = "https://cran.rstudio.com")'
       - type: python
-        # `plankton` (pulled in by txsim.run_ssam for ssam cell annotation in
-        # input.py) still does `from matplotlib.cm import get_cmap`, removed in
-        # matplotlib 3.9. Pin < 3.9 so run_ssam imports. This is a local setup
-        # step, so it runs AFTER the __merge__'d spatialdata/txsim partials (which
-        # otherwise pull matplotlib >= 3.9) and wins. Mirrors methods_cell_type_annotation/ssam.
-        pypi: [planktonspace, "matplotlib<3.9"]
+        # tacco provides the cell-type annotation used in input.py (tacco.tl.annotate).
+        # Mirrors methods_cell_type_annotation/tacco. This replaced the previous ssam
+        # path, which needed planktonspace + a matplotlib<3.9 pin.
+        pypi: [anndata, numpy, tacco]
     __merge__:
       - /src/base/setup_txsim_partial.yaml
       - /src/base/setup_spatialdata_partial.yaml

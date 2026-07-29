@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import dask
-import txsim as tx
+import tacco
 import anndata as ad
 import argparse
 from scipy.sparse import csr_matrix
@@ -90,11 +90,30 @@ output_path_transcripts = args.output_path_transcripts
 output_path_cell_type = args.output_path_cell_type
 
 ## potential other parameters (TODO - make configurable)
-um_per_pixel = 0.5
 sc_celltype_key = 'cell_type'
 
 ### reading the data in
 sdata = sd.read_zarr(input_path)
+
+# The transcripts points can carry a non-unique index: multi-partition parquet where
+# each partition's RangeIndex restarts at 0, or concatenated "combined" replicates that
+# each kept their own row index. dask-expr aligns on the index when the cell_id column is
+# assigned below (`sdata['transcripts']["cell_id"] = ...`), and pandas cannot reindex a
+# duplicate-labelled axis -> the following sd.transform then fails with
+# "cannot reindex on an axis with duplicate labels". Reset to a unique RangeIndex eagerly
+# here: a lazy .reset_index() does not help (the duplicate index already poisons the dask
+# graph), and re-parsing via PointsModel.parse breaks the from_dask_array(index=...) assign
+# below with a "Missing dependency" graph error, so materialise to pandas and re-wrap as a
+# single from_pandas partition, re-attaching the coordinate transformations. No-op when the
+# index is already unique.
+if not sdata['transcripts'].index.compute().is_unique:
+    print('Transcripts index has duplicate labels; resetting to a unique index', flush=True)
+    _transforms = sd.transformations.get_transformation(sdata['transcripts'], get_all=True)
+    _fixed = dask.dataframe.from_pandas(
+        sdata['transcripts'].compute().reset_index(drop=True), npartitions=1
+    )
+    sd.transformations.set_transformation(_fixed, _transforms, set_all=True)
+    sdata['transcripts'] = _fixed
 
 ### reading in basic segmentation
 sdata_segm = sd.read_zarr(input_segmentation_path)
@@ -125,10 +144,10 @@ sdata['transcripts']["cell_id"] = cell_id_dask_series
 print('Transforming transcripts coordinates', flush=True)
 transcripts = sd.transform(sdata['transcripts'], to_coordinate_system='global')
 
-# .copy() is required: for a single-partition points object, transcripts.compute()
-# returns a reference to the dask graph's backing frame, so an in-place rename here
-# would corrupt it and the later transcripts.compute() (passed to run_ssam) would
-# yield renamed columns that no longer match the dask _meta -> "Metadata mismatch".
+# .copy() defensively: for a single-partition points object, transcripts.compute()
+# can return a reference to the dask graph's backing frame, so the in-place rename
+# below would otherwise corrupt it and any later compute of `transcripts` would yield
+# renamed columns that no longer match the dask _meta -> "Metadata mismatch".
 transcripts_df = transcripts.compute().copy()
 transcripts_df.rename(columns = {'feature_name': 'target',
 'transcript_id': 'UMI_transID', 'cell_id': 'UMI_cellID'}, inplace = True)
@@ -157,18 +176,31 @@ count_df = pd.DataFrame(adata_sp.X.toarray(),
                        columns=adata_sp.var_names)
 count_df.to_csv(output_path_counts)
 
-#### run cell annotation with ssam
+#### run cell annotation with tacco
 adata_sc = ad.read_h5ad(input_sc_reference_path)
-adata_sc.X = adata_sc.layers["normalized"]
 print(adata_sc.var_names[1:10])
 
-shared_genes = [g for g in adata_sc.var_names if g in adata_sp.var_names]
-adata_sp = adata_sp[:,shared_genes] 
+# tacco annotates the cell x gene count matrix directly against the reference, so
+# (unlike the previous ssam path) it needs neither the transcript-level spots nor a
+# gene subsetting step -- tacco intersects genes internally. It expects raw counts on
+# .X for both spatial and reference, mirroring methods_cell_type_annotation/tacco.
+adata_sp.X = adata_sp.layers['counts']
+adata_sc.X = adata_sc.layers['counts']
 
 print('Annotating cell types', flush=True)
-adata_sp = tx.preprocessing.run_ssam(
-    adata_sp, transcripts.compute(), adata_sc, um_p_px=um_per_pixel, 
-    cell_id_col='cell_id', gene_col='feature_name', sc_ct_key=sc_celltype_key
+cell_type_assignment = tacco.tl.annotate(
+    adata=adata_sp,
+    reference=adata_sc,
+    annotation_key=sc_celltype_key,
 )
-cell_type_df = adata_sp.obs["ct_ssam"].astype(str)
+
+# tacco returns an n_obs x n_celltypes proportion matrix (aligned to adata_sp.obs);
+# take the argmax per cell for the hard label the FastReseg R step consumes as `clust`.
+cell_types = cell_type_assignment.columns
+highest_score_idx = np.argmax(cell_type_assignment.to_numpy(), axis=1)
+adata_sp.obs[sc_celltype_key] = cell_types[highest_score_idx]
+
+# Preserve the exact CSV shape the R step reads (read.csv(row.names=1) -> a single
+# column of per-cell labels indexed by cell_id).
+cell_type_df = adata_sp.obs[sc_celltype_key].astype(str)
 cell_type_df.to_csv(output_path_cell_type, header=True)

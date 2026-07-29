@@ -81,7 +81,9 @@ if(is.null(refineAll_res_one_FOC$updated_transDF_list[[1]])){
   cell_df$UMI_cellID <- as.integer(row.names(cell_df))
   transcriptDF <- left_join(cell_df, transcriptDF)
   names(transcriptDF)[names(transcriptDF) == "UMI_cellID"] <- "updated_cellID"
-  names(transcriptDF)[names(transcriptDF) == "ct_ssam"] <- "updated_celltype"
+  # input.py writes the per-cell annotation column under sc_celltype_key ("cell_type").
+  # (Was "ct_ssam" when the annotation step used ssam.)
+  names(transcriptDF)[names(transcriptDF) == "cell_type"] <- "updated_celltype"
   write.csv(transcriptDF, file = path_to_transcripts_out)
 } else {
   write.csv(refineAll_res_one_FOC$updated_transDF_list[[1]], file = path_to_transcripts_out)
