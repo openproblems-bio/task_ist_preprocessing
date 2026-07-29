@@ -41,7 +41,7 @@ publish_dir="/scratch/results/runs/$(date +%Y-%m-%d_%H-%M-%S)_binning"
 # is independent of --revision below, which selects the pipeline CODE to run.)
 params_repo="openproblems-bio/task_ist_preprocessing"
 params_branch="$(git rev-parse --abbrev-ref HEAD)"
-params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/binning_params.yaml"
+params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/param_sweep/binning_params.yaml"
 
 cat > /tmp/params_settings.yaml << HERE
 default_methods:

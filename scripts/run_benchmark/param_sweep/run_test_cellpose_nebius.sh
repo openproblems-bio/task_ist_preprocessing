@@ -39,7 +39,7 @@ publish_dir="/scratch/results/runs/$(date +%Y-%m-%d_%H-%M-%S)_cellpose"
 # is independent of --revision below, which selects the pipeline CODE to run.)
 params_repo="openproblems-bio/task_ist_preprocessing"
 params_branch="$(git rev-parse --abbrev-ref HEAD)"
-params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/cellpose_params.yaml"
+params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/param_sweep/cellpose_params.yaml"
 
 cat > /tmp/params_settings.yaml << HERE
 default_methods:
@@ -91,7 +91,7 @@ HERE
 if ! curl -fsSL -o /dev/null "$params_url"; then
   echo "ERROR: params file not reachable at:" >&2
   echo "  $params_url" >&2
-  echo "Commit and push scripts/run_benchmark/cellpose_params.yaml to '$params_branch' first." >&2
+  echo "Commit and push scripts/run_benchmark/param_sweep/cellpose_params.yaml to '$params_branch' first." >&2
   exit 1
 fi
 
