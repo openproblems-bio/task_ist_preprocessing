@@ -1,0 +1,39 @@
+# Parameter sweep for the binning segmentation method (the "poor segmentation"
+# baseline: a fixed square grid of pseudo-cells, no image content used).
+#
+# Shared source of truth for both run_test_binning_local.sh (read as a local file)
+# and run_test_binning_nebius.sh (read from GitHub via a raw URL, since the Nebius
+# compute env pulls the repo but cannot see the launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total binning variants = 1 default + sum(sweep list lengths) = 6.
+#
+# See src/methods_segmentation/binning/NOTES.md ("Optimization / tuning") for the
+# rationale. The ONLY knob is the bin edge length. We sweep it in MICRONS
+# (--bin_size_um), the physically meaningful unit, rather than raw pixels: the
+# component converts um -> pixels from the image's coordinate transform. On this
+# benchmark's standardized raw_ist grid (~1 um/pixel, target_unit_to_pixels=1) the
+# two coincide, so a value in um is ~ the same value in px.
+#
+# NOTE: --bin_size_um is a NEWLY EXPOSED argument. It needs `viash ns build` +
+# a binning container rebuild before it takes effect (see check-component). Until
+# then, swap `bin_size_um` for the pre-existing `bin_size` (pixels) below.
+parameters:
+  binning:
+    # Baseline == the shipped 30 px default, expressed in microns (~30 um on the
+    # 1 um/px grid): bins ~2-3 cell diameters across -> coarse pseudo-cells.
+    default:
+      bin_size_um: 30.0
+    sweep:
+      # bin_size_um: bin edge length in microns. Grounded in the ~1 um/px grid and
+      # brain/Xenium cell scale (nuclei ~5-8 um, whole cells ~10-15 um):
+      #   10 -> sub-cell / nucleus scale, many bins per cell (over-segmentation)
+      #   15 -> ~one whole cell per bin (best case for a fixed grid)
+      #   20 -> slightly coarse
+      #   (30 = default, omitted here to avoid a duplicate variant)
+      #   40, 50 -> several cells per bin (strong under-segmentation)
+      bin_size_um: [10.0, 15.0, 20.0, 40.0, 50.0]

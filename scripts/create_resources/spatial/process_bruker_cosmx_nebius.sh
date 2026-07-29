@@ -8,7 +8,9 @@ cd "$REPO_ROOT"
 
 set -e
 
-publish_dir="s3://openproblems-data/resources/datasets"
+# store the loader output locally, mirroring the process_datasets layout ($id/)
+# under the sibling raw/ folder (same as the other *_nebius.sh spatial scripts)
+publish_dir="/scratch/task_ist_preprocessing/raw"
 
 cat > /tmp/params.yaml << HERE
 param_list:

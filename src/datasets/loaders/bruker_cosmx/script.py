@@ -44,7 +44,7 @@ differences are handled by the component.
 │   └── <dataset_id>-polygons.csv
 ├── (AnalysisResults)
 └── (RunSummary)
---> the CellLabels folder is not present, but the CellLabels_FXXX.tif files are in the FOV folders. 
+--> the CellLabels folder is not present, but the CellLabels_FXXX.tif files are in the FOV folders.
     They are moved to a newly created CellLabels folder.
 
 ### Version 2 (Example: CosMx Mouse brain) ###
@@ -65,21 +65,30 @@ differences are handled by the component.
 ├── <dataset_id>_tx_file.csv
 └── <dataset_id>-polygons.csv
 --> the flat files are in a separate zip, they need to be moved to CellStatsDir ( = `DATA_DIR`)
---> as in version 1, the CellLabels folder is not present, but the CellLabels_FXXX.tif files are in the FOV folders. 
-
+--> as in version 1, the CellLabels folder is not present, but the CellLabels_FXXX.tif files are in the FOV folders.
 
 
 ### Version 3 (Example: CosMx lung cancer) ###
-this has subdirectories for each sample and an extra sub directories for morphology images. Also, 
+this has subdirectories for each sample and an extra sub directories for morphology images. Also,
 the images are given for each z plane. This dataset is covered with the bruker_cosmx_nsclc dataloader.
 
 
-
-
-
+### Version 4 (Example: CosMx *Normal Liver*, "Raw Data Files" release) ###
+NanoString/Bruker never published the AtoMx "flat files" for the public liver FFPE dataset — only the raw
+`NormalLiverFiles.zip` (images + segmentation) plus TileDB/Seurat exports. So the raw zip has NO
+`<id>_tx_file.csv` / `<id>_fov_positions_file.csv` etc. — `sopa.io.cosmx` would fail at `_infer_dataset_id`.
+The raw material to rebuild the flat files IS present, though:
+  - `AnalysisResults/**/FOV###__complete_code_cell_target_call_coord.csv` — per-transcript rows with local
+    pixel coords (`x`,`y`), `z`, `target` (gene), `CellId` (per-FOV cell, 0 = unassigned), `CellComp`.
+  - `RunSummary/latest.fovs.csv`  — per-FOV stage position (columns: ..., x_mm, y_mm, ..., fov).
+  - `CellStatsDir/FOV###/*Cell_Stats_F###.csv` — per-cell `CellId, Area, CenterX, CenterY` (local px).
+  - `CellStatsDir/FOV###/CellLabels_F###.tif` + `CellStatsDir/Morphology2D/*_F###.TIF` — labels + image.
+When the flat files are missing we RECONSTRUCT them (`reconstruct_flat_files`, see below) and then hand the
+result to the *same* `sopa.io.cosmx` call, so all the stitching/coordinate math stays sopa's job.
 """
 
 import os
+import re
 import shutil
 import zipfile
 from pathlib import Path
@@ -92,6 +101,9 @@ par = {
     "input_raw": "temp/datasets/bruker_cosmx/HalfBrain.zip",
     # downloaded from https://smi-public.objects.liquidweb.services/Half%20%20Brain%20simple%20%20files%20.zip
     "input_flat_files": "temp/datasets/bruker_cosmx/Half Brain simple files .zip",
+    # For the liver "Raw Data Files" release (no flat files), point input_raw at
+    # https://smi-public.objects.liquidweb.services/NormalLiverFiles.zip and leave input_flat_files unset;
+    # the flat files are then reconstructed automatically (see Version 4 above).
     "segmentation_id": ["cell"],
     "output": "output.zarr",
     "dataset_id": "bruker_cosmx/bruker_mouse_brain_cosmx/rep1",
@@ -126,11 +138,36 @@ TMP_DIR.mkdir(parents=True, exist_ok=True)
 # whole thing next to the staged zip overruns the node's ~220 GB scratch and OOMs (137).
 SKIP_DIRS = {"Morphology3D", "AnalysisResults", "RunSummary"}
 
+# Prefix used for the flat files we reconstruct ourselves (Version 4). Passed to
+# sopa as an explicit dataset_id so it doesn't try to infer one from a filename.
+RECON_ID = "cosmx"
+
 def _member_wanted(name: str) -> bool:
     parts = name.split("/")
     if name.startswith("__MACOSX/") or parts[-1] == ".DS_Store":
         return False
     return not any(part in SKIP_DIRS for part in parts)
+
+# When reconstructing (Version 4), the AnalysisResults/RunSummary that the denylist above
+# would drop are exactly what we need. Extract an *allowlist* instead: only the per-FOV
+# transcript-decoding CSVs, the FOV positions, the cell stats, the cell labels and the 2D
+# morphology — everything else (Morphology3D, Morphology2D_Normalized, RnD, the redundant
+# target_call_coord/total_unambiguous CSVs, the imaging metrics) is dropped. Footprint for
+# the liver hemisphere: ~61 GB vs ~440 GB of Morphology3D alone.
+_RECON_KEEP = [
+    re.compile(r"(^|/)CellLabels_F\d+\.tif$", re.I),            # per-FOV cell labels
+    re.compile(r"(^|/)CellLabels/[^/]+\.tif$", re.I),           # ... or an already-gathered CellLabels dir
+    re.compile(r"Cell_Stats_F\d+.*\.csv$", re.I),               # per-cell centroids/area
+    re.compile(r"/Morphology2D/[^/]+\.[Tt][Ii][Ff]$"),         # 2D morphology image (NOT Morphology2D_Normalized)
+    re.compile(r"complete_code_cell_target_call_coord\.csv$"),  # per-transcript calls (+ cell assignment)
+    re.compile(r"\.fovs\.csv$"),                                # FOV stage positions
+]
+
+def _member_wanted_reconstruct(name: str) -> bool:
+    parts = name.split("/")
+    if name.startswith("__MACOSX/") or parts[-1] == ".DS_Store":
+        return False
+    return any(pat.search(name) for pat in _RECON_KEEP)
 
 def _open_zip_source(src):
     """Seekable binary handle for a local path or an s3:// URL (streamed, never fully downloaded)."""
@@ -142,18 +179,27 @@ def _open_zip_source(src):
         return fs.open(s, "rb")
     return open(s, "rb")
 
-def extract_zip(input_zip, output_dir: Path, strip_root: bool = False):
+def _zip_has_flat_files(src) -> bool:
+    """Peek the zip's central directory (cheap, streamed) for a `*_tx_file.csv` flat file."""
+    with _open_zip_source(src) as fh, zipfile.ZipFile(fh, "r") as zip_ref:
+        return any(
+            n.endswith("_tx_file.csv") or n.endswith("_tx_file.csv.gz")
+            for n in zip_ref.namelist()
+        )
+
+def extract_zip(input_zip, output_dir: Path, strip_root: bool = False, wanted=_member_wanted):
     """
-    Stream a zip (local path or s3:// URL) into output_dir, skipping the CosMx
-    directories sopa never reads (see SKIP_DIRS). Only the wanted members are
-    transferred, so a remote zip streams just the bytes we keep — it is never
-    downloaded in full first.
+    Stream a zip (local path or s3:// URL) into output_dir, keeping only the members for
+    which `wanted(name)` is True (see `_member_wanted` / `_member_wanted_reconstruct`). Only
+    the wanted members are transferred, so a remote zip streams just the bytes we keep — it is
+    never downloaded in full first.
 
     Arguments:
 
     - input_zip: local path or s3:// URL of the input zip.
     - output_dir: directory where the (filtered) contents are written.
     - strip_root: if True and all entries share exactly one top-level directory, strip it.
+    - wanted: predicate on the member name deciding whether to extract it.
     """
     output_dir = Path(output_dir)
     kept = skipped = 0
@@ -166,7 +212,7 @@ def extract_zip(input_zip, output_dir: Path, strip_root: bool = False):
         do_strip = strip_root and len(roots) == 1
 
         for member in members:
-            if not _member_wanted(member.filename):
+            if not wanted(member.filename):
                 skipped += 1
                 continue
             parts = Path(member.filename).parts
@@ -183,13 +229,30 @@ def extract_zip(input_zip, output_dir: Path, strip_root: bool = False):
                 shutil.copyfileobj(src, dst)
             kept += 1
             kept_bytes += member.file_size
-    log(f"Extracted {kept} files ({kept_bytes / 1e9:.1f} GB); skipped {skipped} members "
-        f"(dirs {sorted(SKIP_DIRS)} + macOS cruft)")
+    log(f"Extracted {kept} files ({kept_bytes / 1e9:.1f} GB); skipped {skipped} members")
+
+#############################################################
+# Decide whether the flat files need to be reconstructed    #
+#############################################################
+# Reconstruct only when no flat files are available anywhere: a separate `input_flat_files`
+# zip always means they exist (mouse brain); otherwise peek inside the raw zip for a
+# `*_tx_file.csv`. Absent everywhere => the liver "Raw Data Files" case (Version 4).
+if par["input_flat_files"]:
+    RECONSTRUCT = False
+else:
+    log("No flat files zip provided; checking whether the raw zip contains flat files")
+    RECONSTRUCT = not _zip_has_flat_files(par["input_raw"])
+log(f"Reconstruct flat files from raw AnalysisResults: {RECONSTRUCT}")
 
 # Extract zip files
 log("Extract zip of raw files")
 INPUT_RAW_EXTRACTED = TMP_DIR / "input_raw"
-extract_zip(par["input_raw"], INPUT_RAW_EXTRACTED, strip_root=True)
+extract_zip(
+    par["input_raw"],
+    INPUT_RAW_EXTRACTED,
+    strip_root=True,
+    wanted=_member_wanted_reconstruct if RECONSTRUCT else _member_wanted,
+)
 
 log(f"Files and folders in input_raw_extracted ({INPUT_RAW_EXTRACTED})")
 print(os.listdir(INPUT_RAW_EXTRACTED))
@@ -232,6 +295,124 @@ elif labels_dir.is_dir():
     log("CellLabels folder already present in raw data")
 else:
     raise AssertionError(f"No CellLabels folder and no per-FOV CellLabels tifs found in {DATA_DIR}")
+
+###################################################################
+# Reconstruct the flat files from the raw decoding CSVs (Version 4)#
+###################################################################
+# See the module docstring. We rebuild the four flat files sopa needs
+# (`{id}_fov_positions_file.csv`, `{id}_tx_file.csv`, `{id}_metadata_file.csv`,
+# `{id}_exprMat_file.csv`) from AnalysisResults + RunSummary + Cell_Stats and drop them into
+# DATA_DIR so the unchanged `sopa.io.cosmx` call below picks them up. We do NOT reconstruct
+# `-polygons.csv` (the raw export has no cell boundaries); `cell_boundaries` is optional in
+# the API and downstream methods produce their own segmentation.
+#
+# Coordinate reconstruction (validated end-to-end: 0.999 of assigned transcripts land on
+# their own cell in sopa's stitched label image):
+#   scale = 1e3 / COSMX_PIXEL_SIZE  (mm -> px, matching sopa's own fov-positions conversion)
+#   x_global_px = x_mm * scale + x_local
+#   y_global_px = y_mm * scale + (H - 1 - y_local)   # sopa flips each label tile along y
+# The same transform is applied to the Cell_Stats centroids so the table's obsm['spatial']
+# stays consistent with the transcripts and labels.
+def reconstruct_flat_files(extracted_root: Path, data_dir: Path, labels_dir: Path, dataset_id: str) -> int:
+    import numpy as np
+    import pandas as pd
+    import tifffile
+    from sopa.io.reader.cosmx import COSMX_PIXEL_SIZE
+
+    scale = 1e3 / COSMX_PIXEL_SIZE
+
+    # FOV image height (all FOVs share the same shape; sopa asserts this later).
+    a_label = next(iter(sorted(labels_dir.glob("*.[Tt][Ii][Ff]"))))
+    with tifffile.TiffFile(a_label) as tif:
+        H, W = tif.pages[0].shape
+    log(f"Reconstruct: FOV image shape {(H, W)} (from {a_label.name})")
+
+    # FOV positions from RunSummary/latest.fovs.csv (headerless: ..., x_mm[1], y_mm[2], ..., fov[6]).
+    fovs_files = sorted(extracted_root.rglob("*.fovs.csv"))
+    fovs_file = next((f for f in fovs_files if f.name == "latest.fovs.csv"), None) or fovs_files[0]
+    raw_pos = pd.read_csv(fovs_file, header=None)
+    fp = raw_pos[[6, 1, 2]].copy()
+    fp.columns = ["fov", "x_mm", "y_mm"]
+    fp = fp.drop_duplicates("fov").sort_values("fov").reset_index(drop=True)
+    fp.to_csv(data_dir / f"{dataset_id}_fov_positions_file.csv", index=False)
+    pos = fp.set_index("fov")
+    log(f"Reconstruct: {len(fp)} FOV positions from {fovs_file.name}")
+
+    # Map fov number -> Cell_Stats csv (under CellStatsDir/FOV###/).
+    cs_paths = {}
+    for p in data_dir.rglob("*Cell_Stats_F*.csv"):
+        m = re.search(r"Cell_Stats_F(\d+)", p.name)
+        if m:
+            cs_paths[int(m.group(1))] = p
+
+    cc_paths = sorted(extracted_root.rglob("*complete_code_cell_target_call_coord.csv"))
+    assert cc_paths, f"No complete_code_cell_target_call_coord.csv found under {extracted_root}"
+    log(f"Reconstruct: {len(cc_paths)} per-FOV transcript files, {len(cs_paths)} cell-stats files")
+
+    tx_path = data_dir / f"{dataset_id}_tx_file.csv"
+    meta_parts, expr_parts = [], []
+    max_cell_id = 0
+    n_tx = 0
+    with open(tx_path, "w") as tx_out:
+        for i, cc_path in enumerate(cc_paths):
+            m = re.search(r"FOV0*(\d+)", cc_path.name) or re.search(r"_F0*(\d+)", cc_path.name)
+            fov = int(m.group(1))
+            if fov not in pos.index:
+                log(f"Reconstruct: WARNING no FOV position for FOV {fov}, skipping")
+                continue
+            xmm, ymm = float(pos.at[fov, "x_mm"]), float(pos.at[fov, "y_mm"])
+
+            cc = pd.read_csv(cc_path, usecols=["x", "y", "z", "target", "CellId"])
+            tx = pd.DataFrame({
+                "fov": fov,
+                "cell_ID": cc["CellId"].astype(int).values,
+                "target": cc["target"].astype(str).values,
+                "x_global_px": xmm * scale + cc["x"].values,
+                "y_global_px": ymm * scale + (H - 1 - cc["y"].values),
+                "z": cc["z"].values,
+            })
+            tx.to_csv(tx_out, header=(i == 0), index=False)
+            n_tx += len(tx)
+
+            # Per-cell metadata + counts, keyed on the segmentation cell list (Cell_Stats),
+            # so metadata and exprMat share the exact same cells in the same order.
+            cs = pd.read_csv(cs_paths[fov])
+            cell_ids = cs["CellId"].astype(int).values
+            max_cell_id = max(max_cell_id, int(cell_ids.max()), int(tx["cell_ID"].max()))
+
+            assigned = tx[tx["cell_ID"] > 0]
+            ct = pd.crosstab(assigned["cell_ID"], assigned["target"]).reindex(cell_ids, fill_value=0)
+            ct.insert(0, "cell_ID", cell_ids)
+            ct.insert(0, "fov", fov)
+            expr_parts.append(ct.reset_index(drop=True))
+
+            meta_parts.append(pd.DataFrame({
+                "fov": fov,
+                "cell_ID": cell_ids,
+                "CenterX_global_px": xmm * scale + cs["CenterX"].values,
+                "CenterY_global_px": ymm * scale + (H - 1 - cs["CenterY"].values),
+                "Area": cs["Area"].values,
+            }))
+
+            if (i + 1) % 50 == 0:
+                log(f"Reconstruct: processed {i + 1}/{len(cc_paths)} FOVs ({n_tx:,} transcripts)")
+
+    meta = pd.concat(meta_parts, ignore_index=True)
+    meta.to_csv(data_dir / f"{dataset_id}_metadata_file.csv", index=False)
+
+    expr = pd.concat(expr_parts, ignore_index=True).fillna(0)
+    gene_cols = [c for c in expr.columns if c not in ("fov", "cell_ID")]
+    expr[gene_cols] = expr[gene_cols].astype("int32")
+    expr = expr[["fov", "cell_ID"] + gene_cols]
+    expr.to_csv(data_dir / f"{dataset_id}_exprMat_file.csv", index=False)
+
+    log(f"Reconstruct: wrote flat files — {n_tx:,} transcripts, {len(meta):,} cells, {len(gene_cols)} genes")
+    return max_cell_id
+
+RECON_MAX_CELL_ID = None
+if RECONSTRUCT:
+    log("Reconstruct flat files from raw decoding CSVs")
+    RECON_MAX_CELL_ID = reconstruct_flat_files(INPUT_RAW_EXTRACTED, DATA_DIR, labels_dir, RECON_ID)
 
 #############################################
 # Memory optimization: lean transcript read #
@@ -286,6 +467,17 @@ class _PandasReadCsvProxy:
 
 _cosmx_mod.pd = _PandasReadCsvProxy(_real_pd)
 
+# When we reconstruct the flat files ourselves, pin sopa's global-cell-id formula to the
+# segmentation's true max cell id. sopa otherwise derives that max separately from each of
+# the tx / metadata / exprMat frames and asserts they agree — but a cell present in the
+# segmentation (Cell_Stats) yet carrying zero transcripts makes the tx-file max smaller,
+# tripping the assert. Using one fixed max keeps the ids consistent across all three files.
+if RECONSTRUCT:
+    _RECON_MAX = int(RECON_MAX_CELL_ID)
+    def _fixed_global_cell_id(self, df):
+        return df["fov"] * (_RECON_MAX + 1) * (df["cell_ID"] > 0) + df["cell_ID"]
+    _cosmx_mod._CosMXReader._get_global_cell_id = _fixed_global_cell_id
+
 #########################################
 # Convert raw files to spatialdata zarr #
 #########################################
@@ -293,14 +485,16 @@ _cosmx_mod.pd = _PandasReadCsvProxy(_real_pd)
 log("Convert raw files to spatialdata zarr")
 
 sdata = sopa.io.cosmx(
-    DATA_DIR, 
-    dataset_id=None, 
-    fov=None, 
-    read_proteins=False, 
-    cells_labels=True, 
-    cells_table=True, 
-    cells_polygons=True, 
-    flip_image=False
+    DATA_DIR,
+    dataset_id=RECON_ID if RECONSTRUCT else None,
+    fov=None,
+    read_proteins=False,
+    cells_labels=True,
+    cells_table=True,
+    # The reconstructed (liver) export has no cell-boundary polygons; every other CosMx
+    # export we handle ships `-polygons.csv`.
+    cells_polygons=not RECONSTRUCT,
+    flip_image=False,
 )
 
 
@@ -309,7 +503,7 @@ sdata = sopa.io.cosmx(
 ###############
 log("Rename keys")
 elements_renaming_map = {
-    "stitched_image"     : "morphology_mip", 
+    "stitched_image"     : "morphology_mip",
     "stitched_labels"    : "cell_labels",
     "points"             : "transcripts",
     "cells_polygons"     : "cell_boundaries",
@@ -317,6 +511,10 @@ elements_renaming_map = {
 }
 
 for old_key, new_key in elements_renaming_map.items():
+    if old_key not in sdata:
+        # e.g. cells_polygons is absent when reconstructing (no boundaries in the raw export)
+        log(f"Element '{old_key}' not present, skipping rename to '{new_key}'")
+        continue
     sdata[new_key] = sdata[old_key]
     del sdata[old_key]
 
@@ -338,6 +536,9 @@ sdata["morphology_mip"] = sdata["morphology_mip"].sel(c=["DNA"])
 # Add info to metadata table #
 ##############################
 log("Add metadata to table")
+# The common iST API requires a per-cell `cell_id` in obs; sopa keys the table by the global
+# cell id (as the index) but doesn't add it as a column.
+sdata["table"].obs["cell_id"] = sdata["table"].obs.index.astype(str)
 for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism", "segmentation_id"]:
     sdata["table"].uns[key] = par[key]
 

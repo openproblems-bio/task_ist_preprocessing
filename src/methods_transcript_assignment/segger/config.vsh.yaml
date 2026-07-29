@@ -141,4 +141,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [ hightime, midcpu, highmem, gpu ]
+      label: [ hightime, midcpu, highmem, gpuh100 ]
