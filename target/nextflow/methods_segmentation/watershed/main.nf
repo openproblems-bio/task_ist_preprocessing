@@ -3877,6 +3877,18 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--watershed_compactness",
+          "description" : "Compactness passed to skimage.segmentation.watershed. 0.0 = standard marker-controlled watershed (unchanged default). Higher values (try 1e-3 to 1e-1) enable compact watershed (Neubert & Protzel), biasing basins toward rounder, more regular cell shapes. Forwarded via txsim's watershed_params dict (see script.py).",
+          "default" : [
+            0.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -4030,7 +4042,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/watershed",
     "viash_version" : "0.9.7",
-    "git_commit" : "6569e2130c8d432263e769faaaeca6393820c56c",
+    "git_commit" : "f4cea25bf1b5af9af91addc69e3315a7a2655322",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4224,7 +4236,8 @@ par = {
   'post_processing_out_2': $( if [ ! -z ${VIASH_PAR_POST_PROCESSING_OUT_2+x} ]; then echo "r'${VIASH_PAR_POST_PROCESSING_OUT_2//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'bg_intensity_filter_bg_factor': $( if [ ! -z ${VIASH_PAR_BG_INTENSITY_FILTER_BG_FACTOR+x} ]; then echo "float(r'${VIASH_PAR_BG_INTENSITY_FILTER_BG_FACTOR//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'bg_intensity_filter_window_size': $( if [ ! -z ${VIASH_PAR_BG_INTENSITY_FILTER_WINDOW_SIZE+x} ]; then echo "int(r'${VIASH_PAR_BG_INTENSITY_FILTER_WINDOW_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
-  'bg_intensity_filter_bg_size': $( if [ ! -z ${VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE+x} ]; then echo "int(r'${VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
+  'bg_intensity_filter_bg_size': $( if [ ! -z ${VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE+x} ]; then echo "int(r'${VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'watershed_compactness': $( if [ ! -z ${VIASH_PAR_WATERSHED_COMPACTNESS+x} ]; then echo "float(r'${VIASH_PAR_WATERSHED_COMPACTNESS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -4257,6 +4270,14 @@ hyperparameters = par.copy()
 hyperparameters = {k:(v if v != "None" else None) for k,v in hyperparameters.items()}
 del hyperparameters['input']
 del hyperparameters['output']
+
+# skimage.segmentation.watershed's \\`compactness\\` knob is only reachable through the
+# nested \\`watershed_params\\` dict that txsim.segment_watershed forwards (it reads
+# hyperparams.get("watershed_params", {})). Lift the exposed --watershed_compactness
+# arg into that dict so it actually takes effect. compactness=0.0 == standard
+# marker-controlled watershed, i.e. unchanged default behaviour.
+compactness = hyperparameters.pop("watershed_compactness", 0.0)
+hyperparameters["watershed_params"] = {"compactness": compactness}
 
 sdata = sd.read_zarr(par["input"])
 

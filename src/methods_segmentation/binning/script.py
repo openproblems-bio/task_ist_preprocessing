@@ -24,10 +24,36 @@ def convert_to_lower_dtype(arr):
 
     return arr.astype(new_dtype)
 
+
+def pixel_size_um(image_element, coordinate_system="global"):
+    """Microns-per-pixel of an image element, read from its coordinate transform.
+
+    On this benchmark's standardized raw_ist grid the images are rasterized at
+    target_unit_to_pixels=1 (~1 um/pixel), so this is ~1.0 for current datasets;
+    reading it keeps --bin_size_um correct if a dataset is ever gridded at a
+    different resolution. Falls back to 1.0 um/px (the standardized grid) if the
+    transform cannot be read, so a micron sweep still runs on current data.
+    """
+    try:
+        transforms = image_element.transform  # dict: coord_system -> transformation
+        trans = transforms.get(coordinate_system) or next(iter(transforms.values()))
+        aff = trans.to_affine_matrix(input_axes=("y", "x"), output_axes=("y", "x"))
+        sy, sx = abs(float(aff[0, 0])), abs(float(aff[1, 1]))
+        px = (sy + sx) / 2.0
+        if not np.isfinite(px) or px <= 0:
+            raise ValueError(f"non-positive pixel size {px}")
+        return px
+    except Exception as e:
+        print(f"WARNING: could not read pixel size from transform ({e}); "
+              f"assuming 1.0 um/pixel (the standardized raw_ist grid).", flush=True)
+        return 1.0
+
 ## VIASH START
 par = {
   "input": "../task_ist_preprocessing/resources_test/common/2023_10x_mouse_brain_xenium/dataset.zarr",
-  "output": "segmentation.zarr"
+  "output": "segmentation.zarr",
+  "bin_size": 30,
+  "bin_size_um": None
 }
 
 ## VIASH END
@@ -43,7 +69,19 @@ sdata = sd.read_zarr(par["input"])
 sd_output = sd.SpatialData()
 image = sdata['image']['scale0'].image.compute().to_numpy()
 transformation = sdata['image']['scale0'].image.transform.copy()
-img_arr = tx.preprocessing.segment_binning(image[0], hyperparameters['bin_size'])   ### TOdo find the optimal bin_size
+
+# bin_size is in PIXELS of the image grid. If bin_size_um is given, it overrides
+# bin_size: convert the physical (micron) bin edge to pixels via the image's
+# um-per-pixel scale, so the bin size is comparable across datasets.
+if hyperparameters.get('bin_size_um') is not None:
+    px_um = pixel_size_um(sdata['image']['scale0'].image)
+    bin_size = max(1, int(round(float(hyperparameters['bin_size_um']) / px_um)))
+    print(f"bin_size_um={hyperparameters['bin_size_um']} um / {px_um} um/px "
+          f"-> bin_size={bin_size} px", flush=True)
+else:
+    bin_size = int(hyperparameters['bin_size'])
+
+img_arr = tx.preprocessing.segment_binning(image[0], bin_size)
 image = convert_to_lower_dtype(img_arr)
 data_array = xr.DataArray(image, name=f'segmentation', dims=('y', 'x'))
 parsed_data = Labels2DModel.parse(data_array, transformations=transformation)

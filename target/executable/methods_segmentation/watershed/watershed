@@ -453,9 +453,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata>=0.7.3" "anndata>=0.12.0" "zarr>=3.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation watershed"
-LABEL org.opencontainers.image.created="2026-07-28T21:42:54Z"
+LABEL org.opencontainers.image.created="2026-07-29T17:59:07Z"
 LABEL org.opencontainers.image.source="https://github.com/theislab/txsim"
-LABEL org.opencontainers.image.revision="6569e2130c8d432263e769faaaeca6393820c56c"
+LABEL org.opencontainers.image.revision="f4cea25bf1b5af9af91addc69e3315a7a2655322"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -783,6 +783,15 @@ function ViashHelp {
   echo "    --bg_intensity_filter_bg_size"
   echo "        type: integer"
   echo "        default: 2000"
+  echo ""
+  echo "    --watershed_compactness"
+  echo "        type: double"
+  echo "        default: 0.0"
+  echo "        Compactness passed to skimage.segmentation.watershed. 0.0 = standard"
+  echo "        marker-controlled watershed (unchanged default). Higher values (try 1e-3"
+  echo "        to 1e-1) enable compact watershed (Neubert & Protzel), biasing basins"
+  echo "        toward rounder, more regular cell shapes. Forwarded via txsim's"
+  echo "        watershed_params dict (see script.py)."
   echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
@@ -1384,6 +1393,17 @@ while [[ $# -gt 0 ]]; do
             VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE=$(ViashRemoveFlags "$1")
             shift 1
             ;;
+        --watershed_compactness)
+            [ -n "$VIASH_PAR_WATERSHED_COMPACTNESS" ] && ViashError Bad arguments for option \'--watershed_compactness\': \'$VIASH_PAR_WATERSHED_COMPACTNESS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_WATERSHED_COMPACTNESS="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --watershed_compactness. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --watershed_compactness=*)
+            [ -n "$VIASH_PAR_WATERSHED_COMPACTNESS" ] && ViashError Bad arguments for option \'--watershed_compactness=*\': \'$VIASH_PAR_WATERSHED_COMPACTNESS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_WATERSHED_COMPACTNESS=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
         ---engine)
             VIASH_ENGINE_ID="$2"
             shift 2
@@ -1734,6 +1754,9 @@ fi
 if [ -z ${VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE+x} ]; then
   VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE="2000"
 fi
+if [ -z ${VIASH_PAR_WATERSHED_COMPACTNESS+x} ]; then
+  VIASH_PAR_WATERSHED_COMPACTNESS="0.0"
+fi
 
 # check whether required files exist
 if [ ! -z "$VIASH_PAR_INPUT" ] && [ ! -e "$VIASH_PAR_INPUT" ]; then
@@ -1889,6 +1912,12 @@ fi
 if [[ -n "$VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE" ]]; then
   if ! [[ "$VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE" =~ ^[-+]?[0-9]+$ ]]; then
     ViashError '--bg_intensity_filter_bg_size' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_WATERSHED_COMPACTNESS" ]]; then
+  if ! [[ "$VIASH_PAR_WATERSHED_COMPACTNESS" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--watershed_compactness' has to be a double. Use "--help" to get more information on the parameters.
     exit 1
   fi
 fi
@@ -2135,7 +2164,8 @@ par = {
   'post_processing_out_2': $( if [ ! -z ${VIASH_PAR_POST_PROCESSING_OUT_2+x} ]; then echo "r'${VIASH_PAR_POST_PROCESSING_OUT_2//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'bg_intensity_filter_bg_factor': $( if [ ! -z ${VIASH_PAR_BG_INTENSITY_FILTER_BG_FACTOR+x} ]; then echo "float(r'${VIASH_PAR_BG_INTENSITY_FILTER_BG_FACTOR//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'bg_intensity_filter_window_size': $( if [ ! -z ${VIASH_PAR_BG_INTENSITY_FILTER_WINDOW_SIZE+x} ]; then echo "int(r'${VIASH_PAR_BG_INTENSITY_FILTER_WINDOW_SIZE//\'/\'\"\'\"r\'}')"; else echo None; fi ),
-  'bg_intensity_filter_bg_size': $( if [ ! -z ${VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE+x} ]; then echo "int(r'${VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE//\'/\'\"\'\"r\'}')"; else echo None; fi )
+  'bg_intensity_filter_bg_size': $( if [ ! -z ${VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE+x} ]; then echo "int(r'${VIASH_PAR_BG_INTENSITY_FILTER_BG_SIZE//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'watershed_compactness': $( if [ ! -z ${VIASH_PAR_WATERSHED_COMPACTNESS+x} ]; then echo "float(r'${VIASH_PAR_WATERSHED_COMPACTNESS//\'/\'\"\'\"r\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -2168,6 +2198,14 @@ hyperparameters = par.copy()
 hyperparameters = {k:(v if v != "None" else None) for k,v in hyperparameters.items()}
 del hyperparameters['input']
 del hyperparameters['output']
+
+# skimage.segmentation.watershed's \`compactness\` knob is only reachable through the
+# nested \`watershed_params\` dict that txsim.segment_watershed forwards (it reads
+# hyperparams.get("watershed_params", {})). Lift the exposed --watershed_compactness
+# arg into that dict so it actually takes effect. compactness=0.0 == standard
+# marker-controlled watershed, i.e. unchanged default behaviour.
+compactness = hyperparameters.pop("watershed_compactness", 0.0)
+hyperparameters["watershed_params"] = {"compactness": compactness}
 
 sdata = sd.read_zarr(par["input"])
 

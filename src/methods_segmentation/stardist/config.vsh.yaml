@@ -15,6 +15,38 @@ arguments:
   - name: --model
     type: string
     default: "2D_versatile_fluo"
+    description: >-
+      Pretrained StarDist2D model loaded via StarDist2D.from_pretrained.
+      Fluorescence/nuclear models: "2D_versatile_fluo" (default, trained on a DSB2018
+      subset) and "2D_paper_dsb2018". "2D_versatile_he" is a brightfield H&E RGB model
+      and is NOT appropriate for the single-channel fluorescence morphology images here.
+  # --- StarDist predict_instances knobs, forwarded through predict_instances_big ---
+  # All optional: when unset the model's own optimized values are used (thresholds.json
+  # for prob/nms, no rescaling for scale) — i.e. exactly the pre-tuning behaviour.
+  - name: --prob_thresh
+    type: double
+    required: false
+    description: >-
+      Object probability threshold; candidate pixels below it are discarded. If unset,
+      the model's optimized value is used (0.479071 for 2D_versatile_fluo). LOWER => more /
+      dimmer nuclei detected (higher recall); HIGHER => fewer, more confident detections
+      (higher precision). Valid range ~0..1.
+  - name: --nms_thresh
+    type: double
+    required: false
+    description: >-
+      Non-maximum-suppression IoU threshold for overlapping polygon candidates. If unset,
+      the model's optimized value is used (0.3 for 2D_versatile_fluo). LOWER => more
+      aggressive suppression (touching nuclei more likely merged/dropped); HIGHER => keeps
+      more overlapping detections. Valid range ~0..1.
+  - name: --scale
+    type: double
+    required: false
+    description: >-
+      Isotropic factor the image is rescaled by before prediction and undone afterwards.
+      If unset, no rescaling. Use it to match nucleus size to the model's training size:
+      >1 upscales (small nuclei appear larger), <1 downscales. StarDist's analogue of
+      Cellpose's diameter.
 
 resources:
   - type: python_script

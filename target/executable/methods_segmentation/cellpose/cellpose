@@ -455,11 +455,11 @@ RUN pip install --upgrade pip && \
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "cellpose<4.0.0"
 
-RUN python -c "from cellpose import models; models.Cellpose(gpu=False, model_type='cyto')"
+RUN python -c "from cellpose import models; [models.Cellpose(gpu=False, model_type=m) for m in ['cyto','nuclei','cyto2','cyto3']]"
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation cellpose"
-LABEL org.opencontainers.image.created="2026-07-28T21:42:54Z"
+LABEL org.opencontainers.image.created="2026-07-29T17:59:07Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="6569e2130c8d432263e769faaaeca6393820c56c"
+LABEL org.opencontainers.image.revision="f4cea25bf1b5af9af91addc69e3315a7a2655322"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -659,6 +659,17 @@ function ViashHelp {
   echo "    --min_size"
   echo "        type: integer"
   echo "        default: 15"
+  echo ""
+  echo "    --niter"
+  echo "        type: integer"
+  echo "        default: 0"
+  echo "        Number of flow-dynamics iterations. 0 (Cellpose treats 0 or None the"
+  echo "        same)"
+  echo "        lets Cellpose set it proportional to the diameter (~200 at"
+  echo "        resample=true)."
+  echo "        Lower it (e.g. 50) to speed up the CPU path; raise it for"
+  echo "        large/elongated"
+  echo "        cells that under-converge. Forwarded verbatim to model.eval."
   echo ""
   echo "    --stitch_threshold"
   echo "        type: double"
@@ -910,6 +921,17 @@ while [[ $# -gt 0 ]]; do
         --min_size=*)
             [ -n "$VIASH_PAR_MIN_SIZE" ] && ViashError Bad arguments for option \'--min_size=*\': \'$VIASH_PAR_MIN_SIZE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_MIN_SIZE=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --niter)
+            [ -n "$VIASH_PAR_NITER" ] && ViashError Bad arguments for option \'--niter\': \'$VIASH_PAR_NITER\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NITER="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --niter. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --niter=*)
+            [ -n "$VIASH_PAR_NITER" ] && ViashError Bad arguments for option \'--niter=*\': \'$VIASH_PAR_NITER\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NITER=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         --stitch_threshold)
@@ -1177,6 +1199,9 @@ fi
 if [ -z ${VIASH_PAR_MIN_SIZE+x} ]; then
   VIASH_PAR_MIN_SIZE="15"
 fi
+if [ -z ${VIASH_PAR_NITER+x} ]; then
+  VIASH_PAR_NITER="0"
+fi
 if [ -z ${VIASH_PAR_STITCH_THRESHOLD+x} ]; then
   VIASH_PAR_STITCH_THRESHOLD="0.0"
 fi
@@ -1251,6 +1276,12 @@ fi
 if [[ -n "$VIASH_PAR_MIN_SIZE" ]]; then
   if ! [[ "$VIASH_PAR_MIN_SIZE" =~ ^[-+]?[0-9]+$ ]]; then
     ViashError '--min_size' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_NITER" ]]; then
+  if ! [[ "$VIASH_PAR_NITER" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--niter' has to be an integer. Use "--help" to get more information on the parameters.
     exit 1
   fi
 fi
@@ -1472,6 +1503,7 @@ par = {
   'flow_threshold': $( if [ ! -z ${VIASH_PAR_FLOW_THRESHOLD+x} ]; then echo "float(r'${VIASH_PAR_FLOW_THRESHOLD//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'cellprob_threshold': $( if [ ! -z ${VIASH_PAR_CELLPROB_THRESHOLD+x} ]; then echo "float(r'${VIASH_PAR_CELLPROB_THRESHOLD//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'min_size': $( if [ ! -z ${VIASH_PAR_MIN_SIZE+x} ]; then echo "int(r'${VIASH_PAR_MIN_SIZE//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'niter': $( if [ ! -z ${VIASH_PAR_NITER+x} ]; then echo "int(r'${VIASH_PAR_NITER//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'stitch_threshold': $( if [ ! -z ${VIASH_PAR_STITCH_THRESHOLD+x} ]; then echo "float(r'${VIASH_PAR_STITCH_THRESHOLD//\'/\'\"\'\"r\'}')"; else echo None; fi )
 }
 meta = {

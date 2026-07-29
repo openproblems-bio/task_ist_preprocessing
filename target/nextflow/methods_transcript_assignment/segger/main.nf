@@ -3917,7 +3917,7 @@ meta = [
           "hightime",
           "midcpu",
           "highmem",
-          "gpu"
+          "gpuh100"
         ],
         "tag" : "$id"
       },
@@ -4010,7 +4010,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/segger",
     "viash_version" : "0.9.7",
-    "git_commit" : "6569e2130c8d432263e769faaaeca6393820c56c",
+    "git_commit" : "f4cea25bf1b5af9af91addc69e3315a7a2655322",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4875,7 +4875,7 @@ meta["defaults"] = [
     "hightime",
     "midcpu",
     "highmem",
-    "gpu"
+    "gpuh100"
   ],
   "tag" : "$id"
 }'''),

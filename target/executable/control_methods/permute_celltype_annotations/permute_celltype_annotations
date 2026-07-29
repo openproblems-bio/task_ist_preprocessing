@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata>=0.7.3" "anndata>=0.12.0" "zarr>=3.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component control_methods permute_celltype_annotations"
-LABEL org.opencontainers.image.created="2026-07-28T21:42:54Z"
+LABEL org.opencontainers.image.created="2026-07-29T17:59:07Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="6569e2130c8d432263e769faaaeca6393820c56c"
+LABEL org.opencontainers.image.revision="f4cea25bf1b5af9af91addc69e3315a7a2655322"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

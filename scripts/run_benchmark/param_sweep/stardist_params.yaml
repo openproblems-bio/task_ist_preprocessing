@@ -1,0 +1,43 @@
+# Parameter sweep for the stardist (StarDist2D) segmentation method.
+# Shared source of truth for both run_test_stardist_local.sh (read as a local file)
+# and run_test_stardist_nebius.sh (read from GitHub via a raw URL, since the Nebius
+# compute env pulls the repo but cannot see the launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total stardist variants = 1 default + sum(sweep list lengths) = 13.
+#
+# See src/methods_segmentation/stardist/NOTES.md ("Optimization / tuning") for the
+# rationale, tiers, and defaults. prob_thresh / nms_thresh / scale are the newly
+# exposed StarDist knobs (need `viash ns build` + a container rebuild to take effect).
+parameters:
+  stardist:
+    # Baseline. Only `model` is set explicitly; prob_thresh / nms_thresh / scale are
+    # intentionally LEFT UNSET so the default variant uses the model's own optimized
+    # thresholds (0.479071 / 0.3 for 2D_versatile_fluo) and no rescaling — i.e. exactly
+    # today's production behaviour. Setting them to a fixed number would be wrong for a
+    # different --model, whose optimized thresholds differ.
+    default:
+      model: "2D_versatile_fluo"
+    sweep:
+      # ---- Tier 1: highest impact on segmentation quality ----
+      # prob_thresh: object-probability threshold (default ~0.479 for 2D_versatile_fluo).
+      # Pure recall<->precision dial. LOWER -> recover more / dimmer nuclei; HIGHER ->
+      # keep only confident detections. Span both sides of the default.
+      prob_thresh: [0.3, 0.4, 0.6, 0.7]
+      # scale: isotropic rescale before prediction (default = none / 1.0). StarDist's
+      # analogue of Cellpose's diameter — matches nucleus size to the model's training
+      # size. Xenium morphology (~0.2125 um/px) => ~8 um nucleus ~= 38 px; sweep down
+      # (downscale large nuclei) and up (upscale small nuclei).
+      scale: [0.5, 0.75, 1.5, 2.0]
+      # nms_thresh: non-max-suppression IoU for overlapping polygons (default 0.3).
+      # LOWER -> more aggressive suppression (merge/drop touching nuclei); HIGHER ->
+      # keep more overlapping detections in crowded tissue.
+      nms_thresh: [0.2, 0.4, 0.5]
+      # ---- Tier 1: model choice (already exposed) ----
+      # 2D_paper_dsb2018 is the other fluorescence/nuclear pretrained model. 2D_versatile_he
+      # is H&E RGB (wrong for single-channel fluorescence) so it is NOT swept.
+      model: ["2D_paper_dsb2018"]

@@ -3527,6 +3527,18 @@ meta = [
           "multiple_sep" : ";"
         },
         {
+          "type" : "integer",
+          "name" : "--niter",
+          "description" : "Number of flow-dynamics iterations. 0 (Cellpose treats 0 or None the same)\nlets Cellpose set it proportional to the diameter (~200 at resample=true).\nLower it (e.g. 50) to speed up the CPU path; raise it for large/elongated\ncells that under-converge. Forwarded verbatim to model.eval.\n",
+          "default" : [
+            0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
           "type" : "double",
           "name" : "--stitch_threshold",
           "default" : [
@@ -3688,7 +3700,7 @@ meta = [
         {
           "type" : "docker",
           "run" : [
-            "python -c \\"from cellpose import models; models.Cellpose(gpu=False, model_type='cyto')\\""
+            "python -c \\"from cellpose import models; [models.Cellpose(gpu=False, model_type=m) for m in ['cyto','nuclei','cyto2','cyto3']]\\""
           ]
         }
       ]
@@ -3704,7 +3716,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/cellpose",
     "viash_version" : "0.9.7",
-    "git_commit" : "6569e2130c8d432263e769faaaeca6393820c56c",
+    "git_commit" : "f4cea25bf1b5af9af91addc69e3315a7a2655322",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3867,6 +3879,7 @@ par = {
   'flow_threshold': $( if [ ! -z ${VIASH_PAR_FLOW_THRESHOLD+x} ]; then echo "float(r'${VIASH_PAR_FLOW_THRESHOLD//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'cellprob_threshold': $( if [ ! -z ${VIASH_PAR_CELLPROB_THRESHOLD+x} ]; then echo "float(r'${VIASH_PAR_CELLPROB_THRESHOLD//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'min_size': $( if [ ! -z ${VIASH_PAR_MIN_SIZE+x} ]; then echo "int(r'${VIASH_PAR_MIN_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'niter': $( if [ ! -z ${VIASH_PAR_NITER+x} ]; then echo "int(r'${VIASH_PAR_NITER//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'stitch_threshold': $( if [ ! -z ${VIASH_PAR_STITCH_THRESHOLD+x} ]; then echo "float(r'${VIASH_PAR_STITCH_THRESHOLD//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
 }
 meta = {

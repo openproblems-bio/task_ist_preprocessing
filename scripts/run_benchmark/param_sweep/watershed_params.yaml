@@ -1,0 +1,36 @@
+# Parameter sweep for the `watershed` segmentation method.
+# Single source of truth for BOTH run_test_watershed_local.sh (read directly via
+# $REPO_ROOT) and run_test_watershed_nebius.sh (read from GitHub via raw URL, so it
+# must be committed AND pushed before a Nebius launch).
+#
+# Expansion is a STAR around `default:`, NOT a grid: one extra variant per sweep
+# value, that one arg overridden, everything else = default.
+#   total variants = 1 (default) + Σ len(sweep list) = 1 + 2 + 3 + 3 + 3 = 12
+#
+# The four swept knobs are the Tier-1 levers for classic watershed (see
+# src/methods_segmentation/watershed/NOTES.md "Optimization / tuning"). Ranges are
+# grounded in Xenium morphology (~0.2125 µm/px => an ~8 µm nucleus ≈ 37 px diameter,
+# radius ≈ 18 px, area ≈ 1000 px²). The other ~40 classic-pipeline args stay at
+# their component defaults and are intentionally NOT swept.
+parameters:
+  watershed:
+    default:
+      threshold_func: local_otsu          # adaptive local Otsu (rank.otsu, footprint 50 px)
+      blur_sigma: 1                        # gaussian pre-smoothing sigma (px)
+      local_maxima_min_distance: 5         # min px between watershed seed markers
+      post_processing_min_size_1: 64       # remove_small_objects: min mask area (px)
+    sweep:
+      # foreground/background mask decision. local_otsu (default) is adaptive; the
+      # two alternatives use a single global threshold (triangle suits a dominant
+      # background peak, typical of fluorescence).
+      threshold_func: [otsu, triangle]
+      # heavier pre-smoothing suppresses spurious local maxima (fewer over-split
+      # cells) at the cost of blurring small/dim nuclei. 2-4 px stays sub-nucleus.
+      blur_sigma: [2, 3, 4]
+      # merge<->split dial: markers must be >= this many px apart. default 5 is far
+      # below the nucleus radius (~18 px) and over-splits single nuclei; walking up
+      # toward the radius merges fragments back into one cell.
+      local_maxima_min_distance: [10, 15, 20]
+      # precision dial: drop small foreground blobs before watershed. Stays well
+      # below a full nucleus area (~1000 px²) so real nuclei survive.
+      post_processing_min_size_1: [128, 256, 512]

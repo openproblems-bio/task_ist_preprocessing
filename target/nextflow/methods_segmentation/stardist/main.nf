@@ -3353,9 +3353,37 @@ meta = [
         {
           "type" : "string",
           "name" : "--model",
+          "description" : "Pretrained StarDist2D model loaded via StarDist2D.from_pretrained. Fluorescence/nuclear models: \\"2D_versatile_fluo\\" (default, trained on a DSB2018 subset) and \\"2D_paper_dsb2018\\". \\"2D_versatile_he\\" is a brightfield H&E RGB model and is NOT appropriate for the single-channel fluorescence morphology images here.",
           "default" : [
             "2D_versatile_fluo"
           ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--prob_thresh",
+          "description" : "Object probability threshold; candidate pixels below it are discarded. If unset, the model's optimized value is used (0.479071 for 2D_versatile_fluo). LOWER => more / dimmer nuclei detected (higher recall); HIGHER => fewer, more confident detections (higher precision). Valid range ~0..1.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--nms_thresh",
+          "description" : "Non-maximum-suppression IoU threshold for overlapping polygon candidates. If unset, the model's optimized value is used (0.3 for 2D_versatile_fluo). LOWER => more aggressive suppression (touching nuclei more likely merged/dropped); HIGHER => keeps more overlapping detections. Valid range ~0..1.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--scale",
+          "description" : "Isotropic factor the image is rescaled by before prediction and undone afterwards. If unset, no rescaling. Use it to match nucleus size to the model's training size: >1 upscales (small nuclei appear larger), <1 downscales. StarDist's analogue of Cellpose's diameter.",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3514,7 +3542,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/stardist",
     "viash_version" : "0.9.7",
-    "git_commit" : "6569e2130c8d432263e769faaaeca6393820c56c",
+    "git_commit" : "f4cea25bf1b5af9af91addc69e3315a7a2655322",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3673,7 +3701,10 @@ def convert_to_lower_dtype(arr):
 par = {
   'input': $( if [ ! -z ${VIASH_PAR_INPUT+x} ]; then echo "r'${VIASH_PAR_INPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'model': $( if [ ! -z ${VIASH_PAR_MODEL+x} ]; then echo "r'${VIASH_PAR_MODEL//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
+  'model': $( if [ ! -z ${VIASH_PAR_MODEL+x} ]; then echo "r'${VIASH_PAR_MODEL//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'prob_thresh': $( if [ ! -z ${VIASH_PAR_PROB_THRESH+x} ]; then echo "float(r'${VIASH_PAR_PROB_THRESH//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'nms_thresh': $( if [ ! -z ${VIASH_PAR_NMS_THRESH+x} ]; then echo "float(r'${VIASH_PAR_NMS_THRESH//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'scale': $( if [ ! -z ${VIASH_PAR_SCALE+x} ]; then echo "float(r'${VIASH_PAR_SCALE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -3732,8 +3763,20 @@ normalizer = MyNormalizer(mi, ma)
 block_size = min(image.shape[1] // 3, 4096)
 offset = min(block_size // 5.5, 128)
 
+# Tunable knobs forwarded through predict_instances_big -> predict_instances.
+# A value left as None (i.e. omitted from par) means "use the model's own optimized
+# value": thresholds.json for prob_thresh/nms_thresh, no rescaling for scale. This
+# keeps the default (no-args) call identical to the pre-tuning behaviour.
+eval_params = {
+    k: par[k]
+    for k in ("prob_thresh", "nms_thresh", "scale")
+    if par.get(k) is not None
+}
+print(f"predict_instances_big overrides: {eval_params}", flush=True)
+
 labels, _ = model.predict_instances_big(
-    image[0,:,:], axes='YX', block_size=block_size, min_overlap=offset, context=offset, normalizer=normalizer#, n_tiles=(4,4)
+    image[0,:,:], axes='YX', block_size=block_size, min_overlap=offset,
+    context=offset, normalizer=normalizer, **eval_params  # n_tiles left to block_size
 )
 
 

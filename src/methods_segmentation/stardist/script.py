@@ -39,7 +39,10 @@ def convert_to_lower_dtype(arr):
 par = {
   "input": "resources_test/task_ist_preprocessing/mouse_brain_combined/raw_ist.zarr",
   "output": "temp/stardist/segmentation.zarr",
-  "model": "2D_versatile_fluo"
+  "model": "2D_versatile_fluo",
+  "prob_thresh": None,
+  "nms_thresh": None,
+  "scale": None,
 }
 
 ## VIASH END
@@ -75,8 +78,20 @@ normalizer = MyNormalizer(mi, ma)
 block_size = min(image.shape[1] // 3, 4096)
 offset = min(block_size // 5.5, 128)
 
+# Tunable knobs forwarded through predict_instances_big -> predict_instances.
+# A value left as None (i.e. omitted from par) means "use the model's own optimized
+# value": thresholds.json for prob_thresh/nms_thresh, no rescaling for scale. This
+# keeps the default (no-args) call identical to the pre-tuning behaviour.
+eval_params = {
+    k: par[k]
+    for k in ("prob_thresh", "nms_thresh", "scale")
+    if par.get(k) is not None
+}
+print(f"predict_instances_big overrides: {eval_params}", flush=True)
+
 labels, _ = model.predict_instances_big(
-    image[0,:,:], axes='YX', block_size=block_size, min_overlap=offset, context=offset, normalizer=normalizer#, n_tiles=(4,4)
+    image[0,:,:], axes='YX', block_size=block_size, min_overlap=offset,
+    context=offset, normalizer=normalizer, **eval_params  # n_tiles left to block_size
 )
 
 
