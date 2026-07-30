@@ -1,0 +1,45 @@
+# Parameter sweep for the resolvi_correction (resolVI, scvi-tools) expression-correction method.
+# Committed source of truth read by run_test_resolvi_correction_nebius.sh from GitHub via a
+# raw URL (the Nebius compute env pulls the repo but cannot see the launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not a full
+# grid), so total resolvi_correction variants = 1 default + sum(sweep list lengths) = 5.
+#
+# SUBMITTABLE-NOW CONSTRAINT: the Nebius launch runs `--revision build/main`, i.e. the
+# build/main container as it exists today. It only honours arguments ALREADY EXPOSED in
+# src/methods_expression_correction/resolvi_correction/config.vsh.yaml. That container exposes
+# exactly four args -- celltype_key, n_hidden, encode_covariates, downsample_counts -- so the
+# sweep touches ONLY those (celltype_key is an input mapping, not a tuning knob). The high-value
+# resolVI levers num_samples (posterior samples), max_epochs, and mixture_k are HARD-CODED in
+# script.py, NOT exposed; sweeping them would need a config change + container rebuild, so they
+# are documented in NOTES.md ("Optimization / tuning") as future work and are NOT swept here.
+#
+# See src/methods_expression_correction/resolvi_correction/NOTES.md for tiers, rationale, and
+# the verified upstream defaults. Trim or widen the lists to taste.
+parameters:
+  resolvi_correction:
+    # Baseline == the component's shipped defaults, which (verified) all match the scvi-tools
+    # RESOLVI upstream defaults (n_hidden=32, encode_covariates=False, downsample_counts=True).
+    default:
+      celltype_key: cell_type
+      n_hidden: 32
+      encode_covariates: false
+      downsample_counts: true
+    sweep:
+      # ---- Tier 2: quality / capacity trade-offs (the only exposed knobs) ----
+      # n_hidden: width of the VAE hidden layers. 32 is the scvi RESOLVI default (small, fast);
+      # raising it gives the encoder/decoder more capacity to model diffusion + background at a
+      # time cost. script.py's own grid-search note lists 64 and 128 (default 32 omitted).
+      n_hidden: [64, 128]
+      # encode_covariates: BOOLEAN, default false. Flip to true to also feed batch/covariates
+      # through the encoder (helps when integrating across batches). Forwarded to the RESOLVI
+      # module via **model_kwargs; only one meaningful non-default value exists.
+      encode_covariates: [true]
+      # downsample_counts: BOOLEAN, default true (subsamples per-cell counts to equalise depth
+      # during training). Flip to false to train on full observed counts; only one meaningful
+      # non-default value exists.
+      downsample_counts: [false]

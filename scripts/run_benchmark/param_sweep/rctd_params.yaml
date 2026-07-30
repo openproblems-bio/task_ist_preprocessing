@@ -1,0 +1,52 @@
+# Parameter sweep for the rctd (spacexr RCTD, R) cell type annotation method.
+# Committed source of truth, read at runtime from GitHub via a raw URL by
+# run_test_rctd_nebius.sh (the Nebius compute env pulls the repo but cannot see the
+# launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total rctd variants = 1 default + sum(sweep list lengths) = 13.
+#
+# See src/methods_cell_type_annotation/rctd/NOTES.md ("Optimization / tuning") for the
+# tiers and rationale.
+#
+# All six args are create.RCTD DE-gene / UMI thresholds. Every config default is a
+# DELIBERATELY RELAXED value (walked away from the spacexr default) because iST panels
+# are small (~100-500 genes) and low-count; the stock spacexr defaults strand too few DE
+# genes and abort with "fewer than 10 regression differentially expressed genes". Each
+# sweep list therefore walks that ONE arg back TOWARD its spacexr default (the meaningful
+# direction, since the relaxed default already sits at the permissive extreme, and the
+# default variant already covers the relaxed point).
+#
+# CAVEAT: on a very small panel, the high-threshold variants (values at/near the spacexr
+# defaults) can drop back under the 10-DE-gene floor and legitimately fail — that failure
+# boundary is part of what this sweep measures.
+parameters:
+  rctd:
+    # Baseline == the component's shipped (relaxed-for-iST) defaults.
+    default:
+      gene_cutoff: 0.0
+      fc_cutoff: 0.1
+      gene_cutoff_reg: 0.0
+      fc_cutoff_reg: 0.1
+      umi_min: 20
+      umi_min_sigma: 20
+    sweep:
+      # ---- Tier 1: DE-gene fold-change thresholds (sharpest levers) ----
+      # fc_cutoff: min log-FC for a PLATFORM-EFFECT DE gene. Relaxed 0.1 -> spacexr 0.5.
+      fc_cutoff: [0.25, 0.5]
+      # fc_cutoff_reg: min log-FC for a REGRESSION DE gene. Relaxed 0.1 -> spacexr 0.75.
+      fc_cutoff_reg: [0.4, 0.75]
+      # ---- Tier 1: DE-gene expression-mean thresholds (companion filters) ----
+      # gene_cutoff: min normalized mean expr, platform-effect. 0.0 -> spacexr 0.000125.
+      gene_cutoff: [0.0000625, 0.000125]
+      # gene_cutoff_reg: min normalized mean expr, regression. 0.0 -> spacexr 0.0002.
+      gene_cutoff_reg: [0.0001, 0.0002]
+      # ---- Tier 1: UMI thresholds (which cells get annotated / fit variance) ----
+      # umi_min: min total UMI per spatial cell to annotate it. 20 -> spacexr 100.
+      umi_min: [50, 100]
+      # umi_min_sigma: min UMI for cells fitting the platform-effect variance. 20 -> 300.
+      umi_min_sigma: [100, 300]

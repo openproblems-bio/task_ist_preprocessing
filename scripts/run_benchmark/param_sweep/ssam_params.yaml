@@ -1,0 +1,34 @@
+# Parameter sweep for the ssam (SSAM signature-based) cell-type-annotation method.
+# Committed source of truth for run_test_ssam_nebius.sh (read from GitHub via a raw
+# URL, since the Nebius compute env pulls the repo but cannot see the launch host's
+# local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total ssam variants = 1 default + sum(sweep list lengths) = 5.
+#
+# See src/methods_cell_type_annotation/ssam/NOTES.md ("Optimization / tuning") for the
+# rationale. NOTE: the component exposes exactly ONE tunable knob (`um_per_pixel`); the
+# real SSAM levers (kernel_bandwidth, threshold_cor, threshold_exp, patch_length) are
+# HARDCODED inside txsim's run_ssam wrapper and cannot be reached without patching
+# txsim + rebuilding the image — see NOTES.md "Optimization / tuning" (future work).
+parameters:
+  ssam:
+    # Baseline == the component's shipped default. NB the txsim tool default for
+    # um_p_px is 0.325; the component ships 0.5 (a non-default deviation), so 0.325
+    # is included on the sweep axis below (non-default audit).
+    default:
+      um_per_pixel: 0.5
+    sweep:
+      # um_per_pixel: micrometre-per-pixel factor. txsim's run_ssam multiplies the
+      # transcript x/y coordinates by this before building the mRNA-density map with
+      # a FIXED Gaussian kernel_bandwidth of 4 (hardcoded in txsim). It is therefore
+      # the only reachable dial on the effective KDE smoothing scale: smaller values
+      # compress coordinates -> coarser smoothing relative to the kernel; larger
+      # values spread them -> finer effective resolution. Range straddles the txsim
+      # tool default (0.325) and the shipped default (0.5), which is omitted here
+      # because the "default" variant above already covers it.
+      um_per_pixel: [0.1, 0.2, 0.325, 1.0]
