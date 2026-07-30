@@ -38,8 +38,8 @@ mat_ref = sce_ref.assay("normalized")
 mat_ref = mat_ref.sorted_indices() ## magic line to make sure the matrix is in the right format for SingleR
 
 ## create the reference from our sc data
-built = singler.train_single(ref_data = mat_ref,   
-                             ref_labels = sce_ref.get_column_data().column("cell_type"),    
+built = singler.train_single(ref_data = mat_ref,
+                             ref_labels = sce_ref.get_column_data().column(par['celltype_key']),
                              ref_features = sce_ref.get_row_names(),    
                              test_features = features,)
 
