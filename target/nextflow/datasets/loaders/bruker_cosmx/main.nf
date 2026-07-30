@@ -3524,7 +3524,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx",
     "viash_version" : "0.9.7",
-    "git_commit" : "c6b4c6e1465542ef17f3ef31b7a9cc8fbf8efcf0",
+    "git_commit" : "36833e482e5f0ffafa4cc291ad4587b72d11371a",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4196,8 +4196,13 @@ sdata["morphology_mip"] = sdata["morphology_mip"].sel(c=["DNA"])
 # Add info to metadata table #
 ##############################
 log("Add metadata to table")
-# The common iST API requires a per-cell \\`cell_id\\` in obs; sopa keys the table by the global
-# cell id (as the index) but doesn't add it as a column.
+# The common iST API requires a per-cell unique \\`cell_id\\` in obs. sopa keys the table by the
+# global cell id (the index), so expose that as \\`cell_id\\`. But the CosMx metadata already
+# carries a per-FOV-*local* \\`cell_ID\\` column, and obs cannot hold two keys that differ only in
+# case ('cell_ID' vs 'cell_id') — spatialdata's zarr writer rejects that as an invalid name.
+# Rename the vendor local id out of the way first.
+if "cell_ID" in sdata["table"].obs.columns:
+    sdata["table"].obs.rename(columns={"cell_ID": "cell_ID_local"}, inplace=True)
 sdata["table"].obs["cell_id"] = sdata["table"].obs.index.astype(str)
 for key in ["dataset_id", "dataset_name", "dataset_url", "dataset_reference", "dataset_summary", "dataset_description", "dataset_organism", "segmentation_id"]:
     sdata["table"].uns[key] = par[key]
