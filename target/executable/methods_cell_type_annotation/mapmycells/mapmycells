@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "numpy" "git+https://github.com/AllenInstitute/cell_type_mapper.git"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation mapmycells"
-LABEL org.opencontainers.image.created="2026-07-30T13:22:42Z"
+LABEL org.opencontainers.image.created="2026-07-30T14:24:58Z"
 LABEL org.opencontainers.image.source="https://github.com/AllenInstitute/cell_type_mapper"
-LABEL org.opencontainers.image.revision="36833e482e5f0ffafa4cc291ad4587b72d11371a"
+LABEL org.opencontainers.image.revision="1e8d4523b90936845eacfb0260aac1ccf9ddb310"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

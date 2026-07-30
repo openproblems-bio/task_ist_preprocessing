@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "geopandas" "tifffile" "shapely"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas_merfish"
-LABEL org.opencontainers.image.created="2026-07-30T13:22:42Z"
+LABEL org.opencontainers.image.created="2026-07-30T14:24:58Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="36833e482e5f0ffafa4cc291ad4587b72d11371a"
+LABEL org.opencontainers.image.revision="1e8d4523b90936845eacfb0260aac1ccf9ddb310"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
