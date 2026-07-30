@@ -149,6 +149,16 @@ transcripts = sd.transform(sdata['transcripts'], to_coordinate_system='global')
 # below would otherwise corrupt it and any later compute of `transcripts` would yield
 # renamed columns that no longer match the dask _meta -> "Metadata mismatch".
 transcripts_df = transcripts.compute().copy()
+
+# Some datasets carry no per-molecule transcript id: e.g. the Vizgen MERSCOPE loader
+# renames the vendor's `transcript_id` (a gene/ensembl id) to `ensembl_id`, leaving the
+# transcripts without a `transcript_id` column. FastReseg itself does not use one
+# (transID_coln = NULL in script.R), but output.py needs a `transcript_id` in the final
+# output, so synthesise a unique one from the row position when it is absent.
+if 'transcript_id' not in transcripts_df.columns:
+    print('No transcript_id column found; synthesising a unique transcript_id', flush=True)
+    transcripts_df['transcript_id'] = np.arange(len(transcripts_df), dtype=np.int64)
+
 transcripts_df.rename(columns = {'feature_name': 'target',
 'transcript_id': 'UMI_transID', 'cell_id': 'UMI_cellID'}, inplace = True)
 

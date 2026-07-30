@@ -1,0 +1,63 @@
+# Parameter sweep for the split (SPLIT, R) expression-correction method.
+# Committed source of truth, read at runtime from GitHub via a raw URL by
+# run_test_split_nebius.sh (the Nebius compute env pulls the repo but cannot see the
+# launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total split variants = 1 default + sum(sweep list lengths) = 13.
+#
+# See src/methods_expression_correction/split/NOTES.md ("Optimization / tuning") for the
+# tiers and rationale.
+#
+# WHAT SPLIT ACTUALLY VARIES HERE: SPLIT runs RCTD (spacexr) INTERNALLY to deconvolve each
+# cell, then purifies counts from that deconvolution. The only knobs the component exposes
+# are the six create.RCTD DE-gene / UMI thresholds (plus keep_all_cells, a zero-count-cell
+# guard that is NOT a tuning lever and can crash if flipped -> left fixed). Every one of the
+# six config defaults is a DELIBERATELY RELAXED value walked away from the spacexr default,
+# because iST panels are small (~100-500 genes) and low-count; the stock spacexr defaults
+# strand too few DE genes and abort with "fewer than 10 regression differentially expressed
+# genes". NON-DEFAULT AUDIT: because all six deviate from the spacexr defaults and none is a
+# performance/resource knob, each is forced onto a sweep axis. Each list therefore walks that
+# ONE arg back TOWARD its spacexr default (the meaningful direction, since the relaxed default
+# already sits at the permissive extreme, and the default variant already covers it).
+#
+# SUBMITTABLE-NOW: the Nebius launch runs `--revision build/main`, so the sweep touches ONLY
+# args already exposed in the build/main container -- the six thresholds below all exist in
+# src/methods_expression_correction/split/config.vsh.yaml today, so no rebuild is needed.
+# SPLIT's OWN core levers (DO_purify_singlets, DO_remove_residual_contamination, RCTD
+# doublet_mode) are HARD-CODED in script.R, NOT exposed; sweeping them would need a config
+# arg + container rebuild, so they are documented in NOTES.md as future work and NOT here.
+#
+# CAVEAT: on a very small panel, the high-threshold variants (values at/near the spacexr
+# defaults) can drop back under the 10-DE-gene floor and legitimately fail inside create.RCTD
+# -- that failure boundary is part of what this sweep measures.
+parameters:
+  split:
+    # Baseline == the component's shipped (relaxed-for-iST) defaults.
+    default:
+      gene_cutoff: 0.0
+      fc_cutoff: 0.1
+      gene_cutoff_reg: 0.0
+      fc_cutoff_reg: 0.1
+      umi_min: 20
+      umi_min_sigma: 20
+    sweep:
+      # ---- Tier 1: DE-gene fold-change thresholds (sharpest levers) ----
+      # fc_cutoff: min log-FC for a PLATFORM-EFFECT DE gene. Relaxed 0.1 -> spacexr 0.5.
+      fc_cutoff: [0.25, 0.5]
+      # fc_cutoff_reg: min log-FC for a REGRESSION DE gene. Relaxed 0.1 -> spacexr 0.75.
+      fc_cutoff_reg: [0.4, 0.75]
+      # ---- Tier 1: DE-gene expression-mean thresholds (companion filters) ----
+      # gene_cutoff: min normalized mean expr, platform-effect. 0.0 -> spacexr 0.000125.
+      gene_cutoff: [0.0000625, 0.000125]
+      # gene_cutoff_reg: min normalized mean expr, regression. 0.0 -> spacexr 0.0002.
+      gene_cutoff_reg: [0.0001, 0.0002]
+      # ---- Tier 1: UMI thresholds (which cells get deconvolved / fit variance) ----
+      # umi_min: min total UMI per spatial cell to include it. 20 -> spacexr 100.
+      umi_min: [50, 100]
+      # umi_min_sigma: min UMI for cells fitting the platform-effect variance. 20 -> 300.
+      umi_min_sigma: [100, 300]

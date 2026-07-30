@@ -1,0 +1,61 @@
+# Parameter sweep for the moscot (MOSCOT, OTT-jax fused Gromov-Wasserstein optimal-
+# transport reference mapping) cell-type-annotation method. GPU method.
+#
+# Committed source of truth for run_test_moscot_nebius.sh, read from GitHub via a raw
+# URL (the Nebius compute env pulls the repo but cannot see the launch host's files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total moscot variants = 1 default + sum(sweep list lengths) = 9.
+#
+# See src/methods_cell_type_annotation/moscot/NOTES.md ("Optimization / tuning") for
+# the tiers, tool defaults, and rationale.
+#
+# Only ALREADY-EXPOSED args are swept (alpha, epsilon, mapping_mode), so this is
+# SUBMITTABLE against the build/main container as-is (no rebuild). Un-exposed knobs
+# (n_comps, scale_cost, initializer, convergence thresholds) are documented in NOTES
+# as future work.
+#
+# !!! SMALL-DATA CLAMP — why tau and rank are NOT swept here !!!
+#   script.py:62-66 forces rank=-1 and tau=1.0 whenever the spatial AnnData has
+#   < 10000 cells. The test resource (mouse_brain_combined) has n_obs=306, so on this
+#   run rank and tau are OVERRIDDEN regardless of any value passed -- sweeping them
+#   would only add identical no-op variants. They deviate from moscot's tool defaults
+#   (tau 0.3 vs 1.0, rank 500 vs -1) ONLY for >10k-cell datasets, and are documented in
+#   NOTES.md as the Tier-1 knobs for a real (>10k) dataset sweep.
+parameters:
+  moscot:
+    # Baseline == the component's shipped defaults (config.vsh.yaml).
+    default:
+      alpha: 0.8
+      epsilon: 0.01
+      tau: 0.3          # clamped to 1.0 on this <10k test data (script.py:65-66)
+      rank: 500         # clamped to -1  on this <10k test data (script.py:63-64)
+      batch_size: 1024  # pure memory knob (online GW-cost batching); held fixed
+      mapping_mode: max
+    sweep:
+      # ---- Tier 1: FGW interpolation weight (quality) ----
+      # alpha in (0,1] balances the quadratic Gromov-Wasserstein term (intra-domain
+      # structure: SC 30-dim PCA vs spatial local-pca coords) against the linear term
+      # (shared-gene expression). alpha->1 = pure GW/structure; alpha->0 = pure
+      # expression matching. Config default 0.8 DEVIATES from moscot's tool default 0.5
+      # (structure-heavy) -> promoted to a sweep axis. 0.8 omitted (the default variant
+      # covers it); range straddles the tool default (0.5) up through 0.9.
+      alpha: [0.5, 0.7, 0.9]
+      # ---- Tier 1: entropic regularization (quality vs. convergence) ----
+      # epsilon sets the entropy/stochasticity of the transport plan: higher = blurrier
+      # map, faster & more stable convergence; lower = sharper, more confident mapping
+      # but harder to converge. Config default 0.01 == moscot's tool default (not a
+      # deviation), swept as a legitimate Tier-1 quality axis. 0.01 omitted; two lower
+      # (sharper) + two higher (diffuse) probe an order of magnitude each way.
+      epsilon: [0.001, 0.005, 0.05, 0.1]
+      # ---- Tier 2: label read-out from the transport plan ----
+      # mapping_mode: how a per-cell label is pulled from the plan. 'max' (default) takes
+      # the label of the single highest-mass source cell; 'sum' aggregates the plan mass
+      # per cell type first, then takes the argmax (smoother, uses the full coupling).
+      # moscot has NO tool default here (required arg); 'sum' is the one meaningful
+      # non-default value.
+      mapping_mode: [sum]

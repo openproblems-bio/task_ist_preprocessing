@@ -1,0 +1,39 @@
+# Parameter sweep for the tangram (Tangram, torch deep-learning mapping)
+# cell-type-annotation method.
+#
+# Read from GitHub via a raw URL by run_test_tangram_nebius.sh, since the Nebius
+# compute env pulls the repo but cannot see the launch host's local files.
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total tangram variants = 1 default + sum(sweep list lengths) = 6.
+#
+# See src/methods_cell_type_annotation/tangram/NOTES.md ("Optimization / tuning") for
+# the tiers, defaults, and rationale. Only ALREADY-EXPOSED args are swept here
+# (mode, num_epochs) so this is submittable against the build/main container as-is;
+# density_prior / learning_rate / loss lambdas are documented in NOTES as future work
+# (they would need config expose + a container rebuild first).
+parameters:
+  tangram:
+    # Baseline == the component's shipped defaults.
+    default:
+      mode: "clusters"
+      num_epochs: 1000
+    sweep:
+      # ---- Tier 1: highest impact on quality (accuracy vs. runtime) ----
+      # num_epochs: gradient-descent steps for the mapping. 1000 == Tangram's own
+      # default (our baseline). Fewer -> faster but under-converged/noisier labels;
+      # more -> better-converged mapping at a time cost. Sweep below and above the
+      # default to find the knee. Default 1000 is omitted (the default variant covers it).
+      num_epochs: [100, 500, 2000, 3000]
+      # ---- Tier 2: mapping granularity ----
+      # mode: our default 'clusters' maps per-cell-type clusters (fits GPU VRAM on
+      # large references); 'cells' maps individual reference cells (finer, can be
+      # more accurate on SMALL references, but its matrix scales with n_sc_cells and
+      # OOMs on large ones). 'cells' is the one meaningful non-default value; feasible
+      # on the small test reference. ('constrained' needs target_count -> not a
+      # drop-in axis for label projection, left out.)
+      mode: ["cells"]
