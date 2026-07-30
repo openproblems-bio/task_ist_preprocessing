@@ -457,9 +457,9 @@ RUN pip install --upgrade pip && \
 
 RUN python -c "from cellpose import models; [models.Cellpose(gpu=False, model_type=m) for m in ['cyto','nuclei','cyto2','cyto3']]"
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation cellpose"
-LABEL org.opencontainers.image.created="2026-07-30T14:25:00Z"
+LABEL org.opencontainers.image.created="2026-07-30T14:32:57Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="1e8d4523b90936845eacfb0260aac1ccf9ddb310"
+LABEL org.opencontainers.image.revision="191742e8363ca3b5091971a6fced2dcf03bf5b1b"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
