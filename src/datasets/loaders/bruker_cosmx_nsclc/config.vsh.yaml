@@ -5,9 +5,19 @@ argument_groups:
   - name: Inputs
     arguments:
       - type: string
-        name: --sample
-        example: "Lung9_Rep1"
-        description: "Sample id"
+        name: --input_raw
+        example: "s3://openproblems-data/resources/raw_data/bruker_cosmx/Lung9_Rep1+SMI+Flat+data.tar.gz"
+        description: |
+          URL/path to the flat-files + cell-labels archive (`<sample>+SMI+Flat+data.tar.gz`).
+          Passed as a string (not a staged file) on purpose: the script streams it and extracts
+          only the members sopa needs. Supports s3:// (via s3fs) or a local path.
+      - type: string
+        name: --input_morphology
+        example: "s3://openproblems-data/resources/raw_data/bruker_cosmx/Lung9_Rep1+RawMorphologyImages.tar.gz"
+        description: |
+          URL/path to the raw morphology-images archive (`<sample>+RawMorphologyImages.tar.gz`).
+          Streamed in place; only the 4th z-plane (Z004) of each FOV is extracted. Supports
+          s3:// (via s3fs) or a local path.
       - type: string
         name: --segmentation_id
         default: ["cell"]
@@ -60,9 +70,10 @@ engines:
     __merge__: 
       - /src/base/setup_spatialdata_partial.yaml
     setup:
-      - type: python 
+      - type: python
         pypi:
           - sopa
+          - s3fs  # stream the raw tar.gz archives from s3:// and extract only what sopa needs (see --input_raw)
   - type: native
 
 runners:
