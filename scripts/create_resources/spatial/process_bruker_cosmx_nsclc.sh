@@ -10,11 +10,16 @@ set -e
 
 publish_dir="s3://openproblems-data/resources/datasets"
 
+# Raw NSCLC archives mirrored to S3 (see scripts/create_resources/spatial/mirror_bruker_to_s3.sh).
+# Each sample ships two tar.gz archives: the flat files + cell labels, and the raw morphology images.
+raw_dir="s3://openproblems-data/resources/raw_data/bruker_cosmx"
+
 cat > /tmp/params.yaml << HERE
 param_list:
 
   - id: "bruker_cosmx/bruker_human_lung_cancer_cosmx/lung5_rep1"
-    sample: "Lung5_Rep1"
+    input_raw: "$raw_dir/Lung5_Rep1+SMI+Flat+data.tar.gz"
+    input_morphology: "$raw_dir/Lung5_Rep1+RawMorphologyImages.tar.gz"
     dataset_name: "Bruker CosMx Human Lung Cancer Lung5 Rep1"
     dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/nsclc-ffpe-dataset/"
     dataset_summary: "Bruker CosMx Human Lung Cancer Lung5 Rep1 dataset on FFPE."
@@ -23,16 +28,18 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "bruker_cosmx/bruker_human_lung_cancer_cosmx/lung5_rep2"
-    sample: "Lung5_Rep2"
+    input_raw: "$raw_dir/Lung5_Rep2+SMI+Flat+data.tar.gz"
+    input_morphology: "$raw_dir/Lung5_Rep2+RawMorphologyImages.tar.gz"
     dataset_name: "Bruker CosMx Human Lung Cancer Lung5 Rep2"
     dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/nsclc-ffpe-dataset/"
     dataset_summary: "Bruker CosMx Human Lung Cancer Lung5 Rep2 dataset on FFPE."
     dataset_description: "Bruker CosMx Human Lung Cancer Lung5 Rep2 dataset on FFPE. Adenocarcinoma, G1, T2aN2M0, IIIA, 75% tumour content."
     dataset_organism: "homo_sapiens"
     segmentation_id: ["cell"]
-    
+
   - id: "bruker_cosmx/bruker_human_lung_cancer_cosmx/lung5_rep3"
-    sample: "Lung5_Rep3"
+    input_raw: "$raw_dir/Lung5_Rep3+SMI+Flat+data.tar.gz"
+    input_morphology: "$raw_dir/Lung5_Rep3+RawMorphologyImages.tar.gz"
     dataset_name: "Bruker CosMx Human Lung Cancer Lung5 Rep3"
     dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/nsclc-ffpe-dataset/"
     dataset_summary: "Bruker CosMx Human Lung Cancer Lung5 Rep3 dataset on FFPE."
@@ -41,7 +48,8 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "bruker_cosmx/bruker_human_lung_cancer_cosmx/lung6"
-    sample: "Lung6"
+    input_raw: "$raw_dir/Lung6+SMI+Flat+data.tar.gz"
+    input_morphology: "$raw_dir/Lung6+RawMorphologyImages.tar.gz"
     dataset_name: "Bruker CosMx Human Lung Cancer Lung6"
     dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/nsclc-ffpe-dataset/"
     dataset_summary: "Bruker CosMx Human Lung Cancer Lung6 dataset on FFPE."
@@ -50,7 +58,8 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "bruker_cosmx/bruker_human_lung_cancer_cosmx/lung9_rep1"
-    sample: "Lung9_Rep1"
+    input_raw: "$raw_dir/Lung9_Rep1+SMI+Flat+data.tar.gz"
+    input_morphology: "$raw_dir/Lung9_Rep1+RawMorphologyImages.tar.gz"
     dataset_name: "Bruker CosMx Human Lung Cancer Lung9 Rep1"
     dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/nsclc-ffpe-dataset/"
     dataset_summary: "Bruker CosMx Human Lung Cancer Lung9 Rep1 dataset on FFPE."
@@ -59,7 +68,8 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "bruker_cosmx/bruker_human_lung_cancer_cosmx/lung9_rep2"
-    sample: "Lung9_Rep2"
+    input_raw: "$raw_dir/Lung9_Rep2+SMI+Flat+data.tar.gz"
+    input_morphology: "$raw_dir/Lung9_Rep2+RawMorphologyImages.tar.gz"
     dataset_name: "Bruker CosMx Human Lung Cancer Lung9 Rep2"
     dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/nsclc-ffpe-dataset/"
     dataset_summary: "Bruker CosMx Human Lung Cancer Lung9 Rep2 dataset on FFPE."
@@ -68,7 +78,8 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "bruker_cosmx/bruker_human_lung_cancer_cosmx/lung12"
-    sample: "Lung12"
+    input_raw: "$raw_dir/Lung12+SMI+Flat+data.tar.gz"
+    input_morphology: "$raw_dir/Lung12+RawMorphologyImages.tar.gz"
     dataset_name: "Bruker CosMx Human Lung Cancer Lung12"
     dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/nsclc-ffpe-dataset/"
     dataset_summary: "Bruker CosMx Human Lung Cancer Lung12 dataset on FFPE."
@@ -77,7 +88,8 @@ param_list:
     segmentation_id: ["cell"]
 
   - id: "bruker_cosmx/bruker_human_lung_cancer_cosmx/lung13"
-    sample: "Lung13"
+    input_raw: "$raw_dir/Lung13+SMI+Flat+data.tar.gz"
+    input_morphology: "$raw_dir/Lung13+RawMorphologyImages.tar.gz"
     dataset_name: "Bruker CosMx Human Lung Cancer Lung13"
     dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/nsclc-ffpe-dataset/"
     dataset_summary: "Bruker CosMx Human Lung Cancer Lung13 dataset on FFPE."
