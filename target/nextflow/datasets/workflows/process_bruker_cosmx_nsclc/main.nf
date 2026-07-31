@@ -3049,10 +3049,22 @@ meta = [
       "arguments" : [
         {
           "type" : "string",
-          "name" : "--sample",
-          "description" : "Sample id",
+          "name" : "--input_raw",
+          "description" : "URL/path to the flat-files + cell-labels archive. A string (not a staged file) so the loader can stream it and extract only what sopa needs — see the loader's --input_raw.",
           "example" : [
-            "Lung9_Rep1"
+            "s3://openproblems-data/resources/raw_data/bruker_cosmx/Lung9_Rep1+SMI+Flat+data.tar.gz"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--input_morphology",
+          "description" : "URL/path to the raw morphology-images archive. Streamed in place; only the Z004 plane per FOV is extracted — see the loader's --input_morphology.",
+          "example" : [
+            "s3://openproblems-data/resources/raw_data/bruker_cosmx/Lung9_Rep1+RawMorphologyImages.tar.gz"
           ],
           "required" : false,
           "direction" : "input",
@@ -3538,7 +3550,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_bruker_cosmx_nsclc",
     "viash_version" : "0.9.7",
-    "git_commit" : "191742e8363ca3b5091971a6fced2dcf03bf5b1b",
+    "git_commit" : "a5d90fb32bdeb021a4d246ec5d6b586b28e7bf19",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3675,7 +3687,8 @@ workflow run_wf {
 
     | bruker_cosmx_nsclc.run(
       fromState: [
-        "sample",
+        "input_raw",
+        "input_morphology",
         "segmentation_id",
         "dataset_id",
         "dataset_name",

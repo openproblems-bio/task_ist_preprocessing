@@ -129,9 +129,17 @@ print('Assigning transcripts to cell ids', flush=True)
 y_coords = transcripts.y.compute().to_numpy(dtype=np.int64)
 x_coords = transcripts.x.compute().to_numpy(dtype=np.int64)
 if isinstance(sdata_segm["segmentation"], xr.DataTree):
-    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy() 
+    label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy()
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
+# Clamp coords to the label-image bounds: transcripts at the crop boundary can
+# round a few pixels past the raster edge, or the transcript field of view can
+# extend beyond the segmented raster (real data), so label_image[y, x] would
+# raise IndexError. Matches basic_transcript_assignment; edge/background at the border.
+n_oob = int(np.count_nonzero((y_coords < 0) | (y_coords >= label_image.shape[0]) | (x_coords < 0) | (x_coords >= label_image.shape[1])))
+y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
+x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
+print(f"Clamped {n_oob}/{len(x_coords)} transcripts outside the {label_image.shape[0]}x{label_image.shape[1]} label image to its edge", flush=True)
 cell_id_dask_series = dask.dataframe.from_dask_array(
     dask.array.from_array(
         label_image[y_coords, x_coords], chunks=tuple(sdata['transcripts'].map_partitions(len).compute())

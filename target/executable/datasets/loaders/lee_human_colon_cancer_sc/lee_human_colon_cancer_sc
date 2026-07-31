@@ -450,9 +450,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/theislab/txsim@dev"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders lee_human_colon_cancer_sc"
-LABEL org.opencontainers.image.created="2026-07-30T14:32:54Z"
+LABEL org.opencontainers.image.created="2026-07-31T08:38:33Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="191742e8363ca3b5091971a6fced2dcf03bf5b1b"
+LABEL org.opencontainers.image.revision="a5d90fb32bdeb021a4d246ec5d6b586b28e7bf19"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

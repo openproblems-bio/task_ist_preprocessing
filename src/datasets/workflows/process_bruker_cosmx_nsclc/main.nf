@@ -20,7 +20,8 @@ workflow run_wf {
 
     | bruker_cosmx_nsclc.run(
       fromState: [
-        "sample",
+        "input_raw",
+        "input_morphology",
         "segmentation_id",
         "dataset_id",
         "dataset_name",

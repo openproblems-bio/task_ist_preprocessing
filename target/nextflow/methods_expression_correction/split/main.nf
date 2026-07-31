@@ -3821,7 +3821,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_expression_correction/split",
     "viash_version" : "0.9.7",
-    "git_commit" : "191742e8363ca3b5091971a6fced2dcf03bf5b1b",
+    "git_commit" : "a5d90fb32bdeb021a4d246ec5d6b586b28e7bf19",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
