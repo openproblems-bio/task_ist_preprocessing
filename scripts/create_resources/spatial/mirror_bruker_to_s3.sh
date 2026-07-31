@@ -23,16 +23,29 @@ set -euo pipefail
 # --- Config -----------------------------------------------------------------
 
 SRC_BASE="https://smi-public.objects.liquidweb.services"
-S3_DEST="${S3_DEST:-s3://openproblems-data/resources_raw/bruker_cosmx}"
+# NSCLC lung-cancer samples live on a different NanoString host, one folder per sample.
+NSCLC_BASE="https://nanostring-public-share.s3.us-west-2.amazonaws.com/SMI-Compressed"
+# Where the loaders read from (see the process_bruker_cosmx*.sh run scripts).
+S3_DEST="${S3_DEST:-s3://openproblems-data/resources/raw_data/bruker_cosmx}"
 SCRATCH_DIR="${SCRATCH_DIR:-$PWD/bruker_mirror_scratch}"
 
-# Files to mirror. The URL-encoded names are what the server serves; the second
-# column is the (decoded) name to store under on S3.
+# Files to mirror. Each entry is "SOURCE|LOCAL_NAME":
+#   - SOURCE is either a full https URL, or a name relative to SRC_BASE (the mouse/liver host).
+#     The URL-encoded names are what the liquidweb server serves.
+#   - LOCAL_NAME is the (decoded) name to store under on S3.
 FILES=(
   "HalfBrain.zip|HalfBrain.zip"
   "Half%20%20Brain%20simple%20%20files%20.zip|Half Brain simple files.zip"
   "NormalLiverFiles.zip|NormalLiverFiles.zip"
 )
+
+# NSCLC lung-cancer samples: each ships a flat-files+cell-labels archive and a
+# raw-morphology-images archive. The bruker_cosmx_nsclc loader streams both from S3.
+NSCLC_SAMPLES=(Lung5_Rep1 Lung5_Rep2 Lung5_Rep3 Lung6 Lung9_Rep1 Lung9_Rep2 Lung12 Lung13)
+for s in "${NSCLC_SAMPLES[@]}"; do
+  FILES+=("$NSCLC_BASE/$s/${s}+SMI+Flat+data.tar.gz|${s}+SMI+Flat+data.tar.gz")
+  FILES+=("$NSCLC_BASE/$s/${s}+RawMorphologyImages.tar.gz|${s}+RawMorphologyImages.tar.gz")
+done
 
 # --- Preflight --------------------------------------------------------------
 
@@ -64,7 +77,11 @@ s3_size() {
 for entry in "${FILES[@]}"; do
   url_name="${entry%%|*}"
   local_name="${entry##*|}"
-  url="$SRC_BASE/$url_name"
+  if [[ "$url_name" == http*://* ]]; then
+    url="$url_name"
+  else
+    url="$SRC_BASE/$url_name"
+  fi
   local_path="$SCRATCH_DIR/$local_name"
 
   # S3 key = everything after s3://bucket/
@@ -126,9 +143,11 @@ done
 echo "================================================================"
 echo "All files mirrored to $S3_DEST"
 echo
-echo "Next: update the input_raw / input_flat_files URLs in"
-echo "  scripts/create_resources/spatial/process_bruker_cosmx_nebius.sh"
-echo "to point at the S3 paths, e.g.:"
-echo "  input_raw:        $S3_DEST/HalfBrain.zip"
-echo "  input_flat_files: $S3_DEST/Half Brain simple files.zip"
-echo "  input_raw:        $S3_DEST/NormalLiverFiles.zip"
+echo "Next: the process_bruker_cosmx*.sh run scripts already point at these S3 paths, e.g.:"
+echo "  mouse/liver (process_bruker_cosmx_nebius.sh):"
+echo "    input_raw:        $S3_DEST/HalfBrain.zip"
+echo "    input_flat_files: $S3_DEST/Half Brain simple files.zip"
+echo "    input_raw:        $S3_DEST/NormalLiverFiles.zip"
+echo "  nsclc (process_bruker_cosmx_nsclc_nebius.sh), per sample:"
+echo "    input_raw:        $S3_DEST/<sample>+SMI+Flat+data.tar.gz"
+echo "    input_morphology: $S3_DEST/<sample>+RawMorphologyImages.tar.gz"

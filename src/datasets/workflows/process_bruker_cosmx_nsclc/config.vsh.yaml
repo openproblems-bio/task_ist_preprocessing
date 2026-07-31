@@ -5,9 +5,13 @@ argument_groups:
   - name: Inputs
     arguments:
       - type: string
-        name: --sample
-        example: "Lung9_Rep1"
-        description: "Sample id"
+        name: --input_raw
+        example: "s3://openproblems-data/resources/raw_data/bruker_cosmx/Lung9_Rep1+SMI+Flat+data.tar.gz"
+        description: "URL/path to the flat-files + cell-labels archive. A string (not a staged file) so the loader can stream it and extract only what sopa needs — see the loader's --input_raw."
+      - type: string
+        name: --input_morphology
+        example: "s3://openproblems-data/resources/raw_data/bruker_cosmx/Lung9_Rep1+RawMorphologyImages.tar.gz"
+        description: "URL/path to the raw morphology-images archive. Streamed in place; only the Z004 plane per FOV is extracted — see the loader's --input_morphology."
       - type: string
         name: --segmentation_id
         default: ["cell"]
