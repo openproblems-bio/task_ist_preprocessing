@@ -19,7 +19,7 @@
 #   SCRATCH_DIR=/path/to/big/scratch ./mirror_bruker_to_s3.sh
 
 set -euo pipefail
-
+SCRATCH_DIR="/Volumes/SeagateHHD"
 # --- Config -----------------------------------------------------------------
 
 SRC_BASE="https://smi-public.objects.liquidweb.services"
@@ -33,11 +33,11 @@ SCRATCH_DIR="${SCRATCH_DIR:-$PWD/bruker_mirror_scratch}"
 #   - SOURCE is either a full https URL, or a name relative to SRC_BASE (the mouse/liver host).
 #     The URL-encoded names are what the liquidweb server serves.
 #   - LOCAL_NAME is the (decoded) name to store under on S3.
-FILES=(
-  "HalfBrain.zip|HalfBrain.zip"
-  "Half%20%20Brain%20simple%20%20files%20.zip|Half Brain simple files.zip"
-  "NormalLiverFiles.zip|NormalLiverFiles.zip"
-)
+#FILES=(
+#  "HalfBrain.zip|HalfBrain.zip"
+#  "Half%20%20Brain%20simple%20%20files%20.zip|Half Brain simple files.zip"
+#  "NormalLiverFiles.zip|NormalLiverFiles.zip"
+#)
 
 # NSCLC lung-cancer samples: each ships a flat-files+cell-labels archive and a
 # raw-morphology-images archive. The bruker_cosmx_nsclc loader streams both from S3.
@@ -132,7 +132,7 @@ for entry in "${FILES[@]}"; do
 
   # Upload to S3
   echo "  Uploading to s3://$bucket/$key ..."
-  aws s3 cp "$local_path" "s3://$bucket/$key"
+  aws s3 cp "$local_path" "s3://$bucket/$key" --profile op
 
   # Free scratch space before the next (much larger) file
   echo "  Removing local copy to free space"
