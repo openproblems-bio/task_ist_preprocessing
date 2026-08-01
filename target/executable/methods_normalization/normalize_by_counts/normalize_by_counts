@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "scanpy"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_normalization normalize_by_counts"
-LABEL org.opencontainers.image.created="2026-07-31T08:38:34Z"
+LABEL org.opencontainers.image.created="2026-08-01T19:43:50Z"
 LABEL org.opencontainers.image.source="https://github.com/scverse/scanpy"
-LABEL org.opencontainers.image.revision="a5d90fb32bdeb021a4d246ec5d6b586b28e7bf19"
+LABEL org.opencontainers.image.revision="9eae1ef308d2860a8f952d87d090f2498b4f0dfa"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

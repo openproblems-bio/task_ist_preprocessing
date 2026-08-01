@@ -3612,7 +3612,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_lee_human_colon_cancer_sc",
     "viash_version" : "0.9.7",
-    "git_commit" : "a5d90fb32bdeb021a4d246ec5d6b586b28e7bf19",
+    "git_commit" : "9eae1ef308d2860a8f952d87d090f2498b4f0dfa",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

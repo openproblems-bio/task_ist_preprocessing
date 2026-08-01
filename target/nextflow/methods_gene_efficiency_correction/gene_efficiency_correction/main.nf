@@ -3732,7 +3732,7 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "anndata>=0.12.0"
+            "anndata>=0.12.0,<0.13"
           ],
           "upgrade" : true
         }
@@ -3749,7 +3749,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_gene_efficiency_correction/gene_efficiency_correction",
     "viash_version" : "0.9.7",
-    "git_commit" : "a5d90fb32bdeb021a4d246ec5d6b586b28e7bf19",
+    "git_commit" : "9eae1ef308d2860a8f952d87d090f2498b4f0dfa",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

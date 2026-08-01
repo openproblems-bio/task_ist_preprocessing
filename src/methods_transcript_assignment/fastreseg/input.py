@@ -132,6 +132,20 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy()
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
+# Guard against an empty segmentation. If the label image has no cells (all zeros)
+# every transcript is assigned to background (cell_id 0), generate_adata drops them
+# all, and the downstream tacco annotation then divides by a zero count norm and
+# fails with a cryptic "divide by zero" instead of a useful message. Observed for the
+# vizgen lung-cancer merscope dataset, whose polygon->label rasterization produced an
+# all-zero image (for custom_segmentation this means the dataset's `cell_labels` is
+# empty; re-process the dataset). Mirrors the guard in methods_transcript_assignment/pciseq.
+if label_image.max() == 0:
+    raise ValueError(
+        f"Segmentation '{input_segmentation_path}' contains no cells: the label image "
+        f"(shape={label_image.shape}, dtype={label_image.dtype}) is entirely zero. FastReseg "
+        f"cannot assign transcripts to cells "
+        f"(for custom_segmentation this means the dataset's `cell_labels` is empty)."
+    )
 # Clamp coords to the label-image bounds: transcripts at the crop boundary can
 # round a few pixels past the raster edge, or the transcript field of view can
 # extend beyond the segmented raster (real data), so label_image[y, x] would

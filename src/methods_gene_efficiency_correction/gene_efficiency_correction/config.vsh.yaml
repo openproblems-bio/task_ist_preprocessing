@@ -31,7 +31,7 @@ engines:
       - /src/base/setup_txsim_partial.yaml
     setup:
         - type: python
-          pypi: ["anndata>=0.12.0"]
+          pypi: ["anndata>=0.12.0,<0.13"]
   - type: native
 
 runners:
