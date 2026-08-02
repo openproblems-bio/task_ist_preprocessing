@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "stardist" "tensorflow==2.18.0" "tf_keras==2.18.0" "numpy>=2.0.0,<2.2.0" "scipy<1.15.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_segmentation stardist"
-LABEL org.opencontainers.image.created="2026-08-02T09:17:46Z"
+LABEL org.opencontainers.image.created="2026-08-02T19:35:33Z"
 LABEL org.opencontainers.image.source="https://github.com/stardist/stardist"
-LABEL org.opencontainers.image.revision="35b14c3b41630b3bb8939d26c3e0ed3630cd211d"
+LABEL org.opencontainers.image.revision="bb0cc5e13fc947606897068c744c401d2d941369"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

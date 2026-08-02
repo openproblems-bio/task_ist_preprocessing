@@ -463,9 +463,9 @@ RUN unzip baysor-x86_x64-linux-v0.7.1_build.zip
 RUN chmod +x /bin/baysor
 RUN ln -sf /bin/baysor/bin/baysor /usr/local/bin/baysor
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment baysor"
-LABEL org.opencontainers.image.created="2026-08-02T09:17:45Z"
+LABEL org.opencontainers.image.created="2026-08-02T19:35:32Z"
 LABEL org.opencontainers.image.source="https://github.com/kharchenkolab/Baysor"
-LABEL org.opencontainers.image.revision="35b14c3b41630b3bb8939d26c3e0ed3630cd211d"
+LABEL org.opencontainers.image.revision="bb0cc5e13fc947606897068c744c401d2d941369"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

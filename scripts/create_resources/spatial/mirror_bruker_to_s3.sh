@@ -27,6 +27,10 @@ SRC_BASE="https://smi-public.objects.liquidweb.services"
 NSCLC_BASE="https://nanostring-public-share.s3.us-west-2.amazonaws.com/SMI-Compressed"
 # Where the loaders read from (see the process_bruker_cosmx*.sh run scripts).
 S3_DEST="${S3_DEST:-s3://openproblems-data/resources/raw_data/bruker_cosmx}"
+# AWS CLI profile used for EVERY aws call. There is no default profile configured on the
+# mirror host, so an aws call without this fails with NoCredentials -- which previously made
+# the "already in S3?" size check silently return empty and re-download every file.
+PROFILE="${PROFILE:-op}"
 SCRATCH_DIR="${SCRATCH_DIR:-$PWD/bruker_mirror_scratch}"
 
 # Files to mirror. Each entry is "SOURCE|LOCAL_NAME":
@@ -69,7 +73,7 @@ remote_size() {
 
 s3_size() {
   # Size of the object in S3, or empty if it doesn't exist
-  aws s3api head-object --bucket "$1" --key "$2" --query 'ContentLength' --output text 2>/dev/null || true
+  aws s3api head-object --profile "$PROFILE" --bucket "$1" --key "$2" --query 'ContentLength' --output text 2>/dev/null || true
 }
 
 # --- Main loop --------------------------------------------------------------
@@ -132,7 +136,7 @@ for entry in "${FILES[@]}"; do
 
   # Upload to S3
   echo "  Uploading to s3://$bucket/$key ..."
-  aws s3 cp "$local_path" "s3://$bucket/$key" --profile op
+  aws s3 cp "$local_path" "s3://$bucket/$key" --profile "$PROFILE"
 
   # Free scratch space before the next (much larger) file
   echo "  Removing local copy to free space"
