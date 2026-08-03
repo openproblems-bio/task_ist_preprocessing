@@ -91,7 +91,7 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [ midtime, midcpu, midmem ]
+      label: [ veryhightime, midcpu, highmem ]
 
 
 ##macOS workaround: export DOCKER_DEFAULT_PLATFORM=linux/amd64
