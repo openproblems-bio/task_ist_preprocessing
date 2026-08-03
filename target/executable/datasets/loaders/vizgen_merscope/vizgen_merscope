@@ -452,9 +452,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders vizgen_merscope"
-LABEL org.opencontainers.image.created="2026-08-03T09:59:58Z"
+LABEL org.opencontainers.image.created="2026-08-03T16:22:33Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="20da3e499f8217fa3e7122c7bc9727002612fb08"
+LABEL org.opencontainers.image.revision="11bdc5e0b2b43aea651d4ec015feec370f749583"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1187,6 +1187,7 @@ cat > "\$tempscript" << 'VIASHMAIN'
 # https://www.10xgenomics.com/datasets/fresh-frozen-mouse-brain-replicates-1-standard
 
 import os
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 
@@ -1253,6 +1254,22 @@ print(
     {k: par[k] for k in ["input", "output", "dataset_id", "dataset_organism"]},
     flush=True,
 )
+
+
+def _element_names(sd_obj):
+    """List element names across spatialdata versions.
+
+    Newer spatialdata removed \`\`SpatialData.keys()\`\`, so \`\`list(sdata.keys())\`\` raises
+    \`\`AttributeError\`\`. The per-type element dicts (\`\`images\`\`/\`\`labels\`\`/\`\`points\`\`/\`\`shapes\`\`/
+    \`\`tables\`\`) have been stable for far longer, so we collect names from those instead.
+    """
+    names = []
+    for attr in ("images", "labels", "points", "shapes", "tables"):
+        try:
+            names.extend(getattr(sd_obj, attr).keys())
+        except Exception:
+            pass
+    return names
 
 
 def _cell_polygon(cell_grp):
@@ -1381,7 +1398,7 @@ print(datetime.now() - t0, "Loader finished", flush=True)
 try:
     print(
         datetime.now() - t0,
-        "Loaded elements: " + ", ".join(list(sdata.keys())),
+        "Loaded elements: " + ", ".join(_element_names(sdata)),
         flush=True,
     )
 except Exception as e:
@@ -1411,15 +1428,37 @@ for old_key, new_key in elements_renaming_map.items():
 
 print(datetime.now() - t0, "Renamed elements", flush=True)
 
-# Rename transcript column
-sdata["transcripts"] = sdata["transcripts"].rename(columns={"global_z": "z", "transcript_id": "ensembl_id"})#, "gene": "feature_name"})
-if "gene" in sdata["transcripts"].columns: 
-    # No idea why, but somehow dask dataframe renaming for the 'gene' column ends up in a key error when assigning it to sdata["transcripts"].
-    # update: see https://github.com/scverse/spatialdata/issues/996
-    sdata["transcripts"]["feature_name"] = sdata["transcripts"]["gene"]
-    del sdata["transcripts"]["gene"]
-    sdata['transcripts'].attrs["spatialdata_attrs"]["feature_key"] = "feature_name"
-print(datetime.now() - t0, "Renamed transcripts column 'global_z' -> 'z' and 'gene' -> 'feature_name' and 'transcript_id' -> 'ensembl_id'", flush=True)
+# Rename transcript columns.
+# In newer pandas/dask, dask's DataFrame.rename() no longer propagates the frame's \`.attrs\`, so it
+# returns a Points frame stripped of \`transform\` + \`spatialdata_attrs\`. Reassigning that bare frame
+# to sdata["transcripts"] then fails PointsModel validation with
+#   "dask.dataframe.core.DataFrame.attrs does not contain \`transform\`" (scverse/spatialdata#996).
+# We snapshot the valid \`.attrs\` before renaming and restore them afterwards, which reproduces the
+# old (attrs-propagating) behaviour exactly and keeps the element model unchanged.
+transcripts = sdata["transcripts"]
+saved_attrs = deepcopy(dict(transcripts.attrs))
+
+rename_map = {"global_z": "z", "transcript_id": "ensembl_id"}
+renamed_gene = "gene" in transcripts.columns
+if renamed_gene:
+    # The feature_key column ('gene') is renamed too; update the feature_key attr to match,
+    # otherwise validation KeyErrors on the now-missing 'gene' column.
+    rename_map["gene"] = "feature_name"
+    saved_attrs["spatialdata_attrs"]["feature_key"] = "feature_name"
+
+renamed = transcripts.rename(columns=rename_map)
+# Restore by mutating the frame's live \`.attrs\` dict in place (rather than reassigning \`.attrs\`),
+# so this depends only on the getter returning the live dict -- the same assumption the rest of the
+# loader already makes.
+renamed.attrs.clear()
+renamed.attrs.update(saved_attrs)
+sdata["transcripts"] = renamed
+print(
+    datetime.now() - t0,
+    "Renamed transcripts columns 'global_z' -> 'z', 'transcript_id' -> 'ensembl_id'"
+    + (" and 'gene' -> 'feature_name'" if renamed_gene else ""),
+    flush=True,
+)
 
 print(datetime.now() - t0, "Columns in sdata['transcripts']:", sdata["transcripts"].columns, flush=True)
 

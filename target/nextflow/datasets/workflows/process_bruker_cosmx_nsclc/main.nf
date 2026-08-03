@@ -3550,7 +3550,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_bruker_cosmx_nsclc",
     "viash_version" : "0.9.7",
-    "git_commit" : "20da3e499f8217fa3e7122c7bc9727002612fb08",
+    "git_commit" : "11bdc5e0b2b43aea651d4ec015feec370f749583",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

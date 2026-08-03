@@ -3522,7 +3522,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx_nsclc",
     "viash_version" : "0.9.7",
-    "git_commit" : "20da3e499f8217fa3e7122c7bc9727002612fb08",
+    "git_commit" : "11bdc5e0b2b43aea651d4ec015feec370f749583",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3904,6 +3904,26 @@ class _PandasReadCsvProxy:
 
 
 _cosmx_mod.pd = _PandasReadCsvProxy(_real_pd)
+
+############################################################
+# Relax sopa's max-cell-id equality assertion (see below)  #
+############################################################
+# sopa builds a collision-free global cell id as \\`fov * (max_cell_id + 1) + cell_ID\\`, where
+# \\`max_cell_id\\` is the max *local* cell_ID across FOVs. It computes this multiplier the first
+# time from the expression table (read_tables runs first) and then *asserts* the transcripts
+# file has the exact same max. But a segmented cell can have zero detected transcripts, so the
+# tx file's max local cell_ID can be smaller than the table's (Lung5_Rep2: table=5484, tx=4716)
+# -> "Expected max cell ID to be 5484, but got 4716." The namespace only requires the SAME
+# multiplier for both tables, not equal maxima; and a transcript's cell must exist in the
+# segmentation, so tx cell_ID <= table cell_ID always. Reuse the running max instead of
+# asserting so the table and transcripts share one multiplier.
+def _patched_get_global_cell_id(self, df):
+    max_cell_id = df["cell_ID"].max()
+    self.max_cell_id = max_cell_id if not hasattr(self, "max_cell_id") \\\\
+        else max(self.max_cell_id, max_cell_id)
+    return df["fov"] * (self.max_cell_id + 1) * (df["cell_ID"] > 0) + df["cell_ID"]
+
+_cosmx_mod._CosMXReader._get_global_cell_id = _patched_get_global_cell_id
 
 #########################################
 # Convert raw files to spatialdata zarr #

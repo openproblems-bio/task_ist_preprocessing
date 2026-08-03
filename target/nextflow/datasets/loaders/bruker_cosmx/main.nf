@@ -3524,7 +3524,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/bruker_cosmx",
     "viash_version" : "0.9.7",
-    "git_commit" : "20da3e499f8217fa3e7122c7bc9727002612fb08",
+    "git_commit" : "11bdc5e0b2b43aea651d4ec015feec370f749583",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4137,6 +4137,17 @@ if RECONSTRUCT:
     def _fixed_global_cell_id(self, df):
         return df["fov"] * (_RECON_MAX + 1) * (df["cell_ID"] > 0) + df["cell_ID"]
     _cosmx_mod._CosMXReader._get_global_cell_id = _fixed_global_cell_id
+else:
+    # For standard exports we have no precomputed max, but the same assertion trips whenever a
+    # segmented cell carries zero transcripts (tx-file max < exprMat/metadata max). read_tables
+    # runs before read_transcripts and tx cell_ID <= table cell_ID always, so reuse the running
+    # max across frames instead of asserting they agree.
+    def _running_max_global_cell_id(self, df):
+        max_cell_id = df["cell_ID"].max()
+        self.max_cell_id = max_cell_id if not hasattr(self, "max_cell_id") \\\\
+            else max(self.max_cell_id, max_cell_id)
+        return df["fov"] * (self.max_cell_id + 1) * (df["cell_ID"] > 0) + df["cell_ID"]
+    _cosmx_mod._CosMXReader._get_global_cell_id = _running_max_global_cell_id
 
 #########################################
 # Convert raw files to spatialdata zarr #
