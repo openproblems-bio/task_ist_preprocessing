@@ -75,8 +75,52 @@ def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
     w_offset = (w - w_crop) // 2
         
     crop = [[h_offset, h_offset + h_crop], [w_offset, w_offset + w_crop]]
-        
+
     return crop
+
+def crop_points_by_global_xy(points, x0, x1, y0, y1):
+    """Keep points whose GLOBAL (x, y) fall in [x0,x1] x [y0,y1], preserving the transform.
+
+    Global coords are computed from the element's affine matrix, so this is correct for
+    Scale, Affine (incl. reordered output axes like merscope's z,x,y) and 2D or 3D points
+    alike. It avoids spatialdata 0.8's bounding_box, which transposes Scale-transformed
+    transcripts and drops all points of a merscope Affine when the query omits z. Stays
+    lazy (dask) — no materialisation of large transcript tables.
+    """
+    from spatialdata.models import PointsModel
+    from spatialdata.transformations import get_transformation, set_transformation
+
+    axes = [a for a in ("x", "y", "z") if a in points.columns]
+    trans = get_transformation(points, get_all=True)
+    # to_affine_matrix enforces "output axes superset of input axes" for Scale transforms,
+    # so request all axes as output and pick the x/y output rows.
+    M = trans["global"].to_affine_matrix(input_axes=tuple(axes), output_axes=tuple(axes))
+    ix, iy = axes.index("x"), axes.index("y")
+    gx = sum(M[ix, i] * points[a] for i, a in enumerate(axes)) + M[ix, len(axes)]
+    gy = sum(M[iy, i] * points[a] for i, a in enumerate(axes)) + M[iy, len(axes)]
+    keep = (gx >= x0) & (gx <= x1) & (gy >= y0) & (gy <= y1)
+    feat = points.attrs.get("spatialdata_attrs", {}).get("feature_key")
+    new = PointsModel.parse(points[keep], feature_key=feat) if feat else PointsModel.parse(points[keep])
+    set_transformation(new, trans, set_all=True)
+    return new
+
+def crop_shapes_by_global_xy(shapes, x0, x1, y0, y1):
+    """Keep shapes whose GLOBAL centroid falls in the box (mirrors the label pixel crop)."""
+    from shapely.affinity import affine_transform
+    from spatialdata.models import ShapesModel
+    from spatialdata.transformations import get_transformation, set_transformation
+
+    trans = get_transformation(shapes, get_all=True)
+    M = trans["global"].to_affine_matrix(input_axes=("x", "y"), output_axes=("x", "y"))
+    a, b, xoff, d, e, yoff = M[0, 0], M[0, 1], M[0, 2], M[1, 0], M[1, 1], M[1, 2]
+    c = shapes.geometry.apply(lambda g: affine_transform(g, [a, b, d, e, xoff, yoff]).centroid)
+    keep = c.map(lambda p: (x0 <= p.x <= x1) and (y0 <= p.y <= y1))
+    filtered = shapes[keep]
+    if len(filtered) == 0:
+        return None  # nothing survives; spatialdata can't hold an empty shapes element -> drop it
+    new = ShapesModel.parse(filtered)
+    set_transformation(new, trans, set_all=True)
+    return new
 
 def rechunk_sdata(sdata, CHUNK_SIZE=1024):
     """Rechunk the sdata to the given chunk size
@@ -252,16 +296,37 @@ if "morphology_mip" in sdata.images:
     sdata["image"] = sdata["morphology_mip"]
     del sdata.images["morphology_mip"]
 
+# spatialdata 0.8's filter_table join calls table.obs.reset_index(), which raises when a
+# table's obs index name duplicates an obs column of the same name (merscope tables set
+# EntityID as both the index and the instance_key column). Un-name the index to avoid the
+# collision; the instance_key column is preserved, so the join still matches correctly.
+for _tbl in sdata.tables.values():
+    if _tbl.obs.index.name is not None and _tbl.obs.index.name in _tbl.obs.columns:
+        _tbl.obs.index.name = None
+
 # Crop datasets that are too large
 crop_coords = get_crop_coords(sdata)
 if crop_coords is not None:
+    (y0, y1), (x0, x1) = crop_coords  # global box (raw image is at identity -> px == global)
+
+    # Raster elements (image, labels) + table crop correctly with bounding_box.
     sdata_output = sdata.query.bounding_box(
         axes=["y", "x"],
-        min_coordinate=[crop_coords[0][0], crop_coords[1][0]],
-        max_coordinate=[crop_coords[0][1], crop_coords[1][1]],
+        min_coordinate=[y0, x0],
+        max_coordinate=[y1, x1],
         target_coordinate_system="global",
         filter_table=True,
     )
+    # spatialdata 0.8's bounding_box mis-crops TRANSFORMED vector elements: it transposes
+    # Scale-transformed transcripts (Xenium) and drops ALL points of a merscope Affine whose
+    # leading output axis is z when the query omits z (MERFISH). Re-crop points/shapes
+    # ourselves by their GLOBAL x/y — transform- and dimension-agnostic (see helpers above).
+    for _name in list(sdata.points):
+        sdata_output.points[_name] = crop_points_by_global_xy(sdata.points[_name], x0, x1, y0, y1)
+    for _name in list(sdata.shapes):
+        _cropped_shapes = crop_shapes_by_global_xy(sdata.shapes[_name], x0, x1, y0, y1)
+        if _cropped_shapes is not None:  # None -> element lies entirely outside the crop
+            sdata_output.shapes[_name] = _cropped_shapes
     # metadata is dataset-level, not spatial — re-add it if the bounding_box query dropped it
     if "metadata" in sdata.tables and "metadata" not in sdata_output.tables:
         sdata_output["metadata"] = sdata.tables["metadata"]

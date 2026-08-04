@@ -446,15 +446,15 @@ function ViashDockerfile {
 FROM openproblems/base_python:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata>=0.7.3" "anndata>=0.12.0,<0.13" "zarr>=3.0.0"
+  pip install --upgrade --no-cache-dir "spatialdata==0.8.0" "anndata>=0.12.0,<0.13" "zarr>=3.0.0"
 
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata-io"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders vizgen_merscope"
-LABEL org.opencontainers.image.created="2026-08-04T08:03:07Z"
+LABEL org.opencontainers.image.created="2026-08-04T23:39:48Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="a21ef757a4b00aa77cae76f61489983903579afb"
+LABEL org.opencontainers.image.revision="1ad70866a3d0c672d444fa05b5d4a6dba582a196"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1546,6 +1546,17 @@ except Exception as e:
 sdata["cell_labels"] = labels_image
 
 del sdata["cell_labels"].attrs["label_index_to_category"]
+
+# Promote cell_labels from the single-scale DataArray that sd.rasterize() returns to a
+# multiscale pyramid, matching the Xenium convention (vendor Xenium labels ship as a
+# ["scale0"] DataTree). Without this the element is single-scale, and downstream
+# components that index ["scale0"] on the segmentation copied from cell_labels
+# (custom_segmentation) fail with KeyError: 'scale0'. scale_factors=[2,2,2,2] gives the
+# scale0..scale4 pyramid; labels downsample with a label-preserving (nearest) method.
+from spatialdata.models import Labels2DModel
+# parse() preserves the element's existing transform; passing transformations= as well
+# raises ("specified twice"), so don't.
+sdata["cell_labels"] = Labels2DModel.parse(sdata["cell_labels"], scale_factors=[2, 2, 2, 2])
 
 
 ##############################

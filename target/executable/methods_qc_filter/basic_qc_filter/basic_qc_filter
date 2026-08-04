@@ -453,9 +453,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "anndata>=0.12.0,<0.13"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_qc_filter basic_qc_filter"
-LABEL org.opencontainers.image.created="2026-08-04T08:03:07Z"
+LABEL org.opencontainers.image.created="2026-08-04T23:39:48Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="a21ef757a4b00aa77cae76f61489983903579afb"
+LABEL org.opencontainers.image.revision="1ad70866a3d0c672d444fa05b5d4a6dba582a196"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

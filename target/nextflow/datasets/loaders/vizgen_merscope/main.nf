@@ -3484,7 +3484,7 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "spatialdata>=0.7.3",
+            "spatialdata==0.8.0",
             "anndata>=0.12.0,<0.13",
             "zarr>=3.0.0"
           ],
@@ -3511,7 +3511,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/vizgen_merscope",
     "viash_version" : "0.9.7",
-    "git_commit" : "a21ef757a4b00aa77cae76f61489983903579afb",
+    "git_commit" : "1ad70866a3d0c672d444fa05b5d4a6dba582a196",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3990,6 +3990,17 @@ except Exception as e:
 sdata["cell_labels"] = labels_image
 
 del sdata["cell_labels"].attrs["label_index_to_category"]
+
+# Promote cell_labels from the single-scale DataArray that sd.rasterize() returns to a
+# multiscale pyramid, matching the Xenium convention (vendor Xenium labels ship as a
+# ["scale0"] DataTree). Without this the element is single-scale, and downstream
+# components that index ["scale0"] on the segmentation copied from cell_labels
+# (custom_segmentation) fail with KeyError: 'scale0'. scale_factors=[2,2,2,2] gives the
+# scale0..scale4 pyramid; labels downsample with a label-preserving (nearest) method.
+from spatialdata.models import Labels2DModel
+# parse() preserves the element's existing transform; passing transformations= as well
+# raises ("specified twice"), so don't.
+sdata["cell_labels"] = Labels2DModel.parse(sdata["cell_labels"], scale_factors=[2, 2, 2, 2])
 
 
 ##############################
