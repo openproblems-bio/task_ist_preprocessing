@@ -338,6 +338,17 @@ sdata["cell_labels"] = labels_image
 
 del sdata["cell_labels"].attrs["label_index_to_category"]
 
+# Promote cell_labels from the single-scale DataArray that sd.rasterize() returns to a
+# multiscale pyramid, matching the Xenium convention (vendor Xenium labels ship as a
+# ["scale0"] DataTree). Without this the element is single-scale, and downstream
+# components that index ["scale0"] on the segmentation copied from cell_labels
+# (custom_segmentation) fail with KeyError: 'scale0'. scale_factors=[2,2,2,2] gives the
+# scale0..scale4 pyramid; labels downsample with a label-preserving (nearest) method.
+from spatialdata.models import Labels2DModel
+# parse() preserves the element's existing transform; passing transformations= as well
+# raises ("specified twice"), so don't.
+sdata["cell_labels"] = Labels2DModel.parse(sdata["cell_labels"], scale_factors=[2, 2, 2, 2])
+
 
 ##############################
 # Add info to metadata table #
