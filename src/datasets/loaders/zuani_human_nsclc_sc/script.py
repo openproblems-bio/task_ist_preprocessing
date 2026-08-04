@@ -7,7 +7,7 @@ import anndata as ad
 ## VIASH START
 
 par = {
-    "input": "ftp://anonymous@ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad",
+    "input": "https://ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad",
     "keep_files": True, # wether to delete the intermediate files
     "output": "./temp/datasets/2024Zuani_human_nsclc_sc.h5ad",
     "dataset_id": "2024Zuani_human_nsclc_sc", 
@@ -36,11 +36,25 @@ TMP_DIR.mkdir(parents=True, exist_ok=True)
 #   Resolving _viash_par (_viash_par)... failed: Name or service not known.
 #   wget: unable to resolve host address ‘_viash_par’)
 FILE_PATH = TMP_DIR / "10X_Lung_Tumour_Annotated_v2.h5ad"
-DOWNLOAD_URL = "ftp://anonymous@ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad"
+# EBI serves this file over HTTPS at the same host/path as the ftp:// URL. HTTPS avoids
+# the FTP passive-mode data-connection timeouts ("PASV ... couldn't connect ... port
+# NNNNN: Connection timed out") that make the ftp:// URL unreliable from cloud/cluster
+# runners. The endpoint advertises Accept-Ranges: bytes, so `wget -c` resumes a partial
+# download across the retries below.
+DOWNLOAD_URL = "https://ftp.ebi.ac.uk/biostudies/fire/E-MTAB-/526/E-MTAB-13526/Files/10X_Lung_Tumour_Annotated_v2.h5ad"
 
-# Download the data (55GB)
-os.system(f'wget "{DOWNLOAD_URL}" -P "{TMP_DIR}/"')
-# os.system(f'wget "{DOWNLOAD_URL}" -P "{TMP_DIR}/" --show-progress')
+# Download the data (~55GB). Resume-capable and retrying; check the exit code so a
+# failed download raises a clear error here instead of a misleading FileNotFoundError
+# when read_h5ad() is handed a path that was never written.
+ret = os.system(
+    f'wget -c --tries=20 --timeout=120 --waitretry=60 --progress=dot:giga '
+    f'-O "{FILE_PATH}" "{DOWNLOAD_URL}"'
+)
+if ret != 0 or not FILE_PATH.exists():
+    raise RuntimeError(
+        f"Failed to download Zuani NSCLC h5ad from {DOWNLOAD_URL} "
+        f"(wget exit status {ret})."
+    )
 adata = ad.read_h5ad(FILE_PATH)
 # adata = adata[::100]
 
