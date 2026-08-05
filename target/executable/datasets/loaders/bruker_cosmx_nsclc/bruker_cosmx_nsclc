@@ -446,15 +446,15 @@ function ViashDockerfile {
 FROM openproblems/base_python:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "spatialdata==0.8.0" "anndata>=0.12.0,<0.13" "zarr>=3.0.0"
+  pip install --upgrade --no-cache-dir "spatialdata==0.8.0; python_version>='3.12'" "spatialdata>=0.7.3; python_version<'3.12'" "anndata>=0.12.0,<0.13" "zarr>=3.0.0"
 
 RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "sopa" "s3fs"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders bruker_cosmx_nsclc"
-LABEL org.opencontainers.image.created="2026-08-04T23:39:48Z"
+LABEL org.opencontainers.image.created="2026-08-05T05:15:14Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="1ad70866a3d0c672d444fa05b5d4a6dba582a196"
+LABEL org.opencontainers.image.revision="924993ac84a07b2175bdca5e0c5b968a9b57e665"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

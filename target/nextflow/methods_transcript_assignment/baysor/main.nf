@@ -3974,7 +3974,8 @@ meta = [
           "type" : "python",
           "user" : false,
           "pypi" : [
-            "spatialdata==0.8.0",
+            "spatialdata==0.8.0; python_version>='3.12'",
+            "spatialdata>=0.7.3; python_version<'3.12'",
             "anndata>=0.12.0,<0.13",
             "zarr>=3.0.0"
           ],
@@ -4025,7 +4026,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/baysor",
     "viash_version" : "0.9.7",
-    "git_commit" : "1ad70866a3d0c672d444fa05b5d4a6dba582a196",
+    "git_commit" : "924993ac84a07b2175bdca5e0c5b968a9b57e665",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

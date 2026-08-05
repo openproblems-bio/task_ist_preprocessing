@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "scanpy"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_normalization normalize_by_volume"
-LABEL org.opencontainers.image.created="2026-08-04T23:39:47Z"
+LABEL org.opencontainers.image.created="2026-08-05T05:15:13Z"
 LABEL org.opencontainers.image.source="https://github.com/theislab/txsim"
-LABEL org.opencontainers.image.revision="1ad70866a3d0c672d444fa05b5d4a6dba582a196"
+LABEL org.opencontainers.image.revision="924993ac84a07b2175bdca5e0c5b968a9b57e665"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
