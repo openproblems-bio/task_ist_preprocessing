@@ -54,14 +54,19 @@ Links: docs https://elihei2.github.io/segger_dev/ · repo https://github.com/dpe
    `cell_id` (prior; background → `"UNASSIGNED"`), plus dummy `qv=40.0` and
    `overlaps_nucleus`. The **prior `cell_id`** per transcript comes from looking up
    the label image at each transcript's integer pixel coords (truncated to int64,
-   then clipped to image bounds). `tx_pd` (clean RangeIndex) is the **canonical
-   transcript frame** over ALL transcripts. **Only the IN-BOUNDS transcripts are written
-   to the parquet** (see the empty-`bd`-batch gotcha): transcripts whose pixel coords fall
-   outside the label image are **excluded from segger's input** and stay unassigned (0) in
-   the output. So the parquet row order == the **in-bounds subset**, and segger's reported
-   `row_index` indexes that subset — `seg_orig_idx = np.nonzero(in_bounds)[0]` maps it back
-   to the full-frame position in step 5. On datasets whose segmentation covers the whole
-   transcript field this is a no-op (`n_oob == 0`, parquet == full frame).
+   then **clamped** to image bounds — a few can round a pixel past the raster edge, same
+   clamp as `basic_transcript_assignment` / `baysor` / `proseg`). `tx_pd` (clean RangeIndex)
+   is the **canonical transcript frame** over ALL transcripts, and **ALL of them are written
+   to the parquet**, so the parquet row order == `tx_pd` and segger's reported `row_index`
+   indexes it directly (step 5). Guards against a total coordinate-frame mismatch by raising
+   if *every* transcript clamps out of bounds (`n_oob == n_tx`).
+   **History:** this step formerly EXCLUDED out-of-bounds transcripts from the parquet and
+   remapped `row_index` through a `seg_orig_idx` array — a workaround for when the
+   process_dataset crop left ~38% of transcripts outside the cropped labels. That crop bug is
+   fixed (`crop_points_by_global_xy` crops transcripts to the same global box as the labels)
+   and a full run on re-processed Xenium + MERFISH confirmed `n_oob == 0`, so the exclusion
+   was a no-op and was removed in favour of the plain clamp. This is INDEPENDENT of the
+   empty-`bd`-batch crash (see that gotcha) — that one is intra-field, not OOB-driven.
 
 4. **Run segger** — `segger segment -i -o --n-epochs --prediction-graph-buffer-ratio
    --prediction-mode --node-representation-dim`, launched via a `run_segger(node_dim)`
@@ -265,30 +270,36 @@ Nextflow runner labels: `[hightime, midcpu, highmem, gpuh100]`.
   guards right after reading the segmentation (`int(seg_arr.data.max()) == 0 → raise` with an
   actionable message), mirroring pciseq's guard. Note the benchmark retries an exit-1 task 3×
   before ignoring it, so a guarded fail still burns 3 retries — re-processing is the cure.
-- **Transcripts outside the label window crash segger's encoder with an empty `bd` batch.**
+- **Empty-`bd`-batch crash — a cell-free tile, NOT out-of-bounds transcripts (STILL OPEN).**
   segger builds a heterogeneous graph with `'tx'` (transcript) and `'bd'` (boundary/cell)
   node types and applies a `Positional2dEmbedder` to **both**. That embedder does
-  `torch.zeros((batch.max()+1, 2))` — and `batch.max()` throws `RuntimeError: max(): Expected
-  reduction dim to be specified for input.numel() == 0` on an **empty** tensor. A training
-  mini-batch drawn entirely from **tiles that have transcripts but no boundaries** has zero
-  `'bd'` nodes → that empty `batch` → crash. Because the Lightning DataLoader shuffles, this
-  fires **mid-training** (e.g. epoch 8/19), not on batch 0 — so it looks intermittent. Source
-  of the transcript-only tiles: the combine step crops the image/labels to ~20000² but the
-  transcripts span a larger field, so a large fraction (observed **~38%**, 7.6M/19.7M on
-  mouse-brain rep3) sit outside the label. **Fix (`script.py`, in our adapter — no segger
-  patch):** compute an `in_bounds` mask and write **only in-bounds transcripts** to
-  `transcripts.parquet`; OOB transcripts (which can't belong to any segmented cell anyway)
-  stay unassigned (0) in the output, and segger's `row_index` is mapped back through
-  `seg_orig_idx = np.nonzero(in_bounds)[0]`. This also removes the earlier "40% clamped →
-  garbage prior" quality issue. **Fallback if empty-`bd` batches ever persist** (e.g. a
-  sparse in-coverage tile with transcripts but no cells): also patch segger's
-  `ist_encoder.py` `Positional2dEmbedder.forward` to no-op on `batch.numel()==0` (a
-  from_torch-style Docker `sed` shim), but prefer the adapter filter — it stops the degenerate
-  tile from forming rather than tolerating it. Separately worth chasing upstream: **why ~38%
-  of transcripts fall outside the label at all** — `sd.query.bounding_box` in the combine step
-  (`process_dataset/script.py:258`) should crop transcripts and labels together, so this may
-  be a combine/crop inconsistency affecting every assignment method (the basic ones just mark
-  those transcripts background and don't crash).
+  `torch.zeros((batch.max()+1, 2))` (`ist_encoder.py`) — and `batch.max()` throws
+  `RuntimeError: max(): Expected reduction dim to be specified for input.numel() == 0` on an
+  **empty** tensor. A mini-batch drawn from **tiles that have transcripts but no boundaries**
+  has zero `'bd'` nodes → empty `batch` → crash.
+  - **Original hypothesis (now disproven as the cause):** the transcript-only tiles came from
+    the combine step cropping labels to ~20000² while transcripts spanned a larger field
+    (~38%, 7.6M/19.7M on mouse-brain rep3, sat outside the label). The adapter worked around it
+    by EXCLUDING out-of-bounds transcripts from `transcripts.parquet`.
+  - **What actually happened:** the crop bug was fixed at the source (`crop_points_by_global_xy`
+    crops transcripts to the same global box as the labels). A full validation run (Seqera
+    `1HlVGwXktVakGm`) then showed segger **completes on Xenium** (mouse brain rep3, human breast)
+    but **still crashes on MERFISH** (`2022_vizgen_human_breast_cancer_merfish_combined/rep1`) —
+    with `0/19222237 transcripts fall outside the label image` (**n_oob == 0**), training all 80
+    batches, then dying at **validation tile ~21/28**. So the crash is **intra-field**: a tile
+    covering tissue that has transcripts but no *segmented cells* (MERSCOPE fields have acellular
+    / off-tissue gaps + a big extracellular transcript fraction; `custom_segmentation` copies the
+    vendor mask, so transcript-only tiles exist). Xenium coverage is dense → never trips.
+  - Because n_oob is 0, the OOB exclusion was a confirmed no-op and has been **removed**
+    (replaced by the plain edge clamp; see step 3). It never addressed this crash anyway.
+  - **The real fix (still to do — needs a container rebuild):** patch segger's
+    `Positional2dEmbedder.forward` in `ist_encoder.py` to no-op on empty input, e.g. return
+    `pos.new_zeros((pos.shape[0], 2 * self.dim))` when `pos.numel() == 0`, applied as a
+    from_torch-style Docker `sed`/python shim in `config.vsh.yaml`. This is a **segger source
+    patch (image rebuild)**, unlike the OOB simplification which is script-only. Verify the shim
+    on a live `build_main` pod (`debug-component-k8s`) before baking it in — the GPU/RAPIDS
+    rebuild is the expensive feedback loop. Not upstream in segger as of pinned `0233cf62`
+    (PR #74 is a *different* fix — Shapely polygon validity, not this).
 - **No CI test coverage** — GPU-only; can only be exercised on a CUDA host.
 - **Small panels break segger's gene-embedding PCA.** segger's `setup_anndata` does
   `PCA(n_components=in_channels=128)` on a genes×genes correlation matrix built from genes
@@ -352,8 +363,8 @@ So 0.05 is *not* a deviation; it is segger's current default. (`transcripts_key`
 ### Tiers
 
 - **Tier 0 — inputs, not parameters.** The biggest levers aren't in the sweep: the segmentation
-  prior fed in (which segmentation method, how good its boundaries) and the fraction of
-  transcripts that fall inside the label window (OOB transcripts are dropped — see the empty-`bd`
+  prior fed in (which segmentation method, how good its boundaries) and how densely those
+  boundaries cover the transcript field (sparse coverage → cell-free tiles → the empty-`bd`
   gotcha). Both are fixed by the upstream stage here.
 - **Tier 1 — highest impact on *what* gets assigned:**
   - **`prediction_mode`** {`nucleus`,`cell`,`uniform`} — which polygon set drives the prediction
