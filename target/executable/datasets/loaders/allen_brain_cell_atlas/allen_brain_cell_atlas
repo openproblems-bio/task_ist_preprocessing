@@ -446,12 +446,12 @@ function ViashDockerfile {
 FROM openproblems/base_python:1
 ENTRYPOINT []
 RUN pip install --upgrade pip && \
-  pip install --upgrade --no-cache-dir "git+https://github.com/alleninstitute/abc_atlas_access"
+  pip install --upgrade --no-cache-dir "git+https://github.com/alleninstitute/abc_atlas_access@v.3.3.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas"
-LABEL org.opencontainers.image.created="2026-08-05T11:54:23Z"
+LABEL org.opencontainers.image.created="2026-08-05T14:36:13Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="4c4a0fccab156d3ed972b6ea401819f9dc9a641c"
+LABEL org.opencontainers.image.revision="dd1e85627f53a4a1814e6806d26bf4f560069386"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1409,14 +1409,14 @@ if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
         obs = obs.sample(n=par["sample_n_obs"])
 
 
-# From abc_cache.list_data_files("WMB-10Xv2")
+# From abc_cache.list_expression_matrix_files("WMB-10Xv2")
 # TODO: potentially also load other chemistries (currently only 10Xv2)
 
 print("Downloading and reading expression matrices", flush=True)
 abca_data_subdir="WMB-10Xv2"
 abca_region_files = [
     [file_name, region]
-    for file_name in abc_cache.list_data_files(abca_data_subdir)
+    for file_name in abc_cache.list_expression_matrix_files(abca_data_subdir)
     for region in REGIONS
     if re.match(f"WMB-10Xv2-{region}[\\\\-0-9]*/raw", file_name)
 ]

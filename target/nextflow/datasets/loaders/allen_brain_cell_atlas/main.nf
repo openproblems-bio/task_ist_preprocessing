@@ -3614,7 +3614,7 @@ meta = [
           "type" : "python",
           "user" : false,
           "packages" : [
-            "git+https://github.com/alleninstitute/abc_atlas_access"
+            "git+https://github.com/alleninstitute/abc_atlas_access@v.3.3.0"
           ],
           "upgrade" : true
         }
@@ -3631,7 +3631,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.7",
-    "git_commit" : "4c4a0fccab156d3ed972b6ea401819f9dc9a641c",
+    "git_commit" : "dd1e85627f53a4a1814e6806d26bf4f560069386",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3852,14 +3852,14 @@ if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
         obs = obs.sample(n=par["sample_n_obs"])
 
 
-# From abc_cache.list_data_files("WMB-10Xv2")
+# From abc_cache.list_expression_matrix_files("WMB-10Xv2")
 # TODO: potentially also load other chemistries (currently only 10Xv2)
 
 print("Downloading and reading expression matrices", flush=True)
 abca_data_subdir="WMB-10Xv2"
 abca_region_files = [
     [file_name, region]
-    for file_name in abc_cache.list_data_files(abca_data_subdir)
+    for file_name in abc_cache.list_expression_matrix_files(abca_data_subdir)
     for region in REGIONS
     if re.match(f"WMB-10Xv2-{region}[\\\\\\\\-0-9]*/raw", file_name)
 ]

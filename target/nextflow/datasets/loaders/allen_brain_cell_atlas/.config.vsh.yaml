@@ -468,7 +468,7 @@ engines:
   - type: "python"
     user: false
     packages:
-    - "git+https://github.com/alleninstitute/abc_atlas_access"
+    - "git+https://github.com/alleninstitute/abc_atlas_access@v.3.3.0"
     upgrade: true
   entrypoint: []
   cmd: null
@@ -481,7 +481,7 @@ build_info:
   output: "target/nextflow/datasets/loaders/allen_brain_cell_atlas"
   executable: "target/nextflow/datasets/loaders/allen_brain_cell_atlas/main.nf"
   viash_version: "0.9.7"
-  git_commit: "4c4a0fccab156d3ed972b6ea401819f9dc9a641c"
+  git_commit: "dd1e85627f53a4a1814e6806d26bf4f560069386"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

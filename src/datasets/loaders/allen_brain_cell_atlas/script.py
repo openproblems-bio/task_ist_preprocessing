@@ -73,14 +73,14 @@ if par["sample_n_obs"] and par["sample_n_obs"] < obs.shape[0]:
         obs = obs.sample(n=par["sample_n_obs"])
 
 
-# From abc_cache.list_data_files("WMB-10Xv2")
+# From abc_cache.list_expression_matrix_files("WMB-10Xv2")
 # TODO: potentially also load other chemistries (currently only 10Xv2)
 
 print("Downloading and reading expression matrices", flush=True)
 abca_data_subdir="WMB-10Xv2"
 abca_region_files = [
     [file_name, region]
-    for file_name in abc_cache.list_data_files(abca_data_subdir)
+    for file_name in abc_cache.list_expression_matrix_files(abca_data_subdir)
     for region in REGIONS
     if re.match(f"WMB-10Xv2-{region}[\\-0-9]*/raw", file_name)
 ]
