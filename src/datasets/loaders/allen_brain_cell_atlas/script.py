@@ -116,6 +116,14 @@ print("Concatenating data", flush=True)
 adata = ad.concat(adatas, merge="first")
 del adatas
 
+# Drop genes expressed in <3 cells. The ABCA panel carries ~32k genes, most unexpressed in the
+# sampled brain cells; their ~zero log-mean collapses scanpy HVG's mean-quantile bins to
+# duplicate edges ("Bin edges must be unique"). Filtering keeps HVG well-defined downstream.
+print("Filtering genes (>=3 cells)", flush=True)
+gene_ncells = np.asarray((adata.layers["counts"] > 0).sum(axis=0)).ravel()
+adata = adata[:, gene_ncells >= 3].copy()
+print(f"Kept {adata.n_vars} genes", flush=True)
+
 print("Processing .obs")
 adata.obs = obs.loc[adata.obs.index]
 

@@ -56,13 +56,23 @@ head $par_intermediate_dir/cell_types.tsv
 
 # Step 2: RunFastReseg
 
-##running the R script
+## running the R script.
+## ARG-ORDERING CONTRACT: script.R reads these POSITIONALLY. The first 6 are file paths
+## (args[1..6]); the FastReseg tuning knobs are appended AFTER them in this EXACT order and
+## must match script.R's args[7..10] and config.vsh.yaml's `arguments:` block:
+##   args[7]=molecular_distance_cutoff, args[8]=flagCell_lrtest_cutoff,
+##   args[9]=svmClass_score_cutoff,     args[10]=cutoff_spatialMerge.
+## A reordering here silently corrupts the run — do not touch one file without the others.
 Rscript "$meta_resources_dir/script.R" "$par_intermediate_dir/counts.tsv" \
   "$par_intermediate_dir/transcripts.tsv" \
   "$par_intermediate_dir/cell_types.tsv" \
   "$par_intermediate_dir/cell_ids.csv" \
  "$par_intermediate_dir/gene_names.csv" \
-  "$par_intermediate_dir/transcripts_out.csv"
+  "$par_intermediate_dir/transcripts_out.csv" \
+  "$par_molecular_distance_cutoff" \
+  "$par_flagCell_lrtest_cutoff" \
+  "$par_svmClass_score_cutoff" \
+  "$par_cutoff_spatialMerge"
 
 ## python output
 python "$meta_resources_dir/output.py" \
