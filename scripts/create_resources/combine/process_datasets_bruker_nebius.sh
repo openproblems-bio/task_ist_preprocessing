@@ -12,7 +12,11 @@ cd "$REPO_ROOT"
 
 set -e
 
-input_dir="s3://openproblems-data/resources/datasets"
+# Read raw inputs from the scratch PVC (where the bruker spatial scripts publish via
+# publish_dir='/scratch/task_ist_preprocessing/raw'), not S3. Both input_sp (bruker_cosmx/…)
+# and input_sc (scrnaseq refs) resolve under here; the raw/ layout mirrors the S3 subpaths.
+input_dir="/scratch/task_ist_preprocessing/raw"
+#input_dir="s3://openproblems-data/resources/datasets"
 #publish_dir="s3://openproblems-data/resources/task_ist_preprocessing/datasets"
 publish_dir='/scratch/task_ist_preprocessing/datasets'
 
@@ -39,17 +43,6 @@ param_list:
     dataset_reference: "https://doi.org/10.1002/hep4.1854"
     dataset_summary: "Bruker CosMx Human Liver + 2022 Andrews scRNAseq"
     dataset_description: "Bruker CosMx Human Liver + 2022 Andrews scRNAseq"
-    dataset_organism: "homo_sapiens"
-
-  - id: "bruker_human_liver_cancer_cosmx_combined"
-    input_sp: "$input_dir/bruker_cosmx/bruker_human_liver_cancer_cosmx/dataset.zarr"
-    input_sc: "$input_dir/scrnaseq_for_ist/2022Lu_human_liver_cancer_sc/dataset.h5ad"
-    dataset_id: "bruker_human_liver_cancer_cosmx_combined"
-    dataset_name: "Human liver cancer combined Bruker CosMx 2022 Lu scRNAseq"
-    dataset_url: "https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/human-liver-rna-ffpe-dataset/"
-    dataset_reference: "https://doi.org/10.1038/s41467-022-32283-3"
-    dataset_summary: "Bruker CosMx Human Liver Cancer + 2022 Lu scRNAseq"
-    dataset_description: "Bruker CosMx Human Liver Cancer + 2022 Lu scRNAseq"
     dataset_organism: "homo_sapiens"
 
   - id: "bruker_human_lung_cancer_cosmx_combined/lung5_rep1"
