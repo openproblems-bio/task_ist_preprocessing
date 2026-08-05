@@ -321,3 +321,77 @@ Nextflow runner labels: `[hightime, midcpu, highmem, gpuh100]`.
   label-image index — matches `basic_transcript_assignment`'s convention.
 - The Docker step ordering (esp. the final pandas pin) is fragile; changing the base
   image usually cascades into all the version pins above.
+
+## Optimization / tuning
+
+Parameter sweep for optimizing segger's transcript-assignment quality. The sweep files live
+under `scripts/run_benchmark/param_sweep/` (`segger_params.yaml` + `run_test_segger_nebius.sh`).
+`run_benchmark` expands the params file as a **star around the default** (one extra variant per
+swept value, that ONE arg overridden — NOT a grid), so total variants =
+1 default + Σ(sweep list lengths) = **8**. GPU runs are expensive, so the sweep is kept lean and
+touches **only already-exposed args ⇒ SUBMITTABLE AS-IS (no container rebuild)**.
+
+### Non-default audit (vs segger 0.1.0 @ `0233cf62`)
+
+Every exposed quality knob's shipped default MATCHES segger 0.1.0's own default — there is **no**
+pre-existing deviation to force onto a sweep axis:
+
+| arg | shipped | segger 0.1.0 default | source |
+|-----|---------|----------------------|--------|
+| `n_epochs` | 20 | 20 | `cli/segment.py` (`n_epochs=20` literal) |
+| `prediction_graph_buffer_ratio` | 0.05 | 0.05 | `data/data_module.py:151` (`= 0.05`) |
+| `prediction_mode` | `cell` | `cell` | `data/data_module.py:149` (`prediction_graph_mode="cell"`) |
+| `node_representation_dim` | 128 | 128 | `data/data_module.py:138` (`cells_embedding_size=128`) |
+
+⚠️ **Correction to the arg-table note above:** the `0.5` mentioned there was the default of the
+**OLD** `--prediction-expansion-ratio` flag. In 0.1.0 that flag was renamed to
+`--prediction-graph-buffer-ratio` AND its default was lowered to **0.05** — exactly what we ship.
+So 0.05 is *not* a deviation; it is segger's current default. (`transcripts_key` /
+`coordinate_system` are our adapter's I/O keys, not segger knobs — fixed, never swept.)
+
+### Tiers
+
+- **Tier 0 — inputs, not parameters.** The biggest levers aren't in the sweep: the segmentation
+  prior fed in (which segmentation method, how good its boundaries) and the fraction of
+  transcripts that fall inside the label window (OOB transcripts are dropped — see the empty-`bd`
+  gotcha). Both are fixed by the upstream stage here.
+- **Tier 1 — highest impact on *what* gets assigned:**
+  - **`prediction_mode`** {`nucleus`,`cell`,`uniform`} — which polygon set drives the prediction
+    graph. We write the SAME polygons to both cell/nucleus files, so `nucleus` vs `cell` differ
+    only in how segger treats them internally; `uniform` drops the prior-boundary identity.
+    Default `cell`; sweep the other two → `[nucleus, uniform]`.
+  - **`prediction_graph_buffer_ratio`** — fraction of each polygon's equivalent radius used to
+    buffer (expand) it when building the prediction graph. The direct **recall↔precision** dial:
+    a larger buffer expands each cell so it captures more surrounding transcripts (↑recall,
+    ↓precision). Default 0.05 (tight); sweep UP → `[0.1, 0.25, 0.5]` (0.5 == the old
+    expansion-ratio default — a natural upper anchor).
+- **Tier 2 — quality/speed trade-off:**
+  - **`n_epochs`** — GNN training epochs. More epochs = better convergence at a linear GPU-time
+    cost (60 ≈ 3× the default's train time). Default 20; sweep UP → `[40, 60]`.
+- **Tier 3 — not exposed (would need a config arg + a GPU/RAPIDS container rebuild — deliberately
+  NOT done, to keep the sweep submittable-as-is).** Highest-value candidates for a serious
+  follow-up: `prediction_max_k` (default 3 — k for the prediction kNN graph, another recall dial),
+  `cells_representation` (`pca`/`morphology`), `segmentation_loss` (`triplet`/`bce`),
+  `transcripts_max_dist`/`transcripts_max_k` (transcript-transcript graph radius), `learning_rate`.
+
+### Why `node_representation_dim` is NOT swept
+
+It maps to segger's `cells_embedding_size`/`in_channels` and sets the PCA `n_components` for the
+gene embeddings. It is effectively an **upper bound**: on small panels/crops fewer genes survive
+segger's count filters than 128, and `script.py` already auto-retries at the ceiling segger
+reports. Sweeping it lower would only cap the embedding capacity (not improve quality); higher
+would just re-hit the same ceiling. It is a *capacity/robustness* knob, not a quality axis → left
+fixed at 128.
+
+### Sweep summary
+
+| tier | arg | default | swept values |
+|------|-----|---------|--------------|
+| 1 | `prediction_mode` | `cell` | `nucleus`, `uniform` |
+| 1 | `prediction_graph_buffer_ratio` | 0.05 | 0.1, 0.25, 0.5 |
+| 2 | `n_epochs` | 20 | 40, 60 |
+
+Total = 1 default + 2 + 3 + 2 = **8 variants**. All args already exposed ⇒ **SUBMITTABLE AS-IS**.
+segger is GPU-only: the `gpuh100` label in the config + `src/base/labels_nebius.config`
+(`runAsUser:0` + Memory-backed `/dev/shm`) pin it to the GPU node group — no GPU-specific change
+is needed in the sweep script.

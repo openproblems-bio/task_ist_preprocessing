@@ -13,15 +13,45 @@ references:
   doi: "10.1038/s41598-025-08733-5"
 
 
-#arguments:
-#  - name: --transcripts_key
-#    type: string
-#    default: "transcripts"
-#    description: "Key for transcripts in the points layer"
-#  - name: --coordinate_system
-#    type: string
-#    default: "global"
-#    description: "Coordinate system for the transcripts"
+# Method-specific FastReseg tuning knobs. Each default == FastReseg's TRUE package
+# default for fastReseg_full_pipeline() (verified against the upstream signature), i.e.
+# the value that was previously hardcoded in script.R. These are Tier-1 error-detection /
+# correction levers; see NOTES.md ("Optimization / tuning") for tiers and ranges.
+#
+# ARG-ORDERING CONTRACT: orchestrator.sh passes these to script.R as POSITIONAL args
+# appended AFTER the 6 file-path args, in this exact order:
+#   args[7]=molecular_distance_cutoff, args[8]=flagCell_lrtest_cutoff,
+#   args[9]=svmClass_score_cutoff,     args[10]=cutoff_spatialMerge.
+# Keep config <-> orchestrator.sh <-> script.R in lockstep or the run silently corrupts.
+arguments:
+  - name: --molecular_distance_cutoff
+    type: double
+    default: 2.7
+    description: |
+      Maximum molecule-to-molecule distance (microns) within a connected transcript group
+      during neighborhood search. FastReseg default 2.7. Sharpest lever on how transcripts
+      are grouped into candidate cells: smaller => tighter / more fragmented groups, larger
+      => looser groups that may merge neighbouring cells.
+  - name: --flagCell_lrtest_cutoff
+    type: double
+    default: 5
+    description: |
+      Cutoff on lrtest_nlog10P (-log10 p-value of the likelihood-ratio test) used to flag
+      putative mis-segmented cells with strong spatial dependency in their transcript-score
+      profile. FastReseg default 5. Lower => more cells flagged for re-segmentation (more
+      aggressive correction); higher => more conservative.
+  - name: --svmClass_score_cutoff
+    type: double
+    default: -2
+    description: |
+      Transcript-score cutoff separating high- vs low-score transcript classes in the SVM
+      used during error detection/correction. FastReseg default -2.
+  - name: --cutoff_spatialMerge
+    type: double
+    default: 0.5
+    description: |
+      Spatial-constraint cutoff (fraction in 0-1) for accepting a merge event between two
+      source transcript groups. FastReseg default 0.5 (a 50% cutoff).
 
 
 resources:

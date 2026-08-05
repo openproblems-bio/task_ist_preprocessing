@@ -11,7 +11,10 @@ links:
   documentation: "https://github.com/openproblems-bio/task_ist_preprocessing"
   repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
 references:
-  doi: "10.1038/s41592-020-01018-x"
+  # ComSeg: Defard et al., "A point cloud segmentation framework for image-based
+  # spatial transcriptomics", Commun Biol 7, 800 (2024). The previous DOI
+  # (10.1038/s41592-020-01018-x) was the Cellpose paper, not ComSeg.
+  doi: "10.1038/s42003-024-06480-3"
 
 
 arguments:

@@ -112,11 +112,24 @@ Why each non-obvious choice:
 
 ## Arguments
 
-Only the standard API args (`--input_ist`, `--input_segmentation`, `--input_scrnaseq`,
-`--sc_cell_type_key`, `--output`). Method-specific knobs (pixel/z-step size, distance cutoffs,
-lrtest/svm cutoffs) are currently **hardcoded** in `script.R` and `um_per_pixel`/
-`sc_celltype_key` in `input.py` — not yet exposed as Viash arguments (the commented
-`arguments:` block in the config is a placeholder).
+Standard API args (`--input_ist`, `--input_segmentation`, `--input_scrnaseq`,
+`--sc_cell_type_key`, `--output`) **plus four exposed FastReseg tuning knobs** (added for the
+parameter sweep — see "Optimization / tuning" below):
+
+| Arg | Type | Default | Maps to (`fastReseg_full_pipeline`) |
+|-----|------|---------|-------------------------------------|
+| `--molecular_distance_cutoff` | double | 2.7 | `molecular_distance_cutoff` |
+| `--flagCell_lrtest_cutoff` | double | 5 | `flagCell_lrtest_cutoff` |
+| `--svmClass_score_cutoff` | double | -2 | `svmClass_score_cutoff` |
+| `--cutoff_spatialMerge` | double | 0.5 | `cutoff_spatialMerge` |
+
+Each default equals FastReseg's TRUE package default (verified against the upstream function
+signature), so the exposed-arg behaviour with defaults is byte-for-byte the old hardcoded
+behaviour. **Still hardcoded** (not exposed): `pixel_size` (0.18) and `zstep_size` (0.8) in
+`script.R` (Tier-0 dataset-physical constants); `groupTranscripts_method` ("dbscan") /
+`spatialMergeCheck_method` ("leidenCut") (Tier-2/3 categoricals); the NULL auto-cutoffs
+(`cellular_distance_cutoff`, `score_baseline`, `lower/higherCutoff_transNum`); and
+`sc_celltype_key` ("cell_type") in `input.py`.
 
 ## Wiring
 
@@ -137,3 +150,72 @@ lrtest/svm cutoffs) are currently **hardcoded** in `script.R` and `um_per_pixel`
 - **Validated**: `viash test` passes locally (amd64/emulated); all four runtime bugs and the
   downstream `basic_count_aggregation` compatibility were reproduced and fixed in a k8s pod on
   the `build_main` image. Not yet run through a full Nextflow benchmark end-to-end.
+
+## Optimization / tuning
+
+FastReseg corrects an image-based segmentation from the spatial profile of transcripts, so its
+levers control **how aggressively transcript groups are formed, flagged as mis-segmented, split,
+and re-merged**. Ranges below are grounded in the upstream `fastReseg_full_pipeline()` roxygen
+docs (DOI 10.1038/s41598-025-08733-5).
+
+**Non-default audit (important):** every value that was hardcoded in `script.R` *exactly*
+matched FastReseg's package default — `pixel_size=0.18`, `zstep_size=0.8`,
+`molecular_distance_cutoff=2.7`, `flagCell_lrtest_cutoff=5`, `svmClass_score_cutoff=-2`,
+`groupTranscripts_method="dbscan"`, `spatialMergeCheck_method="leidenCut"`,
+`cutoff_spatialMerge=0.5`, and all NULL auto-cutoffs. So **nothing was a pre-tuned deviation**;
+each exposed config default is set to that same package default and the sweep walks the knob
+away from it in both directions.
+
+### Tiers
+
+- **Tier 0 (input / not swept):** `pixel_size` (0.18) and `zstep_size` (0.8) — dataset-physical
+  geometry that converts transcript pixel coords to microns; wrong values rescale *all* distance
+  cutoffs at once. Left hardcoded because they are properties of the data, not quality dials.
+  (Caveat worth revisiting: `input.py` feeds FastReseg coords already in the standardized global
+  space, so whether 0.18 is the right multiplier here is unverified — but that is a correctness
+  question, not a sweep axis.)
+- **Tier 1 (swept — highest impact on output quality):** the four exposed knobs below.
+- **Tier 2/3 (exposed candidates, NOT swept):** `groupTranscripts_method`
+  (`dbscan`↔`delaunay`) and `spatialMergeCheck_method` (`leidenCut`↔`geometryDiff`) are
+  categorical algorithm choices — worth a future 1-value-each flip, but left hardcoded to keep
+  this sweep focused on the continuous error-detection/correction dials. The NULL auto-cutoffs
+  (`cellular_distance_cutoff`, `score_baseline`, `lower/higherCutoff_transNum`) are
+  data-adaptively computed by FastReseg; pinning them to fixed values is a deeper study.
+
+### Swept knobs (Tier 1) — 11 variants (1 default + 10 sweep)
+
+| Arg | Default | Sweep | Rationale |
+|-----|---------|-------|-----------|
+| `--molecular_distance_cutoff` | 2.7 | `[1.5, 2.0, 3.5, 4.0]` | Sharpest lever: max molecule↔molecule µm distance for grouping transcripts into candidate cells. Smaller → tighter/fragmented groups; larger → looser groups that may merge neighbours. Widest sweep. |
+| `--flagCell_lrtest_cutoff` | 5 | `[3, 8]` | `-log10 p` cutoff to flag mis-segmented cells. Lower → flags more cells (aggressive re-segmentation); higher → conservative. |
+| `--svmClass_score_cutoff` | -2 | `[-3, -1]` | Transcript-score boundary between high/low SVM classes; straddles the default. |
+| `--cutoff_spatialMerge` | 0.5 | `[0.3, 0.7]` | Fractional (0–1) spatial constraint for accepting a group-merge; lower stricter, higher more permissive. |
+
+Defaults omitted from each sweep list (the "default" variant already covers that point). Booleans
+would get exactly one flip — none of these are boolean.
+
+### Arg-ordering contract (CRITICAL — this component is multi-script)
+
+The knobs are passed to `script.R` as **positional args appended AFTER the 6 file paths**, so the
+order must be identical in three places or the run silently corrupts (a value lands on the wrong
+parameter with no error):
+
+```
+config.vsh.yaml arguments:  --molecular_distance_cutoff, --flagCell_lrtest_cutoff, --svmClass_score_cutoff, --cutoff_spatialMerge
+orchestrator.sh Rscript:    ... transcripts_out.csv  $par_molecular_distance_cutoff  $par_flagCell_lrtest_cutoff  $par_svmClass_score_cutoff  $par_cutoff_spatialMerge
+script.R:                   args[7]=molecular_distance_cutoff  args[8]=flagCell_lrtest_cutoff  args[9]=svmClass_score_cutoff  args[10]=cutoff_spatialMerge
+```
+
+`script.R` reads them via a `num_arg(i, default)` helper (`as.numeric`, with a fallback to the
+FastReseg default if the arg is absent/empty, so an older orchestrator degrades to stock
+behaviour instead of injecting `NA`).
+
+### NEEDS REBUILD (unlike the six sibling sweeps)
+
+These four args did **not** exist before this change — they were hardcoded literals inside the
+`fastReseg_full_pipeline(...)` call. The `build/main` container run by
+`run_test_fastreseg_nebius.sh` (`--revision build/main`) will **reject** them with "unknown
+option" until the component is rebuilt. Before launching the sweep: commit + push the config /
+orchestrator.sh / script.R edits, run `viash ns build`, rebuild the fastreseg container on ghcr
+(`build_main` tag — see the `check-component` skill), then launch. Sweep files live at
+`scripts/run_benchmark/param_sweep/fastreseg_params.yaml` (+ `run_test_fastreseg_nebius.sh`).
