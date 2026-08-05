@@ -1,0 +1,90 @@
+name: subsample
+namespace: datasets/processors
+description: |
+  Subsample an h5ad file to create a smaller (test) dataset.
+
+  Local copy of openproblems-bio/datasets `processors/subsample` carrying a
+  single-modality fix: the mod2 output write is guarded on `--input_mod2`
+  (whether a second modality was actually read) instead of `--output_mod2`.
+  Under the Nextflow runner the optional `--output_mod2` path is auto-populated,
+  so the upstream guard tried to write an `adata_output_mod2` that is only
+  defined for multimodal input, crashing single-modality runs (Wu, Zuani) with
+  `NameError: name 'adata_output_mod2' is not defined`.
+
+  Retire this component and switch the run scripts back to the `datasets`
+  dependency once the upstream fix propagates to openproblems-bio/datasets@build/main.
+
+arguments:
+  - name: --input
+    type: file
+    required: true
+    direction: input
+    description: Input h5ad dataset (must contain a `counts` layer).
+  - name: --input_mod2
+    type: file
+    required: false
+    direction: input
+    description: Optional second-modality h5ad input.
+  - name: --output
+    type: file
+    required: true
+    direction: output
+    description: Output subsampled h5ad.
+    example: output.h5ad
+  - name: --output_mod2
+    type: file
+    required: false
+    direction: output
+    description: Optional second-modality h5ad output (only written when --input_mod2 is given).
+    example: output_mod2.h5ad
+  - name: --output_compression
+    type: string
+    choices: [gzip, lzf]
+    required: false
+    default: gzip
+  - name: --n_obs
+    type: integer
+    default: 500
+    description: Maximum number of observations to keep. May end up fewer because empty cells/genes are removed.
+  - name: --n_vars
+    type: integer
+    default: 500
+    description: Maximum number of variables to keep. May end up fewer because empty cells/genes are removed.
+  - name: --keep_features
+    type: string
+    multiple: true
+    required: false
+    description: A list of genes to keep.
+  - name: --keep_cell_type_categories
+    type: string
+    multiple: true
+    required: false
+    description: Cell type categories to be selected.
+  - name: --keep_batch_categories
+    type: string
+    multiple: true
+    required: false
+    description: Batch categories to be selected.
+  - name: --even
+    type: boolean_true
+    description: Subsample evenly from different batches.
+  - name: --seed
+    type: integer
+    required: false
+    description: A seed for the subsampling.
+    example: 123
+
+resources:
+  - type: python_script
+    path: script.py
+
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [midtime, highmem, midcpu]
