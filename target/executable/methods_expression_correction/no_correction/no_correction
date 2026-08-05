@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "anndata"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_expression_correction no_correction"
-LABEL org.opencontainers.image.created="2026-08-05T05:15:17Z"
+LABEL org.opencontainers.image.created="2026-08-05T11:54:26Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="924993ac84a07b2175bdca5e0c5b968a9b57e665"
+LABEL org.opencontainers.image.revision="4c4a0fccab156d3ed972b6ea401819f9dc9a641c"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

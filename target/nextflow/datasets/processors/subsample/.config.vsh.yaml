@@ -1,0 +1,284 @@
+name: "subsample"
+namespace: "datasets/processors"
+version: "build_main"
+argument_groups:
+- name: "Arguments"
+  arguments:
+  - type: "file"
+    name: "--input"
+    description: "Input h5ad dataset (must contain a `counts` layer)."
+    info: null
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--input_mod2"
+    description: "Optional second-modality h5ad input."
+    info: null
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output"
+    description: "Output subsampled h5ad."
+    info: null
+    example:
+    - "output.h5ad"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_mod2"
+    description: "Optional second-modality h5ad output (only written when --input_mod2\
+      \ is given)."
+    info: null
+    example:
+    - "output_mod2.h5ad"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_compression"
+    info: null
+    default:
+    - "gzip"
+    required: false
+    choices:
+    - "gzip"
+    - "lzf"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_obs"
+    description: "Maximum number of observations to keep. May end up fewer because\
+      \ empty cells/genes are removed."
+    info: null
+    default:
+    - 500
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--n_vars"
+    description: "Maximum number of variables to keep. May end up fewer because empty\
+      \ cells/genes are removed."
+    info: null
+    default:
+    - 500
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--keep_features"
+    description: "A list of genes to keep."
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--keep_cell_type_categories"
+    description: "Cell type categories to be selected."
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--keep_batch_categories"
+    description: "Batch categories to be selected."
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--even"
+    description: "Subsample evenly from different batches."
+    info: null
+    direction: "input"
+  - type: "integer"
+    name: "--seed"
+    description: "A seed for the subsampling."
+    info: null
+    example:
+    - 123
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "python_script"
+  path: "script.py"
+  is_executable: true
+description: "Subsample an h5ad file to create a smaller (test) dataset.\n\nLocal\
+  \ copy of openproblems-bio/datasets `processors/subsample` carrying a\nsingle-modality\
+  \ fix: the mod2 output write is guarded on `--input_mod2`\n(whether a second modality\
+  \ was actually read) instead of `--output_mod2`.\nUnder the Nextflow runner the\
+  \ optional `--output_mod2` path is auto-populated,\nso the upstream guard tried\
+  \ to write an `adata_output_mod2` that is only\ndefined for multimodal input, crashing\
+  \ single-modality runs (Wu, Zuani) with\n`NameError: name 'adata_output_mod2' is\
+  \ not defined`.\n\nRetire this component and switch the run scripts back to the\
+  \ `datasets`\ndependency once the upstream fix propagates to openproblems-bio/datasets@build/main.\n"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+repositories:
+- type: "github"
+  name: "openproblems"
+  repo: "openproblems-bio/openproblems"
+  tag: "build/main"
+- type: "github"
+  name: "datasets"
+  repo: "openproblems-bio/datasets"
+  tag: "build/main"
+license: "MIT"
+links:
+  repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+  docker_registry: "ghcr.io"
+runners:
+- type: "executable"
+  id: "executable"
+  docker_setup_strategy: "ifneedbepullelsecachedbuild"
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    label:
+    - "midtime"
+    - "highmem"
+    - "midcpu"
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      lowmem: "memory = 20.Gb"
+      midmem: "memory = 50.Gb"
+      highmem: "memory = 100.Gb"
+      lowcpu: "cpus = 5"
+      midcpu: "cpus = 15"
+      highcpu: "cpus = 30"
+      lowtime: "time = 1.h"
+      midtime: "time = 4.h"
+      hightime: "time = 8.h"
+      veryhightime: "time = 24.h"
+  debug: false
+  container: "docker"
+engines:
+- type: "docker"
+  id: "docker"
+  image: "openproblems/base_python:1"
+  namespace_separator: "/"
+  entrypoint: []
+  cmd: null
+- type: "native"
+  id: "native"
+build_info:
+  config: "src/datasets/processors/subsample/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "docker|native"
+  output: "target/nextflow/datasets/processors/subsample"
+  executable: "target/nextflow/datasets/processors/subsample/main.nf"
+  viash_version: "0.9.7"
+  git_commit: "4c4a0fccab156d3ed972b6ea401819f9dc9a641c"
+  git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
+package_config:
+  name: "task_ist_preprocessing"
+  version: "build_main"
+  label: "iST Preprocessing"
+  summary: "Benchmarking approaches for preprocessing imaging-based spatial transcriptomics"
+  description: "Provide a clear and concise description of your task, detailing the\
+    \ specific problem it aims\nto solve. Outline the input data types, the expected\
+    \ output, and any assumptions or constraints.\nBe sure to explain any terminology\
+    \ or concepts that are essential for understanding the task.\n\nExplain the motivation\
+    \ behind your proposed task. Describe the biological or computational\nproblem\
+    \ you aim to address and why it's important. Discuss the current state of research\
+    \ in\nthis area and any gaps or challenges that your task could help address.\
+    \ This section\nshould convince readers of the significance and relevance of your\
+    \ task.\n"
+  info:
+    image: "The name of the image file to use for the component on the website."
+    test_resources:
+    - type: "s3"
+      path: "s3://openproblems-data/resources_test/common/2023_10x_mouse_brain_xenium_rep1/"
+      dest: "resources_test/common/2023_10x_mouse_brain_xenium_rep1/"
+    - type: "s3"
+      path: "s3://openproblems-data/resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/"
+      dest: "resources_test/common/2023_yao_mouse_brain_scrnaseq_10xv2/"
+    - type: "s3"
+      path: "s3://openproblems-data/resources_test/task_ist_preprocessing/"
+      dest: "resources_test/task_ist_preprocessing"
+  repositories:
+  - type: "github"
+    name: "openproblems"
+    repo: "openproblems-bio/openproblems"
+    tag: "build/main"
+  - type: "github"
+    name: "datasets"
+    repo: "openproblems-bio/datasets"
+    tag: "build/main"
+  viash_version: "0.9.7"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".runners[.type == \"nextflow\"].config.labels := { lowmem : \"memory = 20.Gb\"\
+    , midmem : \"memory = 50.Gb\", highmem : \"memory = 100.Gb\", lowcpu : \"cpus\
+    \ = 5\", midcpu : \"cpus = 15\", highcpu : \"cpus = 30\", lowtime : \"time = 1.h\"\
+    , midtime : \"time = 4.h\", hightime : \"time = 8.h\", veryhightime : \"time =\
+    \ 24.h\" }\n"
+  authors:
+  - name: "Louis Kümmerle"
+    roles:
+    - "author"
+    - "maintainer"
+    info:
+      github: "LouisK92"
+      orcid: "0000-0002-9193-1243"
+  - name: "Malte D. Luecken"
+    roles:
+    - "author"
+    info:
+      github: "LuckyMD"
+      orcid: "0000-0001-7464-7921"
+  - name: "Daniel Strobl"
+    roles:
+    - "author"
+    info:
+      github: "danielStrobl"
+      orcid: "0000-0002-5516-7057"
+  - name: "Robrecht Cannoodt"
+    roles:
+    - "author"
+    info:
+      github: "rcannood"
+      orcid: "0000-0003-3641-729X"
+  keywords:
+  - "spatial transcriptomics"
+  - "imaging-based spatial transcriptomics"
+  - "preprocessing"
+  license: "MIT"
+  organization: "openproblems-bio"
+  links:
+    repository: "https://github.com/openproblems-bio/task_ist_preprocessing"
+    docker_registry: "ghcr.io"
+    issue_tracker: "https://github.com/openproblems-bio/task_ist_preprocessing/issues"
