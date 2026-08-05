@@ -1,6 +1,13 @@
 setup:
   - type: python
-    # Pinned exactly: an unpinned >=0.7.3 silently pulled 0.8.0 on a rebuild, whose
-    # bounding_box/filter_table regressions transposed/emptied transcripts in the crop.
-    # process_dataset's transform-agnostic crop is validated against 0.8.0, so pin here.
-    pypi: ["spatialdata==0.8.0", "anndata>=0.12.0,<0.13", "zarr>=3.0.0"]
+    # Pin exactly per python version: spatialdata 0.8.0 requires python>=3.12, but this
+    # partial is shared by components on older python (e.g. clustermap) that can only take
+    # 0.7.3. Pinning stops the unpinned >=0.7.3 from silently drifting again (that 0.7.3->0.8.0
+    # drift is what transposed/emptied transcripts in process_dataset's crop). py>=3.12
+    # components (process_dataset, vizgen loader) get 0.8.0, where the transform-agnostic crop
+    # is validated; older-python components stay on 0.7.3 (what they already resolved to).
+    pypi:
+      - "spatialdata==0.8.0; python_version>='3.12'"
+      - "spatialdata>=0.7.3; python_version<'3.12'"
+      - "anndata>=0.12.0,<0.13"
+      - "zarr>=3.0.0"
