@@ -53,8 +53,54 @@ arguments:
     type: double
     required: false
     description: "Larger voxel size to use for the burn-in phase. (This must be an integer multiple of the final voxel size)."
-    direction: input 
+    direction: input
     default: 2.0
+
+  # ---- Model knobs previously hardcoded in script.py, now exposed for tuning. ----
+  # Defaults below == proseg's own CLI defaults (src/main.rs), EXCEPT that the previously
+  # hardcoded cell_compactness (0.03) is reset here to proseg's true default (0.04); the
+  # deviating 0.03 is covered by the parameter sweep instead. See NOTES.md.
+  - name: --cell_compactness
+    type: double
+    required: false
+    description: "Exponential prior on cell compactness; smaller values induce more compact cells (proseg --cell-compactness)."
+    direction: input
+    default: 0.04
+
+  - name: --nuclear_reassignment_prob
+    type: double
+    required: false
+    description: "Prior probability of reassigning a transcript away from its prior (nuclear) segmentation label (proseg --nuclear-reassignment-prob)."
+    direction: input
+    default: 0.2
+
+  - name: --diffusion_probability
+    type: double
+    required: false
+    description: "Prior probability that a transcript diffused from its cell of origin, controlling how aggressively transcripts are repositioned (proseg --diffusion-probability)."
+    direction: input
+    default: 0.2
+
+  - name: --ncomponents
+    type: integer
+    required: false
+    description: "Number of components in the mixture model of cellular gene expression (proseg --ncomponents)."
+    direction: input
+    default: 10
+
+  - name: --diffusion_sigma_far
+    type: double
+    required: false
+    description: "Stddev (microns) for repositioning of diffused transcripts (proseg --diffusion-sigma-far)."
+    direction: input
+    default: 4.0
+
+  - name: --diffusion_sigma_near
+    type: double
+    required: false
+    description: "Stddev (microns) for repositioning of un-diffused transcripts (proseg --diffusion-sigma-near)."
+    direction: input
+    default: 1.0
 
 resources:
   - type: python_script

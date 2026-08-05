@@ -534,6 +534,58 @@ argument_groups:
     direction: "output"
     multiple: false
     multiple_sep: ";"
+  - type: "double"
+    name: "--molecular_distance_cutoff"
+    description: "Maximum molecule-to-molecule distance (microns) within a connected\
+      \ transcript group\nduring neighborhood search. FastReseg default 2.7. Sharpest\
+      \ lever on how transcripts\nare grouped into candidate cells: smaller => tighter\
+      \ / more fragmented groups, larger\n=> looser groups that may merge neighbouring\
+      \ cells.\n"
+    info: null
+    default:
+    - 2.7
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--flagCell_lrtest_cutoff"
+    description: "Cutoff on lrtest_nlog10P (-log10 p-value of the likelihood-ratio\
+      \ test) used to flag\nputative mis-segmented cells with strong spatial dependency\
+      \ in their transcript-score\nprofile. FastReseg default 5. Lower => more cells\
+      \ flagged for re-segmentation (more\naggressive correction); higher => more\
+      \ conservative.\n"
+    info: null
+    default:
+    - 5.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--svmClass_score_cutoff"
+    description: "Transcript-score cutoff separating high- vs low-score transcript\
+      \ classes in the SVM\nused during error detection/correction. FastReseg default\
+      \ -2.\n"
+    info: null
+    default:
+    - -2.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--cutoff_spatialMerge"
+    description: "Spatial-constraint cutoff (fraction in 0-1) for accepting a merge\
+      \ event between two\nsource transcript groups. FastReseg default 0.5 (a 50%\
+      \ cutoff).\n"
+    info: null
+    default:
+    - 0.5
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 resources:
 - type: "bash_script"
   path: "orchestrator.sh"
@@ -693,7 +745,7 @@ build_info:
   output: "target/executable/methods_transcript_assignment/fastreseg"
   executable: "target/executable/methods_transcript_assignment/fastreseg/fastreseg"
   viash_version: "0.9.7"
-  git_commit: "dd1e85627f53a4a1814e6806d26bf4f560069386"
+  git_commit: "28ff0e9d97d381ab0591fb25442257204273fc2b"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"

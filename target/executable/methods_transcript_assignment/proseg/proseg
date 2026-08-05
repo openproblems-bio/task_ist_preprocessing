@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "sopa"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment proseg"
-LABEL org.opencontainers.image.created="2026-08-05T14:36:15Z"
+LABEL org.opencontainers.image.created="2026-08-05T21:57:04Z"
 LABEL org.opencontainers.image.source="https://github.com/dcjones/proseg"
-LABEL org.opencontainers.image.revision="dd1e85627f53a4a1814e6806d26bf4f560069386"
+LABEL org.opencontainers.image.revision="28ff0e9d97d381ab0591fb25442257204273fc2b"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -652,6 +652,43 @@ function ViashHelp {
   echo "        Larger voxel size to use for the burn-in phase. (This must be an integer"
   echo "        multiple of the final voxel size)."
   echo ""
+  echo "    --cell_compactness"
+  echo "        type: double"
+  echo "        default: 0.04"
+  echo "        Exponential prior on cell compactness; smaller values induce more"
+  echo "        compact cells (proseg --cell-compactness)."
+  echo ""
+  echo "    --nuclear_reassignment_prob"
+  echo "        type: double"
+  echo "        default: 0.2"
+  echo "        Prior probability of reassigning a transcript away from its prior"
+  echo "        (nuclear) segmentation label (proseg --nuclear-reassignment-prob)."
+  echo ""
+  echo "    --diffusion_probability"
+  echo "        type: double"
+  echo "        default: 0.2"
+  echo "        Prior probability that a transcript diffused from its cell of origin,"
+  echo "        controlling how aggressively transcripts are repositioned (proseg"
+  echo "        --diffusion-probability)."
+  echo ""
+  echo "    --ncomponents"
+  echo "        type: integer"
+  echo "        default: 10"
+  echo "        Number of components in the mixture model of cellular gene expression"
+  echo "        (proseg --ncomponents)."
+  echo ""
+  echo "    --diffusion_sigma_far"
+  echo "        type: double"
+  echo "        default: 4.0"
+  echo "        Stddev (microns) for repositioning of diffused transcripts (proseg"
+  echo "        --diffusion-sigma-far)."
+  echo ""
+  echo "    --diffusion_sigma_near"
+  echo "        type: double"
+  echo "        default: 1.0"
+  echo "        Stddev (microns) for repositioning of un-diffused transcripts (proseg"
+  echo "        --diffusion-sigma-near)."
+  echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
   echo "        Number of CPUs to use"
@@ -832,6 +869,72 @@ while [[ $# -gt 0 ]]; do
         --burnin_voxel_size=*)
             [ -n "$VIASH_PAR_BURNIN_VOXEL_SIZE" ] && ViashError Bad arguments for option \'--burnin_voxel_size=*\': \'$VIASH_PAR_BURNIN_VOXEL_SIZE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_BURNIN_VOXEL_SIZE=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --cell_compactness)
+            [ -n "$VIASH_PAR_CELL_COMPACTNESS" ] && ViashError Bad arguments for option \'--cell_compactness\': \'$VIASH_PAR_CELL_COMPACTNESS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CELL_COMPACTNESS="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --cell_compactness. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --cell_compactness=*)
+            [ -n "$VIASH_PAR_CELL_COMPACTNESS" ] && ViashError Bad arguments for option \'--cell_compactness=*\': \'$VIASH_PAR_CELL_COMPACTNESS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CELL_COMPACTNESS=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --nuclear_reassignment_prob)
+            [ -n "$VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB" ] && ViashError Bad arguments for option \'--nuclear_reassignment_prob\': \'$VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --nuclear_reassignment_prob. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --nuclear_reassignment_prob=*)
+            [ -n "$VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB" ] && ViashError Bad arguments for option \'--nuclear_reassignment_prob=*\': \'$VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --diffusion_probability)
+            [ -n "$VIASH_PAR_DIFFUSION_PROBABILITY" ] && ViashError Bad arguments for option \'--diffusion_probability\': \'$VIASH_PAR_DIFFUSION_PROBABILITY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_DIFFUSION_PROBABILITY="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --diffusion_probability. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --diffusion_probability=*)
+            [ -n "$VIASH_PAR_DIFFUSION_PROBABILITY" ] && ViashError Bad arguments for option \'--diffusion_probability=*\': \'$VIASH_PAR_DIFFUSION_PROBABILITY\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_DIFFUSION_PROBABILITY=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --ncomponents)
+            [ -n "$VIASH_PAR_NCOMPONENTS" ] && ViashError Bad arguments for option \'--ncomponents\': \'$VIASH_PAR_NCOMPONENTS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NCOMPONENTS="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --ncomponents. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --ncomponents=*)
+            [ -n "$VIASH_PAR_NCOMPONENTS" ] && ViashError Bad arguments for option \'--ncomponents=*\': \'$VIASH_PAR_NCOMPONENTS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_NCOMPONENTS=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --diffusion_sigma_far)
+            [ -n "$VIASH_PAR_DIFFUSION_SIGMA_FAR" ] && ViashError Bad arguments for option \'--diffusion_sigma_far\': \'$VIASH_PAR_DIFFUSION_SIGMA_FAR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_DIFFUSION_SIGMA_FAR="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --diffusion_sigma_far. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --diffusion_sigma_far=*)
+            [ -n "$VIASH_PAR_DIFFUSION_SIGMA_FAR" ] && ViashError Bad arguments for option \'--diffusion_sigma_far=*\': \'$VIASH_PAR_DIFFUSION_SIGMA_FAR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_DIFFUSION_SIGMA_FAR=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --diffusion_sigma_near)
+            [ -n "$VIASH_PAR_DIFFUSION_SIGMA_NEAR" ] && ViashError Bad arguments for option \'--diffusion_sigma_near\': \'$VIASH_PAR_DIFFUSION_SIGMA_NEAR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_DIFFUSION_SIGMA_NEAR="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --diffusion_sigma_near. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --diffusion_sigma_near=*)
+            [ -n "$VIASH_PAR_DIFFUSION_SIGMA_NEAR" ] && ViashError Bad arguments for option \'--diffusion_sigma_near=*\': \'$VIASH_PAR_DIFFUSION_SIGMA_NEAR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_DIFFUSION_SIGMA_NEAR=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -1064,6 +1167,24 @@ fi
 if [ -z ${VIASH_PAR_BURNIN_VOXEL_SIZE+x} ]; then
   VIASH_PAR_BURNIN_VOXEL_SIZE="2.0"
 fi
+if [ -z ${VIASH_PAR_CELL_COMPACTNESS+x} ]; then
+  VIASH_PAR_CELL_COMPACTNESS="0.04"
+fi
+if [ -z ${VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB+x} ]; then
+  VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB="0.2"
+fi
+if [ -z ${VIASH_PAR_DIFFUSION_PROBABILITY+x} ]; then
+  VIASH_PAR_DIFFUSION_PROBABILITY="0.2"
+fi
+if [ -z ${VIASH_PAR_NCOMPONENTS+x} ]; then
+  VIASH_PAR_NCOMPONENTS="10"
+fi
+if [ -z ${VIASH_PAR_DIFFUSION_SIGMA_FAR+x} ]; then
+  VIASH_PAR_DIFFUSION_SIGMA_FAR="4.0"
+fi
+if [ -z ${VIASH_PAR_DIFFUSION_SIGMA_NEAR+x} ]; then
+  VIASH_PAR_DIFFUSION_SIGMA_NEAR="1.0"
+fi
 
 # check whether required files exist
 if [ ! -z "$VIASH_PAR_INPUT_IST" ] && [ ! -e "$VIASH_PAR_INPUT_IST" ]; then
@@ -1107,6 +1228,42 @@ fi
 if [[ -n "$VIASH_PAR_BURNIN_VOXEL_SIZE" ]]; then
   if ! [[ "$VIASH_PAR_BURNIN_VOXEL_SIZE" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
     ViashError '--burnin_voxel_size' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_CELL_COMPACTNESS" ]]; then
+  if ! [[ "$VIASH_PAR_CELL_COMPACTNESS" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--cell_compactness' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB" ]]; then
+  if ! [[ "$VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--nuclear_reassignment_prob' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_DIFFUSION_PROBABILITY" ]]; then
+  if ! [[ "$VIASH_PAR_DIFFUSION_PROBABILITY" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--diffusion_probability' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_NCOMPONENTS" ]]; then
+  if ! [[ "$VIASH_PAR_NCOMPONENTS" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--ncomponents' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_DIFFUSION_SIGMA_FAR" ]]; then
+  if ! [[ "$VIASH_PAR_DIFFUSION_SIGMA_FAR" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--diffusion_sigma_far' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_DIFFUSION_SIGMA_NEAR" ]]; then
+  if ! [[ "$VIASH_PAR_DIFFUSION_SIGMA_NEAR" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--diffusion_sigma_near' has to be a double. Use "--help" to get more information on the parameters.
     exit 1
   fi
 fi
@@ -1310,7 +1467,13 @@ par = {
   'samples': $( if [ ! -z ${VIASH_PAR_SAMPLES+x} ]; then echo "int(r'${VIASH_PAR_SAMPLES//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'burnin_samples': $( if [ ! -z ${VIASH_PAR_BURNIN_SAMPLES+x} ]; then echo "int(r'${VIASH_PAR_BURNIN_SAMPLES//\'/\'\"\'\"r\'}')"; else echo None; fi ),
   'voxel_size': $( if [ ! -z ${VIASH_PAR_VOXEL_SIZE+x} ]; then echo "float(r'${VIASH_PAR_VOXEL_SIZE//\'/\'\"\'\"r\'}')"; else echo None; fi ),
-  'burnin_voxel_size': $( if [ ! -z ${VIASH_PAR_BURNIN_VOXEL_SIZE+x} ]; then echo "float(r'${VIASH_PAR_BURNIN_VOXEL_SIZE//\'/\'\"\'\"r\'}')"; else echo None; fi )
+  'burnin_voxel_size': $( if [ ! -z ${VIASH_PAR_BURNIN_VOXEL_SIZE+x} ]; then echo "float(r'${VIASH_PAR_BURNIN_VOXEL_SIZE//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'cell_compactness': $( if [ ! -z ${VIASH_PAR_CELL_COMPACTNESS+x} ]; then echo "float(r'${VIASH_PAR_CELL_COMPACTNESS//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'nuclear_reassignment_prob': $( if [ ! -z ${VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB+x} ]; then echo "float(r'${VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'diffusion_probability': $( if [ ! -z ${VIASH_PAR_DIFFUSION_PROBABILITY+x} ]; then echo "float(r'${VIASH_PAR_DIFFUSION_PROBABILITY//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'ncomponents': $( if [ ! -z ${VIASH_PAR_NCOMPONENTS+x} ]; then echo "int(r'${VIASH_PAR_NCOMPONENTS//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'diffusion_sigma_far': $( if [ ! -z ${VIASH_PAR_DIFFUSION_SIGMA_FAR+x} ]; then echo "float(r'${VIASH_PAR_DIFFUSION_SIGMA_FAR//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'diffusion_sigma_near': $( if [ ! -z ${VIASH_PAR_DIFFUSION_SIGMA_NEAR+x} ]; then echo "float(r'${VIASH_PAR_DIFFUSION_SIGMA_NEAR//\'/\'\"\'\"r\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),

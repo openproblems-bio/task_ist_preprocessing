@@ -461,9 +461,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "anndata" "numpy" "tacco"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment fastreseg"
-LABEL org.opencontainers.image.created="2026-08-05T14:36:15Z"
+LABEL org.opencontainers.image.created="2026-08-05T21:57:03Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="dd1e85627f53a4a1814e6806d26bf4f560069386"
+LABEL org.opencontainers.image.revision="28ff0e9d97d381ab0591fb25442257204273fc2b"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -621,6 +621,42 @@ function ViashHelp {
   echo "        This dataset contains the spatial transcriptomics data with assigned"
   echo "        transcripts."
   echo ""
+  echo "    --molecular_distance_cutoff"
+  echo "        type: double"
+  echo "        default: 2.7"
+  echo "        Maximum molecule-to-molecule distance (microns) within a connected"
+  echo "        transcript group"
+  echo "        during neighborhood search. FastReseg default 2.7. Sharpest lever on how"
+  echo "        transcripts"
+  echo "        are grouped into candidate cells: smaller => tighter / more fragmented"
+  echo "        groups, larger"
+  echo "        => looser groups that may merge neighbouring cells."
+  echo ""
+  echo "    --flagCell_lrtest_cutoff"
+  echo "        type: double"
+  echo "        default: 5.0"
+  echo "        Cutoff on lrtest_nlog10P (-log10 p-value of the likelihood-ratio test)"
+  echo "        used to flag"
+  echo "        putative mis-segmented cells with strong spatial dependency in their"
+  echo "        transcript-score"
+  echo "        profile. FastReseg default 5. Lower => more cells flagged for"
+  echo "        re-segmentation (more"
+  echo "        aggressive correction); higher => more conservative."
+  echo ""
+  echo "    --svmClass_score_cutoff"
+  echo "        type: double"
+  echo "        default: -2.0"
+  echo "        Transcript-score cutoff separating high- vs low-score transcript classes"
+  echo "        in the SVM"
+  echo "        used during error detection/correction. FastReseg default -2."
+  echo ""
+  echo "    --cutoff_spatialMerge"
+  echo "        type: double"
+  echo "        default: 0.5"
+  echo "        Spatial-constraint cutoff (fraction in 0-1) for accepting a merge event"
+  echo "        between two"
+  echo "        source transcript groups. FastReseg default 0.5 (a 50% cutoff)."
+  echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
   echo "        Number of CPUs to use"
@@ -724,6 +760,50 @@ while [[ $# -gt 0 ]]; do
         --output=*)
             [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output=*\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_OUTPUT=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --molecular_distance_cutoff)
+            [ -n "$VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF" ] && ViashError Bad arguments for option \'--molecular_distance_cutoff\': \'$VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --molecular_distance_cutoff. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --molecular_distance_cutoff=*)
+            [ -n "$VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF" ] && ViashError Bad arguments for option \'--molecular_distance_cutoff=*\': \'$VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --flagCell_lrtest_cutoff)
+            [ -n "$VIASH_PAR_FLAGCELL_LRTEST_CUTOFF" ] && ViashError Bad arguments for option \'--flagCell_lrtest_cutoff\': \'$VIASH_PAR_FLAGCELL_LRTEST_CUTOFF\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_FLAGCELL_LRTEST_CUTOFF="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --flagCell_lrtest_cutoff. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --flagCell_lrtest_cutoff=*)
+            [ -n "$VIASH_PAR_FLAGCELL_LRTEST_CUTOFF" ] && ViashError Bad arguments for option \'--flagCell_lrtest_cutoff=*\': \'$VIASH_PAR_FLAGCELL_LRTEST_CUTOFF\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_FLAGCELL_LRTEST_CUTOFF=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --svmClass_score_cutoff)
+            [ -n "$VIASH_PAR_SVMCLASS_SCORE_CUTOFF" ] && ViashError Bad arguments for option \'--svmClass_score_cutoff\': \'$VIASH_PAR_SVMCLASS_SCORE_CUTOFF\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_SVMCLASS_SCORE_CUTOFF="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --svmClass_score_cutoff. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --svmClass_score_cutoff=*)
+            [ -n "$VIASH_PAR_SVMCLASS_SCORE_CUTOFF" ] && ViashError Bad arguments for option \'--svmClass_score_cutoff=*\': \'$VIASH_PAR_SVMCLASS_SCORE_CUTOFF\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_SVMCLASS_SCORE_CUTOFF=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --cutoff_spatialMerge)
+            [ -n "$VIASH_PAR_CUTOFF_SPATIALMERGE" ] && ViashError Bad arguments for option \'--cutoff_spatialMerge\': \'$VIASH_PAR_CUTOFF_SPATIALMERGE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CUTOFF_SPATIALMERGE="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --cutoff_spatialMerge. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --cutoff_spatialMerge=*)
+            [ -n "$VIASH_PAR_CUTOFF_SPATIALMERGE" ] && ViashError Bad arguments for option \'--cutoff_spatialMerge=*\': \'$VIASH_PAR_CUTOFF_SPATIALMERGE\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_CUTOFF_SPATIALMERGE=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -935,6 +1015,18 @@ fi
 if [ -z ${VIASH_PAR_SC_CELL_TYPE_KEY+x} ]; then
   VIASH_PAR_SC_CELL_TYPE_KEY="cell_type"
 fi
+if [ -z ${VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF+x} ]; then
+  VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF="2.7"
+fi
+if [ -z ${VIASH_PAR_FLAGCELL_LRTEST_CUTOFF+x} ]; then
+  VIASH_PAR_FLAGCELL_LRTEST_CUTOFF="5.0"
+fi
+if [ -z ${VIASH_PAR_SVMCLASS_SCORE_CUTOFF+x} ]; then
+  VIASH_PAR_SVMCLASS_SCORE_CUTOFF="-2.0"
+fi
+if [ -z ${VIASH_PAR_CUTOFF_SPATIALMERGE+x} ]; then
+  VIASH_PAR_CUTOFF_SPATIALMERGE="0.5"
+fi
 
 # check whether required files exist
 if [ ! -z "$VIASH_PAR_INPUT_IST" ] && [ ! -e "$VIASH_PAR_INPUT_IST" ]; then
@@ -951,6 +1043,30 @@ if [ ! -z "$VIASH_PAR_INPUT_SCRNASEQ" ] && [ ! -e "$VIASH_PAR_INPUT_SCRNASEQ" ];
 fi
 
 # check whether parameters values are of the right type
+if [[ -n "$VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF" ]]; then
+  if ! [[ "$VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--molecular_distance_cutoff' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_FLAGCELL_LRTEST_CUTOFF" ]]; then
+  if ! [[ "$VIASH_PAR_FLAGCELL_LRTEST_CUTOFF" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--flagCell_lrtest_cutoff' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_SVMCLASS_SCORE_CUTOFF" ]]; then
+  if ! [[ "$VIASH_PAR_SVMCLASS_SCORE_CUTOFF" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--svmClass_score_cutoff' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_CUTOFF_SPATIALMERGE" ]]; then
+  if ! [[ "$VIASH_PAR_CUTOFF_SPATIALMERGE" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--cutoff_spatialMerge' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
 if [[ -n "$VIASH_META_CPUS" ]]; then
   if ! [[ "$VIASH_META_CPUS" =~ ^[-+]?[0-9]+$ ]]; then
     ViashError 'cpus' has to be an integer. Use "--help" to get more information on the parameters.
@@ -1139,6 +1255,10 @@ $( if [ ! -z ${VIASH_PAR_INPUT_SEGMENTATION+x} ]; then echo "${VIASH_PAR_INPUT_S
 $( if [ ! -z ${VIASH_PAR_INPUT_SCRNASEQ+x} ]; then echo "${VIASH_PAR_INPUT_SCRNASEQ}" | sed "s#'#'\"'\"'#g;s#.*#par_input_scrnaseq='&'#" ; else echo "# par_input_scrnaseq="; fi )
 $( if [ ! -z ${VIASH_PAR_SC_CELL_TYPE_KEY+x} ]; then echo "${VIASH_PAR_SC_CELL_TYPE_KEY}" | sed "s#'#'\"'\"'#g;s#.*#par_sc_cell_type_key='&'#" ; else echo "# par_sc_cell_type_key="; fi )
 $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "${VIASH_PAR_OUTPUT}" | sed "s#'#'\"'\"'#g;s#.*#par_output='&'#" ; else echo "# par_output="; fi )
+$( if [ ! -z ${VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF+x} ]; then echo "${VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF}" | sed "s#'#'\"'\"'#g;s#.*#par_molecular_distance_cutoff='&'#" ; else echo "# par_molecular_distance_cutoff="; fi )
+$( if [ ! -z ${VIASH_PAR_FLAGCELL_LRTEST_CUTOFF+x} ]; then echo "${VIASH_PAR_FLAGCELL_LRTEST_CUTOFF}" | sed "s#'#'\"'\"'#g;s#.*#par_flagCell_lrtest_cutoff='&'#" ; else echo "# par_flagCell_lrtest_cutoff="; fi )
+$( if [ ! -z ${VIASH_PAR_SVMCLASS_SCORE_CUTOFF+x} ]; then echo "${VIASH_PAR_SVMCLASS_SCORE_CUTOFF}" | sed "s#'#'\"'\"'#g;s#.*#par_svmClass_score_cutoff='&'#" ; else echo "# par_svmClass_score_cutoff="; fi )
+$( if [ ! -z ${VIASH_PAR_CUTOFF_SPATIALMERGE+x} ]; then echo "${VIASH_PAR_CUTOFF_SPATIALMERGE}" | sed "s#'#'\"'\"'#g;s#.*#par_cutoff_spatialMerge='&'#" ; else echo "# par_cutoff_spatialMerge="; fi )
 $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "${VIASH_META_NAME}" | sed "s#'#'\"'\"'#g;s#.*#meta_name='&'#" ; else echo "# meta_name="; fi )
 $( if [ ! -z ${VIASH_META_FUNCTIONALITY_NAME+x} ]; then echo "${VIASH_META_FUNCTIONALITY_NAME}" | sed "s#'#'\"'\"'#g;s#.*#meta_functionality_name='&'#" ; else echo "# meta_functionality_name="; fi )
 $( if [ ! -z ${VIASH_META_RESOURCES_DIR+x} ]; then echo "${VIASH_META_RESOURCES_DIR}" | sed "s#'#'\"'\"'#g;s#.*#meta_resources_dir='&'#" ; else echo "# meta_resources_dir="; fi )
@@ -1181,13 +1301,23 @@ head \$par_intermediate_dir/cell_types.tsv
 
 # Step 2: RunFastReseg
 
-##running the R script
+## running the R script.
+## ARG-ORDERING CONTRACT: script.R reads these POSITIONALLY. The first 6 are file paths
+## (args[1..6]); the FastReseg tuning knobs are appended AFTER them in this EXACT order and
+## must match script.R's args[7..10] and config.vsh.yaml's \`arguments:\` block:
+##   args[7]=molecular_distance_cutoff, args[8]=flagCell_lrtest_cutoff,
+##   args[9]=svmClass_score_cutoff,     args[10]=cutoff_spatialMerge.
+## A reordering here silently corrupts the run — do not touch one file without the others.
 Rscript "\$meta_resources_dir/script.R" "\$par_intermediate_dir/counts.tsv" \\
   "\$par_intermediate_dir/transcripts.tsv" \\
   "\$par_intermediate_dir/cell_types.tsv" \\
   "\$par_intermediate_dir/cell_ids.csv" \\
  "\$par_intermediate_dir/gene_names.csv" \\
-  "\$par_intermediate_dir/transcripts_out.csv"
+  "\$par_intermediate_dir/transcripts_out.csv" \\
+  "\$par_molecular_distance_cutoff" \\
+  "\$par_flagCell_lrtest_cutoff" \\
+  "\$par_svmClass_score_cutoff" \\
+  "\$par_cutoff_spatialMerge"
 
 ## python output
 python "\$meta_resources_dir/output.py" \\

@@ -3631,7 +3631,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/datasets/loaders/allen_brain_cell_atlas",
     "viash_version" : "0.9.7",
-    "git_commit" : "dd1e85627f53a4a1814e6806d26bf4f560069386",
+    "git_commit" : "28ff0e9d97d381ab0591fb25442257204273fc2b",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3894,6 +3894,14 @@ for file_name, region in abca_region_files:
 print("Concatenating data", flush=True)
 adata = ad.concat(adatas, merge="first")
 del adatas
+
+# Drop genes expressed in <3 cells. The ABCA panel carries ~32k genes, most unexpressed in the
+# sampled brain cells; their ~zero log-mean collapses scanpy HVG's mean-quantile bins to
+# duplicate edges ("Bin edges must be unique"). Filtering keeps HVG well-defined downstream.
+print("Filtering genes (>=3 cells)", flush=True)
+gene_ncells = np.asarray((adata.layers["counts"] > 0).sum(axis=0)).ravel()
+adata = adata[:, gene_ncells >= 3].copy()
+print(f"Kept {adata.n_vars} genes", flush=True)
 
 print("Processing .obs")
 adata.obs = obs.loc[adata.obs.index]

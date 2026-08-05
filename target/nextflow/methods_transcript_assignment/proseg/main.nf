@@ -3840,6 +3840,78 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--cell_compactness",
+          "description" : "Exponential prior on cell compactness; smaller values induce more compact cells (proseg --cell-compactness).",
+          "default" : [
+            0.04
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--nuclear_reassignment_prob",
+          "description" : "Prior probability of reassigning a transcript away from its prior (nuclear) segmentation label (proseg --nuclear-reassignment-prob).",
+          "default" : [
+            0.2
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--diffusion_probability",
+          "description" : "Prior probability that a transcript diffused from its cell of origin, controlling how aggressively transcripts are repositioned (proseg --diffusion-probability).",
+          "default" : [
+            0.2
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--ncomponents",
+          "description" : "Number of components in the mixture model of cellular gene expression (proseg --ncomponents).",
+          "default" : [
+            10
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--diffusion_sigma_far",
+          "description" : "Stddev (microns) for repositioning of diffused transcripts (proseg --diffusion-sigma-far).",
+          "default" : [
+            4.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--diffusion_sigma_near",
+          "description" : "Stddev (microns) for repositioning of un-diffused transcripts (proseg --diffusion-sigma-near).",
+          "default" : [
+            1.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -4001,7 +4073,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/proseg",
     "viash_version" : "0.9.7",
-    "git_commit" : "dd1e85627f53a4a1814e6806d26bf4f560069386",
+    "git_commit" : "28ff0e9d97d381ab0591fb25442257204273fc2b",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4144,7 +4216,13 @@ par = {
   'samples': $( if [ ! -z ${VIASH_PAR_SAMPLES+x} ]; then echo "int(r'${VIASH_PAR_SAMPLES//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'burnin_samples': $( if [ ! -z ${VIASH_PAR_BURNIN_SAMPLES+x} ]; then echo "int(r'${VIASH_PAR_BURNIN_SAMPLES//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'voxel_size': $( if [ ! -z ${VIASH_PAR_VOXEL_SIZE+x} ]; then echo "float(r'${VIASH_PAR_VOXEL_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
-  'burnin_voxel_size': $( if [ ! -z ${VIASH_PAR_BURNIN_VOXEL_SIZE+x} ]; then echo "float(r'${VIASH_PAR_BURNIN_VOXEL_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
+  'burnin_voxel_size': $( if [ ! -z ${VIASH_PAR_BURNIN_VOXEL_SIZE+x} ]; then echo "float(r'${VIASH_PAR_BURNIN_VOXEL_SIZE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'cell_compactness': $( if [ ! -z ${VIASH_PAR_CELL_COMPACTNESS+x} ]; then echo "float(r'${VIASH_PAR_CELL_COMPACTNESS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'nuclear_reassignment_prob': $( if [ ! -z ${VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB+x} ]; then echo "float(r'${VIASH_PAR_NUCLEAR_REASSIGNMENT_PROB//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'diffusion_probability': $( if [ ! -z ${VIASH_PAR_DIFFUSION_PROBABILITY+x} ]; then echo "float(r'${VIASH_PAR_DIFFUSION_PROBABILITY//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'ncomponents': $( if [ ! -z ${VIASH_PAR_NCOMPONENTS+x} ]; then echo "int(r'${VIASH_PAR_NCOMPONENTS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'diffusion_sigma_far': $( if [ ! -z ${VIASH_PAR_DIFFUSION_SIGMA_FAR+x} ]; then echo "float(r'${VIASH_PAR_DIFFUSION_SIGMA_FAR//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'diffusion_sigma_near': $( if [ ! -z ${VIASH_PAR_DIFFUSION_SIGMA_NEAR+x} ]; then echo "float(r'${VIASH_PAR_DIFFUSION_SIGMA_NEAR//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),

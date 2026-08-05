@@ -3756,6 +3756,54 @@ meta = [
           "direction" : "output",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--molecular_distance_cutoff",
+          "description" : "Maximum molecule-to-molecule distance (microns) within a connected transcript group\nduring neighborhood search. FastReseg default 2.7. Sharpest lever on how transcripts\nare grouped into candidate cells: smaller => tighter / more fragmented groups, larger\n=> looser groups that may merge neighbouring cells.\n",
+          "default" : [
+            2.7
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--flagCell_lrtest_cutoff",
+          "description" : "Cutoff on lrtest_nlog10P (-log10 p-value of the likelihood-ratio test) used to flag\nputative mis-segmented cells with strong spatial dependency in their transcript-score\nprofile. FastReseg default 5. Lower => more cells flagged for re-segmentation (more\naggressive correction); higher => more conservative.\n",
+          "default" : [
+            5.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--svmClass_score_cutoff",
+          "description" : "Transcript-score cutoff separating high- vs low-score transcript classes in the SVM\nused during error detection/correction. FastReseg default -2.\n",
+          "default" : [
+            -2.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--cutoff_spatialMerge",
+          "description" : "Spatial-constraint cutoff (fraction in 0-1) for accepting a merge event between two\nsource transcript groups. FastReseg default 0.5 (a 50% cutoff).\n",
+          "default" : [
+            0.5
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -3971,7 +4019,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/fastreseg",
     "viash_version" : "0.9.7",
-    "git_commit" : "dd1e85627f53a4a1814e6806d26bf4f560069386",
+    "git_commit" : "28ff0e9d97d381ab0591fb25442257204273fc2b",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4102,6 +4150,10 @@ $( if [ ! -z ${VIASH_PAR_INPUT_SEGMENTATION+x} ]; then echo "${VIASH_PAR_INPUT_S
 $( if [ ! -z ${VIASH_PAR_INPUT_SCRNASEQ+x} ]; then echo "${VIASH_PAR_INPUT_SCRNASEQ}" | sed "s#'#'\\"'\\"'#g;s#.*#par_input_scrnaseq='&'#" ; else echo "# par_input_scrnaseq="; fi )
 $( if [ ! -z ${VIASH_PAR_SC_CELL_TYPE_KEY+x} ]; then echo "${VIASH_PAR_SC_CELL_TYPE_KEY}" | sed "s#'#'\\"'\\"'#g;s#.*#par_sc_cell_type_key='&'#" ; else echo "# par_sc_cell_type_key="; fi )
 $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "${VIASH_PAR_OUTPUT}" | sed "s#'#'\\"'\\"'#g;s#.*#par_output='&'#" ; else echo "# par_output="; fi )
+$( if [ ! -z ${VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF+x} ]; then echo "${VIASH_PAR_MOLECULAR_DISTANCE_CUTOFF}" | sed "s#'#'\\"'\\"'#g;s#.*#par_molecular_distance_cutoff='&'#" ; else echo "# par_molecular_distance_cutoff="; fi )
+$( if [ ! -z ${VIASH_PAR_FLAGCELL_LRTEST_CUTOFF+x} ]; then echo "${VIASH_PAR_FLAGCELL_LRTEST_CUTOFF}" | sed "s#'#'\\"'\\"'#g;s#.*#par_flagCell_lrtest_cutoff='&'#" ; else echo "# par_flagCell_lrtest_cutoff="; fi )
+$( if [ ! -z ${VIASH_PAR_SVMCLASS_SCORE_CUTOFF+x} ]; then echo "${VIASH_PAR_SVMCLASS_SCORE_CUTOFF}" | sed "s#'#'\\"'\\"'#g;s#.*#par_svmClass_score_cutoff='&'#" ; else echo "# par_svmClass_score_cutoff="; fi )
+$( if [ ! -z ${VIASH_PAR_CUTOFF_SPATIALMERGE+x} ]; then echo "${VIASH_PAR_CUTOFF_SPATIALMERGE}" | sed "s#'#'\\"'\\"'#g;s#.*#par_cutoff_spatialMerge='&'#" ; else echo "# par_cutoff_spatialMerge="; fi )
 $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "${VIASH_META_NAME}" | sed "s#'#'\\"'\\"'#g;s#.*#meta_name='&'#" ; else echo "# meta_name="; fi )
 $( if [ ! -z ${VIASH_META_FUNCTIONALITY_NAME+x} ]; then echo "${VIASH_META_FUNCTIONALITY_NAME}" | sed "s#'#'\\"'\\"'#g;s#.*#meta_functionality_name='&'#" ; else echo "# meta_functionality_name="; fi )
 $( if [ ! -z ${VIASH_META_RESOURCES_DIR+x} ]; then echo "${VIASH_META_RESOURCES_DIR}" | sed "s#'#'\\"'\\"'#g;s#.*#meta_resources_dir='&'#" ; else echo "# meta_resources_dir="; fi )
@@ -4144,13 +4196,23 @@ head \\$par_intermediate_dir/cell_types.tsv
 
 # Step 2: RunFastReseg
 
-##running the R script
+## running the R script.
+## ARG-ORDERING CONTRACT: script.R reads these POSITIONALLY. The first 6 are file paths
+## (args[1..6]); the FastReseg tuning knobs are appended AFTER them in this EXACT order and
+## must match script.R's args[7..10] and config.vsh.yaml's \\`arguments:\\` block:
+##   args[7]=molecular_distance_cutoff, args[8]=flagCell_lrtest_cutoff,
+##   args[9]=svmClass_score_cutoff,     args[10]=cutoff_spatialMerge.
+## A reordering here silently corrupts the run — do not touch one file without the others.
 Rscript "\\$meta_resources_dir/script.R" "\\$par_intermediate_dir/counts.tsv" \\\\
   "\\$par_intermediate_dir/transcripts.tsv" \\\\
   "\\$par_intermediate_dir/cell_types.tsv" \\\\
   "\\$par_intermediate_dir/cell_ids.csv" \\\\
  "\\$par_intermediate_dir/gene_names.csv" \\\\
-  "\\$par_intermediate_dir/transcripts_out.csv"
+  "\\$par_intermediate_dir/transcripts_out.csv" \\\\
+  "\\$par_molecular_distance_cutoff" \\\\
+  "\\$par_flagCell_lrtest_cutoff" \\\\
+  "\\$par_svmClass_score_cutoff" \\\\
+  "\\$par_cutoff_spatialMerge"
 
 ## python output
 python "\\$meta_resources_dir/output.py" \\\\

@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "git+https://github.com/alleninstitute/abc_atlas_access@v.3.3.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component datasets/loaders allen_brain_cell_atlas"
-LABEL org.opencontainers.image.created="2026-08-05T14:36:13Z"
+LABEL org.opencontainers.image.created="2026-08-05T21:57:02Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="dd1e85627f53a4a1814e6806d26bf4f560069386"
+LABEL org.opencontainers.image.revision="28ff0e9d97d381ab0591fb25442257204273fc2b"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1451,6 +1451,14 @@ for file_name, region in abca_region_files:
 print("Concatenating data", flush=True)
 adata = ad.concat(adatas, merge="first")
 del adatas
+
+# Drop genes expressed in <3 cells. The ABCA panel carries ~32k genes, most unexpressed in the
+# sampled brain cells; their ~zero log-mean collapses scanpy HVG's mean-quantile bins to
+# duplicate edges ("Bin edges must be unique"). Filtering keeps HVG well-defined downstream.
+print("Filtering genes (>=3 cells)", flush=True)
+gene_ncells = np.asarray((adata.layers["counts"] > 0).sum(axis=0)).ravel()
+adata = adata[:, gene_ncells >= 3].copy()
+print(f"Kept {adata.n_vars} genes", flush=True)
 
 print("Processing .obs")
 adata.obs = obs.loc[adata.obs.index]

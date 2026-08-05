@@ -18,8 +18,26 @@ path_to_transcripts <- args[2]
 path_to_cell_annot <- args[3]
 
 path_to_cell_ids_out  <- args[4]
-path_to_gene_names_out <- args[5] 
+path_to_gene_names_out <- args[5]
 path_to_transcripts_out <- args[6]
+
+# --- FastReseg tuning knobs (POSITIONAL, appended by orchestrator.sh AFTER the 6 file
+# paths, in this FIXED order). This ordering is the contract between orchestrator.sh's
+# Rscript call and this block AND config.vsh.yaml's `arguments:` — a mismatch silently
+# corrupts the run, so keep all three in lockstep:
+#   args[7]  = molecular_distance_cutoff   (FastReseg default 2.7)
+#   args[8]  = flagCell_lrtest_cutoff      (FastReseg default 5)
+#   args[9]  = svmClass_score_cutoff       (FastReseg default -2)
+#   args[10] = cutoff_spatialMerge         (FastReseg default 0.5)
+# num_arg() falls back to the FastReseg package default if an arg is absent/empty, so an
+# older orchestrator (or a missing value) degrades to stock behaviour instead of NA.
+num_arg <- function(i, default) {
+  if (length(args) >= i && !is.na(args[i]) && nzchar(args[i])) as.numeric(args[i]) else default
+}
+molecular_distance_cutoff <- num_arg(7, 2.7)
+flagCell_lrtest_cutoff    <- num_arg(8, 5)
+svmClass_score_cutoff     <- num_arg(9, -2)
+cutoff_spatialMerge       <- num_arg(10, 0.5)
 
 
 ### reading in data
@@ -54,8 +72,8 @@ refineAll_res_one_FOC <- fastReseg_full_pipeline(
   # Similar to `runPreprocess()`, one can set various cutoffs to NULL for automatic calculation from input data
   
   # distance cutoff for neighborhood searching at molecular and cellular levels, respectively
-  molecular_distance_cutoff = 2.7, 
-  cellular_distance_cutoff = NULL, 
+  molecular_distance_cutoff = molecular_distance_cutoff, # exposed Viash arg (default 2.7)
+  cellular_distance_cutoff = NULL,
   
   # cutoffs for transcript scores and number for cells under each cell type
   score_baseline = NULL,
@@ -64,11 +82,11 @@ refineAll_res_one_FOC <- fastReseg_full_pipeline(
   imputeFlag_missingCTs = TRUE,
   
   # Settings for error detection and correction, refer to `runSegRefinement()` for more details
-  flagCell_lrtest_cutoff = 5, # cutoff to flag for cells with strong spatial dependcy in transcript score profiles
-  svmClass_score_cutoff = -2,   # cutoff of transcript score to separate between high and low score classes
+  flagCell_lrtest_cutoff = flagCell_lrtest_cutoff, # exposed Viash arg (default 5): flag cells with strong spatial dependency in transcript score profiles
+  svmClass_score_cutoff = svmClass_score_cutoff,   # exposed Viash arg (default -2): separates high vs low transcript-score classes
   groupTranscripts_method = "dbscan",
-  spatialMergeCheck_method = "leidenCut", 
-  cutoff_spatialMerge = 0.5, # spatial constraint cutoff for a valid merge event
+  spatialMergeCheck_method = "leidenCut",
+  cutoff_spatialMerge = cutoff_spatialMerge, # exposed Viash arg (default 0.5): spatial constraint cutoff for a valid merge event
   
   path_to_output = "res2_multiFiles",
   save_intermediates = TRUE, # flag to return and write intermediate results to disk

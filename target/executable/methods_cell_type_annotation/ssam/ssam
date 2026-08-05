@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "planktonspace" "matplotlib<3.9"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation ssam"
-LABEL org.opencontainers.image.created="2026-08-05T14:36:13Z"
+LABEL org.opencontainers.image.created="2026-08-05T21:57:02Z"
 LABEL org.opencontainers.image.source="https://github.com/HiDiHlabs/ssam"
-LABEL org.opencontainers.image.revision="dd1e85627f53a4a1814e6806d26bf4f560069386"
+LABEL org.opencontainers.image.revision="28ff0e9d97d381ab0591fb25442257204273fc2b"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
