@@ -100,8 +100,11 @@ engines:
     image: openproblems/base_python:1
     setup:
       - type: python
-        packages: 
-          - git+https://github.com/alleninstitute/abc_atlas_access
+        packages:
+          # Pin the tag: an unpinned git install drifted to an API where AbcProjectCache
+          # dropped list_data_files (split into list_expression_matrix_files etc.), breaking
+          # the loader. v.3.3.0 has list_expression_matrix_files + get_data_path (deprecated).
+          - git+https://github.com/alleninstitute/abc_atlas_access@v.3.3.0
   - type: native
 
 runners:
