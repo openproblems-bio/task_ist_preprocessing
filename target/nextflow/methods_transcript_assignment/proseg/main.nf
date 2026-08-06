@@ -4073,7 +4073,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/proseg",
     "viash_version" : "0.9.7",
-    "git_commit" : "28ff0e9d97d381ab0591fb25442257204273fc2b",
+    "git_commit" : "c7980341634d08078595b11f9e9bb98d12999864",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4331,14 +4331,14 @@ print(f'Running Proseg with {n_threads} threads', flush=True)
 
 command_suffix = (
     f\'\'\'--nthreads {n_threads} \'\'\'
-# these should not need to be changed
-    f\'\'\'--ncomponents 10 \'\'\'
+# model knobs (exposed as config arguments; defaults == proseg's own CLI defaults)
+    f\'\'\'--ncomponents {par['ncomponents']} \'\'\'
     # f\'\'\'--no-diffusion \'\'\' # should be off by default (?)
-    f\'\'\'--diffusion-probability 0.2 \'\'\'
-    f\'\'\'--diffusion-sigma-far 4 \'\'\'
-    f\'\'\'--diffusion-sigma-near 1 \'\'\'
-    f\'\'\'--nuclear-reassignment-prob 0.2 \'\'\'
-    f\'\'\'--cell-compactness 0.03 \'\'\'
+    f\'\'\'--diffusion-probability {par['diffusion_probability']} \'\'\'
+    f\'\'\'--diffusion-sigma-far {par['diffusion_sigma_far']} \'\'\'
+    f\'\'\'--diffusion-sigma-near {par['diffusion_sigma_near']} \'\'\'
+    f\'\'\'--nuclear-reassignment-prob {par['nuclear_reassignment_prob']} \'\'\'
+    f\'\'\'--cell-compactness {par['cell_compactness']} \'\'\'
 # these can be changed as arguments
     f\'\'\'--voxel-layers {par['voxel_layers']} \'\'\'
     f\'\'\'--samples {par['samples']} \'\'\'

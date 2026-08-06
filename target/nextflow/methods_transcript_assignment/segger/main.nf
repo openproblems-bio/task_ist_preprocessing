@@ -4010,7 +4010,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/segger",
     "viash_version" : "0.9.7",
-    "git_commit" : "28ff0e9d97d381ab0591fb25442257204273fc2b",
+    "git_commit" : "c7980341634d08078595b11f9e9bb98d12999864",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4310,35 +4310,40 @@ if isinstance(sdata_segm["segmentation"], xr.DataTree):
     label_image = sdata_segm["segmentation"]["scale0"].image.to_numpy()
 else:
     label_image = sdata_segm["segmentation"].to_numpy()
-# Transcripts can land outside the label image after the transform (e.g. the combine step
-# crops the image/labels to ~20000x20000 but transcripts span a larger field -> here ~38%
-# of them fall outside). Those OOB transcripts must NOT be fed to segger: segger tiles the
-# transcript field into a heterogeneous graph with 'tx' (transcript) and 'bd' (boundary/
-# cell) node types, and a tile covering a transcripts-only region (no boundaries) produces a
-# training mini-batch with ZERO 'bd' nodes. segger's positional encoder then runs
-# \\`torch.zeros((batch.max()+1, 2))\\` on an empty batch -> \\`RuntimeError: max(): Expected
-# reduction dim to be specified for input.numel() == 0\\`, which kills training MID-RUN (only
-# when the DataLoader's shuffle happens to draw an all-OOB mini-batch, so it can survive
-# several epochs first). A transcript outside the segmentation can't belong to any segmented
-# cell anyway, so we EXCLUDE it from the segger input and leave it unassigned (cell_id 0) in
-# the final output. Datasets whose segmentation covers the whole transcript field are
-# unaffected (in_bounds all-True, n_oob == 0).
-in_bounds = (
-    (y_coords >= 0) & (y_coords < label_image.shape[0])
-    & (x_coords >= 0) & (x_coords < label_image.shape[1])
-)
-n_oob = int((~in_bounds).sum())
-y_look = np.clip(y_coords, 0, label_image.shape[0] - 1)
-x_look = np.clip(x_coords, 0, label_image.shape[1] - 1)
-prior_cell_id = label_image[y_look, x_look].astype(np.int64)  # 0 == background
-prior_cell_id[~in_bounds] = 0  # OOB -> background (excluded from segger regardless)
-print(f"{n_oob}/{len(in_bounds)} transcripts fall outside the "
-      f"{label_image.shape[0]}x{label_image.shape[1]} label image; excluding them from the "
-      f"segger input (they stay unassigned in the output).", flush=True)
+# Clamp transcript pixel coords to the label-image bounds before the lookup: after the
+# transform a few can round a pixel past the raster edge. Matches the clamp in
+# basic_transcript_assignment / baysor / proseg.
+#
+# HISTORY: this step used to EXCLUDE out-of-bounds transcripts from segger's input (and remap
+# segger's row_index back through a \\`seg_orig_idx\\` array), from when the process_dataset crop
+# left a large fraction (~38% on mouse-brain rep3) of transcripts OUTSIDE the cropped labels.
+# That crop bug is fixed -- crop_points_by_global_xy now crops transcripts to the SAME global
+# box as the labels -- and a full run on re-processed Xenium + MERFISH confirmed n_oob == 0, so
+# the exclusion + remap were a confirmed no-op. Removed here in favour of the plain clamp; edge
+# rounding is all that remains, and it's handled below. NOTE: this does NOT touch the separate
+# empty-\\`bd\\`-batch crash (a cell-free INTERIOR tile), which is intra-field, not OOB-driven, and
+# still needs the segger-encoder guard -- see NOTES.md.
+n_oob = int(np.count_nonzero(
+    (y_coords < 0) | (y_coords >= label_image.shape[0])
+ (x_coords < 0) | (x_coords >= label_image.shape[1])
+))
+y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
+x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
+prior_cell_id = label_image[y_coords, x_coords].astype(np.int64)  # 0 == background
+print(f"Clamped {n_oob}/{len(prior_cell_id)} transcripts outside the "
+      f"{label_image.shape[0]}x{label_image.shape[1]} label image to its edge", flush=True)
+# Every transcript clamping out of bounds means transcripts and segmentation are almost
+# certainly in mismatched coordinate frames -- fail fast rather than assign everything to edge
+# pixels (mirrors the intent of the old zero-in-bounds guard).
+if n_oob == len(prior_cell_id):
+    raise ValueError(
+        "Every transcript falls outside the segmentation label image, so the clamp would map "
+        "them all to edge pixels. This usually means the transcripts and segmentation are in "
+        "mismatched coordinate frames (check the dataset's crop / transforms)."
+    )
 
 # Canonical transcripts frame (native coordinates, clean RangeIndex). Its row order matches
-# prior_cell_id / in_bounds; the IN-BOUNDS subset's order matches the parquet we write and
-# hence segger's reported row_index (mapped back through seg_orig_idx below).
+# prior_cell_id AND the parquet we write below, and hence segger's reported row_index.
 tx_pd = transcripts_reset.compute()
 n_tx = len(tx_pd)
 
@@ -4347,30 +4352,19 @@ if "transcript_id" in tx_pd.columns:
 else:
     transcript_id = np.arange(n_tx, dtype=np.uint64)
 
-# Full-frame positions of the transcripts actually handed to segger. segger's output
-# row_index indexes into the (in-bounds) parquet row order; seg_orig_idx maps it back.
-seg_orig_idx = np.nonzero(in_bounds)[0]
-if seg_orig_idx.size == 0:
-    raise ValueError(
-        "No transcripts fall within the segmentation label image, so segger has nothing to "
-        "assign. This usually means the transcripts and segmentation are in mismatched "
-        "coordinate frames (check the dataset's crop / transforms)."
-    )
-
-n_in = int(in_bounds.sum())
 tx_out = pd.DataFrame({
-    "transcript_id": transcript_id[in_bounds],
-    "x_location": tx_pd["x"].to_numpy().astype(np.float32)[in_bounds],
-    "y_location": tx_pd["y"].to_numpy().astype(np.float32)[in_bounds],
-    "feature_name": tx_pd["feature_name"].astype(str).to_numpy()[in_bounds],
+    "transcript_id": transcript_id,
+    "x_location": tx_pd["x"].to_numpy().astype(np.float32),
+    "y_location": tx_pd["y"].to_numpy().astype(np.float32),
+    "feature_name": tx_pd["feature_name"].astype(str).to_numpy(),
     # segger's Xenium loader keys transcripts to boundaries by cell_id string;
     # background (0) becomes the UNASSIGNED sentinel.
-    "cell_id": np.where(prior_cell_id[in_bounds] > 0, prior_cell_id[in_bounds].astype(str), "UNASSIGNED"),
-    "qv": np.full(n_in, 40.0, dtype=np.float32),
-    "overlaps_nucleus": (prior_cell_id[in_bounds] > 0).astype(np.int8),
+    "cell_id": np.where(prior_cell_id > 0, prior_cell_id.astype(str), "UNASSIGNED"),
+    "qv": np.full(n_tx, 40.0, dtype=np.float32),
+    "overlaps_nucleus": (prior_cell_id > 0).astype(np.int8),
 })
 if "z" in tx_pd.columns:
-    tx_out.insert(3, "z_location", tx_pd["z"].to_numpy().astype(np.float32)[in_bounds])
+    tx_out.insert(3, "z_location", tx_pd["z"].to_numpy().astype(np.float32))
 tx_out.to_parquet(XENIUM_DIR / "transcripts.parquet", index=False)
 del transcripts, y_coords, x_coords, label_image
 
@@ -4491,15 +4485,15 @@ keep_mask = (
 seg = seg[keep_mask]
 print(f"segger kept {len(seg)} assignments of {n_tx} transcripts", flush=True)
 
-# segger reports row_index into the transcripts.parquet we wrote, which is the IN-BOUNDS
-# subset (OOB transcripts were excluded above). Map that back to the full-frame position via
-# seg_orig_idx, then factorize the (string) segger_cell_id into contiguous positive integers;
-# unassigned / out-of-bounds transcripts stay 0.
+# segger reports row_index into the transcripts.parquet we wrote. Since we now write ALL
+# transcripts (the full canonical frame, no OOB exclusion), row_index indexes tx_pd directly.
+# Factorize the (string) segger_cell_id into contiguous positive integers; unassigned
+# transcripts stay 0.
 cell_id_per_tx = np.zeros(n_tx, dtype=np.int64)
 if len(seg):
     row_idx = seg["row_index"].to_numpy().astype(np.int64)
     codes, _ = pd.factorize(seg["segger_cell_id"].astype(str), sort=True)
-    cell_id_per_tx[seg_orig_idx[row_idx]] = codes.astype(np.int64) + 1
+    cell_id_per_tx[row_idx] = codes.astype(np.int64) + 1
 
 #############################################
 # Build transcript-assignment output object #

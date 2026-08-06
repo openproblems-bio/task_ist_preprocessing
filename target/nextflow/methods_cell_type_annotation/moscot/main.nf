@@ -3867,7 +3867,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/moscot",
     "viash_version" : "0.9.7",
-    "git_commit" : "28ff0e9d97d381ab0591fb25442257204273fc2b",
+    "git_commit" : "c7980341634d08078595b11f9e9bb98d12999864",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

@@ -4382,7 +4382,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.7",
-    "git_commit" : "28ff0e9d97d381ab0591fb25442257204273fc2b",
+    "git_commit" : "c7980341634d08078595b11f9e9bb98d12999864",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4562,7 +4562,21 @@ dep = {
 ### VIASH END
 
 
-def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000): 
+def _full_res_image(img):
+    """Full-resolution image DataArray, whether \\`img\\` is single-scale (a plain
+    xarray DataArray) or multiscale (a DataTree with scale0/scale1/... nodes).
+
+    spatialdata stores an image either way depending on the loader, and indexing
+    a single-scale DataArray with ["scale0"] raises KeyError (it looks for a
+    coordinate named 'scale0'), so pick the top-res array explicitly.
+    """
+    from xarray import DataArray
+    if isinstance(img, DataArray):
+        return img
+    return img["scale0"].image
+
+
+def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
     """Get the crop coordinates to subset the sdata to max_n_pixels
     
     Arguments
@@ -4578,7 +4592,7 @@ def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
         The crop coordinates
     """
     
-    _, h, w = sdata['image']["scale0"].image.shape
+    _, h, w = _full_res_image(sdata['image']).shape
     #h, w = sdata
     
     # Check if the image is already below the maximum number of pixels

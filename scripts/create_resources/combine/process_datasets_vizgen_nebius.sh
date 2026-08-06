@@ -12,7 +12,14 @@ cd "$REPO_ROOT"
 
 set -e
 
-input_dir="s3://openproblems-data/resources/datasets"
+# Read the FRESH loader outputs + SC refs from the scratch raw folder, NOT the S3
+# resources/datasets copy. The S3 vizgen loader outputs are stale (Oct 2025, uint16):
+# the old loader rasterized ~700k cells into a uint16 label, so cell IDs > 65535 wrapped
+# and most cells were lost -> the segmentation covered only a partial band. The rebuilt
+# scratch loader outputs are uint32 / full-field. (process_dataset itself is correct; it
+# faithfully cropped the already-broken S3 label, which is why the band appeared.)
+input_dir="/scratch/task_ist_preprocessing/raw"
+#input_dir="s3://openproblems-data/resources/datasets"   # stale (uint16 labels) -- do not use
 #publish_dir="s3://openproblems-data/resources/task_ist_preprocessing/datasets"
 publish_dir='/scratch/task_ist_preprocessing/datasets'
 
