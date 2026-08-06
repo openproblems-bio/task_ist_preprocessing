@@ -1,0 +1,53 @@
+# Parameter sweep for the segger (GPU, GNN) transcript-assignment method.
+# Committed source of truth, read at runtime from GitHub via a raw URL by
+# run_test_segger_nebius.sh (the Nebius compute env pulls the repo but cannot see the
+# launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total segger variants = 1 default + sum(sweep list lengths) = 8.
+# The workflow also allows at most ONE non-default method across the pipeline at a time;
+# segger is that one non-default method here (every other stage stays on its single default).
+#
+# See src/methods_transcript_assignment/segger/NOTES.md ("Optimization / tuning") for the
+# tiers and rationale.
+#
+# NON-DEFAULT AUDIT: every one of segger's exposed knobs already ships at segger 0.1.0's OWN
+# default (n_epochs=20, prediction_graph_buffer_ratio=0.05, prediction_mode=cell,
+# node_representation_dim=128 -- verified against dpeerlab/segger@0233cf62). So NOTHING is a
+# pre-existing deviation forced onto an axis; this sweep is genuine exploration AROUND segger's
+# defaults. (The 0.5 in the NOTES arg-table was the OLD --prediction-expansion-ratio default;
+# 0.1.0 renamed the flag to --prediction-graph-buffer-ratio and lowered its default to 0.05 ==
+# what we ship.)
+#
+# node_representation_dim is deliberately NOT swept: it is a PCA-ceiling upper bound / capacity
+# knob (script.py auto-retries at segger's reported ceiling on small panels), not a quality axis.
+#
+# SUBMITTABLE-NOW: the Nebius launch runs `--revision build/main`, and every arg swept below is
+# already exposed in src/methods_transcript_assignment/segger/config.vsh.yaml, so NO container
+# rebuild is needed (segger's GPU/RAPIDS image is expensive to rebuild -- avoided on purpose).
+# segger is GPU-only; scheduling is handled by the gpuh100 label + src/base/labels_nebius_test.config.
+parameters:
+  segger:
+    # Baseline == the component's shipped defaults (== segger 0.1.0's own defaults).
+    default:
+      n_epochs: 20
+      prediction_graph_buffer_ratio: 0.05
+      prediction_mode: cell
+      node_representation_dim: 128
+    sweep:
+      # ---- Tier 1: which polygon set drives the prediction graph ----
+      # prediction_mode: default `cell`; sweep the other two of segger's three choices.
+      prediction_mode: [nucleus, uniform]
+      # ---- Tier 1: polygon buffer/expansion = the recall<->precision dial ----
+      # prediction_graph_buffer_ratio: expand each cell polygon by this fraction of its
+      # equivalent radius. Larger = capture more surrounding transcripts (more recall, less
+      # precision). Default 0.05 (tight); walk UP. 0.5 == the old --prediction-expansion-ratio
+      # default, a natural upper anchor.
+      prediction_graph_buffer_ratio: [0.1, 0.25, 0.5]
+      # ---- Tier 2: GNN training epochs (quality vs. speed) ----
+      # More epochs = better convergence at a linear GPU-time cost (60 ~ 3x default train time).
+      n_epochs: [40, 60]

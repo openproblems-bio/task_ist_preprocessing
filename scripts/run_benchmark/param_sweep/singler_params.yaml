@@ -1,0 +1,43 @@
+# Parameter sweep for the singler (SingleR, singler-py reference-correlation
+# labeller) cell-type-annotation method. Committed source of truth for
+# run_test_singler_nebius.sh (read from GitHub via a raw URL, since the Nebius
+# compute env pulls the repo but cannot see the launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total singler variants = 1 default + sum(sweep list lengths) = 4.
+#
+# See src/methods_cell_type_annotation/singler/NOTES.md ("Optimization / tuning") for
+# the tiers and rationale.
+#
+# WHY celltype_key is the axis: it is the ONLY exposed method-relevant argument, and the
+# scRNA-seq reference is annotated at nested granularities (cell_type -> cell_type_level2
+# -> level3 -> level4). Selecting the granularity the classifier trains on is the single
+# meaningful lever for a reference labeller (Tier 1). The real singler-py algorithm knobs
+# (marker_method, num_de, quantile, use_fine_tune/fine_tune_threshold, aggregate) are NOT
+# exposed by the component and are documented in NOTES.md as future work (they would need
+# a config expose + script wiring + container rebuild before they could be swept).
+#
+# !!! SUBMITTABLE-BUT-NO-OP CAVEAT !!!
+#   celltype_key already exists in build/main's config, so this sweep LAUNCHES without a
+#   rebuild. BUT build/main's baked-in script.py hardcodes the reference label column
+#   (ref_labels = ...column("cell_type")) and never reads par['celltype_key'] -- so on the
+#   deployed build/main container all four variants below produce IDENTICAL annotations
+#   (a no-op). The sweep only measures anything after a one-line wiring fix
+#   (...column(par["celltype_key"])) AND a container rebuild. See NOTES.md.
+parameters:
+  singler:
+    # Baseline == the component's shipped default (the primary annotation column).
+    default:
+      celltype_key: cell_type
+    sweep:
+      # celltype_key: which reference obs column supplies the training labels, i.e. the
+      # annotation GRANULARITY the SingleR classifier is trained/scored against. The
+      # reference carries cell_type (default, covered by the default variant) plus three
+      # progressively finer levels. Finer levels add classes (higher resolution) but make
+      # the per-label correlation harder to separate on a small iST panel -- the knee
+      # between resolution and accuracy is what this axis is meant to find (once wired).
+      celltype_key: [cell_type_level2, cell_type_level3, cell_type_level4]

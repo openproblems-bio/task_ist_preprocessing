@@ -3813,7 +3813,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/tangram",
     "viash_version" : "0.9.7",
-    "git_commit" : "72b73373d33ba8ef22d32c58c589901f5f9fc254",
+    "git_commit" : "4315efe821b6a4a8596a091caf3bef5c852d90c1",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
