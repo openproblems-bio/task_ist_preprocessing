@@ -23,7 +23,13 @@ par = {
   'samples': 200,
   'burnin_samples': 200,
   'voxel_size': 1.0,
-  'burnin_voxel_size': 2.0 
+  'burnin_voxel_size': 2.0,
+  'cell_compactness': 0.04,
+  'nuclear_reassignment_prob': 0.2,
+  'diffusion_probability': 0.2,
+  'ncomponents': 10,
+  'diffusion_sigma_far': 4.0,
+  'diffusion_sigma_near': 1.0
 }
 meta = {
   'name': 'proseg',
@@ -113,14 +119,14 @@ print(f'Running Proseg with {n_threads} threads', flush=True)
 
 command_suffix = (
     f'''--nthreads {n_threads} '''
-# these should not need to be changed
-    f'''--ncomponents 10 '''
+# model knobs (exposed as config arguments; defaults == proseg's own CLI defaults)
+    f'''--ncomponents {par['ncomponents']} '''
     # f'''--no-diffusion ''' # should be off by default (?)
-    f'''--diffusion-probability 0.2 '''
-    f'''--diffusion-sigma-far 4 '''
-    f'''--diffusion-sigma-near 1 '''
-    f'''--nuclear-reassignment-prob 0.2 '''
-    f'''--cell-compactness 0.03 '''
+    f'''--diffusion-probability {par['diffusion_probability']} '''
+    f'''--diffusion-sigma-far {par['diffusion_sigma_far']} '''
+    f'''--diffusion-sigma-near {par['diffusion_sigma_near']} '''
+    f'''--nuclear-reassignment-prob {par['nuclear_reassignment_prob']} '''
+    f'''--cell-compactness {par['cell_compactness']} '''
 # these can be changed as arguments
     f'''--voxel-layers {par['voxel_layers']} '''
     f'''--samples {par['samples']} '''
