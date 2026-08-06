@@ -22,7 +22,8 @@ workflow run_wf {
         "dataset_reference",
         "dataset_summary",
         "dataset_description",
-        "dataset_organism"
+        "dataset_organism",
+        "tissue_centered_crop"
       ],
       toState: [
         "output_sc",
