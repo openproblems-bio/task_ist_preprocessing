@@ -36,7 +36,21 @@ par = {
 ### VIASH END
 
 
-def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000): 
+def _full_res_image(img):
+    """Full-resolution image DataArray, whether `img` is single-scale (a plain
+    xarray DataArray) or multiscale (a DataTree with scale0/scale1/... nodes).
+
+    spatialdata stores an image either way depending on the loader, and indexing
+    a single-scale DataArray with ["scale0"] raises KeyError (it looks for a
+    coordinate named 'scale0'), so pick the top-res array explicitly.
+    """
+    from xarray import DataArray
+    if isinstance(img, DataArray):
+        return img
+    return img["scale0"].image
+
+
+def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
     """Get the crop coordinates to subset the sdata to max_n_pixels
     
     Arguments
@@ -52,7 +66,7 @@ def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
         The crop coordinates
     """
     
-    _, h, w = sdata['image']["scale0"].image.shape
+    _, h, w = _full_res_image(sdata['image']).shape
     #h, w = sdata
     
     # Check if the image is already below the maximum number of pixels
