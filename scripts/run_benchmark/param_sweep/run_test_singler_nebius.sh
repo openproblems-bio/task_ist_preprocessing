@@ -1,25 +1,35 @@
 #!/bin/bash
 
-# Nebius test run: all default methods + Cellpose v3 (cellpose, cyto/nuclei CNN)
-# segmentation, with a parameter sweep over the optimization levers identified
-# for Cellpose v3. See src/methods_segmentation/cellpose/NOTES.md
-# ("Optimization / tuning"). Local sibling: run_test_cellpose_local.sh
+# Nebius test run: all default methods + SingleR (singler) cell-type annotation,
+# with a parameter sweep over the one exposed optimization lever for SingleR.
+# See src/methods_cell_type_annotation/singler/NOTES.md ("Optimization / tuning").
 #
-# NOTE: the component carries a gpuhighmem label (so it is scheduled onto a GPU
-# node), but as of txsim@dev the v3 code path runs on CPU (the wrapper never
-# passes gpu=). The `gpu` run label below matches the config's scheduling; it
-# does NOT make the model GPU-accelerated. See the GPU gotcha in NOTES.md.
+# SingleR (singler-py) is a CPU-only reference-correlation labeller — NO GPU, so
+# there is no `gpu` label here (the non-GPU parts mirror run_test_nebius.sh). The
+# compute env is the same one all these test runs use.
 #
-# PARAMS-FILE CAVEAT (why this differs from the local script):
+# The annotation stage keeps its default method `tacco` alongside `singler` so the
+# run has a baseline to compare the singler variants against. Every other stage is
+# left on its single default (the swept method must be the only non-default thing).
+#
+# !!! SUBMITTABLE-BUT-NO-OP CAVEAT !!!
+#   The sweep varies `celltype_key`, which ALREADY EXISTS in build/main's config, so
+#   this launches WITHOUT a rebuild. BUT build/main's baked-in script.py hardcodes the
+#   reference label column (ref_labels = ...column("cell_type")) and never reads
+#   par['celltype_key'] -- so on the deployed build/main container all four variants
+#   produce IDENTICAL annotations. The sweep only measures anything after a one-line
+#   wiring fix (...column(par["celltype_key"])) AND a container rebuild. See NOTES.md.
+#
+# PARAMS-FILE CAVEAT (why this reads from GitHub):
 #   `tw launch --params-file` is read client-side, but `method_parameters_yaml`
 #   is a path the WORKFLOW opens at runtime on the cloud (readYaml -> Nextflow
 #   file()). A local /tmp path does not exist there, and /scratch (where results
-#   publish) is READ-ONLY from the launch host — which is why the binning
-#   method_params block is commented out in run_test_nebius.sh. file() does stage
-#   http(s):// though, and this repo is public, so we keep the sweep in a COMMITTED
-#   file (scripts/run_benchmark/cellpose_params.yaml) and read it from GitHub via
-#   its raw URL. => the params file must be committed AND PUSHED to $params_branch
-#   before launching (edit the file there, not here, to change the sweep).
+#   publish) is READ-ONLY from the launch host. file() does stage http(s):// though,
+#   and this repo is public, so we keep the sweep in a COMMITTED file
+#   (scripts/run_benchmark/param_sweep/singler_params.yaml) and read it from GitHub
+#   via its raw URL. => the params file must be committed AND PUSHED to
+#   $params_branch before launching (edit the file there, not here, to change the
+#   sweep). This is independent of --revision below, which selects the pipeline CODE.
 
 # get the root of the directory
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -32,14 +42,14 @@ set -e
 resources_test_s3="/scratch/task_ist_preprocessing/resources_test/task_ist_preprocessing/"
 # Results publish to /scratch — created and written by the cloud compute env, so
 # the launcher does NOT create it here (it is read-only from the launch host).
-publish_dir="/scratch/results/runs/$(date +%Y-%m-%d_%H-%M-%S)_cellpose"
+publish_dir="/scratch/results/runs/$(date +%Y-%m-%d_%H-%M-%S)_singler"
 
 # The sweep lives in a committed file, read from GitHub at runtime. $params_branch
 # defaults to the branch you are on; the file must be pushed there on GitHub. (This
 # is independent of --revision below, which selects the pipeline CODE to run.)
 params_repo="openproblems-bio/task_ist_preprocessing"
 params_branch="$(git rev-parse --abbrev-ref HEAD)"
-params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/param_sweep/cellpose_params.yaml"
+params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/param_sweep/singler_params.yaml"
 
 cat > /tmp/params_settings.yaml << HERE
 default_methods:
@@ -53,11 +63,6 @@ default_methods:
   - no_correction
 segmentation_methods:
   - custom_segmentation
-  - cellpose
-#  - cellposev4
-#  - binning
-#  - stardist
-#  - watershed
 transcript_assignment_methods:
   - basic_transcript_assignment
 count_aggregation_methods:
@@ -70,6 +75,7 @@ normalization_methods:
   - normalize_by_volume
 celltype_annotation_methods:
   - tacco
+  - singler
 expression_correction_methods:
   - no_correction
 gene_efficiency_correction_methods:
@@ -91,7 +97,7 @@ HERE
 if ! curl -fsSL -o /dev/null "$params_url"; then
   echo "ERROR: params file not reachable at:" >&2
   echo "  $params_url" >&2
-  echo "Commit and push scripts/run_benchmark/param_sweep/cellpose_params.yaml to '$params_branch' first." >&2
+  echo "Commit and push scripts/run_benchmark/param_sweep/singler_params.yaml to '$params_branch' first." >&2
   exit 1
 fi
 
@@ -104,4 +110,4 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --params-file /tmp/params.yaml \
   --entry-name auto \
   --config src/base/labels_nebius.config \
-  --labels task_ist_preprocessing,test,cellpose,gpu
+  --labels task_ist_preprocessing,test,singler

@@ -34,7 +34,7 @@ cd "$REPO_ROOT"
 
 set -e
 
-resources_test_s3=s3://openproblems-data/resources_test/task_ist_preprocessing
+resources_test_s3="/scratch/task_ist_preprocessing/resources_test/task_ist_preprocessing/"
 # Results publish to /scratch — created and written by the cloud compute env, so
 # the launcher does NOT create it here (it is read-only from the launch host).
 publish_dir="/scratch/results/runs/$(date +%Y-%m-%d_%H-%M-%S)_rctd"

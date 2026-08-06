@@ -15,7 +15,7 @@
 #   publish) is READ-ONLY from the launch host — which is why the binning
 #   method_params block is commented out in run_test_nebius.sh. file() does stage
 #   http(s):// though, and this repo is public, so we keep the sweep in a COMMITTED
-#   file (scripts/run_benchmark/cellposev4_params.yaml) and read it from GitHub via
+#   file (scripts/run_benchmark/param_sweep/cellposev4_params.yaml) and read it from GitHub via
 #   its raw URL. => the params file must be committed AND PUSHED to $params_branch
 #   before launching (edit the file there, not here, to change the sweep).
 
@@ -27,7 +27,7 @@ cd "$REPO_ROOT"
 
 set -e
 
-resources_test_s3=s3://openproblems-data/resources_test/task_ist_preprocessing
+resources_test_s3="/scratch/task_ist_preprocessing/resources_test/task_ist_preprocessing/"
 # Results publish to /scratch — created and written by the cloud compute env, so
 # the launcher does NOT create it here (it is read-only from the launch host).
 publish_dir="/scratch/results/runs/$(date +%Y-%m-%d_%H-%M-%S)_cellposev4"
@@ -37,7 +37,7 @@ publish_dir="/scratch/results/runs/$(date +%Y-%m-%d_%H-%M-%S)_cellposev4"
 # is independent of --revision below, which selects the pipeline CODE to run.)
 params_repo="openproblems-bio/task_ist_preprocessing"
 params_branch="$(git rev-parse --abbrev-ref HEAD)"
-params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/cellposev4_params.yaml"
+params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/param_sweep/cellposev4_params.yaml"
 
 cat > /tmp/params_settings.yaml << HERE
 default_methods:
@@ -89,7 +89,7 @@ HERE
 if ! curl -fsSL -o /dev/null "$params_url"; then
   echo "ERROR: params file not reachable at:" >&2
   echo "  $params_url" >&2
-  echo "Commit and push scripts/run_benchmark/cellposev4_params.yaml to '$params_branch' first." >&2
+  echo "Commit and push scripts/run_benchmark/param_sweep/cellposev4_params.yaml to '$params_branch' first." >&2
   exit 1
 fi
 

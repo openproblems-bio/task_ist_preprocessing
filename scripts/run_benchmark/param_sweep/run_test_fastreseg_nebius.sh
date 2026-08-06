@@ -1,23 +1,20 @@
 #!/bin/bash
 
-# Nebius test run: all default methods + StarDist2D (stardist) segmentation, with a
-# parameter sweep over the optimization levers identified for StarDist.
-# See src/methods_segmentation/stardist/NOTES.md ("Optimization / tuning").
-# Local sibling: run_test_stardist_local.sh
+# Nebius test run: all default methods + fastreseg at the transcript-assignment stage,
+# with a parameter sweep over fastreseg's tuning knobs.
+# See src/methods_transcript_assignment/fastreseg/NOTES.md ("Optimization / tuning").
 #
-# stardist runs on TensorFlow and is scheduled with the `gpu` label (its config uses
-# a GPU-capable base image), hence the Nebius GPU compute env.
+# The stage default (basic_transcript_assignment) stays enabled alongside fastreseg so the run
+# also produces the baseline the sweep is scored against — the workflow allows at most ONE
+# non-default variant at a time, and fastreseg is that one non-default method here; every OTHER
+# stage stays on its single default.
 #
-# PARAMS-FILE CAVEAT (why this differs from the local script):
-#   `tw launch --params-file` is read client-side, but `method_parameters_yaml`
-#   is a path the WORKFLOW opens at runtime on the cloud (readYaml -> Nextflow
-#   file()). A local /tmp path does not exist there, and /scratch (where results
-#   publish) is READ-ONLY from the launch host — which is why the binning
-#   method_params block is commented out in run_test_nebius.sh. file() does stage
-#   http(s):// though, and this repo is public, so we keep the sweep in a COMMITTED
-#   file (scripts/run_benchmark/stardist_params.yaml) and read it from GitHub via
-#   its raw URL. => the params file must be committed AND PUSHED to $params_branch
-#   before launching (edit the file there, not here, to change the sweep).
+# PARAMS-FILE CAVEAT: `method_parameters_yaml` is opened by the WORKFLOW at runtime on the cloud
+# (readYaml -> Nextflow file()), so a local /tmp path won't exist there and /scratch is read-only
+# from the launch host. file() DOES stage http(s):// and this repo is public, so the sweep lives
+# in a COMMITTED file read from GitHub via its raw URL => commit AND PUSH
+# scripts/run_benchmark/param_sweep/fastreseg_params.yaml to $params_branch before launching.
+# This is independent of --revision (which selects the pipeline CODE).
 
 # get the root of the directory
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -28,16 +25,14 @@ cd "$REPO_ROOT"
 set -e
 
 resources_test_s3="/scratch/task_ist_preprocessing/resources_test/task_ist_preprocessing/"
-# Results publish to /scratch — created and written by the cloud compute env, so
-# the launcher does NOT create it here (it is read-only from the launch host).
-publish_dir="/scratch/results/runs/$(date +%Y-%m-%d_%H-%M-%S)_stardist"
+# Results publish to /scratch — created and written by the cloud compute env (read-only here).
+publish_dir="/scratch/results/runs/$(date +%Y-%m-%d_%H-%M-%S)_fastreseg"
 
-# The sweep lives in a committed file, read from GitHub at runtime. $params_branch
-# defaults to the branch you are on; the file must be pushed there on GitHub. (This
-# is independent of --revision below, which selects the pipeline CODE to run.)
+# The sweep lives in a committed file, read from GitHub at runtime. $params_branch defaults to
+# the branch you are on; the file must be pushed there. (Independent of --revision below.)
 params_repo="openproblems-bio/task_ist_preprocessing"
 params_branch="$(git rev-parse --abbrev-ref HEAD)"
-params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/param_sweep/stardist_params.yaml"
+params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/param_sweep/fastreseg_params.yaml"
 
 cat > /tmp/params_settings.yaml << HERE
 default_methods:
@@ -51,13 +46,9 @@ default_methods:
   - no_correction
 segmentation_methods:
   - custom_segmentation
-  - stardist
-#  - cellpose
-#  - cellposev4
-#  - binning
-#  - watershed
 transcript_assignment_methods:
   - basic_transcript_assignment
+  - fastreseg
 count_aggregation_methods:
   - basic_count_aggregation
 qc_filtering_methods:
@@ -89,7 +80,7 @@ HERE
 if ! curl -fsSL -o /dev/null "$params_url"; then
   echo "ERROR: params file not reachable at:" >&2
   echo "  $params_url" >&2
-  echo "Commit and push scripts/run_benchmark/stardist_params.yaml to '$params_branch' first." >&2
+  echo "Commit and push scripts/run_benchmark/param_sweep/fastreseg_params.yaml to '$params_branch' first." >&2
   exit 1
 fi
 
@@ -102,4 +93,4 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --params-file /tmp/params.yaml \
   --entry-name auto \
   --config src/base/labels_nebius.config \
-  --labels task_ist_preprocessing,test,stardist,gpu
+  --labels task_ist_preprocessing,test,fastreseg
