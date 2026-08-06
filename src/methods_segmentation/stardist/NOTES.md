@@ -128,6 +128,12 @@ each model's own optimized `thresholds.json` — hard-coding e.g. `0.479071` wou
 wrong for a different `--model` whose optimized thresholds differ. **They need
 `viash ns build` + a container rebuild to take effect** (see `check-component`).
 
+`max_object_diameter` is a **geometry/robustness knob, not a quality knob** — it only
+sizes `predict_instances_big`'s `min_overlap`; it does not change which pixels get
+segmented. It is **not part of the quality sweep**; leave it at the 192 px default
+unless you hit the min_overlap `RuntimeError` (the script also auto-doubles it), or your
+nuclei are unusually large.
+
 Not exposed:
 - `--n_tiles` — a pure GPU-memory tiling knob. `predict_instances_big` **already** tiles
   the image via `block_size` (≤4096 px), so `n_tiles` would only sub-tile each block for
@@ -213,10 +219,16 @@ That is exactly the sweep encoded in `scripts/run_benchmark/stardist_params.yaml
   `viash ns build` + a container rebuild; a stale image silently ignores them. The sweep
   has **not yet been run end-to-end** with the new args — validated only by
   `viash config view` + a script `ast.parse`.
-- **`scale` through `predict_instances_big`.** It is forwarded per-block via `**kwargs`;
-  block geometry (`block_size`/`context`) stays in original-pixel units, so extreme
-  `scale` values interact with the block overlap. Sanity-check masks at the block seams
-  if using large `scale`.
+- **`min_overlap` must exceed the largest object.** `predict_instances_big`'s block
+  stitching asserts every object is smaller than `min_overlap`; a bigger object throws
+  `RuntimeError: ...violates the assumption of being smaller than 'min_overlap'`. The old
+  code tied it to `block_size // 5.5`, so on small/narrow panels it fell to 64 px while
+  real blobs reached ~110 px → crash. Now `min_overlap` is **object-size-based**
+  (`max_object_diameter`, default 192 px), `block_size` is grown to keep
+  `min_overlap + 2*context < block_size`, and a **retry doubles `min_overlap`** on that
+  error. `scale` is forwarded per-block via `**kwargs` but objects are measured in
+  original pixels (predict_instances undoes `scale`), so `min_overlap` is in original px
+  regardless of `scale`; still sanity-check masks at block seams for extreme `scale`.
 - **Only channel 0 is segmented** (`image[0]`). Fine for single-channel iST morphology;
   StarDist2D has no multi-channel mode anyway.
 - **Whole image loaded into RAM** (`:53`) — full-res plane; big panels are why the label
