@@ -48,31 +48,41 @@ detector**: the script feeds it `image[0]` only (see Tier 0 below).
    (prob=0.479071, nms=0.3 for that model) as the fallback thresholds.
 4. **Percentile normalizer** (`:64-77`) — a csbdeep `Normalizer` subclass that min-max
    scales the image to its **1st / 99.8th percentiles** (`normalize_mi_ma`), the
-   recommended StarDist preprocessing but with fixed percentile bounds. `block_size`
-   and `context` are derived from the image width so a large panel is processed in
-   tiles; **`min_overlap` is derived from object size, not block size** (see step 6 and
-   the min_overlap gotcha below).
+   recommended StarDist preprocessing but with fixed percentile bounds. The **image
+   size then selects the segmentation path** (single-pass vs tiled — see step 6 and the
+   min_overlap gotcha below).
 5. **Build eval-params** (`:85-89`) — collects the newly exposed tunables
    (`prob_thresh, nms_thresh, scale`) from `par`, **dropping any that are `None`**.
    A dropped key ⇒ `predict_instances` uses the model's own optimized value (so the
    no-args call is byte-for-byte the pre-tuning behaviour). Mirrors the cellposev4
    eval-params pattern.
-6. **Segment** (`:92-131`) — `model.predict_instances_big(image[0], axes='YX',
-   block_size=…, min_overlap=…, context=…, normalizer=…, **eval_params)`.
-   `predict_instances_big` splits the image into `block_size` blocks, calls
-   `predict_instances` on each (forwarding `**eval_params` unchanged — it only
-   overrides `axes/overlap_label/return_labels/return_predict`), and reassembles the
-   labels into global coordinates. `image[0]` = first channel → a single 2D plane.
-   **The stitching invariant is that every predicted object is smaller than
-   `min_overlap`** (an object bigger than the overlap can span a block seam and can't be
-   uniquely assigned → `RuntimeError: ...violates the assumption of being smaller than
-   'min_overlap'`). So `min_overlap` is set from an **object-size** bound
-   (`max_object_diameter`, default **192 px**), *not* from `block_size` (the old
-   `block_size // 5.5` shrank it to 64 px on small panels while real blobs reached
-   ~110 px → crash). `block_size` is then grown if needed to satisfy
-   `min_overlap + 2*context < block_size`, and the call is wrapped in a **retry that
-   doubles `min_overlap` on that specific error** so a rare oversized blob self-heals
-   instead of failing the run.
+6. **Segment** (`:91-141`) — **two paths chosen by image size** (`image[0]` = first
+   channel → a single 2D plane):
+   - **Fits (largest side ≤ `BIG_PX`=4096) → `model.predict_instances(...)`.** One pass,
+     **no block stitching**, so there is *no* `min_overlap`/block-geometry constraint and
+     objects of any size are fine. `n_tiles` only sub-tiles the **forward pass** to bound
+     GPU memory (that tiling has its own automatic context and no overlap requirement).
+     This is the path all current benchmark panels take.
+   - **Large whole-slide (largest side > 4096) → `model.predict_instances_big(...)`.**
+     Tiles into `block_size` blocks and stitches, under **two** constraints: (1) a
+     *stitching* invariant that every object be smaller than `min_overlap` (else
+     `RuntimeError: ...violates the assumption of being smaller than 'min_overlap'`), and
+     (2) a *block-geometry* one — per-axis stride is `size − (min_overlap + 2·context)`
+     and stardist's `Block.cover` **asserts** consecutive write-regions overlap by ≥
+     `min_overlap`, which requires `block_size` **comfortably** larger than
+     `min_overlap + 2·context`. Here `block_size = BIG_PX = 4096 ≫ min_overlap(192) +
+     2·context`, so the geometry holds. `min_overlap` is **object-size-based**
+     (`max_object_diameter`, default 192 px, measured in original px — `predict_instances`
+     undoes `scale`), and the call is wrapped in a **retry that doubles `min_overlap`**
+     on that `RuntimeError` so a rare oversized blob self-heals.
+
+   Why the split: the old code *always* used `predict_instances_big` with
+   `block_size = image.shape[1] // 3` (~336 px on a ~1000 px panel), which (a) forced
+   tiling even on tiny images and (b) left only a ~16 px margin over `min_overlap +
+   2·context` → `Block.cover` `AssertionError`. A too-small `min_overlap` (`block_size //
+   5.5` = 64 px) had earlier caused the *stitching* `RuntimeError` on a 110 px blob. Both
+   bug classes only exist on the tiled path; single-pass `predict_instances` sidesteps
+   them entirely.
 7. **Post-process** (`:100-104`) — `convert_to_lower_dtype` downcasts the label array
    to the smallest uint that holds `max label`; wrap as an `xarray.DataArray`,
    `Labels2DModel.parse` with the copied transform, store as
@@ -129,10 +139,11 @@ wrong for a different `--model` whose optimized thresholds differ. **They need
 `viash ns build` + a container rebuild to take effect** (see `check-component`).
 
 `max_object_diameter` is a **geometry/robustness knob, not a quality knob** — it only
-sizes `predict_instances_big`'s `min_overlap`; it does not change which pixels get
-segmented. It is **not part of the quality sweep**; leave it at the 192 px default
-unless you hit the min_overlap `RuntimeError` (the script also auto-doubles it), or your
-nuclei are unusually large.
+sizes `min_overlap` on the **tiled (>4096 px) path**; on the single-pass path it is
+unused, and it never changes which pixels get segmented. It is **not part of the quality
+sweep**; leave it at the 192 px default unless a large whole-slide image hits the
+min_overlap `RuntimeError` (the script also auto-doubles it) or its nuclei are unusually
+large.
 
 Not exposed:
 - `--n_tiles` — a pure GPU-memory tiling knob. `predict_instances_big` **already** tiles
@@ -219,16 +230,23 @@ That is exactly the sweep encoded in `scripts/run_benchmark/stardist_params.yaml
   `viash ns build` + a container rebuild; a stale image silently ignores them. The sweep
   has **not yet been run end-to-end** with the new args — validated only by
   `viash config view` + a script `ast.parse`.
-- **`min_overlap` must exceed the largest object.** `predict_instances_big`'s block
-  stitching asserts every object is smaller than `min_overlap`; a bigger object throws
-  `RuntimeError: ...violates the assumption of being smaller than 'min_overlap'`. The old
-  code tied it to `block_size // 5.5`, so on small/narrow panels it fell to 64 px while
-  real blobs reached ~110 px → crash. Now `min_overlap` is **object-size-based**
-  (`max_object_diameter`, default 192 px), `block_size` is grown to keep
-  `min_overlap + 2*context < block_size`, and a **retry doubles `min_overlap`** on that
-  error. `scale` is forwarded per-block via `**kwargs` but objects are measured in
-  original pixels (predict_instances undoes `scale`), so `min_overlap` is in original px
-  regardless of `scale`; still sanity-check masks at block seams for extreme `scale`.
+- **The `predict_instances_big` tiling has TWO independent failure modes — which is why
+  small images now bypass it entirely** (single-pass `predict_instances`, see step 6):
+  1. *Stitching* — `RuntimeError: ...violates the assumption of being smaller than
+     'min_overlap'` when an object is bigger than `min_overlap`. The old
+     `min_overlap = block_size // 5.5` fell to 64 px on small panels while blobs reached
+     ~110 px.
+  2. *Block geometry* — `AssertionError` in `Block.cover` (per-axis
+     `stride = size − (min_overlap + 2·context)`; consecutive write-regions must overlap
+     by ≥ `min_overlap`). Fires when `block_size` is only *marginally* above
+     `min_overlap + 2·context`. Over-correcting fix #1 to `min_overlap=192` with
+     `block_size = image//3 ≈ 336` left a 16 px margin → this assertion tripped.
+
+  On the surviving tiled path both are avoided by construction: `block_size = 4096 ≫
+  min_overlap(192) + 2·context`, and the retry doubles `min_overlap` for a rare huge
+  object. `scale` is forwarded per-block but objects are measured in original pixels
+  (`predict_instances` undoes `scale`), so `min_overlap` is scale-independent; still
+  sanity-check masks at block seams for extreme `scale`.
 - **Only channel 0 is segmented** (`image[0]`). Fine for single-channel iST morphology;
   StarDist2D has no multi-channel mode anyway.
 - **Whole image loaded into RAM** (`:53`) — full-res plane; big panels are why the label

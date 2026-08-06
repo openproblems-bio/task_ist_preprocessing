@@ -77,7 +77,7 @@ class MyNormalizer(Normalizer):
 mi, ma = np.percentile(image, [1,99.8])
 normalizer = MyNormalizer(mi, ma)
 
-# Tunable knobs forwarded through predict_instances_big -> predict_instances.
+# Tunable knobs forwarded to predict_instances / predict_instances_big.
 # A value left as None (i.e. omitted from par) means "use the model's own optimized
 # value": thresholds.json for prob_thresh/nms_thresh, no rescaling for scale. This
 # keeps the default (no-args) call identical to the pre-tuning behaviour.
@@ -86,46 +86,67 @@ eval_params = {
     for k in ("prob_thresh", "nms_thresh", "scale")
     if par.get(k) is not None
 }
-print(f"predict_instances_big overrides: {eval_params}", flush=True)
+print(f"stardist overrides: {eval_params}", flush=True)
 
-# predict_instances_big tiles the image and stitches the per-block predictions. Its
-# stitching invariant is that EVERY predicted object is smaller than `min_overlap`;
-# an object spanning a block seam that is larger than the overlap can't be assigned to
-# a single block, which raises "Found object of shape (...), which violates the
-# assumption of being smaller than 'min_overlap'". So `min_overlap` must be
-# OBJECT-SIZE-based, not block-size-based — the old `block_size // 5.5` shrank the
-# overlap below real nuclei/blobs on small panels (min_overlap fell to 64 px while
-# objects reached ~110 px). Objects are measured in ORIGINAL image pixels
-# (predict_instances undoes `scale` internally), so this bound is in original px and is
-# independent of `scale`. `context` is only the receptive-field margin discarded around
-# each block, so deriving it from the image size is fine.
-block_size = min(image.shape[1] // 3, 4096)
-context = int(min(block_size // 5.5, 128))
-min_overlap = int(par.get("max_object_diameter") or 192)  # px; must exceed largest object
-# predict_instances_big asserts: min_overlap + 2*context < block_size.
-block_size = max(block_size, min_overlap + 2 * context + 1)
+# Segmentation strategy — two paths, chosen by image size:
+#
+#   * predict_instances_big TILES the image and stitches the per-block predictions
+#     under TWO strict constraints. (1) a *stitching* invariant that every object be
+#     smaller than `min_overlap`; and (2) a *block-geometry* one, since the per-axis
+#     stride is `size - (min_overlap + 2*context)` and stardist's `Block.cover`
+#     asserts consecutive blocks' write-regions overlap by >= min_overlap — which
+#     needs `block_size` to be *comfortably* larger than `min_overlap + 2*context`,
+#     not just larger (the old `block_size = image.shape[1] // 3` made ~336 px blocks
+#     on a ~1000 px panel, leaving a 16 px margin, so Block.cover's assertion failed).
+#   * predict_instances processes the whole image in ONE pass: no block stitching, so
+#     NEITHER constraint exists and objects of any size are fine. `n_tiles` only
+#     sub-tiles the forward pass to bound GPU memory (that tiling has its own automatic
+#     context and no min_overlap requirement).
+#
+# So: if the image fits (largest side <= BIG_PX) use the constraint-free single-pass
+# `predict_instances`; only genuinely large whole-slide images take the tiled path,
+# where block_size=BIG_PX >> min_overlap+2*context keeps Block.cover's geometry valid.
+# `min_overlap` (the tiled path only) is OBJECT-SIZE-based: it must exceed the largest
+# object, measured in ORIGINAL image pixels (predict_instances undoes `scale`), so it is
+# independent of `scale`.
+def _n_tiles(px):
+    # Forward-pass tiling to bound GPU memory (~2048 px/tile); no stitching constraint.
+    n = max(1, int(px) // 2048)
+    return (n, n)
 
-# Self-heal: if a rare oversized blob (merged nuclei / debris) still exceeds
-# `min_overlap`, double it (and grow block_size to keep the geometry constraint) and
-# retry, rather than failing the whole segmentation.
-while True:
-    try:
-        labels, _ = model.predict_instances_big(
-            image[0, :, :], axes='YX', block_size=block_size,
-            min_overlap=min_overlap, context=context,
-            normalizer=normalizer, **eval_params,  # n_tiles left to block_size
-        )
-        break
-    except RuntimeError as e:
-        if "min_overlap" not in str(e) or min_overlap >= 2048:
-            raise
-        min_overlap *= 2
-        block_size = max(block_size, min_overlap + 2 * context + 1)
-        print(
-            "predict_instances_big: an object exceeded min_overlap; retrying with "
-            f"min_overlap={min_overlap}, block_size={block_size}",
-            flush=True,
-        )
+BIG_PX = 4096
+max_dim = int(max(image.shape[1], image.shape[2]))
+
+if max_dim <= BIG_PX:
+    labels, _ = model.predict_instances(
+        image[0, :, :], axes='YX', normalizer=normalizer,
+        n_tiles=_n_tiles(max_dim), **eval_params,
+    )
+else:
+    # Large image -> tile + stitch. Self-heal: if a rare oversized blob (merged nuclei /
+    # debris) exceeds `min_overlap`, double it (and grow block_size to keep the geometry
+    # constraint) and retry, rather than failing the whole segmentation.
+    block_size = BIG_PX
+    min_overlap = int(par.get("max_object_diameter") or 192)  # px; must exceed largest object
+    context = int(min(min_overlap, 128))
+    while True:
+        try:
+            labels, _ = model.predict_instances_big(
+                image[0, :, :], axes='YX', block_size=block_size,
+                min_overlap=min_overlap, context=context, n_tiles=_n_tiles(block_size),
+                normalizer=normalizer, **eval_params,
+            )
+            break
+        except RuntimeError as e:
+            if "min_overlap" not in str(e) or min_overlap >= 2048:
+                raise
+            min_overlap *= 2
+            block_size = max(block_size, min_overlap + 2 * context + 256)
+            print(
+                "predict_instances_big: an object exceeded min_overlap; retrying with "
+                f"min_overlap={min_overlap}, block_size={block_size}",
+                flush=True,
+            )
 
 
 
