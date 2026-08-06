@@ -461,9 +461,9 @@ RUN pip uninstall -y opencv-python || true
 RUN pip install --no-cache-dir opencv-python-headless
 RUN sed -i '/^import torch$/a pl.from_torch = getattr(pl, "from_torch", lambda data, schema=None, **k: pl.from_numpy(data.detach().cpu().numpy(), schema=schema))' /opt/conda/lib/python3.12/site-packages/segger/data/writer.py
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment segger"
-LABEL org.opencontainers.image.created="2026-08-06T13:23:20Z"
+LABEL org.opencontainers.image.created="2026-08-06T15:08:30Z"
 LABEL org.opencontainers.image.source="https://github.com/dpeerlab/segger"
-LABEL org.opencontainers.image.revision="904941680e0d11288830bd48168735be9416c9a7"
+LABEL org.opencontainers.image.revision="72b73373d33ba8ef22d32c58c589901f5f9fc254"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

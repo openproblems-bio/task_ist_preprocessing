@@ -4062,7 +4062,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/pciseq",
     "viash_version" : "0.9.7",
-    "git_commit" : "904941680e0d11288830bd48168735be9416c9a7",
+    "git_commit" : "72b73373d33ba8ef22d32c58c589901f5f9fc254",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4321,7 +4321,14 @@ x_coords = transcripts.x.compute().to_numpy()
 #TODO this will immediately break when the name of the gene isn't feature_name
 # Materialize the full transcripts once, in the same row order as the transformed
 # x/y coordinates above, so every downstream filter stays positionally aligned.
-transcripts_full = sdata[par['transcripts_key']].compute()
+# .compute() collapses the multi-partition transcripts (each merscope partition is 0-indexed,
+# so large datasets like the kuppe merscope have a globally non-unique index) into one frame.
+# Every sibling transcript-assignment method resets the index here; pciSeq previously reset only
+# the transform copy (transcripts_reset above) and built its OUTPUT from this frame, so the
+# duplicate index reached PointsModel.parse and broke the final write with
+# "cannot reindex on an axis with duplicate labels". reset_index preserves row order, so the
+# x_coords/y_coords computed in the same .compute() order stay positionally aligned.
+transcripts_full = sdata[par['transcripts_key']].compute().reset_index(drop=True)
 transcripts_dataframe = transcripts_full[['feature_name']].copy()
 transcripts_dataframe['x'] = x_coords
 transcripts_dataframe['y'] = y_coords
