@@ -1,0 +1,64 @@
+# Parameter sweep for the baysor transcript-assignment method.
+# Committed source of truth, read at runtime from GitHub via a raw URL by
+# run_test_baysor_nebius.sh (the Nebius compute env pulls the repo but cannot see the
+# launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total baysor variants = 1 default + sum(sweep list lengths) = 11.
+#
+# See src/methods_transcript_assignment/baysor/NOTES.md ("Optimization / tuning") for the
+# tiers and rationale.
+#
+# WHAT BAYSOR ACTUALLY VARIES HERE: baysor runs Baysor v0.7.1 through sopa
+# (sopa.segmentation.baysor). It re-segments transcripts starting from the upstream
+# segmentation, fed in as a per-transcript prior. Coordinates are in ~1 um/px global space, so
+# `scale` (Baysor's typical cell radius) is effectively in um. `scale = -1.0` is the sentinel
+# for "estimate the radius from min_molecules_per_cell".
+#
+# NON-DEFAULT AUDIT (config default -> Baysor/sopa true default):
+#   * prior_segmentation_confidence: config 0.8 DEVIATES from Baysor default 0.2 (Baysor only
+#     recommends >0.7 when the prior is highly reliable) -> forced onto a sweep axis, walking
+#     back toward the tool default (0.2, and sopa's example 0.5).
+#   * min_molecules_per_cell: config 50 DEVIATES from sopa's example 10 (Baysor has no hard
+#     default) -> forced onto a sweep axis toward the smaller value.
+#   * scale: config -1.0 (auto-estimate) is a deliberate mode, not a tool default; swept to
+#     explicit um radii straddling sopa's example 6.25.
+#   * scale_std ("25%") and n_clusters (4) MATCH the Baysor defaults; probed lightly as Tier-2
+#     companion axes (default value omitted from each list, as required).
+#   * force_2d (true) matches sopa's default and the data is 2D -> left fixed (flipping to 3D is
+#     meaningless here). transcripts_key / coordinate_system are structural, not swept.
+#     Perf/resource knobs (patch_width/patch_overlap, JULIA_NUM_THREADS) are hardcoded, not swept.
+#
+# SUBMITTABLE-NOW: the Nebius launch runs `--revision build/main`, and every swept arg below is
+# ALREADY exposed in src/methods_transcript_assignment/baysor/config.vsh.yaml today, so the
+# build/main container accepts them with NO rebuild.
+parameters:
+  baysor:
+    # Baseline == the component's shipped defaults.
+    default:
+      force_2d: true
+      min_molecules_per_cell: 50
+      scale: -1.0
+      scale_std: "25%"
+      n_clusters: 4
+      prior_segmentation_confidence: 0.8
+    sweep:
+      # ---- Tier 1: cell-size / recall levers (sharpest) ----
+      # scale: target cell radius in um (coords ~1 um/px). Default -1.0 = auto-estimate.
+      # Explicit radii straddling sopa's example 6.25 um; grounded in typical cell radii ~4-10 um.
+      scale: [5.0, 7.5, 10.0]
+      # min_molecules_per_cell: min molecules to call a cell; also drives the auto scale estimate.
+      # DEVIATES (config 50 vs sopa 10) -> walk toward the smaller, more permissive value.
+      min_molecules_per_cell: [10, 25]
+      # prior_segmentation_confidence: trust the prior vs re-segment (in [0,1]).
+      # DEVIATES (config 0.8 vs Baysor 0.2) -> walk back toward the tool default and sopa's 0.5.
+      prior_segmentation_confidence: [0.2, 0.5]
+      # ---- Tier 2: companion knobs at the Baysor default ----
+      # scale_std: prior std of cell radius, relative to scale. Default "25%" -> wider tolerance.
+      scale_std: ["50%"]
+      # n_clusters: number of molecule clusters (~ major cell types). Default 4; Baysor rec. 3-15.
+      n_clusters: [6, 8]

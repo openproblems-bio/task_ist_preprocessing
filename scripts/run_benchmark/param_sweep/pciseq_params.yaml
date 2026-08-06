@@ -1,0 +1,66 @@
+# Parameter sweep for the pciseq (pciSeq, Qian et al. 2020) transcript-assignment method.
+# Committed source of truth, read at runtime from GitHub via a raw URL by
+# run_test_pciseq_nebius.sh (the Nebius compute env pulls the repo but cannot see the
+# launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total pciseq variants = 1 default + sum(sweep list lengths) = 14.
+#
+# See src/methods_transcript_assignment/pciseq/NOTES.md ("Optimization / tuning") for the
+# tiers and rationale.
+#
+# WHAT PCISEQ ACTUALLY VARIES HERE: pciSeq is a Variational-Bayes probabilistic model that
+# jointly cell-types cells and assigns each transcript ("spot") to a candidate parent cell,
+# driven by an scRNA-seq reference. The component forwards nine of pciSeq's `opts` knobs
+# (script.py L176-188); this sweep varies the five with the highest impact on WHICH spots go
+# to WHICH cell (the recall/precision + prior levers). save_data is an IO/debug flag (left
+# fixed). transcripts_key/coordinate_system are structural (not swept).
+#
+# NON-DEFAULT AUDIT: every one of the nine exposed `opts` defaults in config.vsh.yaml
+# (max_iter, CellCallTolerance, rGene, Inefficiency, InsideCellBonus, MisreadDensity,
+# SpotReg, nNeighbors, rSpot, save_data) MATCHES pciSeq's own config.py default EXACTLY
+# (verified against acycliq/pciSeq@issue_14 pciSeq/config.py). So NO knob is forced onto a
+# sweep axis by the "deviation is evidence" rule — the ranges below are chosen on first
+# principles, each straddling pciSeq's default (which the "default" variant already covers,
+# hence the default value is omitted from every sweep list).
+#
+# SUBMITTABLE AS-IS: the Nebius launch runs `--revision build/main`, and every arg below is
+# ALREADY exposed in src/methods_transcript_assignment/pciseq/config.vsh.yaml today, so no
+# `viash ns build` / container rebuild is needed. Tier-2 knobs that ARE exposed but deferred
+# from this first (light) test run: SpotReg, rSpot, CellCallTolerance, max_iter. Tier-3 pciSeq
+# priors NOT surfaced by the component (cell_radius, cell_type_prior, mean_gene_counts_per_class,
+# mean_gene_counts_per_cell) would need a new config arg + rebuild — see NOTES.md.
+parameters:
+  pciseq:
+    # Baseline == the component's shipped defaults, which equal pciSeq's own config.py defaults.
+    default:
+      InsideCellBonus: 2
+      MisreadDensity: 0.00001
+      nNeighbors: 3
+      Inefficiency: 0.2
+      rGene: 20
+    sweep:
+      # ---- Tier 1: what gets assigned to which cell (sharpest recall/precision levers) ----
+      # InsideCellBonus: log-likelihood boost for a spot INSIDE a cell boundary. Higher => trust
+      # the segmentation more (spots pulled into the enclosing cell); 0/low => trust it less
+      # (spots freer to reassign by expression). Straddle default 2 both ways.
+      InsideCellBonus: [0, 1, 4, 6]
+      # MisreadDensity: uniform background misread rate (per pixel). Higher => more spots called
+      # background/misread (sparser, higher precision); lower => almost everything assigned to a
+      # cell. Swept on a log scale around the 1e-5 default.
+      MisreadDensity: [0.000001, 0.0001, 0.001]
+      # nNeighbors: number of candidate parent cells considered per spot (a "super-neighbor"
+      # background is always added on top). Fewer => stricter local assignment; more => a spot can
+      # reach farther cells. Straddle default 3.
+      nNeighbors: [2, 6]
+      # ---- Tier 1/2: per-gene efficiency Gamma prior (in-situ capture efficiency) ----
+      # Inefficiency: mean of the per-gene efficiency Gamma prior (observed/theoretical count
+      # ratio). Lower/higher shifts how many counts the model expects per cell. Straddle 0.2.
+      Inefficiency: [0.1, 0.5]
+      # rGene: controls the VARIANCE of that efficiency Gamma prior (higher rGene => tighter prior
+      # around Inefficiency; lower => more per-gene flexibility). Straddle default 20.
+      rGene: [10, 40]
