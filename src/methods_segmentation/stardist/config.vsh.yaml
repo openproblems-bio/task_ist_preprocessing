@@ -47,6 +47,17 @@ arguments:
       If unset, no rescaling. Use it to match nucleus size to the model's training size:
       >1 upscales (small nuclei appear larger), <1 downscales. StarDist's analogue of
       Cellpose's diameter.
+  - name: --max_object_diameter
+    type: integer
+    required: false
+    description: >-
+      Upper bound (in original image pixels) on the largest object StarDist may produce.
+      It sets predict_instances_big's `min_overlap` (the guaranteed block-stitching
+      overlap), which MUST exceed the biggest nucleus/blob — otherwise stitching fails
+      with "violates the assumption of being smaller than 'min_overlap'". Defaults to
+      192 px if unset, and the script auto-doubles it on demand, so this is a
+      robustness/geometry knob, NOT a quality knob: it does not change which pixels get
+      segmented. Raise it if you hit that error or your nuclei are unusually large.
 
 resources:
   - type: python_script

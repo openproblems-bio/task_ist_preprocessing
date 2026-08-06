@@ -3388,6 +3388,15 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--max_object_diameter",
+          "description" : "Upper bound (in original image pixels) on the largest object StarDist may produce. It sets predict_instances_big's `min_overlap` (the guaranteed block-stitching overlap), which MUST exceed the biggest nucleus/blob — otherwise stitching fails with \\"violates the assumption of being smaller than 'min_overlap'\\". Defaults to 192 px if unset, and the script auto-doubles it on demand, so this is a robustness/geometry knob, NOT a quality knob: it does not change which pixels get segmented. Raise it if you hit that error or your nuclei are unusually large.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -3543,7 +3552,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_segmentation/stardist",
     "viash_version" : "0.9.7",
-    "git_commit" : "f7f601c40e0ce62c3786f65cd025359f13ced992",
+    "git_commit" : "593b73682730c0e21e97207c4ee31927b46d5c00",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3705,7 +3714,8 @@ par = {
   'model': $( if [ ! -z ${VIASH_PAR_MODEL+x} ]; then echo "r'${VIASH_PAR_MODEL//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'prob_thresh': $( if [ ! -z ${VIASH_PAR_PROB_THRESH+x} ]; then echo "float(r'${VIASH_PAR_PROB_THRESH//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
   'nms_thresh': $( if [ ! -z ${VIASH_PAR_NMS_THRESH+x} ]; then echo "float(r'${VIASH_PAR_NMS_THRESH//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
-  'scale': $( if [ ! -z ${VIASH_PAR_SCALE+x} ]; then echo "float(r'${VIASH_PAR_SCALE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
+  'scale': $( if [ ! -z ${VIASH_PAR_SCALE+x} ]; then echo "float(r'${VIASH_PAR_SCALE//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'max_object_diameter': $( if [ ! -z ${VIASH_PAR_MAX_OBJECT_DIAMETER+x} ]; then echo "int(r'${VIASH_PAR_MAX_OBJECT_DIAMETER//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -3761,8 +3771,6 @@ class MyNormalizer(Normalizer):
 
 mi, ma = np.percentile(image, [1,99.8])
 normalizer = MyNormalizer(mi, ma)
-block_size = min(image.shape[1] // 3, 4096)
-offset = min(block_size // 5.5, 128)
 
 # Tunable knobs forwarded through predict_instances_big -> predict_instances.
 # A value left as None (i.e. omitted from par) means "use the model's own optimized
@@ -3775,10 +3783,44 @@ eval_params = {
 }
 print(f"predict_instances_big overrides: {eval_params}", flush=True)
 
-labels, _ = model.predict_instances_big(
-    image[0,:,:], axes='YX', block_size=block_size, min_overlap=offset,
-    context=offset, normalizer=normalizer, **eval_params  # n_tiles left to block_size
-)
+# predict_instances_big tiles the image and stitches the per-block predictions. Its
+# stitching invariant is that EVERY predicted object is smaller than \\`min_overlap\\`;
+# an object spanning a block seam that is larger than the overlap can't be assigned to
+# a single block, which raises "Found object of shape (...), which violates the
+# assumption of being smaller than 'min_overlap'". So \\`min_overlap\\` must be
+# OBJECT-SIZE-based, not block-size-based — the old \\`block_size // 5.5\\` shrank the
+# overlap below real nuclei/blobs on small panels (min_overlap fell to 64 px while
+# objects reached ~110 px). Objects are measured in ORIGINAL image pixels
+# (predict_instances undoes \\`scale\\` internally), so this bound is in original px and is
+# independent of \\`scale\\`. \\`context\\` is only the receptive-field margin discarded around
+# each block, so deriving it from the image size is fine.
+block_size = min(image.shape[1] // 3, 4096)
+context = int(min(block_size // 5.5, 128))
+min_overlap = int(par.get("max_object_diameter") or 192)  # px; must exceed largest object
+# predict_instances_big asserts: min_overlap + 2*context < block_size.
+block_size = max(block_size, min_overlap + 2 * context + 1)
+
+# Self-heal: if a rare oversized blob (merged nuclei / debris) still exceeds
+# \\`min_overlap\\`, double it (and grow block_size to keep the geometry constraint) and
+# retry, rather than failing the whole segmentation.
+while True:
+    try:
+        labels, _ = model.predict_instances_big(
+            image[0, :, :], axes='YX', block_size=block_size,
+            min_overlap=min_overlap, context=context,
+            normalizer=normalizer, **eval_params,  # n_tiles left to block_size
+        )
+        break
+    except RuntimeError as e:
+        if "min_overlap" not in str(e) or min_overlap >= 2048:
+            raise
+        min_overlap *= 2
+        block_size = max(block_size, min_overlap + 2 * context + 1)
+        print(
+            "predict_instances_big: an object exceeded min_overlap; retrying with "
+            f"min_overlap={min_overlap}, block_size={block_size}",
+            flush=True,
+        )
 
 
 

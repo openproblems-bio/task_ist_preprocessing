@@ -4246,6 +4246,23 @@ meta = [
           "multiple_sep" : ";"
         }
       ]
+    },
+    {
+      "name" : "Processing options",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--tissue_centered_crop",
+          "description" : "When cropping an oversized image, centre the crop window on the transcript\ndensity (median global x/y) instead of the image centre. Needed for huge\nwhole-section canvases where the tissue sits well off-centre (e.g. ABCA\nwhole-brain MERFISH), for which an image-centred window can miss the tissue\nentirely. Default false keeps the historical image-centred crop.",
+          "default" : [
+            false
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
     }
   ],
   "resources" : [
@@ -4382,7 +4399,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.7",
-    "git_commit" : "f7f601c40e0ce62c3786f65cd025359f13ced992",
+    "git_commit" : "593b73682730c0e21e97207c4ee31927b46d5c00",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4533,7 +4550,8 @@ par = {
   'dataset_reference': $( if [ ! -z ${VIASH_PAR_DATASET_REFERENCE+x} ]; then echo "r'${VIASH_PAR_DATASET_REFERENCE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_summary': $( if [ ! -z ${VIASH_PAR_DATASET_SUMMARY+x} ]; then echo "r'${VIASH_PAR_DATASET_SUMMARY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'dataset_description': $( if [ ! -z ${VIASH_PAR_DATASET_DESCRIPTION+x} ]; then echo "r'${VIASH_PAR_DATASET_DESCRIPTION//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'dataset_organism': $( if [ ! -z ${VIASH_PAR_DATASET_ORGANISM+x} ]; then echo "r'${VIASH_PAR_DATASET_ORGANISM//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
+  'dataset_organism': $( if [ ! -z ${VIASH_PAR_DATASET_ORGANISM+x} ]; then echo "r'${VIASH_PAR_DATASET_ORGANISM//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'tissue_centered_crop': $( if [ ! -z ${VIASH_PAR_TISSUE_CENTERED_CROP+x} ]; then echo "r'${VIASH_PAR_TISSUE_CENTERED_CROP//\\'/\\'\\"\\'\\"r\\'}'.lower() == 'true'"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -4576,7 +4594,28 @@ def _full_res_image(img):
     return img["scale0"].image
 
 
-def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
+def _transcript_center_global(sdata):
+    """Median (x, y) of the transcripts in the GLOBAL coordinate system.
+
+    Used to centre the crop window on the tissue rather than on the image centre.
+    Global coords are derived from the element's affine transform (same math as
+    crop_points_by_global_xy), so it is correct for Scale/Affine/identity alike, and
+    the median is robust to sparse background points scattered at the canvas edges.
+    """
+    import dask
+    from spatialdata.transformations import get_transformation
+    pts = sdata['transcripts']
+    axes = [a for a in ("x", "y", "z") if a in pts.columns]
+    trans = get_transformation(pts, get_all=True)
+    M = trans["global"].to_affine_matrix(input_axes=tuple(axes), output_axes=tuple(axes))
+    ix, iy = axes.index("x"), axes.index("y")
+    gx = sum(M[ix, i] * pts[a] for i, a in enumerate(axes)) + M[ix, len(axes)]
+    gy = sum(M[iy, i] * pts[a] for i, a in enumerate(axes)) + M[iy, len(axes)]
+    cx, cy = dask.compute(gx.quantile(0.5), gy.quantile(0.5))
+    return float(cx), float(cy)
+
+
+def get_crop_coords(sdata, max_n_pixels=20000*20000, tissue_centered=False): #50000*50000):
     """Get the crop coordinates to subset the sdata to max_n_pixels
     
     Arguments
@@ -4610,10 +4649,24 @@ def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
         w_crop = w
         h_crop = int(max_n_pixels / w_crop)
         
-    # Center the crop
-    h_offset = (h - h_crop) // 2
-    w_offset = (w - w_crop) // 2
-        
+    # Position the crop window. By default it is centred on the IMAGE (historical
+    # behaviour). With tissue_centered=True it is centred on the TRANSCRIPT DENSITY
+    # instead — needed for huge whole-section canvases where the tissue sits well
+    # off-centre (e.g. ABCA whole-brain MERFISH, 83361x102170 px: an image-centred
+    # 20000px window caught 0 of 42M transcripts). The window is clamped inside the
+    # image; a degenerate/unavailable transcript centre falls back to the image centre.
+    if tissue_centered:
+        try:
+            cx, cy = _transcript_center_global(sdata)
+            if not (np.isfinite(cx) and np.isfinite(cy)):
+                cx, cy = w / 2, h / 2
+        except Exception:
+            cx, cy = w / 2, h / 2
+    else:
+        cx, cy = w / 2, h / 2
+    w_offset = int(min(max(cx - w_crop / 2, 0), max(w - w_crop, 0)))
+    h_offset = int(min(max(cy - h_crop / 2, 0), max(h - h_crop, 0)))
+
     crop = [[h_offset, h_offset + h_crop], [w_offset, w_offset + w_crop]]
 
     return crop
@@ -4845,7 +4898,7 @@ for _tbl in sdata.tables.values():
         _tbl.obs.index.name = None
 
 # Crop datasets that are too large
-crop_coords = get_crop_coords(sdata)
+crop_coords = get_crop_coords(sdata, tissue_centered=par.get("tissue_centered_crop", False))
 if crop_coords is not None:
     (y0, y1), (x0, x1) = crop_coords  # global box (raw image is at identity -> px == global)
 

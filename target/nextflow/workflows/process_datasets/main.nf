@@ -4246,6 +4246,23 @@ meta = [
           "multiple_sep" : ";"
         }
       ]
+    },
+    {
+      "name" : "Processing options",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--tissue_centered_crop",
+          "description" : "When cropping an oversized image, centre the crop window on the transcript\ndensity (median global x/y) instead of the image centre. Needed for huge\nwhole-section canvases where the tissue sits well off-centre (e.g. ABCA\nwhole-brain MERFISH), for which an image-centred window can miss the tissue\nentirely. Default false keeps the historical image-centred crop.",
+          "default" : [
+            false
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
     }
   ],
   "resources" : [
@@ -4344,7 +4361,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/workflows/process_datasets",
     "viash_version" : "0.9.7",
-    "git_commit" : "f7f601c40e0ce62c3786f65cd025359f13ced992",
+    "git_commit" : "593b73682730c0e21e97207c4ee31927b46d5c00",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4483,7 +4500,8 @@ workflow run_wf {
         "dataset_reference",
         "dataset_summary",
         "dataset_description",
-        "dataset_organism"
+        "dataset_organism",
+        "tissue_centered_crop"
       ],
       toState: [
         "output_sc",

@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata==0.8.0; python_version>='3.12'" "spatialdata>=0.7.3; python_version<'3.12'" "anndata>=0.12.0,<0.13" "zarr>=3.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2026-08-06T08:24:24Z"
+LABEL org.opencontainers.image.created="2026-08-06T11:01:56Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="f7f601c40e0ce62c3786f65cd025359f13ced992"
+LABEL org.opencontainers.image.revision="593b73682730c0e21e97207c4ee31927b46d5c00"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -637,6 +637,18 @@ function ViashHelp {
   echo "        type: string"
   echo "        The organism of the sample in the dataset."
   echo ""
+  echo "Processing options:"
+  echo "    --tissue_centered_crop"
+  echo "        type: boolean"
+  echo "        default: false"
+  echo "        When cropping an oversized image, centre the crop window on the"
+  echo "        transcript"
+  echo "        density (median global x/y) instead of the image centre. Needed for huge"
+  echo "        whole-section canvases where the tissue sits well off-centre (e.g. ABCA"
+  echo "        whole-brain MERFISH), for which an image-centred window can miss the"
+  echo "        tissue"
+  echo "        entirely. Default false keeps the historical image-centred crop."
+  echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
   echo "        Number of CPUs to use"
@@ -806,6 +818,17 @@ while [[ $# -gt 0 ]]; do
         --dataset_organism=*)
             [ -n "$VIASH_PAR_DATASET_ORGANISM" ] && ViashError Bad arguments for option \'--dataset_organism=*\': \'$VIASH_PAR_DATASET_ORGANISM\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_DATASET_ORGANISM=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --tissue_centered_crop)
+            [ -n "$VIASH_PAR_TISSUE_CENTERED_CROP" ] && ViashError Bad arguments for option \'--tissue_centered_crop\': \'$VIASH_PAR_TISSUE_CENTERED_CROP\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_TISSUE_CENTERED_CROP="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --tissue_centered_crop. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --tissue_centered_crop=*)
+            [ -n "$VIASH_PAR_TISSUE_CENTERED_CROP" ] && ViashError Bad arguments for option \'--tissue_centered_crop=*\': \'$VIASH_PAR_TISSUE_CENTERED_CROP\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_TISSUE_CENTERED_CROP=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -1037,6 +1060,11 @@ if [ -z ${VIASH_META_TEMP_DIR+x} ]; then
   exit 1
 fi
 
+# filling in defaults
+if [ -z ${VIASH_PAR_TISSUE_CENTERED_CROP+x} ]; then
+  VIASH_PAR_TISSUE_CENTERED_CROP="false"
+fi
+
 # check whether required files exist
 if [ ! -z "$VIASH_PAR_INPUT_SP" ] && [ ! -e "$VIASH_PAR_INPUT_SP" ]; then
   ViashError "Input file '$VIASH_PAR_INPUT_SP' does not exist."
@@ -1048,6 +1076,12 @@ if [ ! -z "$VIASH_PAR_INPUT_SC" ] && [ ! -e "$VIASH_PAR_INPUT_SC" ]; then
 fi
 
 # check whether parameters values are of the right type
+if [[ -n "$VIASH_PAR_TISSUE_CENTERED_CROP" ]]; then
+  if ! [[ "$VIASH_PAR_TISSUE_CENTERED_CROP" =~ ^(true|True|TRUE|false|False|FALSE|yes|Yes|YES|no|No|NO)$ ]]; then
+    ViashError '--tissue_centered_crop' has to be a boolean. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
 if [[ -n "$VIASH_META_CPUS" ]]; then
   if ! [[ "$VIASH_META_CPUS" =~ ^[-+]?[0-9]+$ ]]; then
     ViashError 'cpus' has to be an integer. Use "--help" to get more information on the parameters.
@@ -1260,7 +1294,8 @@ par = {
   'dataset_reference': $( if [ ! -z ${VIASH_PAR_DATASET_REFERENCE+x} ]; then echo "r'${VIASH_PAR_DATASET_REFERENCE//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'dataset_summary': $( if [ ! -z ${VIASH_PAR_DATASET_SUMMARY+x} ]; then echo "r'${VIASH_PAR_DATASET_SUMMARY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'dataset_description': $( if [ ! -z ${VIASH_PAR_DATASET_DESCRIPTION+x} ]; then echo "r'${VIASH_PAR_DATASET_DESCRIPTION//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'dataset_organism': $( if [ ! -z ${VIASH_PAR_DATASET_ORGANISM+x} ]; then echo "r'${VIASH_PAR_DATASET_ORGANISM//\'/\'\"\'\"r\'}'"; else echo None; fi )
+  'dataset_organism': $( if [ ! -z ${VIASH_PAR_DATASET_ORGANISM+x} ]; then echo "r'${VIASH_PAR_DATASET_ORGANISM//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'tissue_centered_crop': $( if [ ! -z ${VIASH_PAR_TISSUE_CENTERED_CROP+x} ]; then echo "r'${VIASH_PAR_TISSUE_CENTERED_CROP//\'/\'\"\'\"r\'}'.lower() == 'true'"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1303,7 +1338,28 @@ def _full_res_image(img):
     return img["scale0"].image
 
 
-def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
+def _transcript_center_global(sdata):
+    """Median (x, y) of the transcripts in the GLOBAL coordinate system.
+
+    Used to centre the crop window on the tissue rather than on the image centre.
+    Global coords are derived from the element's affine transform (same math as
+    crop_points_by_global_xy), so it is correct for Scale/Affine/identity alike, and
+    the median is robust to sparse background points scattered at the canvas edges.
+    """
+    import dask
+    from spatialdata.transformations import get_transformation
+    pts = sdata['transcripts']
+    axes = [a for a in ("x", "y", "z") if a in pts.columns]
+    trans = get_transformation(pts, get_all=True)
+    M = trans["global"].to_affine_matrix(input_axes=tuple(axes), output_axes=tuple(axes))
+    ix, iy = axes.index("x"), axes.index("y")
+    gx = sum(M[ix, i] * pts[a] for i, a in enumerate(axes)) + M[ix, len(axes)]
+    gy = sum(M[iy, i] * pts[a] for i, a in enumerate(axes)) + M[iy, len(axes)]
+    cx, cy = dask.compute(gx.quantile(0.5), gy.quantile(0.5))
+    return float(cx), float(cy)
+
+
+def get_crop_coords(sdata, max_n_pixels=20000*20000, tissue_centered=False): #50000*50000):
     """Get the crop coordinates to subset the sdata to max_n_pixels
     
     Arguments
@@ -1337,10 +1393,24 @@ def get_crop_coords(sdata, max_n_pixels=20000*20000): #50000*50000):
         w_crop = w
         h_crop = int(max_n_pixels / w_crop)
         
-    # Center the crop
-    h_offset = (h - h_crop) // 2
-    w_offset = (w - w_crop) // 2
-        
+    # Position the crop window. By default it is centred on the IMAGE (historical
+    # behaviour). With tissue_centered=True it is centred on the TRANSCRIPT DENSITY
+    # instead — needed for huge whole-section canvases where the tissue sits well
+    # off-centre (e.g. ABCA whole-brain MERFISH, 83361x102170 px: an image-centred
+    # 20000px window caught 0 of 42M transcripts). The window is clamped inside the
+    # image; a degenerate/unavailable transcript centre falls back to the image centre.
+    if tissue_centered:
+        try:
+            cx, cy = _transcript_center_global(sdata)
+            if not (np.isfinite(cx) and np.isfinite(cy)):
+                cx, cy = w / 2, h / 2
+        except Exception:
+            cx, cy = w / 2, h / 2
+    else:
+        cx, cy = w / 2, h / 2
+    w_offset = int(min(max(cx - w_crop / 2, 0), max(w - w_crop, 0)))
+    h_offset = int(min(max(cy - h_crop / 2, 0), max(h - h_crop, 0)))
+
     crop = [[h_offset, h_offset + h_crop], [w_offset, w_offset + w_crop]]
 
     return crop
@@ -1572,7 +1642,7 @@ for _tbl in sdata.tables.values():
         _tbl.obs.index.name = None
 
 # Crop datasets that are too large
-crop_coords = get_crop_coords(sdata)
+crop_coords = get_crop_coords(sdata, tissue_centered=par.get("tissue_centered_crop", False))
 if crop_coords is not None:
     (y0, y1), (x0, x1) = crop_coords  # global box (raw image is at identity -> px == global)
 
