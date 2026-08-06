@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "spatialdata==0.8.0; python_version>='3.12'" "spatialdata>=0.7.3; python_version<'3.12'" "anndata>=0.12.0,<0.13" "zarr>=3.0.0"
 
 LABEL org.opencontainers.image.description="Companion container for running component data_processors process_dataset"
-LABEL org.opencontainers.image.created="2026-08-06T12:04:21Z"
+LABEL org.opencontainers.image.created="2026-08-06T13:23:19Z"
 LABEL org.opencontainers.image.source="https://github.com/openproblems-bio/task_ist_preprocessing"
-LABEL org.opencontainers.image.revision="82b211dfe70ca3ff67888e2cf3c790962356630e"
+LABEL org.opencontainers.image.revision="904941680e0d11288830bd48168735be9416c9a7"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1459,6 +1459,61 @@ def crop_shapes_by_global_xy(shapes, x0, x1, y0, y1):
     set_transformation(new, trans, set_all=True)
     return new
 
+def rasterize_boundaries_to_labels(sdata, shapes_key="cell_boundaries", image_key="image"):
+    """Rasterize polygon cell boundaries into a \`\`cell_labels\`\` labels element.
+
+    Some loaders (e.g. allen_brain_cell_atlas_merfish) provide the vendor
+    segmentation only as polygon shapes and never rasterize it into a label
+    image. The \`\`custom_segmentation\`\` method hard-requires \`\`labels["cell_labels"]\`\`,
+    so synthesize it here from the boundaries when it is absent — done post-crop
+    (see call site) so only the retained region is rasterized.
+
+    Mirrors the vizgen_merscope loader: \`\`sd.rasterize\`\` labels regions 1..N
+    positionally and caps a single pass at 65535 regions, so rasterize in chunks
+    and offset each chunk's labels past that; then promote to a multiscale pyramid
+    so downstream \`\`["scale0"]\`\` indexing on the copied segmentation works.
+    """
+    import dask.array as da
+    from spatialdata.models import Labels2DModel
+
+    # sd.rasterize(return_regions_as_labels=True) numbers regions 1..n positionally
+    # into a uint16 array, so a single pass encodes at most 65535 distinct cells.
+    UINT16_MAX = 65535
+    img_extent = sd.get_extent(sdata[image_key])
+    n_cells = len(sdata[shapes_key])
+    n_iter = n_cells // UINT16_MAX + bool(n_cells % UINT16_MAX)
+
+    rasterize_args = {
+        "min_coordinate": [int(img_extent["x"][0]), int(img_extent["y"][0])],
+        "max_coordinate": [int(img_extent["x"][1]), int(img_extent["y"][1])],
+        "target_coordinate_system": "global",
+        "target_unit_to_pixels": 1,
+        "return_regions_as_labels": True,
+    }
+
+    if n_iter <= 1:
+        labels_image = sd.rasterize(sdata[shapes_key], ["x", "y"], **rasterize_args)
+    else:
+        combined = None
+        template = None
+        for i in range(n_iter):
+            start = i * UINT16_MAX
+            end = min((i + 1) * UINT16_MAX, n_cells)
+            chunk = sd.rasterize(sdata[shapes_key].iloc[start:end], ["x", "y"], **rasterize_args)
+            chunk_np = np.asarray(chunk.data)
+            if combined is None:
+                combined = chunk_np.astype("uint32")
+                template = chunk
+            else:
+                mask = chunk_np > 0
+                combined[mask] = chunk_np[mask].astype("uint32") + start
+        labels_image = template.copy(data=da.from_array(combined, chunks=template.data.chunksize))
+
+    # rasterize tags the labels with a shape->category map that the Labels model
+    # does not expect; drop it before parsing (matches the vizgen loader).
+    labels_image.attrs.pop("label_index_to_category", None)
+    return Labels2DModel.parse(labels_image, scale_factors=[2, 2, 2, 2])
+
 def rechunk_sdata(sdata, CHUNK_SIZE=1024):
     """Rechunk the sdata to the given chunk size
     
@@ -1669,6 +1724,15 @@ if crop_coords is not None:
         sdata_output["metadata"] = sdata.tables["metadata"]
 else:
     sdata_output = sdata
+
+# Synthesize cell_labels from polygon boundaries for loaders that only provide
+# shapes (e.g. allen_brain_cell_atlas_merfish). Done here — post-crop — so we
+# rasterize only the retained region (rasterizing whole-brain labels would OOM)
+# and avoid re-running the expensive stitching loader. custom_segmentation
+# requires labels["cell_labels"]; loaders that already provide it are untouched.
+if "cell_labels" not in sdata_output.labels and "cell_boundaries" in sdata_output.shapes:
+    print("No cell_labels found; rasterizing cell_boundaries -> cell_labels", flush=True)
+    sdata_output["cell_labels"] = rasterize_boundaries_to_labels(sdata_output)
 
 # Rechunk to uniform chunks before writing (NOTE: rechunking currently needed,
 # https://github.com/scverse/spatialdata/issues/929). Run unconditionally so
