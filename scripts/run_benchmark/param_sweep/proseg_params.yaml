@@ -1,0 +1,59 @@
+# Parameter sweep for the proseg (Proseg, Rust) transcript-assignment method.
+# Committed source of truth, read at runtime from GitHub via a raw URL by
+# run_test_proseg_nebius.sh (the Nebius compute env pulls the repo but cannot see the
+# launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total proseg variants = 1 default + sum(sweep list lengths) = 10.
+#
+# See src/methods_transcript_assignment/proseg/NOTES.md ("Optimization / tuning") for the
+# tiers and rationale.
+#
+# !!! NEEDS-REBUILD !!! This sweep touches NEWLY EXPOSED config arguments. proseg's model
+# knobs (cell_compactness, nuclear_reassignment_prob, diffusion_probability, ncomponents,
+# diffusion_sigma_far/near) were HARDCODED in script.py and are exposed as config arguments
+# in this branch. The Nebius launch runs `--revision build/main`, whose container does NOT
+# yet know these args, so this sweep WILL FAIL until the component is regenerated
+# (`viash ns build`) and its container rebuilt (see the check-component skill). Commit +
+# push the config/script changes AND rebuild the build_main image before launching.
+#
+# WHAT PROSEG ACTUALLY VARIES HERE: proseg runs a probabilistic (Cellular-Potts-like) sampler
+# over a voxel lattice, using the prior nuclear segmentation, and reassigns transcripts to
+# cells while regularising cell shape. The sweep walks the strongest model knobs.
+#
+# NON-DEFAULT AUDIT: the five previously-exposed args (voxel_layers, samples, burnin_samples,
+# voxel_size, burnin_voxel_size) all MATCH proseg's own CLI defaults -> none is forced onto a
+# sweep axis. Of the six previously-hardcoded knobs, only cell_compactness DEVIATED from
+# proseg's true default (script.py hardcoded 0.03 vs proseg 0.04). Per the audit rule the
+# deviating value must be covered by a sweep: the config default is reset to proseg's 0.04
+# (the "default variant") and cell_compactness is swept over values straddling the old 0.03
+# and both directions. --nthreads is a pure performance knob (computed from meta['cpus']) and
+# is left fixed, not swept.
+parameters:
+  proseg:
+    # Baseline == proseg's own CLI defaults for every knob (note cell_compactness=0.04,
+    # proseg's true default, NOT the previously hardcoded 0.03).
+    default:
+      cell_compactness: 0.04
+      nuclear_reassignment_prob: 0.2
+      diffusion_probability: 0.2
+      ncomponents: 10
+    sweep:
+      # ---- Tier 1: transcript-reassignment / cell-shape levers (strongest) ----
+      # cell_compactness: exponential prior on cell compactness; SMALLER = more compact cells.
+      # Straddles the old hardcoded 0.03 (more compact) and adds a looser 0.06. proseg default 0.04.
+      cell_compactness: [0.02, 0.03, 0.06]
+      # nuclear_reassignment_prob: prior prob. of moving a transcript off its nuclear-prior label.
+      # Lower trusts the prior segmentation more; higher reassigns more freely. proseg default 0.2.
+      nuclear_reassignment_prob: [0.05, 0.5]
+      # diffusion_probability: prior prob. a transcript diffused from its cell of origin; higher
+      # treats more transcripts as diffusion noise -> more aggressive repositioning. proseg default 0.2.
+      diffusion_probability: [0.1, 0.35]
+      # ---- Tier 2: expression-model capacity ----
+      # ncomponents: mixture components for cellular gene expression; more = finer cell-state
+      # modelling at higher cost / overfitting risk. proseg default 10.
+      ncomponents: [5, 15]

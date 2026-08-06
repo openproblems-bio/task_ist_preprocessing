@@ -1,0 +1,75 @@
+# Parameter sweep for the clustermap (ClusterMap, He et al. 2021) transcript-assignment method.
+# Committed source of truth, read at runtime from GitHub via a raw URL by
+# run_test_clustermap_nebius.sh (the Nebius compute env pulls the repo but cannot see the
+# launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not a full
+# grid), so total clustermap variants = 1 default + sum(sweep list lengths) = 14.
+#
+# See src/methods_transcript_assignment/clustermap/NOTES.md ("Optimization / tuning") for the
+# tiers, the ClusterMap-source audit, and the inert-arg findings.
+#
+# WHAT CLUSTERMAP ACTUALLY VARIES HERE: ClusterMap is segmentation-free — it density-peak-
+# clusters the RNA spots (+ injected DAPI points) into cells. The swept knobs are the levers
+# that reach the tool AND change the output, confirmed by reading script.py and the upstream
+# ClusterMap source:
+#   xy_radius (spot-neighbourhood radius, px), cell_num_threshold (DPC cell-count threshold),
+#   dapi_grid_interval (DAPI-point density), min_spot_per_cell (small-cell filter),
+#   pct_filter (low-density spot removal), gauss_blur (DAPI blur on/off).
+#
+# NON-DEFAULT AUDIT vs ClusterMap true defaults: three config defaults DEVIATE from the tool
+# and are therefore forced onto sweep axes (each list walks that arg back TOWARD its tool
+# default, since the default variant already covers the shipped value):
+#   gauss_blur         True -> tool False  (sweep [false])
+#   pct_filter         0.0  -> tool 0.1    (sweep toward 0.1)
+#   cell_num_threshold 0.1  -> tool 0.01   (sweep toward 0.01)
+# A fourth deviation, `contamination` (0 -> tool 0.1), is DEAD CODE while LOF=False (the shipped
+# default) and sklearn's LocalOutlierFactor rejects contamination=0, so LOF/contamination form a
+# coupled, unsafe pair in the star model and are NOT swept (see NOTES.md). `window_size` (700) is
+# a memory/perf tiling knob, not a ClusterMap parameter, so it is left fixed.
+#
+# INERT config args EXCLUDED from the sweep (they never reach ClusterMap): `use_dapi` (never read
+# by script.py), `add_dapi` and `use_genedis` (both overwritten by par["xy_radius"] via a script
+# bug). Sweeping any of them would just produce duplicate variants. Documented in NOTES.md.
+#
+# SUBMITTABLE-NOW: the Nebius launch runs `--revision build/main`, so the sweep touches ONLY args
+# already exposed + correctly forwarded in the build/main container -- all six below exist in
+# src/methods_transcript_assignment/clustermap/config.vsh.yaml today, so no rebuild is needed.
+parameters:
+  clustermap:
+    # Baseline == the component's shipped defaults (the "default variant").
+    default:
+      window_size: 700
+      xy_radius: 40
+      z_radius: 0
+      fast_preprocess: false
+      gauss_blur: true
+      sigma: 1.0
+      pct_filter: 0.0
+      LOF: false
+      contamination: 0
+      min_spot_per_cell: 5
+      dapi_grid_interval: 5
+      cell_num_threshold: 0.1
+    sweep:
+      # ---- Tier 1: sharpest quality levers ----
+      # xy_radius: spot-neighbourhood radius in PIXELS (~1 um/px grid). Default 40 is large vs
+      # typical cell radii; straddle tighter and looser neighbourhoods.
+      xy_radius: [20, 30, 60]
+      # cell_num_threshold: DPC cell-count threshold, "larger -> more cells". DEVIATION (0.1 vs
+      # tool 0.01); 0.01 = tool default (fewer/larger cells), 0.2 = more/smaller cells.
+      cell_num_threshold: [0.01, 0.05, 0.2]
+      # dapi_grid_interval: density of injected DAPI points; smaller = denser/slower.
+      dapi_grid_interval: [3, 10]
+      # min_spot_per_cell: min transcripts to keep a cell; higher deletes small clusters.
+      min_spot_per_cell: [10, 20]
+      # ---- Tier 2: quality knobs / must-sweep deviations ----
+      # pct_filter: low-density spot removal. DEVIATION (0.0 removes nothing vs tool 0.1); walk up.
+      pct_filter: [0.05, 0.1]
+      # gauss_blur: DAPI blur before binarising. DEVIATION (True vs tool False); boolean -> the
+      # single non-default value is the tool default False.
+      gauss_blur: [false]

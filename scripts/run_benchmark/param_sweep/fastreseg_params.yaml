@@ -1,0 +1,65 @@
+# Parameter sweep for the fastreseg (FastReseg, R) transcript-assignment method.
+# Committed source of truth, read at runtime from GitHub via a raw URL by
+# run_test_fastreseg_nebius.sh (the Nebius compute env pulls the repo but cannot see the
+# launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total fastreseg variants = 1 default + sum(sweep list lengths) = 11.
+#
+# See src/methods_transcript_assignment/fastreseg/NOTES.md ("Optimization / tuning") for the
+# tiers and rationale.
+#
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# NEEDS REBUILD (unlike the other six sibling sweeps, this one is NOT submittable as-is):
+# these four knobs did NOT exist as Viash args until this change — they were HARDCODED inside
+# script.R's fastReseg_full_pipeline(...) call. Exposing them adds four `--...` args to
+# config.vsh.yaml + wires them through orchestrator.sh -> script.R. The `build/main` container
+# run by run_test_fastreseg_nebius.sh's `--revision build/main` will REJECT these args until
+# the component is rebuilt. Before launching you MUST:
+#   1. commit + push this file AND the config/orchestrator/script.R edits,
+#   2. `viash ns build` (regenerate target/) and rebuild the fastreseg container on ghcr
+#      with the build_main tag (see the check-component skill), then
+#   3. launch. Otherwise every fastreseg variant fails with an "unknown option" error.
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#
+# NON-DEFAULT AUDIT: every hardcoded value in script.R exactly matched FastReseg's TRUE package
+# default for fastReseg_full_pipeline() (pixel_size 0.18, zstep_size 0.8,
+# molecular_distance_cutoff 2.7, flagCell_lrtest_cutoff 5, svmClass_score_cutoff -2,
+# groupTranscripts_method "dbscan", spatialMergeCheck_method "leidenCut", cutoff_spatialMerge
+# 0.5, all NULL cutoffs). So NONE was a pre-tuned deviation demanding a sweep axis; the config
+# defaults below are set to those same package defaults and the sweep walks each knob AWAY from
+# its default in both directions.
+#
+# NOT SWEPT (documented in NOTES.md): pixel_size / zstep_size are Tier-0 dataset-physical
+# geometry constants (still hardcoded, not exposed); groupTranscripts_method /
+# spatialMergeCheck_method are Tier-2/3 categorical toggles (hardcoded). The four swept below
+# are the Tier-1 error-detection / correction levers.
+parameters:
+  fastreseg:
+    # Baseline == FastReseg's own package defaults (previously hardcoded in script.R).
+    default:
+      molecular_distance_cutoff: 2.7
+      flagCell_lrtest_cutoff: 5
+      svmClass_score_cutoff: -2
+      cutoff_spatialMerge: 0.5
+    sweep:
+      # ---- Tier 1: molecular neighborhood distance (SHARPEST lever) ----
+      # Max molecule-to-molecule distance (um) for grouping transcripts into candidate cells.
+      # Default 2.7; smaller => tighter/more fragmented groups, larger => looser groups that
+      # may merge neighbouring cells. Widest sweep (4 values straddling 2.7).
+      molecular_distance_cutoff: [1.5, 2.0, 3.5, 4.0]
+      # ---- Tier 1: cell-flagging aggressiveness ----
+      # lrtest_nlog10P cutoff to flag putative mis-segmented cells. Default 5; LOWER flags more
+      # cells for re-segmentation (aggressive correction), HIGHER is conservative.
+      flagCell_lrtest_cutoff: [3, 8]
+      # ---- Tier 1: transcript high/low-score class boundary (SVM) ----
+      # Transcript-score cutoff separating high vs low score classes. Default -2; straddle it.
+      svmClass_score_cutoff: [-3, -1]
+      # ---- Tier 1: spatial-merge constraint ----
+      # Fractional (0-1) spatial constraint for accepting a group-merge event. Default 0.5;
+      # lower is stricter (fewer merges), higher is more permissive.
+      cutoff_spatialMerge: [0.3, 0.7]

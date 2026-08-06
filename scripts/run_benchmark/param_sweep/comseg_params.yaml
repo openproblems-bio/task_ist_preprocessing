@@ -1,0 +1,74 @@
+# Parameter sweep for the comseg (ComSeg, Python/sopa) transcript-assignment method.
+# Committed source of truth, read at runtime from GitHub via a raw URL by
+# run_test_comseg_nebius.sh (the Nebius compute env pulls the repo but cannot see the
+# launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total comseg variants = 1 default + sum(sweep list lengths) = 13.
+#
+# See src/methods_transcript_assignment/comseg/NOTES.md ("Optimization / tuning") for the
+# tiers and rationale.
+#
+# WHAT COMSEG ACTUALLY VARIES HERE: comseg runs sopa's ComSeg wrapper, which hands a config
+# dict to the ComSeg point-cloud clustering algorithm (Defard et al., Comms Biol 2024). The
+# component exposes exactly six SCIENCE knobs of that dict (mean_cell_diameter, max_cell_radius,
+# alpha, min_rna_per_cell, norm_vector, allow_disconnected_polygon); the other config knobs
+# (patch_width/overlap/transcript_patch_width, n_workers, worker_memory_limit) are memory/perf
+# and resource knobs, and gene_column/transcripts_key/coordinate_system are structural, so none
+# of those is swept.
+#
+# NON-DEFAULT AUDIT (vs sopa's own _get_default_config, the tool baseline): TWO component
+# defaults deviate from the tool default and neither is a perf/resource knob, so each is FORCED
+# onto a sweep axis --
+#   * allow_disconnected_polygon: component TRUE vs sopa False -> sweep the flip (false).
+#   * min_rna_per_cell:           component 5    vs sopa 20    -> sweep walks 5 back toward 20.
+# The other four (mean_cell_diameter=15, max_cell_radius=25, alpha=0.5, norm_vector=false) sit at
+# or near sopa's defaults but are the algorithm's core science levers, so they are swept too.
+#
+# SUBMITTABLE-NOW: the Nebius launch runs `--revision build/main`, so the sweep touches ONLY
+# args already exposed in the build/main container -- all six knobs below already exist in
+# src/methods_transcript_assignment/comseg/config.vsh.yaml today, so NO rebuild is needed.
+# ComSeg's deeper clustering knobs (co-expression graph n_neighbors, k_nearest_neighbors,
+# leiden resolution, min_nb_rna_patch) are NOT plumbed through the component config dict at all
+# (ComSeg/sopa use their own defaults); exposing them would need a config arg + container
+# rebuild, so they are documented in NOTES.md as future work and NOT here.
+parameters:
+  comseg:
+    # Baseline == the component's shipped defaults (the six exposed ComSeg science knobs).
+    default:
+      mean_cell_diameter: 15.0
+      max_cell_radius: 25.0
+      alpha: 0.5
+      min_rna_per_cell: 5
+      norm_vector: false
+      allow_disconnected_polygon: true
+    sweep:
+      # ---- Tier 1: cell-size geometry (µm), the sharpest levers on what gets grouped ----
+      # mean_cell_diameter: expected mean cell diameter in µm; sets the graph scale ComSeg
+      # builds neighborhoods on. Shipped 15µm (a typical mammalian cell). Straddle smaller /
+      # larger tissue cells. (sopa's true default DERIVES this from the prior-segmentation
+      # areas; the component instead pins 15µm.)
+      mean_cell_diameter: [10.0, 20.0]
+      # max_cell_radius: max centroid->RNA distance (µm) for association; caps how far a cell
+      # can reach out to claim transcripts. Shipped 25µm; sopa's rule-of-thumb is
+      # mean_cell_diameter*1.75 (~26µm at 15µm), the ComSeg docs example uses 50µm. Walk from
+      # tighter (20) up toward the docs value (50).
+      max_cell_radius: [20.0, 37.5, 50.0]
+      # alpha: alphashape parameter (0..1) for the cell polygon; 1 == convex hull, lower ==
+      # tighter/more concave boundary hugging the points. Shipped 0.5. Sweep tighter, looser,
+      # and full convex hull.
+      alpha: [0.25, 0.75, 1.0]
+      # min_rna_per_cell: minimum transcripts for a cell to be kept. Shipped 5 (relaxed);
+      # sopa's default is 20. NON-DEFAULT AUDIT -> walk 5 back toward the sopa default 20
+      # (stricter = fewer, more confident cells).
+      min_rna_per_cell: [10, 20]
+      # norm_vector (bool): normalize the per-cell expression vectors before the co-expression
+      # graph / clustering. Shipped false (== sopa default). Boolean -> one flip.
+      norm_vector: [true]
+      # allow_disconnected_polygon (bool): allow a cell's boundary to be a multi-part polygon.
+      # Shipped true; sopa's default is false. NON-DEFAULT AUDIT -> sweep the flip (false).
+      allow_disconnected_polygon: [false]
