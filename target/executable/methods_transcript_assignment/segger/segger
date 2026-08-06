@@ -461,9 +461,9 @@ RUN pip uninstall -y opencv-python || true
 RUN pip install --no-cache-dir opencv-python-headless
 RUN sed -i '/^import torch$/a pl.from_torch = getattr(pl, "from_torch", lambda data, schema=None, **k: pl.from_numpy(data.detach().cpu().numpy(), schema=schema))' /opt/conda/lib/python3.12/site-packages/segger/data/writer.py
 LABEL org.opencontainers.image.description="Companion container for running component methods_transcript_assignment segger"
-LABEL org.opencontainers.image.created="2026-08-06T06:37:41Z"
+LABEL org.opencontainers.image.created="2026-08-06T08:24:25Z"
 LABEL org.opencontainers.image.source="https://github.com/dpeerlab/segger"
-LABEL org.opencontainers.image.revision="c7980341634d08078595b11f9e9bb98d12999864"
+LABEL org.opencontainers.image.revision="f7f601c40e0ce62c3786f65cd025359f13ced992"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1478,9 +1478,16 @@ else:
 # rounding is all that remains, and it's handled below. NOTE: this does NOT touch the separate
 # empty-\`bd\`-batch crash (a cell-free INTERIOR tile), which is intra-field, not OOB-driven, and
 # still needs the segger-encoder guard -- see NOTES.md.
+# NB: keep the \`|\` operators at the END of each line -- a continuation line must NOT start
+# with \`|\`. viash embeds this script into the Nextflow module as a Groovy string and runs it
+# through \`.stripMargin()\`, which treats a leading \`|\` as the margin delimiter and DELETES it.
+# A leading-\`|\` line like \`| (x_coords < 0) ...\` becomes \` (x_coords < 0) ...\`, so the previous
+# line's \`(...)\` and this line's \`(...)\` juxtapose into a call -> the Nextflow run dies with
+# \`TypeError: 'numpy.ndarray' object is not callable\` while \`viash test\`/\`viash run\` (the
+# executable target, no stripMargin) pass. Trailing operators sidestep it entirely.
 n_oob = int(np.count_nonzero(
-    (y_coords < 0) | (y_coords >= label_image.shape[0])
-    | (x_coords < 0) | (x_coords >= label_image.shape[1])
+    (y_coords < 0) | (y_coords >= label_image.shape[0]) |
+    (x_coords < 0) | (x_coords >= label_image.shape[1])
 ))
 y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
 x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)

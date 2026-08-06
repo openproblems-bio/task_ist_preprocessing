@@ -4073,7 +4073,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/proseg",
     "viash_version" : "0.9.7",
-    "git_commit" : "c7980341634d08078595b11f9e9bb98d12999864",
+    "git_commit" : "f7f601c40e0ce62c3786f65cd025359f13ced992",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

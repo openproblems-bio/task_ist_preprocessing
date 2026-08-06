@@ -4010,7 +4010,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_transcript_assignment/segger",
     "viash_version" : "0.9.7",
-    "git_commit" : "c7980341634d08078595b11f9e9bb98d12999864",
+    "git_commit" : "f7f601c40e0ce62c3786f65cd025359f13ced992",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4323,9 +4323,16 @@ else:
 # rounding is all that remains, and it's handled below. NOTE: this does NOT touch the separate
 # empty-\\`bd\\`-batch crash (a cell-free INTERIOR tile), which is intra-field, not OOB-driven, and
 # still needs the segger-encoder guard -- see NOTES.md.
+# NB: keep the \\`|\\` operators at the END of each line -- a continuation line must NOT start
+# with \\`|\\`. viash embeds this script into the Nextflow module as a Groovy string and runs it
+# through \\`.stripMargin()\\`, which treats a leading \\`|\\` as the margin delimiter and DELETES it.
+# A leading-\\`|\\` line like \\`| (x_coords < 0) ...\\` becomes \\` (x_coords < 0) ...\\`, so the previous
+# line's \\`(...)\\` and this line's \\`(...)\\` juxtapose into a call -> the Nextflow run dies with
+# \\`TypeError: 'numpy.ndarray' object is not callable\\` while \\`viash test\\`/\\`viash run\\` (the
+# executable target, no stripMargin) pass. Trailing operators sidestep it entirely.
 n_oob = int(np.count_nonzero(
-    (y_coords < 0) | (y_coords >= label_image.shape[0])
- (x_coords < 0) | (x_coords >= label_image.shape[1])
+    (y_coords < 0) | (y_coords >= label_image.shape[0]) |
+    (x_coords < 0) | (x_coords >= label_image.shape[1])
 ))
 y_coords = np.clip(y_coords, 0, label_image.shape[0] - 1)
 x_coords = np.clip(x_coords, 0, label_image.shape[1] - 1)
