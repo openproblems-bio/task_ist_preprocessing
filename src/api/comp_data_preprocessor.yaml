@@ -61,3 +61,14 @@ argument_groups:
         type: string
         description: The organism of the sample in the dataset.
         required: false
+  - name: Processing options
+    arguments:
+      - name: "--tissue_centered_crop"
+        type: boolean
+        default: false
+        description: |
+          When cropping an oversized image, centre the crop window on the transcript
+          density (median global x/y) instead of the image centre. Needed for huge
+          whole-section canvases where the tissue sits well off-centre (e.g. ABCA
+          whole-brain MERFISH), for which an image-centred window can miss the tissue
+          entirely. Default false keeps the historical image-centred crop.
