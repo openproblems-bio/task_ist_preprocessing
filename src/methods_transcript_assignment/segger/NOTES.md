@@ -218,6 +218,24 @@ Nextflow runner labels: `[hightime, midcpu, highmem, gpuh100]`.
 
 ## Risk points / gotchas
 
+- **Never start a continuation line in `script.py` with `|` — viash's Nextflow codegen
+  deletes it (Groovy `stripMargin`).** viash embeds `script.py` into the Nextflow module
+  (`target/nextflow/.../segger/main.nf`) as a Groovy string and runs it through
+  `.stripMargin()`, whose **default margin delimiter is `|`**: any line matching
+  `^\s*\|` has the leading whitespace **and the `|`** stripped. A wrapped boolean/bitwise
+  expression like
+  `n_oob = int(np.count_nonzero(\n    (y_coords < 0) | (y_coords >= H)\n    | (x_coords < 0) | (x_coords >= W)\n))`
+  becomes `... (y_coords >= H)\n (x_coords < 0) ...` in the generated module — the two
+  parenthesised groups then **juxtapose into a call**, so at run time Python raises
+  `TypeError: 'numpy.ndarray' object is not callable` (the caret points at the *first*
+  group, the "callable"). **This corrupts ONLY the `=nextflow=>` target**, so `viash test` /
+  `viash run` (the `=executable=>` target, no `stripMargin`) pass clean and the bug is
+  invisible until a Nextflow/Tower benchmark run. It also survives across builds: the
+  `build/main` executable can be correct while the `build/main` *nextflow module* is
+  corrupt. **Fix = put the operator at the END of the line** (`... (y_coords >= H) |` /
+  next line `(x_coords < 0) ...`) so no line begins with `|`; or keep it on one line.
+  Grep guard before committing: `grep -nE '^[[:space:]]*\|' script.py` must be empty.
+  (Diagnosed 2026-08-06: reproduced byte-for-byte, incl. the exact caret placement.)
 - **numba must use the NVIDIA (cuda-python) driver binding, or cudf/numba see 0 GPUs.**
   The load-bearing GPU fix: `run_segger` sets **`NUMBA_CUDA_USE_NVIDIA_BINDING=1`** for the
   subprocess. RAPIDS (cudf/cuml/cugraph) builds its CUDA context through the cuda-python
