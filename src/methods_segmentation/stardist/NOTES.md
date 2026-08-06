@@ -46,22 +46,33 @@ detector**: the script feeds it `image[0]` only (see Tier 0 below).
 3. **Load model** (`:59`) — `StarDist2D.from_pretrained(par['model'])`. Default
    `2D_versatile_fluo`. This also loads the model's optimized `thresholds.json`
    (prob=0.479071, nms=0.3 for that model) as the fallback thresholds.
-4. **Percentile normalizer** (`:64-79`) — a csbdeep `Normalizer` subclass that min-max
+4. **Percentile normalizer** (`:64-77`) — a csbdeep `Normalizer` subclass that min-max
    scales the image to its **1st / 99.8th percentiles** (`normalize_mi_ma`), the
    recommended StarDist preprocessing but with fixed percentile bounds. `block_size`
-   and `offset` (block overlap/context) are derived from the image width so a large
-   panel is processed in tiles.
+   and `context` are derived from the image width so a large panel is processed in
+   tiles; **`min_overlap` is derived from object size, not block size** (see step 6 and
+   the min_overlap gotcha below).
 5. **Build eval-params** (`:85-89`) — collects the newly exposed tunables
    (`prob_thresh, nms_thresh, scale`) from `par`, **dropping any that are `None`**.
    A dropped key ⇒ `predict_instances` uses the model's own optimized value (so the
    no-args call is byte-for-byte the pre-tuning behaviour). Mirrors the cellposev4
    eval-params pattern.
-6. **Segment** (`:92-95`) — `model.predict_instances_big(image[0], axes='YX',
+6. **Segment** (`:92-131`) — `model.predict_instances_big(image[0], axes='YX',
    block_size=…, min_overlap=…, context=…, normalizer=…, **eval_params)`.
    `predict_instances_big` splits the image into `block_size` blocks, calls
    `predict_instances` on each (forwarding `**eval_params` unchanged — it only
    overrides `axes/overlap_label/return_labels/return_predict`), and reassembles the
    labels into global coordinates. `image[0]` = first channel → a single 2D plane.
+   **The stitching invariant is that every predicted object is smaller than
+   `min_overlap`** (an object bigger than the overlap can span a block seam and can't be
+   uniquely assigned → `RuntimeError: ...violates the assumption of being smaller than
+   'min_overlap'`). So `min_overlap` is set from an **object-size** bound
+   (`max_object_diameter`, default **192 px**), *not* from `block_size` (the old
+   `block_size // 5.5` shrank it to 64 px on small panels while real blobs reached
+   ~110 px → crash). `block_size` is then grown if needed to satisfy
+   `min_overlap + 2*context < block_size`, and the call is wrapped in a **retry that
+   doubles `min_overlap` on that specific error** so a rare oversized blob self-heals
+   instead of failing the run.
 7. **Post-process** (`:100-104`) — `convert_to_lower_dtype` downcasts the label array
    to the smallest uint that holds `max label`; wrap as an `xarray.DataArray`,
    `Labels2DModel.parse` with the copied transform, store as
@@ -109,6 +120,7 @@ Base image `openproblems/base_tensorflow_nvidia:1` (GPU-capable TF). The pip pin
 | `--prob_thresh` | double | *(unset → model 0.479071)* | `predict_instances(prob_thresh=)` |
 | `--nms_thresh` | double | *(unset → model 0.3)* | `predict_instances(nms_thresh=)` |
 | `--scale` | double | *(unset → no rescale)* | `predict_instances(scale=)` |
+| `--max_object_diameter` | integer | *(unset → 192 px)* | `predict_instances_big(min_overlap=)` |
 
 `prob_thresh`, `nms_thresh`, `scale` were **added during tuning** (see below). They are
 **optional with no static default on purpose**: leaving them unset makes StarDist use
