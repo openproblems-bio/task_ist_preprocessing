@@ -3651,6 +3651,57 @@ meta = [
           "direction" : "output",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--method",
+          "description" : "TACCO annotation algorithm (tacco.tl.annotate `method`). Default OT = optimal transport, the paper's core model. Dependency-free alternatives in this image: nnls, projection.",
+          "default" : [
+            "OT"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--multi_center",
+          "description" : "Sub-centers (k-means sub-clusters) per annotation category, capturing within-type heterogeneity (tacco.tl.annotate `multi_center`). tacco default None (off); tutorials use ~10.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--platform_iterations",
+          "description" : "Platform-normalization iterations before annotation, correcting scRNAseq-vs-imaging platform effects (tacco.tl.annotate `platform_iterations`). tacco default None (off); 0 = one pass, >0 iterates.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--bisections",
+          "description" : "Recursive bisection rounds for TACCO's boosted annotation (tacco.tl.annotate `bisections`). tacco default None (off); tutorials use 4 with bisection_divisor=3.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--bisection_divisor",
+          "description" : "Fraction divisor for the bisection scheme; only used when --bisections > 0 (tacco default 3).",
+          "default" : [
+            3
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -3792,7 +3843,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/tacco",
     "viash_version" : "0.9.7",
-    "git_commit" : "4315efe821b6a4a8596a091caf3bef5c852d90c1",
+    "git_commit" : "9869204914adfd26f4dd1c655e874d2a7cb1d5ae",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3922,7 +3973,12 @@ par = {
   'input_transcript_assignments': $( if [ ! -z ${VIASH_PAR_INPUT_TRANSCRIPT_ASSIGNMENTS+x} ]; then echo "r'${VIASH_PAR_INPUT_TRANSCRIPT_ASSIGNMENTS//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'input_scrnaseq_reference': $( if [ ! -z ${VIASH_PAR_INPUT_SCRNASEQ_REFERENCE+x} ]; then echo "r'${VIASH_PAR_INPUT_SCRNASEQ_REFERENCE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'celltype_key': $( if [ ! -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then echo "r'${VIASH_PAR_CELLTYPE_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
+  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'method': $( if [ ! -z ${VIASH_PAR_METHOD+x} ]; then echo "r'${VIASH_PAR_METHOD//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'multi_center': $( if [ ! -z ${VIASH_PAR_MULTI_CENTER+x} ]; then echo "int(r'${VIASH_PAR_MULTI_CENTER//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'platform_iterations': $( if [ ! -z ${VIASH_PAR_PLATFORM_ITERATIONS+x} ]; then echo "int(r'${VIASH_PAR_PLATFORM_ITERATIONS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'bisections': $( if [ ! -z ${VIASH_PAR_BISECTIONS+x} ]; then echo "int(r'${VIASH_PAR_BISECTIONS//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'bisection_divisor': $( if [ ! -z ${VIASH_PAR_BISECTION_DIVISOR+x} ]; then echo "int(r'${VIASH_PAR_BISECTION_DIVISOR//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -3962,11 +4018,25 @@ adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
 adata_sp.X = adata_sp.layers['counts']
 adata_sc.X = adata_sc.layers['counts']
 
+# Forward the exposed TACCO knobs. Anything left at None is omitted so tacco falls
+# back to its own default (i.e. the unset sweep baseline == stock tacco.tl.annotate).
+annotate_kwargs = {"method": par["method"]}
+if par.get("multi_center") is not None:
+    annotate_kwargs["multi_center"] = par["multi_center"]
+if par.get("platform_iterations") is not None:
+    annotate_kwargs["platform_iterations"] = par["platform_iterations"]
+if par.get("bisections") is not None:
+    annotate_kwargs["bisections"] = par["bisections"]
+    # bisection_divisor only has an effect when bisections > 0
+    if par.get("bisection_divisor") is not None:
+        annotate_kwargs["bisection_divisor"] = par["bisection_divisor"]
+
 # Run tacco
 cell_type_assignment = tacco.tl.annotate(
     adata=adata_sp,
     reference=adata_sc,
-    annotation_key=par['celltype_key']
+    annotation_key=par['celltype_key'],
+    **annotate_kwargs,
 )
 
 # Tacco stores the cell type proportions in a n_obs x n_celltypes matrix, so we have to extract the celltype with highest consensus

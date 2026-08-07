@@ -449,9 +449,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "anndata" "numpy" "tacco"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation tacco"
-LABEL org.opencontainers.image.created="2026-08-06T23:23:30Z"
+LABEL org.opencontainers.image.created="2026-08-07T11:49:43Z"
 LABEL org.opencontainers.image.source="https://github.com/simonwm/tacco"
-LABEL org.opencontainers.image.revision="4315efe821b6a4a8596a091caf3bef5c852d90c1"
+LABEL org.opencontainers.image.revision="9869204914adfd26f4dd1c655e874d2a7cb1d5ae"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -606,6 +606,38 @@ function ViashHelp {
   echo "        This file contains the normalized counts of the spatial transcriptomics"
   echo "        data and cell type annotations."
   echo ""
+  echo "    --method"
+  echo "        type: string"
+  echo "        default: OT"
+  echo "        TACCO annotation algorithm (tacco.tl.annotate \`method\`). Default OT ="
+  echo "        optimal transport, the paper's core model. Dependency-free alternatives"
+  echo "        in this image: nnls, projection."
+  echo ""
+  echo "    --multi_center"
+  echo "        type: integer"
+  echo "        Sub-centers (k-means sub-clusters) per annotation category, capturing"
+  echo "        within-type heterogeneity (tacco.tl.annotate \`multi_center\`). tacco"
+  echo "        default None (off); tutorials use ~10."
+  echo ""
+  echo "    --platform_iterations"
+  echo "        type: integer"
+  echo "        Platform-normalization iterations before annotation, correcting"
+  echo "        scRNAseq-vs-imaging platform effects (tacco.tl.annotate"
+  echo "        \`platform_iterations\`). tacco default None (off); 0 = one pass, >0"
+  echo "        iterates."
+  echo ""
+  echo "    --bisections"
+  echo "        type: integer"
+  echo "        Recursive bisection rounds for TACCO's boosted annotation"
+  echo "        (tacco.tl.annotate \`bisections\`). tacco default None (off); tutorials"
+  echo "        use 4 with bisection_divisor=3."
+  echo ""
+  echo "    --bisection_divisor"
+  echo "        type: integer"
+  echo "        default: 3"
+  echo "        Fraction divisor for the bisection scheme; only used when --bisections >"
+  echo "        0 (tacco default 3)."
+  echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
   echo "        Number of CPUs to use"
@@ -709,6 +741,61 @@ while [[ $# -gt 0 ]]; do
         --output=*)
             [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output=*\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_OUTPUT=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --method)
+            [ -n "$VIASH_PAR_METHOD" ] && ViashError Bad arguments for option \'--method\': \'$VIASH_PAR_METHOD\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_METHOD="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --method. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --method=*)
+            [ -n "$VIASH_PAR_METHOD" ] && ViashError Bad arguments for option \'--method=*\': \'$VIASH_PAR_METHOD\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_METHOD=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --multi_center)
+            [ -n "$VIASH_PAR_MULTI_CENTER" ] && ViashError Bad arguments for option \'--multi_center\': \'$VIASH_PAR_MULTI_CENTER\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_MULTI_CENTER="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --multi_center. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --multi_center=*)
+            [ -n "$VIASH_PAR_MULTI_CENTER" ] && ViashError Bad arguments for option \'--multi_center=*\': \'$VIASH_PAR_MULTI_CENTER\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_MULTI_CENTER=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --platform_iterations)
+            [ -n "$VIASH_PAR_PLATFORM_ITERATIONS" ] && ViashError Bad arguments for option \'--platform_iterations\': \'$VIASH_PAR_PLATFORM_ITERATIONS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_PLATFORM_ITERATIONS="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --platform_iterations. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --platform_iterations=*)
+            [ -n "$VIASH_PAR_PLATFORM_ITERATIONS" ] && ViashError Bad arguments for option \'--platform_iterations=*\': \'$VIASH_PAR_PLATFORM_ITERATIONS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_PLATFORM_ITERATIONS=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --bisections)
+            [ -n "$VIASH_PAR_BISECTIONS" ] && ViashError Bad arguments for option \'--bisections\': \'$VIASH_PAR_BISECTIONS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_BISECTIONS="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --bisections. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --bisections=*)
+            [ -n "$VIASH_PAR_BISECTIONS" ] && ViashError Bad arguments for option \'--bisections=*\': \'$VIASH_PAR_BISECTIONS\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_BISECTIONS=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --bisection_divisor)
+            [ -n "$VIASH_PAR_BISECTION_DIVISOR" ] && ViashError Bad arguments for option \'--bisection_divisor\': \'$VIASH_PAR_BISECTION_DIVISOR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_BISECTION_DIVISOR="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --bisection_divisor. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --bisection_divisor=*)
+            [ -n "$VIASH_PAR_BISECTION_DIVISOR" ] && ViashError Bad arguments for option \'--bisection_divisor=*\': \'$VIASH_PAR_BISECTION_DIVISOR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_BISECTION_DIVISOR=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -920,6 +1007,12 @@ fi
 if [ -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then
   VIASH_PAR_CELLTYPE_KEY="cell_type"
 fi
+if [ -z ${VIASH_PAR_METHOD+x} ]; then
+  VIASH_PAR_METHOD="OT"
+fi
+if [ -z ${VIASH_PAR_BISECTION_DIVISOR+x} ]; then
+  VIASH_PAR_BISECTION_DIVISOR="3"
+fi
 
 # check whether required files exist
 if [ ! -z "$VIASH_PAR_INPUT_SPATIAL_NORMALIZED_COUNTS" ] && [ ! -e "$VIASH_PAR_INPUT_SPATIAL_NORMALIZED_COUNTS" ]; then
@@ -936,6 +1029,30 @@ if [ ! -z "$VIASH_PAR_INPUT_SCRNASEQ_REFERENCE" ] && [ ! -e "$VIASH_PAR_INPUT_SC
 fi
 
 # check whether parameters values are of the right type
+if [[ -n "$VIASH_PAR_MULTI_CENTER" ]]; then
+  if ! [[ "$VIASH_PAR_MULTI_CENTER" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--multi_center' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_PLATFORM_ITERATIONS" ]]; then
+  if ! [[ "$VIASH_PAR_PLATFORM_ITERATIONS" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--platform_iterations' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_BISECTIONS" ]]; then
+  if ! [[ "$VIASH_PAR_BISECTIONS" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--bisections' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_BISECTION_DIVISOR" ]]; then
+  if ! [[ "$VIASH_PAR_BISECTION_DIVISOR" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--bisection_divisor' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
 if [[ -n "$VIASH_META_CPUS" ]]; then
   if ! [[ "$VIASH_META_CPUS" =~ ^[-+]?[0-9]+$ ]]; then
     ViashError 'cpus' has to be an integer. Use "--help" to get more information on the parameters.
@@ -1123,7 +1240,12 @@ par = {
   'input_transcript_assignments': $( if [ ! -z ${VIASH_PAR_INPUT_TRANSCRIPT_ASSIGNMENTS+x} ]; then echo "r'${VIASH_PAR_INPUT_TRANSCRIPT_ASSIGNMENTS//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'input_scrnaseq_reference': $( if [ ! -z ${VIASH_PAR_INPUT_SCRNASEQ_REFERENCE+x} ]; then echo "r'${VIASH_PAR_INPUT_SCRNASEQ_REFERENCE//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'celltype_key': $( if [ ! -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then echo "r'${VIASH_PAR_CELLTYPE_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi )
+  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'method': $( if [ ! -z ${VIASH_PAR_METHOD+x} ]; then echo "r'${VIASH_PAR_METHOD//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'multi_center': $( if [ ! -z ${VIASH_PAR_MULTI_CENTER+x} ]; then echo "int(r'${VIASH_PAR_MULTI_CENTER//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'platform_iterations': $( if [ ! -z ${VIASH_PAR_PLATFORM_ITERATIONS+x} ]; then echo "int(r'${VIASH_PAR_PLATFORM_ITERATIONS//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'bisections': $( if [ ! -z ${VIASH_PAR_BISECTIONS+x} ]; then echo "int(r'${VIASH_PAR_BISECTIONS//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'bisection_divisor': $( if [ ! -z ${VIASH_PAR_BISECTION_DIVISOR+x} ]; then echo "int(r'${VIASH_PAR_BISECTION_DIVISOR//\'/\'\"\'\"r\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1163,11 +1285,25 @@ adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
 adata_sp.X = adata_sp.layers['counts']
 adata_sc.X = adata_sc.layers['counts']
 
+# Forward the exposed TACCO knobs. Anything left at None is omitted so tacco falls
+# back to its own default (i.e. the unset sweep baseline == stock tacco.tl.annotate).
+annotate_kwargs = {"method": par["method"]}
+if par.get("multi_center") is not None:
+    annotate_kwargs["multi_center"] = par["multi_center"]
+if par.get("platform_iterations") is not None:
+    annotate_kwargs["platform_iterations"] = par["platform_iterations"]
+if par.get("bisections") is not None:
+    annotate_kwargs["bisections"] = par["bisections"]
+    # bisection_divisor only has an effect when bisections > 0
+    if par.get("bisection_divisor") is not None:
+        annotate_kwargs["bisection_divisor"] = par["bisection_divisor"]
+
 # Run tacco
 cell_type_assignment = tacco.tl.annotate(
     adata=adata_sp,
     reference=adata_sc,
-    annotation_key=par['celltype_key']
+    annotation_key=par['celltype_key'],
+    **annotate_kwargs,
 )
 
 # Tacco stores the cell type proportions in a n_obs x n_celltypes matrix, so we have to extract the celltype with highest consensus

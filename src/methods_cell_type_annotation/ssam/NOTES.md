@@ -106,3 +106,25 @@ Until then they must NOT go in `ssam_params.yaml`:
   stay fixed even if exposed).
 - `no_ct_assigned_value` (`run_ssam` default `'None_sp'`) — label for unassigned cells;
   behavioural, not a quality dial.
+
+## Risk points / gotchas
+
+**`ZeroDivisionError` in `run_ssam` on datasets with < 20 cells (confirmed, upstream txsim
+bug).** txsim `preprocessing/_ctannotation.py::run_ssam` throttles a progress print with
+
+```python
+n_cell_ids = len(adata_st.obs['cell_id'])
+incr = n_cell_ids // 20          # == 0 when fewer than 20 cells reach annotation
+for cell_id in adata_st.obs['cell_id']:
+    if (count % incr) == 0:      # ZeroDivisionError: integer modulo by zero
+```
+
+When the spatial object entering annotation has fewer than 20 cells, `incr` floor-divides to
+0 and `count % 0` raises on the first loop iteration. `incr` gates **only** a progress
+`print` — it does not touch the annotation, so this is a pure robustness bug, independent of
+`um_per_pixel` (every ssam variant fails identically on a too-small dataset). Fix is a
+one-liner **in txsim** (not this repo): `incr = max(1, n_cell_ids // 20)`. Still unfixed on
+`theislab/txsim@dev` HEAD as of 2026-08-06 (container ran `dev@0f62644b`, v0.1.2). Deploying
+the fix requires patching txsim's `dev` and rebuilding the ssam container (`build_main`);
+no change to this component's `config.vsh.yaml`/`script.py` is needed. See the iteration log
+in the memory file for the sweep that surfaced it.
