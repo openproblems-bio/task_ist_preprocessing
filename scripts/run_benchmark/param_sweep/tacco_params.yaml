@@ -1,0 +1,52 @@
+# Parameter sweep for the tacco (TACCO, optimal-transport annotation transfer) cell-
+# type-annotation method. CPU method (midcpu/midmem).
+#
+# Committed source of truth for run_test_tacco_nebius.sh, read at runtime from GitHub
+# via a raw URL (the Nebius compute env pulls the repo but cannot see the launch host's
+# local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not a
+# full grid), so total tacco variants = 1 default + sum(sweep list lengths) = 13.
+#
+# See src/methods_cell_type_annotation/tacco/NOTES.md ("Optimization / tuning") for the
+# tiers, tacco defaults, and grounding (Mages et al., Nat Biotechnol 2023).
+#
+# !!! REQUIRES A REBUILD BEFORE IT CAN RUN !!!
+#   ALL of these knobs are NEWLY EXPOSED args (config.vsh.yaml + script.py) — the
+#   deployed build/main container does not have them yet. Merge to main + let CI
+#   rebuild the tacco container (verify with the check-component skill) BEFORE launching,
+#   or every non-default variant errors with "unknown option". The default variant
+#   reproduces stock tacco (method=OT, all other knobs off).
+parameters:
+  tacco:
+    # Baseline == stock tacco.tl.annotate: method=OT, and multi_center /
+    # platform_iterations / bisections all left unset (tacco default None = off).
+    default:
+      method: OT
+    sweep:
+      # ---- Tier 1: within-type heterogeneity (the paper's headline accuracy knob) ----
+      # multi_center k-means-splits each reference cell type into sub-centers, so the OT
+      # plan can match cells to within-type substates instead of one mean profile. tacco
+      # default None (off); tutorials use ~10. Values straddle a light split up to 20.
+      multi_center: [2, 5, 10, 20]
+      # ---- Tier 1: platform normalization (scRNAseq -> imaging transfer) ----
+      # platform_iterations corrects systematic gene-capture differences between the
+      # scRNAseq reference and the iST target before annotating — directly relevant here
+      # (dense sc panel vs sparse imaging panel). tacco default None (off); 0 = a single
+      # normalization pass, >0 iterates it.
+      platform_iterations: [0, 2, 3]
+      # ---- Tier 1/2: boosted (bisection) annotation ----
+      # bisections runs the annotator recursively, each round removing a reconstructed
+      # fraction of counts, to resolve mixed/low-count cells at extra compute cost. tacco
+      # default None (off); tutorials use 4 (with bisection_divisor=3, held at default).
+      bisections: [2, 3, 4]
+      # ---- Tier 1: annotation algorithm vs OT ----
+      # method picks the wrapper TACCO annotates with. OT (default) is the paper's core
+      # model; nnls (non-negative least squares) and projection are dependency-free
+      # baselines already installed in this image (RCTD/SingleR/tangram/novosparc/WOT
+      # need extra packages the container lacks, so they are NOT swept).
+      method: [nnls, projection]

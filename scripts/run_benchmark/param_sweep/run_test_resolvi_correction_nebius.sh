@@ -98,5 +98,5 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --compute-env 5hfmdCBxMRd4nHZaJKYEQZ \
   --params-file /tmp/params.yaml \
   --entry-name auto \
-  --config src/base/labels_nebius.config \
+  --config src/base/labels_nebius_test.config \
   --labels task_ist_preprocessing,test,resolvi_correction,gpu
