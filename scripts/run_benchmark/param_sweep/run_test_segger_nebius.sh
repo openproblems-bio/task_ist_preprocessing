@@ -3,7 +3,7 @@
 # Nebius test run: all default methods + segger at the transcript-assignment stage,
 # with a parameter sweep over segger's tuning knobs.
 # See src/methods_transcript_assignment/segger/NOTES.md ("Optimization / tuning").
-# segger is GPU-only: the `gpuh100` label in its config + src/base/labels_nebius.config
+# segger is GPU-only: the `gpuh100` label in its config + src/base/labels_nebius_test.config
 # (runAsUser:0 + /dev/shm volume) pin it to the GPU node group — no GPU-specific change is
 # needed here (same as the existing run_test_segger_nebius.sh).
 #
@@ -95,5 +95,5 @@ tw launch https://github.com/openproblems-bio/task_ist_preprocessing.git \
   --compute-env 5hfmdCBxMRd4nHZaJKYEQZ \
   --params-file /tmp/params.yaml \
   --entry-name auto \
-  --config src/base/labels_nebius.config \
+  --config src/base/labels_nebius_test.config \
   --labels task_ist_preprocessing,test,segger
