@@ -1,0 +1,27 @@
+# Parameter sweep for the stardist segmentation method - FOLLOW-UP (narrowed) sweep.
+#
+# AUTO-GENERATED - do not hand-edit; regenerate by rendering
+#   results/param_sweeps/Yaml_to_heatmap_cellposev4.qmd
+# from the sweep results in ~/projects/txsim_results/param_sweep_tests/segmentation/stardist
+#
+# Selection: the 3 parameter families that reach the Pareto front (max cells,
+# max negative marker purity) in the most datasets, tie-broken by how many datasets
+# they beat `default` in and then by Euclidean distance from `default`. Within each
+# family: every value on the front in >=1 dataset, plus the highest-distance value,
+# topped up by distance to 3 values where the family has that many.
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf): one "default" variant from `default:`,
+# plus one variant per value in each `sweep:` list, varying a SINGLE arg at a time.
+# Total stardist variants = 1 default + 7 swept values.
+parameters:
+  stardist:
+    default:
+      model: "2D_versatile_fluo"
+    sweep:
+      # on front in 2/3 datasets, beats default in 2; picked: 2.0 (on front), 0.5 (max distance), 0.75 (distance top-up)
+      scale: [0.5, 0.75, 2.0]
+      # on front in 1/3 datasets, beats default in 3; picked: 0.3 (on front), 0.7 (max distance), 0.6 (distance top-up)
+      prob_thresh: [0.3, 0.6, 0.7]
+      # on front in 1/3 datasets, beats default in 2; picked: 2D_paper_dsb2018 (front + max distance)
+      model: ["2D_paper_dsb2018"]

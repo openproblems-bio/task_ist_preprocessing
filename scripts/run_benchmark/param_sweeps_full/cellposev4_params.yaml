@@ -1,0 +1,32 @@
+# Parameter sweep for the cellposev4 segmentation method - FOLLOW-UP (narrowed) sweep.
+#
+# AUTO-GENERATED - do not hand-edit; regenerate by rendering
+#   results/param_sweeps/Yaml_to_heatmap_cellposev4.qmd
+# from the sweep results in ~/projects/txsim_results/param_sweep_tests/segmentation/cellpose4
+#
+# Selection: the 3 parameter families that reach the Pareto front (max cells,
+# max negative marker purity) in the most datasets, tie-broken by how many datasets
+# they beat `default` in and then by Euclidean distance from `default`. Within each
+# family: every value on the front in >=1 dataset, plus the highest-distance value,
+# topped up by distance to 3 values where the family has that many.
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf): one "default" variant from `default:`,
+# plus one variant per value in each `sweep:` list, varying a SINGLE arg at a time.
+# Total cellposev4 variants = 1 default + 10 swept values.
+parameters:
+  cellposev4:
+    default:
+      diameter: 30.0
+      flow_threshold: 0.0
+      cellprob_threshold: 0.0
+      niter: 10
+      min_size: -1
+      resample: false
+    sweep:
+      # on front in 3/3 datasets, beats default in 3; picked: -3.0 (on front), 1.0 (on front), -1.0 (on front), 3.0 (max distance)
+      cellprob_threshold: [-3.0, -1.0, 1.0, 3.0]
+      # on front in 3/3 datasets, beats default in 0; picked: 15.0 (front + max distance), 20.0 (on front), 60.0 (on front)
+      diameter: [15.0, 20.0, 60.0]
+      # on front in 1/3 datasets, beats default in 0; picked: 50 (front + max distance), 200 (distance top-up), 100 (distance top-up)
+      niter: [50, 100, 200]
