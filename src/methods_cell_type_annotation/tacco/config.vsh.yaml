@@ -10,6 +10,33 @@ links:
 references:
   doi: "10.1038/s41587-023-01657-3"
 
+# TACCO knobs forwarded to tacco.tl.annotate. All default to the tacco library's own
+# defaults, so an unset value reproduces stock behaviour (the default sweep variant).
+# See NOTES.md ("Optimization / tuning") for tiers, ranges and the grounding evidence.
+arguments:
+  - name: --method
+    type: string
+    required: false
+    default: "OT"
+    description: "TACCO annotation algorithm (tacco.tl.annotate `method`). Default OT = optimal transport, the paper's core model. Dependency-free alternatives in this image: nnls, projection."
+  - name: --multi_center
+    type: integer
+    required: false
+    description: "Sub-centers (k-means sub-clusters) per annotation category, capturing within-type heterogeneity (tacco.tl.annotate `multi_center`). tacco default None (off); tutorials use ~10."
+  - name: --platform_iterations
+    type: integer
+    required: false
+    description: "Platform-normalization iterations before annotation, correcting scRNAseq-vs-imaging platform effects (tacco.tl.annotate `platform_iterations`). tacco default None (off); 0 = one pass, >0 iterates."
+  - name: --bisections
+    type: integer
+    required: false
+    description: "Recursive bisection rounds for TACCO's boosted annotation (tacco.tl.annotate `bisections`). tacco default None (off); tutorials use 4 with bisection_divisor=3."
+  - name: --bisection_divisor
+    type: integer
+    required: false
+    default: 3
+    description: "Fraction divisor for the bisection scheme; only used when --bisections > 0 (tacco default 3)."
+
 resources:
   - type: python_script
     path: script.py

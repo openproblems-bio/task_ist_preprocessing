@@ -10,6 +10,11 @@ par = {
   'input_scrnaseq_reference': 'resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad',
   'output': 'spatial_with_celltypes.h5ad',
   'celltype_key': 'cell_type',
+  'method': 'OT',
+  'multi_center': None,
+  'platform_iterations': None,
+  'bisections': None,
+  'bisection_divisor': 3,
 }
 meta = {
   'name': 'tacco',
@@ -28,11 +33,25 @@ adata_sc = ad.read_h5ad(par['input_scrnaseq_reference'])
 adata_sp.X = adata_sp.layers['counts']
 adata_sc.X = adata_sc.layers['counts']
 
+# Forward the exposed TACCO knobs. Anything left at None is omitted so tacco falls
+# back to its own default (i.e. the unset sweep baseline == stock tacco.tl.annotate).
+annotate_kwargs = {"method": par["method"]}
+if par.get("multi_center") is not None:
+    annotate_kwargs["multi_center"] = par["multi_center"]
+if par.get("platform_iterations") is not None:
+    annotate_kwargs["platform_iterations"] = par["platform_iterations"]
+if par.get("bisections") is not None:
+    annotate_kwargs["bisections"] = par["bisections"]
+    # bisection_divisor only has an effect when bisections > 0
+    if par.get("bisection_divisor") is not None:
+        annotate_kwargs["bisection_divisor"] = par["bisection_divisor"]
+
 # Run tacco
 cell_type_assignment = tacco.tl.annotate(
     adata=adata_sp,
     reference=adata_sc,
-    annotation_key=par['celltype_key']
+    annotation_key=par['celltype_key'],
+    **annotate_kwargs,
 )
 
 # Tacco stores the cell type proportions in a n_obs x n_celltypes matrix, so we have to extract the celltype with highest consensus
