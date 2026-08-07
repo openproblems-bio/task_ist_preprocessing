@@ -257,7 +257,7 @@ build_info:
   output: "target/nextflow/methods_normalization/normalize_by_volume"
   executable: "target/nextflow/methods_normalization/normalize_by_volume/main.nf"
   viash_version: "0.9.7"
-  git_commit: "9869204914adfd26f4dd1c655e874d2a7cb1d5ae"
+  git_commit: "c211cc477b0676a7eb58e5e5776bd0d4c10a6d34"
   git_remote: "https://github.com/openproblems-bio/task_ist_preprocessing"
 package_config:
   name: "task_ist_preprocessing"
