@@ -9,7 +9,9 @@ par = {
     'input_spatial_normalized_counts': 'resources_test/task_ist_preprocessing/mouse_brain_combined/spatial_normalized_counts.h5ad',
     'input_scrnaseq_reference': 'resources_test/task_ist_preprocessing/mouse_brain_combined/scrnaseq_reference.h5ad',
     'celltype_key': 'cell_type',
-    "output": 'spatial_with_celltypes.h5ad'
+    "output": 'spatial_with_celltypes.h5ad',
+    'bootstrap_iteration': 1,
+    'bootstrap_factor': 1.0,
 }
 meta = { "temp_dir": './tmp/'}
 
@@ -78,10 +80,10 @@ command = [
     os.path.join(meta["temp_dir"], "extended_results.json"),
     "--flatten",
     "True",
-    "--type_assignment.bootstrap_iteration", 
-    "1",
+    "--type_assignment.bootstrap_iteration",
+    str(par['bootstrap_iteration']),
     "--type_assignment.bootstrap_factor",
-    "1.0"
+    str(par['bootstrap_factor']),
 ]
 
 subprocess.run(command)

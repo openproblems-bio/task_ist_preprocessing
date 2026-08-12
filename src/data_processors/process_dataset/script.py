@@ -447,6 +447,18 @@ if "cell_labels" not in sdata_output.labels and "cell_boundaries" in sdata_outpu
     print("No cell_labels found; rasterizing cell_boundaries -> cell_labels", flush=True)
     sdata_output["cell_labels"] = rasterize_boundaries_to_labels(sdata_output)
 
+# Normalize a single-scale image to a multiscale pyramid. Some loaders build the image with no
+# scale_factors (e.g. allen_brain_cell_atlas_merfish's DAPI image), giving a plain DataArray.
+# The segmentation methods and custom_segmentation index sdata['image']['scale0'], which only
+# exists on a multiscale DataTree, so a single-scale image raises KeyError: 'scale0'. Promote to
+# the scale0..scale4 pyramid (Xenium convention); parse() preserves the element's existing
+# transform, so don't also pass transformations=.
+from xarray import DataArray
+from spatialdata.models import Image2DModel
+if isinstance(sdata_output["image"], DataArray):
+    print("Single-scale image; promoting to multiscale pyramid (scale0..scale4)", flush=True)
+    sdata_output["image"] = Image2DModel.parse(sdata_output["image"], scale_factors=[2, 2, 2, 2])
+
 # Rechunk to uniform chunks before writing (NOTE: rechunking currently needed,
 # https://github.com/scverse/spatialdata/issues/929). Run unconditionally so
 # that uncropped datasets (e.g. 10x Atera, whose store has rectilinear chunk

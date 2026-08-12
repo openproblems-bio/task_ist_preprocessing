@@ -3651,6 +3651,30 @@ meta = [
           "direction" : "output",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--bootstrap_iteration",
+          "description" : "Number of bootstrap iterations for correlation type-assignment (cell_type_mapper\n`type_assignment.bootstrap_iteration`). 1 = no bootstrapping (single pass, fastest);\nthe tool default for bootstrapped mapping is 100. Only has an effect when\nbootstrap_factor < 1.0 (otherwise every iteration is identical).\n",
+          "default" : [
+            1
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--bootstrap_factor",
+          "description" : "Fraction of marker genes sampled in each bootstrap iteration (cell_type_mapper\n`type_assignment.bootstrap_factor`). 1.0 = use all markers every time (no\ndownsampling, so bootstrapping adds no variance); the tool default for bootstrapped\nmapping is 0.9.\n",
+          "default" : [
+            1.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -3814,7 +3838,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_cell_type_annotation/mapmycells",
     "viash_version" : "0.9.7",
-    "git_commit" : "c211cc477b0676a7eb58e5e5776bd0d4c10a6d34",
+    "git_commit" : "093f9d368a382051b7325b45b2d1a4d28c567cdd",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -3944,7 +3968,9 @@ par = {
   'input_transcript_assignments': $( if [ ! -z ${VIASH_PAR_INPUT_TRANSCRIPT_ASSIGNMENTS+x} ]; then echo "r'${VIASH_PAR_INPUT_TRANSCRIPT_ASSIGNMENTS//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'input_scrnaseq_reference': $( if [ ! -z ${VIASH_PAR_INPUT_SCRNASEQ_REFERENCE+x} ]; then echo "r'${VIASH_PAR_INPUT_SCRNASEQ_REFERENCE//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
   'celltype_key': $( if [ ! -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then echo "r'${VIASH_PAR_CELLTYPE_KEY//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
-  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi )
+  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
+  'bootstrap_iteration': $( if [ ! -z ${VIASH_PAR_BOOTSTRAP_ITERATION+x} ]; then echo "int(r'${VIASH_PAR_BOOTSTRAP_ITERATION//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi ),
+  'bootstrap_factor': $( if [ ! -z ${VIASH_PAR_BOOTSTRAP_FACTOR+x} ]; then echo "float(r'${VIASH_PAR_BOOTSTRAP_FACTOR//\\'/\\'\\"\\'\\"r\\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\\'/\\'\\"\\'\\"r\\'}'"; else echo None; fi ),
@@ -4035,10 +4061,10 @@ command = [
     os.path.join(meta["temp_dir"], "extended_results.json"),
     "--flatten",
     "True",
-    "--type_assignment.bootstrap_iteration", 
-    "1",
+    "--type_assignment.bootstrap_iteration",
+    str(par['bootstrap_iteration']),
     "--type_assignment.bootstrap_factor",
-    "1.0"
+    str(par['bootstrap_factor']),
 ]
 
 subprocess.run(command)

@@ -456,9 +456,9 @@ RUN pip install --upgrade pip && \
   pip install --upgrade --no-cache-dir "numpy" "git+https://github.com/AllenInstitute/cell_type_mapper.git"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation mapmycells"
-LABEL org.opencontainers.image.created="2026-08-07T14:17:00Z"
+LABEL org.opencontainers.image.created="2026-08-12T08:15:01Z"
 LABEL org.opencontainers.image.source="https://github.com/AllenInstitute/cell_type_mapper"
-LABEL org.opencontainers.image.revision="c211cc477b0676a7eb58e5e5776bd0d4c10a6d34"
+LABEL org.opencontainers.image.revision="093f9d368a382051b7325b45b2d1a4d28c567cdd"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -613,6 +613,28 @@ function ViashHelp {
   echo "        This file contains the normalized counts of the spatial transcriptomics"
   echo "        data and cell type annotations."
   echo ""
+  echo "    --bootstrap_iteration"
+  echo "        type: integer"
+  echo "        default: 1"
+  echo "        Number of bootstrap iterations for correlation type-assignment"
+  echo "        (cell_type_mapper"
+  echo "        \`type_assignment.bootstrap_iteration\`). 1 = no bootstrapping (single"
+  echo "        pass, fastest);"
+  echo "        the tool default for bootstrapped mapping is 100. Only has an effect"
+  echo "        when"
+  echo "        bootstrap_factor < 1.0 (otherwise every iteration is identical)."
+  echo ""
+  echo "    --bootstrap_factor"
+  echo "        type: double"
+  echo "        default: 1.0"
+  echo "        Fraction of marker genes sampled in each bootstrap iteration"
+  echo "        (cell_type_mapper"
+  echo "        \`type_assignment.bootstrap_factor\`). 1.0 = use all markers every time"
+  echo "        (no"
+  echo "        downsampling, so bootstrapping adds no variance); the tool default for"
+  echo "        bootstrapped"
+  echo "        mapping is 0.9."
+  echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
   echo "        Number of CPUs to use"
@@ -716,6 +738,28 @@ while [[ $# -gt 0 ]]; do
         --output=*)
             [ -n "$VIASH_PAR_OUTPUT" ] && ViashError Bad arguments for option \'--output=*\': \'$VIASH_PAR_OUTPUT\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
             VIASH_PAR_OUTPUT=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --bootstrap_iteration)
+            [ -n "$VIASH_PAR_BOOTSTRAP_ITERATION" ] && ViashError Bad arguments for option \'--bootstrap_iteration\': \'$VIASH_PAR_BOOTSTRAP_ITERATION\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_BOOTSTRAP_ITERATION="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --bootstrap_iteration. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --bootstrap_iteration=*)
+            [ -n "$VIASH_PAR_BOOTSTRAP_ITERATION" ] && ViashError Bad arguments for option \'--bootstrap_iteration=*\': \'$VIASH_PAR_BOOTSTRAP_ITERATION\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_BOOTSTRAP_ITERATION=$(ViashRemoveFlags "$1")
+            shift 1
+            ;;
+        --bootstrap_factor)
+            [ -n "$VIASH_PAR_BOOTSTRAP_FACTOR" ] && ViashError Bad arguments for option \'--bootstrap_factor\': \'$VIASH_PAR_BOOTSTRAP_FACTOR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_BOOTSTRAP_FACTOR="$2"
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --bootstrap_factor. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --bootstrap_factor=*)
+            [ -n "$VIASH_PAR_BOOTSTRAP_FACTOR" ] && ViashError Bad arguments for option \'--bootstrap_factor=*\': \'$VIASH_PAR_BOOTSTRAP_FACTOR\' \& \'$2\' - you should provide exactly one argument for this option. && exit 1
+            VIASH_PAR_BOOTSTRAP_FACTOR=$(ViashRemoveFlags "$1")
             shift 1
             ;;
         ---engine)
@@ -927,6 +971,12 @@ fi
 if [ -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then
   VIASH_PAR_CELLTYPE_KEY="cell_type"
 fi
+if [ -z ${VIASH_PAR_BOOTSTRAP_ITERATION+x} ]; then
+  VIASH_PAR_BOOTSTRAP_ITERATION="1"
+fi
+if [ -z ${VIASH_PAR_BOOTSTRAP_FACTOR+x} ]; then
+  VIASH_PAR_BOOTSTRAP_FACTOR="1.0"
+fi
 
 # check whether required files exist
 if [ ! -z "$VIASH_PAR_INPUT_SPATIAL_NORMALIZED_COUNTS" ] && [ ! -e "$VIASH_PAR_INPUT_SPATIAL_NORMALIZED_COUNTS" ]; then
@@ -943,6 +993,18 @@ if [ ! -z "$VIASH_PAR_INPUT_SCRNASEQ_REFERENCE" ] && [ ! -e "$VIASH_PAR_INPUT_SC
 fi
 
 # check whether parameters values are of the right type
+if [[ -n "$VIASH_PAR_BOOTSTRAP_ITERATION" ]]; then
+  if ! [[ "$VIASH_PAR_BOOTSTRAP_ITERATION" =~ ^[-+]?[0-9]+$ ]]; then
+    ViashError '--bootstrap_iteration' has to be an integer. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
+if [[ -n "$VIASH_PAR_BOOTSTRAP_FACTOR" ]]; then
+  if ! [[ "$VIASH_PAR_BOOTSTRAP_FACTOR" =~ ^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$ ]]; then
+    ViashError '--bootstrap_factor' has to be a double. Use "--help" to get more information on the parameters.
+    exit 1
+  fi
+fi
 if [[ -n "$VIASH_META_CPUS" ]]; then
   if ! [[ "$VIASH_META_CPUS" =~ ^[-+]?[0-9]+$ ]]; then
     ViashError 'cpus' has to be an integer. Use "--help" to get more information on the parameters.
@@ -1130,7 +1192,9 @@ par = {
   'input_transcript_assignments': $( if [ ! -z ${VIASH_PAR_INPUT_TRANSCRIPT_ASSIGNMENTS+x} ]; then echo "r'${VIASH_PAR_INPUT_TRANSCRIPT_ASSIGNMENTS//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'input_scrnaseq_reference': $( if [ ! -z ${VIASH_PAR_INPUT_SCRNASEQ_REFERENCE+x} ]; then echo "r'${VIASH_PAR_INPUT_SCRNASEQ_REFERENCE//\'/\'\"\'\"r\'}'"; else echo None; fi ),
   'celltype_key': $( if [ ! -z ${VIASH_PAR_CELLTYPE_KEY+x} ]; then echo "r'${VIASH_PAR_CELLTYPE_KEY//\'/\'\"\'\"r\'}'"; else echo None; fi ),
-  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi )
+  'output': $( if [ ! -z ${VIASH_PAR_OUTPUT+x} ]; then echo "r'${VIASH_PAR_OUTPUT//\'/\'\"\'\"r\'}'"; else echo None; fi ),
+  'bootstrap_iteration': $( if [ ! -z ${VIASH_PAR_BOOTSTRAP_ITERATION+x} ]; then echo "int(r'${VIASH_PAR_BOOTSTRAP_ITERATION//\'/\'\"\'\"r\'}')"; else echo None; fi ),
+  'bootstrap_factor': $( if [ ! -z ${VIASH_PAR_BOOTSTRAP_FACTOR+x} ]; then echo "float(r'${VIASH_PAR_BOOTSTRAP_FACTOR//\'/\'\"\'\"r\'}')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1221,10 +1285,10 @@ command = [
     os.path.join(meta["temp_dir"], "extended_results.json"),
     "--flatten",
     "True",
-    "--type_assignment.bootstrap_iteration", 
-    "1",
+    "--type_assignment.bootstrap_iteration",
+    str(par['bootstrap_iteration']),
     "--type_assignment.bootstrap_factor",
-    "1.0"
+    str(par['bootstrap_factor']),
 ]
 
 subprocess.run(command)

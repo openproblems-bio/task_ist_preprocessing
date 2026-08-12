@@ -1,0 +1,31 @@
+# Parameter sweep for the pciseq transcript assignment method - FOLLOW-UP (narrowed) sweep.
+#
+# AUTO-GENERATED - do not hand-edit; regenerate by rendering
+#   results/param_sweeps/Yaml_to_heatmap_transcript_assignment.qmd
+# from the sweep results in /Users/daria.romanovskaia/projects/txsim_results/param_sweep_tests/transcript_assignment/pciseq
+#
+# Selection: the 3 parameter families that reach the Pareto front (max cells,
+# max negative marker purity) in the most datasets, tie-broken by how many datasets
+# they beat `default` in and then by Euclidean distance from `default`. Within each
+# family: every value on the front in >=1 dataset, plus the highest-distance value,
+# topped up by distance to 3 values where the family has that many.
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf): one "default" variant from `default:`,
+# plus one variant per value in each `sweep:` list, varying a SINGLE arg at a time.
+# Total pciseq variants = 1 default + 8 swept values.
+parameters:
+  pciseq:
+    default:
+      InsideCellBonus: 2
+      MisreadDensity: 1e-05
+      nNeighbors: 3
+      Inefficiency: 0.2
+      rGene: 20
+    sweep:
+      # on front in 3/3 datasets, beats default in 2; picked: 0.001 (front + max distance), 1.0E-4 (on front), 1.0E-6 (distance top-up)
+      MisreadDensity: [1.0E-6, 1.0E-4, 0.001]
+      # on front in 2/3 datasets, beats default in 2; picked: 0 (front + max distance), 1 (on front), 6 (distance top-up)
+      InsideCellBonus: [0, 1, 6]
+      # on front in 1/3 datasets, beats default in 2; picked: 40 (front + max distance), 10 (distance top-up)
+      rGene: [10, 40]

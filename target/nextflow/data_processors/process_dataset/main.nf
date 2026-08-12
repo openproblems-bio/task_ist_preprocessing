@@ -4399,7 +4399,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/data_processors/process_dataset",
     "viash_version" : "0.9.7",
-    "git_commit" : "c211cc477b0676a7eb58e5e5776bd0d4c10a6d34",
+    "git_commit" : "093f9d368a382051b7325b45b2d1a4d28c567cdd",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4989,6 +4989,18 @@ else:
 if "cell_labels" not in sdata_output.labels and "cell_boundaries" in sdata_output.shapes:
     print("No cell_labels found; rasterizing cell_boundaries -> cell_labels", flush=True)
     sdata_output["cell_labels"] = rasterize_boundaries_to_labels(sdata_output)
+
+# Normalize a single-scale image to a multiscale pyramid. Some loaders build the image with no
+# scale_factors (e.g. allen_brain_cell_atlas_merfish's DAPI image), giving a plain DataArray.
+# The segmentation methods and custom_segmentation index sdata['image']['scale0'], which only
+# exists on a multiscale DataTree, so a single-scale image raises KeyError: 'scale0'. Promote to
+# the scale0..scale4 pyramid (Xenium convention); parse() preserves the element's existing
+# transform, so don't also pass transformations=.
+from xarray import DataArray
+from spatialdata.models import Image2DModel
+if isinstance(sdata_output["image"], DataArray):
+    print("Single-scale image; promoting to multiscale pyramid (scale0..scale4)", flush=True)
+    sdata_output["image"] = Image2DModel.parse(sdata_output["image"], scale_factors=[2, 2, 2, 2])
 
 # Rechunk to uniform chunks before writing (NOTE: rechunking currently needed,
 # https://github.com/scverse/spatialdata/issues/929). Run unconditionally so

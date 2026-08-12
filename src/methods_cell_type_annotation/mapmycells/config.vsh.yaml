@@ -9,8 +9,36 @@ references:
   doi: "10.1038/s41586-023-06812-z"
 
 __merge__: /src/api/comp_method_cell_type_annotation.yaml
-   
-  
+
+arguments:
+  # --- MapMyCells correlation-mapping bootstrap knobs (Allen cell_type_mapper) ---
+  # The mapper labels each query cell by correlating it to the reference cell-type
+  # profiles. With bootstrapping it repeats that assignment `bootstrap_iteration` times,
+  # each on a random `bootstrap_factor` fraction of the marker genes, and takes the
+  # majority vote -> more robust labels. The tool's bootstrapped default is (100, 0.9);
+  # this component shipped (1, 1.0) = NO bootstrapping (single deterministic pass), the
+  # fastest setting. See NOTES.md "Optimization / tuning".
+  - name: --bootstrap_iteration
+    required: false
+    direction: input
+    type: integer
+    default: 1
+    description: |
+      Number of bootstrap iterations for correlation type-assignment (cell_type_mapper
+      `type_assignment.bootstrap_iteration`). 1 = no bootstrapping (single pass, fastest);
+      the tool default for bootstrapped mapping is 100. Only has an effect when
+      bootstrap_factor < 1.0 (otherwise every iteration is identical).
+  - name: --bootstrap_factor
+    required: false
+    direction: input
+    type: double
+    default: 1.0
+    description: |
+      Fraction of marker genes sampled in each bootstrap iteration (cell_type_mapper
+      `type_assignment.bootstrap_factor`). 1.0 = use all markers every time (no
+      downsampling, so bootstrapping adds no variance); the tool default for bootstrapped
+      mapping is 0.9.
+
 resources:
   - type: python_script
     path: script.py

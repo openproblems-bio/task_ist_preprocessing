@@ -1,0 +1,34 @@
+# Parameter sweep for the mapmycells (Allen cell_type_mapper / MapMyCells) cell-type
+# annotation method. Committed source of truth for run_test_mapmycells_nebius.sh (read
+# from GitHub via a raw URL, since the Nebius compute env pulls the repo but cannot see
+# the launch host's local files).
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf). For every method the workflow builds:
+#   * one "default" variant using the `default:` args below, and
+#   * one extra variant per value in each `sweep:` list, with that ONE arg overridden.
+# The benchmark varies a SINGLE parameter at a time (a "star" around the default, not
+# a full grid), so total mapmycells variants = 1 default + sum(sweep list lengths) = 5.
+#
+# See src/methods_cell_type_annotation/mapmycells/NOTES.md ("Optimization / tuning") for
+# the rationale.
+#
+# ⚠️ bootstrap_iteration / bootstrap_factor were JUST ADDED to config.vsh.yaml, so the
+# build/main container must be rebuilt + pushed before this sweep runs (check-component).
+parameters:
+  mapmycells:
+    # Baseline (fast anchor). NB the SHIPPED component default is (1, 1.0) = no
+    # bootstrapping. Here bootstrap_factor is pinned to the tool default 0.9 (not 1.0)
+    # ON PURPOSE: with factor 1.0 every bootstrap iteration is identical, which would
+    # make the bootstrap_iteration sweep below inert. 0.9 makes the axis meaningful.
+    default:
+      bootstrap_iteration: 1
+      bootstrap_factor: 0.9
+    sweep:
+      # bootstrap_iteration: how many times each query cell is re-mapped on a random
+      # 90% (bootstrap_factor) subset of markers before the majority vote. 1 (the
+      # default variant above) = single pass; the Allen tool default for bootstrapped
+      # correlation mapping is 100. Walks the shipped speed-tuned value up toward the
+      # tool default. 1 is omitted here (covered by the default variant); 100 is the
+      # slowest / most-robust endpoint.
+      bootstrap_iteration: [10, 25, 50, 100]

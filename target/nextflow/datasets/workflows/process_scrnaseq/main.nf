@@ -3516,7 +3516,7 @@ meta = [
     "engine" : "native",
     "output" : "target/nextflow/datasets/workflows/process_scrnaseq",
     "viash_version" : "0.9.7",
-    "git_commit" : "c211cc477b0676a7eb58e5e5776bd0d4c10a6d34",
+    "git_commit" : "093f9d368a382051b7325b45b2d1a4d28c567cdd",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {

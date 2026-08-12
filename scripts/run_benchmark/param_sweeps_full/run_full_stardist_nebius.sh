@@ -28,10 +28,10 @@ set -e
 resources_s3=/scratch/task_ist_preprocessing/datasets
 publish_dir="/scratch/results/runs/$(date +%Y-%m-%d_%H-%M-%S)_stardist_full_sweep"
 
-# The sweep lives in a committed file, read from GitHub at runtime. $params_branch
-# defaults to the branch you are on; the file must be pushed there on GitHub.
+# The sweep lives in a committed file, read from GitHub at runtime from the `main`
+# branch; the file must be committed AND pushed to main on GitHub before launching.
 params_repo="openproblems-bio/task_ist_preprocessing"
-params_branch="$(git rev-parse --abbrev-ref HEAD)"
+params_branch="main"
 params_url="https://raw.githubusercontent.com/${params_repo}/${params_branch}/scripts/run_benchmark/param_sweeps_full/stardist_params.yaml"
 
 cat > /tmp/params_settings_stardist_full.yaml << HERE
