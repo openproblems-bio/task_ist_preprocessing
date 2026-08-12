@@ -1,0 +1,30 @@
+# Parameter sweep for the resolvi_correction expression correction method - FOLLOW-UP (narrowed) sweep.
+#
+# AUTO-GENERATED - do not hand-edit; regenerate by rendering
+#   results/param_sweeps/Yaml_to_heatmap_expression_correction.qmd
+# from the sweep results in /Users/daria.romanovskaia/projects/txsim_results/param_sweep_tests/expression_correction/resolvi_correction
+#
+# Selection: the 3 parameter families that reach the Pareto front (max per-cell-type
+# co-expression similarity, max negative marker purity) in the most datasets, tie-broken by
+# how many datasets they beat `default` in and then by Euclidean distance from `default`.
+# Within each family: every value on the front in >=1 dataset, plus the highest-distance
+# value, topped up by distance to 3 values where the family has that many.
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf): one "default" variant from `default:`,
+# plus one variant per value in each `sweep:` list, varying a SINGLE arg at a time.
+# Total resolvi_correction variants = 1 default + 4 swept values.
+parameters:
+  resolvi_correction:
+    default:
+      celltype_key: "cell_type"
+      n_hidden: 32
+      encode_covariates: false
+      downsample_counts: true
+    sweep:
+      # on front in 0/3 datasets, beats default in 3; picked: 128 (max distance), 64 (distance top-up)
+      n_hidden: [64, 128]
+      # on front in 0/3 datasets, beats default in 2; picked: false (max distance)
+      downsample_counts: [false]
+      # on front in 0/3 datasets, beats default in 1; picked: true (max distance)
+      encode_covariates: [true]

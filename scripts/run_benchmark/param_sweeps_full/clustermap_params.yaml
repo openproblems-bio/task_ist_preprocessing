@@ -1,0 +1,38 @@
+# Parameter sweep for the clustermap transcript assignment method - FOLLOW-UP (narrowed) sweep.
+#
+# AUTO-GENERATED - do not hand-edit; regenerate by rendering
+#   results/param_sweeps/Yaml_to_heatmap_transcript_assignment.qmd
+# from the sweep results in ~/projects/txsim_results/param_sweep_tests/transcript_assignment/clustermap
+#
+# Selection: the 3 parameter families that reach the Pareto front (max cells,
+# max negative marker purity) in the most datasets, tie-broken by how many datasets
+# they beat `default` in and then by Euclidean distance from `default`. Within each
+# family: every value on the front in >=1 dataset, plus the highest-distance value,
+# topped up by distance to 3 values where the family has that many.
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf): one "default" variant from `default:`,
+# plus one variant per value in each `sweep:` list, varying a SINGLE arg at a time.
+# Total clustermap variants = 1 default + 8 swept values.
+parameters:
+  clustermap:
+    default:
+      window_size: 700
+      xy_radius: 40
+      z_radius: 0
+      fast_preprocess: false
+      gauss_blur: true
+      sigma: 1.0
+      pct_filter: 0.0
+      LOF: false
+      contamination: 0
+      min_spot_per_cell: 5
+      dapi_grid_interval: 5
+      cell_num_threshold: 0.1
+    sweep:
+      # on front in 0/3 datasets, beats default in 2; picked: 60 (max distance), 30 (distance top-up), 20 (distance top-up)
+      xy_radius: [20, 30, 60]
+      # on front in 0/3 datasets, beats default in 2; picked: 0.01 (max distance), 0.05 (distance top-up), 0.2 (distance top-up)
+      cell_num_threshold: [0.01, 0.05, 0.2]
+      # on front in 0/3 datasets, beats default in 2; picked: 0.05 (max distance), 0.1 (distance top-up)
+      pct_filter: [0.05, 0.1]
