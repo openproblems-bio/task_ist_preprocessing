@@ -1,0 +1,32 @@
+# Parameter sweep for the moscot cell type annotation method - FOLLOW-UP (narrowed) sweep.
+#
+# AUTO-GENERATED - do not hand-edit; regenerate by rendering
+#   results/param_sweeps/Yaml_to_heatmap_cell_type_annotation.qmd
+# from the sweep results in /Users/daria.romanovskaia/projects/txsim_results/param_sweep_tests/cell_type_annotation/moscot
+#
+# Selection: the 3 parameter families that reach the Pareto front (max per-cell-type
+# co-expression similarity, max negative marker purity) in the most datasets, tie-broken by
+# how many datasets they beat `default` in and then by Euclidean distance from `default`.
+# Within each family: every value on the front in >=1 dataset, plus the highest-distance
+# value, topped up by distance to 3 values where the family has that many.
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf): one "default" variant from `default:`,
+# plus one variant per value in each `sweep:` list, varying a SINGLE arg at a time.
+# Total moscot variants = 1 default + 7 swept values.
+parameters:
+  moscot:
+    default:
+      alpha: 0.8
+      epsilon: 0.01
+      tau: 0.3
+      rank: 500
+      batch_size: 1024
+      mapping_mode: "max"
+    sweep:
+      # on front in 0/3 datasets, beats default in 2; picked: sum (max distance)
+      mapping_mode: ["sum"]
+      # on front in 0/3 datasets, beats default in 2; picked: 0.1 (max distance), 0.001 (distance top-up), 0.05 (distance top-up)
+      epsilon: [0.001, 0.05, 0.1]
+      # on front in 0/3 datasets, beats default in 1; picked: 0.5 (max distance), 0.7 (distance top-up), 0.9 (distance top-up)
+      alpha: [0.5, 0.7, 0.9]

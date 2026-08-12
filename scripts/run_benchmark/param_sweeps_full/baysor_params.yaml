@@ -1,0 +1,32 @@
+# Parameter sweep for the baysor transcript assignment method - FOLLOW-UP (narrowed) sweep.
+#
+# AUTO-GENERATED - do not hand-edit; regenerate by rendering
+#   results/param_sweeps/Yaml_to_heatmap_transcript_assignment.qmd
+# from the sweep results in ~/projects/txsim_results/param_sweep_tests/transcript_assignment/baysor
+#
+# Selection: the 3 parameter families that reach the Pareto front (max cells,
+# max negative marker purity) in the most datasets, tie-broken by how many datasets
+# they beat `default` in and then by Euclidean distance from `default`. Within each
+# family: every value on the front in >=1 dataset, plus the highest-distance value,
+# topped up by distance to 3 values where the family has that many.
+#
+# Consumed by the run_benchmark workflow via the `method_parameters_yaml` setting
+# (src/workflows/run_benchmark/main.nf): one "default" variant from `default:`,
+# plus one variant per value in each `sweep:` list, varying a SINGLE arg at a time.
+# Total baysor variants = 1 default + 6 swept values.
+parameters:
+  baysor:
+    default:
+      force_2d: true
+      min_molecules_per_cell: 50
+      scale: -1.0
+      scale_std: "25%"
+      n_clusters: 4
+      prior_segmentation_confidence: 0.8
+    sweep:
+      # on front in 2/3 datasets, beats default in 3; picked: 0.2 (front + max distance), 0.5 (distance top-up)
+      prior_segmentation_confidence: [0.2, 0.5]
+      # on front in 1/3 datasets, beats default in 3; picked: 10 (front + max distance), 25 (distance top-up)
+      min_molecules_per_cell: [10, 25]
+      # on front in 0/3 datasets, beats default in 1; picked: 8 (max distance), 6 (distance top-up)
+      n_clusters: [6, 8]
