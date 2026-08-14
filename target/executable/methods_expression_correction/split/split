@@ -459,9 +459,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("remotes", quietly = TR
 RUN Rscript -e 'remotes::install_github("bdsc-tds/SPLIT")'
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_expression_correction split"
-LABEL org.opencontainers.image.created="2026-08-14T09:33:10Z"
+LABEL org.opencontainers.image.created="2026-08-14T17:10:13Z"
 LABEL org.opencontainers.image.source="https://github.com/bdsc-tds/SPLIT"
-LABEL org.opencontainers.image.revision="03ac3a16649ba11356dbb50ec9e6faaa9c2456f1"
+LABEL org.opencontainers.image.revision="31019864680c27ed11c4a9dedc1a3231d8fdb080"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
