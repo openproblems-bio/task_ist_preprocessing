@@ -454,9 +454,9 @@ RUN Rscript -e 'options(warn = 2); if (!requireNamespace("BiocManager", quietly 
 RUN Rscript -e "options(timeout = 600000000); devtools::install_github('dmcable/spacexr', build_vignettes = FALSE)"
 
 LABEL org.opencontainers.image.description="Companion container for running component methods_cell_type_annotation rctd"
-LABEL org.opencontainers.image.created="2026-08-12T08:15:03Z"
+LABEL org.opencontainers.image.created="2026-08-14T09:33:10Z"
 LABEL org.opencontainers.image.source="https://github.com/dmcable/spacexr"
-LABEL org.opencontainers.image.revision="093f9d368a382051b7325b45b2d1a4d28c567cdd"
+LABEL org.opencontainers.image.revision="03ac3a16649ba11356dbb50ec9e6faaa9c2456f1"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

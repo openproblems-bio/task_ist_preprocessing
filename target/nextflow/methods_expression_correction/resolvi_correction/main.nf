@@ -3703,7 +3703,7 @@ meta = [
           "hightime",
           "highcpu",
           "highmem",
-          "gpu"
+          "gpuhighmem"
         ],
         "tag" : "$id"
       },
@@ -3772,7 +3772,7 @@ meta = [
     "engine" : "docker|native",
     "output" : "target/nextflow/methods_expression_correction/resolvi_correction",
     "viash_version" : "0.9.7",
-    "git_commit" : "093f9d368a382051b7325b45b2d1a4d28c567cdd",
+    "git_commit" : "03ac3a16649ba11356dbb50ec9e6faaa9c2456f1",
     "git_remote" : "https://github.com/openproblems-bio/task_ist_preprocessing"
   },
   "package_config" : {
@@ -4399,7 +4399,7 @@ meta["defaults"] = [
     "hightime",
     "highcpu",
     "highmem",
-    "gpu"
+    "gpuhighmem"
   ],
   "tag" : "$id"
 }'''),
