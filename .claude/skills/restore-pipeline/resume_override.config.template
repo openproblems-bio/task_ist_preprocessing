@@ -1,0 +1,37 @@
+// resume_override.config — OPTIONAL fail-fast retry/memory override for a resume.
+// Pass to restore_pipeline.sh with `--config`. CACHE-SAFE: Nextflow does not hash
+// resource/execution directives, so this only affects the re-running tail; the
+// resumed (Cached) tasks are untouched. Layered LAST, so it overrides
+// src/base/labels_nebius.config. Edit the numbers to taste before using.
+//
+// Two footguns in labels_nebius.config this file sidesteps:
+//   1. get_memory() returns maxMemory (480GB) whenever task.attempt == maxRetries,
+//      so a naive `maxRetries=1` forces 480GB on attempt 1. -> set maxMemory=null
+//      AND give each label a FLAT memory (no `* task.attempt`).
+//   2. exitStrat() hardcodes `attempt>=3 -> ignore`; with fewer retries it can
+//      return 'retry' with no retries left and HALT the workflow. -> override
+//      errorStrategy explicitly.
+process {
+  // 0-retry fail-fast: one attempt, on any failure skip the combo and continue.
+  // (A task that OOMs at flat memory is dropped, not escalated to 480GB. A few
+  //  method×dataset cells may be absent from the final scores — accepted tradeoff.)
+  errorStrategy = 'ignore'
+  maxRetries    = 0
+  maxMemory     = null
+
+  // Flat memory so nothing requests the 480 GiB node-filling amount.
+  withLabel: lowmem      { memory = 25.GB }
+  withLabel: midmem      { memory = 50.GB }
+  withLabel: highmem     { memory = 200.GB }
+  withLabel: veryhighmem { memory = 300.GB }   // base is 480 in labels_nebius.config
+
+  // Exception: give a metric you WANT to complete headroom + one retry, instead of
+  // 0-retry fail-fast. Starts at 200 GB (fits ~30 nodes) and only escalates to
+  // 400 GB on an OOM retry (503 GiB group) rather than a flat 400 that would make
+  // every task compete for the 10 big nodes. Adjust/remove as needed.
+  withName: '.*similarity.*' {
+    memory        = { [ 200.GB * task.attempt, 400.GB ].min() }
+    errorStrategy = { task.attempt > 1 ? 'ignore' : 'retry' }
+    maxRetries    = 1
+  }
+}
