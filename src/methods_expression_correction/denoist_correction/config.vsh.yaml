@@ -1,0 +1,78 @@
+__merge__: /src/api/comp_method_expression_correction.yaml
+
+name: denoist_correction
+label: "denoist_correction"
+summary: "Correct counts / remove contamination using the DenoIST methods"
+description: >-
+  DenoIST is a package for denoising image-based spatial transcriptomics data. It takes a IST count matrix and returns a adjusted count matrix with contamination removed.
+links:
+  documentation: "https://github.com/aaronkwc/DenoIST"
+  repository: "https://github.com/aaronkwc/DenoIST"
+references:
+  doi: "10.1101/2025.11.13.688387"
+
+arguments:
+  - name: --celltype_key
+    required: false
+    direction: input
+    type: string
+    default: cell_type
+
+  - name: --nbins
+    required: false
+    direction: input
+    type: integer
+    default: 200
+    description: Number of bins to use for hexagonal binning, which is used for calculating background transcript contamination
+
+  - name: --distance
+    required: false
+    direction: input
+    type: integer
+    default: 50
+    description: Maximum distance to consider for local background estimation
+
+  - name: --keep_all_cells
+    required: false
+    direction: input
+    type: boolean
+    default: false
+    description: Whether to keep cells with 0 counts (may cause errors if set to TRUE)
+
+
+resources:
+  - type: r_script
+    path: script.R
+
+engines:
+  - type: docker
+    image: openproblems/base_r:1
+    setup:
+      #- type: docker
+      #  run: |
+      #    apt-get update && apt-get install -y wget
+      - type: r
+        bioc: [anndataR, rhdf5, scuttle, devtools, DelayedMatrixStats]
+        cran: [arrow]
+      - type: r
+        bioc: [SummarizedExperiment,SingleCellExperiment,SpatialExperiment]
+        # bioc_force_install: true
+      - type: docker
+        run: |
+          Rscript -e "BiocManager::install('SingleCellExperiment', type = 'source', force = TRUE, ask = FALSE); devtools::install_github('aaronkwc/DenoIST')"
+
+      # SingleCellExperiment part can probably be left out again in the future. It currently fixes a bug described in these issues:
+      # https://github.com/drighelli/SpatialExperiment/issues/171
+      # https://github.com/satijalab/seurat/issues/9889
+      # The reinstall of SingleCellExperiment triggers the correct re-install of SpatialExperiment.
+
+      # DenoIST is not available for bioconductor 3.22, only 3.23 :/
+      # if bioconductor is updated, it should make things easier
+
+  - type: native
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ hightime, highcpu, highmem ]
